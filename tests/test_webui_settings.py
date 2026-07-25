@@ -4,6 +4,7 @@ import asyncio
 import base64
 import json
 import os
+import platform
 import struct
 import tempfile
 import threading
@@ -281,7 +282,12 @@ class WebUISettingsTests(unittest.TestCase):
         self.assertEqual(payload["latest_version"], "0.3.7")
         self.assertTrue(payload["update_available"])
         self.assertTrue(payload["updater_available"])
-        self.assertEqual(payload["updater_label"], "Update WebUI Portable.command")
+        expected_updater = (
+            "Update WebUI Portable.bat"
+            if platform.system().lower() == "windows"
+            else "Update WebUI Portable.command"
+        )
+        self.assertEqual(payload["updater_label"], expected_updater)
         self.assertIsNone(payload["post_update_onboarding"])
 
     def test_app_version_reports_portable_standard_app_transition_notice(self) -> None:
