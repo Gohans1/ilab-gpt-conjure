@@ -2526,6 +2526,7 @@ class WebUISettingsTests(unittest.TestCase):
 
             initial = client.get("/api/settings")
             changed_locale = client.patch("/api/settings", json={"locale": "zh-TW"})
+            normalized_locale = client.patch("/api/settings", json={"locale": "vi-VN"})
             changed_paths = client.patch(
                 "/api/settings",
                 json={
@@ -2543,10 +2544,12 @@ class WebUISettingsTests(unittest.TestCase):
         self.assertEqual(changed_locale.status_code, 200)
         self.assertFalse(changed_locale.json()["restart_required"])
         self.assertEqual(changed_locale.json()["settings"]["locale"], "zh-TW")
+        self.assertEqual(normalized_locale.status_code, 200)
+        self.assertEqual(normalized_locale.json()["settings"]["locale"], "vi")
         self.assertEqual(changed_paths.status_code, 200)
         self.assertTrue(changed_paths.json()["restart_required"])
-        self.assertEqual(changed_paths.json()["settings"]["locale"], "zh-TW")
-        self.assertEqual(persisted["locale"], "zh-TW")
+        self.assertEqual(changed_paths.json()["settings"]["locale"], "vi")
+        self.assertEqual(persisted["locale"], "vi")
         self.assertEqual(invalid_locale.status_code, 400)
     def test_color_palette_endpoint_defaults_and_persists_normalized_colors(self) -> None:
         from codex_image.webui.app import create_app

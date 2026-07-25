@@ -302,6 +302,7 @@ export const HI_DICTIONARY: TranslationDictionary = {
     "language.ru": "Русский",
     "language.it": "Italiano",
     "language.hi": "हिन्दी",
+    "language.vi": "Tiếng Việt",
     "auth.label": "प्रमाणीकरण स्रोत",
     "auth.checking": "प्रमाणीकरण की जाँच की जा रही है",
     "auth.missingCodexSession": "कोई Codex सत्र नहीं मिला",

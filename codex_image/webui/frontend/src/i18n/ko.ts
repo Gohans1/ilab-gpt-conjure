@@ -302,6 +302,7 @@ export const KO_DICTIONARY: TranslationDictionary = {
     "language.ru": "Русский",
     "language.it": "Italiano",
     "language.hi": "हिन्दी",
+    "language.vi": "Tiếng Việt",
     "auth.label": "인증 소스",
     "auth.checking": "인증 확인 중",
     "auth.missingCodexSession": "Codex 세션이 감지되지 않았습니다.",

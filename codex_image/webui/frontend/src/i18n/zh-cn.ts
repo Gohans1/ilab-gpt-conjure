@@ -312,6 +312,7 @@ export const ZH_CN_DICTIONARY: TranslationDictionary = {
     "language.ru": "Русский",
     "language.it": "Italiano",
     "language.hi": "हिन्दी",
+    "language.vi": "Tiếng Việt",
     "auth.label": "授权来源",
     "auth.checking": "授权检查中",
     "auth.missingCodexSession": "没有检测到 Codex 登录态",

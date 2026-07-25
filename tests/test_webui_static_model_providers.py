@@ -48,7 +48,7 @@ class WebUIStaticModelProviderTests(WebUIStaticTestCase):
         )
         locale_paths = sorted(Path("codex_image/webui/frontend/src/i18n").glob("*.ts"))
         locale_paths = [path for path in locale_paths if path.name not in {"types.ts", "dictionaries.ts"}]
-        self.assertEqual(13, len(locale_paths))
+        self.assertEqual(14, len(locale_paths))
         for path in locale_paths:
             source = path.read_text(encoding="utf-8")
             for key in required:

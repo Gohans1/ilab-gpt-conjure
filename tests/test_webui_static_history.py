@@ -221,7 +221,7 @@ class WebUIStaticHistoryTests(unittest.TestCase):
     def test_history_type_filter_is_translated_for_every_locale(self) -> None:
         locale_paths = sorted(Path("codex_image/webui/frontend/src/i18n").glob("*.ts"))
         dictionary_paths = [path for path in locale_paths if path.name not in {"dictionaries.ts", "types.ts"}]
-        self.assertEqual(len(dictionary_paths), 13)
+        self.assertEqual(len(dictionary_paths), 14)
         for path in dictionary_paths:
             source = path.read_text(encoding="utf-8")
             with self.subTest(locale=path.stem):
@@ -244,7 +244,7 @@ class WebUIStaticHistoryTests(unittest.TestCase):
         self.assertIn('class="history-filter-heading-icon"', html)
         self.assertIn('data-i18n-attr="aria-label:history.resizeFilters"', html)
         self.assertIn('data-i18n-attr="aria-label:history.resizeDetail"', html)
-        self.assertIn('/static/styles.css?v=runtime-640', html)
+        self.assertIn('/static/styles.css?v=runtime-641', html)
         self.assertRegex(styles, r"\.history-page\s*\{[^}]*height:\s*100dvh")
         self.assertRegex(styles, r"\.history-page\s*\{[^}]*overflow:\s*hidden")
         self.assertRegex(styles, r"\.history-page\s*\{[^}]*--history-sidebar-width:\s*280px")

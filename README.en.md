@@ -81,7 +81,7 @@ Download standard app packages and portable transition packages from
   composition, default ratio-locked transform, Shift free transform, local
   erasing, and real layer thumbnails.
 - System Settings language dropdown for Simplified Chinese, Traditional
-  Chinese, Japanese, Korean, English, Spanish, Portuguese, French, German,
+  Chinese, Japanese, Korean, English, Vietnamese, Spanish, Portuguese, French, German,
   Russian, Italian, and Hindi, with first-launch browser detection and a
   browser-local language preference.
 - Centered System Settings with API Settings, a discoverable Language tab, and

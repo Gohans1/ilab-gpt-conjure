@@ -302,6 +302,7 @@ export const JA_DICTIONARY: TranslationDictionary = {
     "language.ru": "Русский",
     "language.it": "Italiano",
     "language.hi": "हिन्दी",
+    "language.vi": "Tiếng Việt",
     "auth.label": "認証元",
     "auth.checking": "認証を確認しています",
     "auth.missingCodexSession": "Codex セッションが検出されませんでした",

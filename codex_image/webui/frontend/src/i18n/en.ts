@@ -312,6 +312,7 @@ export const EN_DICTIONARY: TranslationDictionary = {
     "language.ru": "Русский",
     "language.it": "Italiano",
     "language.hi": "हिन्दी",
+    "language.vi": "Tiếng Việt",
     "auth.label": "Auth source",
     "auth.checking": "Checking auth",
     "auth.missingCodexSession": "No Codex session detected",
