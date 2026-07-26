@@ -78,21 +78,20 @@ class ExecutionPlanImageClient:
     ) -> None:
         self._plan = plan
         self._uses_legacy_client_adapter = plan.binding.parameter_codec.startswith("gpt_")
-        if registry is None:
-            base_registry = default_registry()
-            protocol = (
-                _LegacyClientAdapter(client)
-                if self._uses_legacy_client_adapter
-                else base_registry.protocol(plan.binding.protocol_profile)
-            )
+        if self._uses_legacy_client_adapter:
+            base_registry = registry or default_registry()
             registry = ProviderRegistry(
-                protocols={plan.binding.protocol_profile: protocol},
+                protocols={
+                    plan.binding.protocol_profile: _LegacyClientAdapter(client)
+                },
                 codecs={
                     plan.binding.parameter_codec: base_registry.codec(
                         plan.binding.parameter_codec
                     )
                 },
             )
+        elif registry is None:
+            registry = default_registry()
         self._registry = registry
         self._service = GenerationService(None, registry)  # resolver is not used for a frozen plan
         self._condition = Condition()
