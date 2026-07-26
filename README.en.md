@@ -84,9 +84,11 @@ Download standard app packages and portable transition packages from
   Chinese, Japanese, Korean, English, Spanish, Portuguese, French, German,
   Russian, Italian, and Hindi, with first-launch browser detection and a
   browser-local language preference.
-- Centered System Settings with API Settings, a discoverable Language tab, and
-  Storage & Notifications tabs; Codex Image and Codex Responses are chosen in
-  the generation-page provider menu.
+- Centered System Settings with API Settings, Network, Language, and Storage &
+  Notifications tabs; Codex Image and Codex Responses are chosen in the
+  generation-page provider menu.
+- Explicit system, direct, or custom HTTP(S) network routing, persisted in the
+  app data directory and applied to later generation attempts without restart.
 - API provider cards for fast selection, read-only details by default, explicit
   editing, provider copy, delete confirmation, multi-provider sorting, and an
   optional emoji identity mark for each custom provider.
@@ -176,15 +178,15 @@ http://127.0.0.1:8787/
 ## App packages
 
 Download the current packages from [Downloads / Releases](RELEASES.md), or open
-[GitHub Release v0.7.0](https://github.com/kadevin/ilab-conjure/releases/tag/v0.7.0)
+[GitHub Release v0.7.1](https://github.com/kadevin/ilab-conjure/releases/tag/v0.7.1)
 directly.
 
 New users should choose the standard packages:
 
-1. macOS: download `iLab-GPT-CONJURE-macos-arm64-0.7.0.dmg`
-   for Apple Silicon or `iLab-GPT-CONJURE-macos-x64-0.7.0.dmg`
+1. macOS: download `iLab-GPT-CONJURE-macos-arm64-0.7.1.dmg`
+   for Apple Silicon or `iLab-GPT-CONJURE-macos-x64-0.7.1.dmg`
    for Intel, then drag `iLab GPT CONJURE.app` to Applications.
-2. Windows: download `iLab-GPT-CONJURE-windows-x64_0.7.0.zip`,
+2. Windows: download `iLab-GPT-CONJURE-windows-x64_0.7.1.zip`,
    extract it into a normal user directory, and run `iLab GPT CONJURE.exe`.
 
 Standard packages store user data in `~/Library/Application Support/iLab GPT
@@ -266,8 +268,8 @@ commit that already passed CI, the same workflow can also be run manually with
 1. Choose an authentication source from the top bar. `Codex` uses the default
    Image channel when local OAuth is available, and `API` is the recommended
    OpenAI-compatible mode for stable or shared use.
-2. Open System Settings to manage API provider cards, Codex Image/Responses
-   mode, interface language, storage paths, and notification preferences.
+2. Open System Settings to manage API provider cards, network routing,
+   interface language, storage paths, and notification preferences.
 3. Add reference images by upload, drag-and-drop, paste, recent uploads, or the
    public gallery.
 4. Write the prompt directly, insert gallery/color/snippet chips when useful,

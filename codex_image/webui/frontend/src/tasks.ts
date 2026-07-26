@@ -25,6 +25,7 @@ const markTaskViewed = (...args: any[]) => legacyMethod("markTaskViewed", ...arg
 const ensureSelectedTaskDetail = (...args: any[]) => legacyMethod("ensureSelectedTaskDetail", ...args);
 const TASK_SEARCH_HISTORY_LIMIT = 100;
 const TASK_SEARCH_HISTORY_DEBOUNCE_MS = 180;
+const TASK_SIDEBAR_GROUP_PAGE_SIZE = 50;
 let taskSearchHistoryTimerId = 0;
 
 function normalizedTaskSearchResultQuery(query: string): string {
@@ -33,16 +34,35 @@ function normalizedTaskSearchResultQuery(query: string): string {
 
 async function refreshTasks({ migrateLegacyArchives = false }: any = {}) {
   const requestSeq = ++state.tasksRequestSeq;
-  const response = await fetch("/api/tasks/recent?limit=50");
+  const response = await fetch("/api/tasks/sidebar?limit=50");
   const data = await response.json();
   if (requestSeq !== state.tasksRequestSeq) return;
-  await applyTasksSnapshot(data.tasks || [], { migrateLegacyArchives, requestSeq });
+  await applyTasksSnapshot(data.tasks || [], {
+    migrateLegacyArchives,
+    requestSeq,
+    taskGroups: data.task_groups,
+  });
 }
 
-async function applyTasksSnapshot(tasks: any, { migrateLegacyArchives = false, requestSeq = state.tasksRequestSeq }: any = {}) {
+async function applyTasksSnapshot(
+  tasks: any,
+  {
+    migrateLegacyArchives = false,
+    requestSeq = state.tasksRequestSeq,
+    taskGroups,
+  }: any = {},
+) {
   const previousLocalPendingTasks = state.tasks.filter((task: any) => task?.local_pending);
   const pendingTask = state.pendingTaskId ? state.tasks.find((task: any) => task.task_id === state.pendingTaskId) : null;
   state.tasks = Array.isArray(tasks) ? tasks : [];
+  if (Array.isArray(taskGroups)) {
+    state.taskSidebarGroupCounts = Object.fromEntries(
+      taskGroups.map((group: any) => [String(group?.key || ""), Math.max(0, Number(group?.count || 0))]),
+    );
+    state.taskSidebarGroupLoadedCounts = Object.fromEntries(
+      taskGroups.map((group: any) => [String(group?.key || ""), Array.isArray(group?.tasks) ? group.tasks.length : 0]),
+    );
+  }
   if (pendingTask?.local_pending && !state.tasks.some((task: any) => task.task_id === pendingTask.task_id)) {
     state.tasks.unshift(pendingTask);
   }
@@ -55,22 +75,67 @@ async function applyTasksSnapshot(tasks: any, { migrateLegacyArchives = false, r
     if (requestSeq !== state.tasksRequestSeq) return;
   }
   cleanupSessionSelections();
-  renderTasks();
+  renderTasks({ preserveScroll: true });
   renderArchiveButton();
   renderArchiveModal();
   await renderSelectedTaskPreview(requestSeq);
 }
 
+async function loadMoreSidebarTaskGroup(groupKey: any) {
+  const key = String(groupKey || "");
+  if (!key || state.taskSidebarGroupLoading) return;
+  const offset = Math.max(0, Number(state.taskSidebarGroupLoadedCounts?.[key] || 0));
+  state.taskSidebarGroupLoading = key;
+  state.tasksRenderKey = null;
+  renderTasks({ preserveScroll: true });
+  try {
+    const response = await fetch(
+      `/api/tasks/sidebar/groups/${encodeURIComponent(key)}?offset=${offset}&limit=${TASK_SIDEBAR_GROUP_PAGE_SIZE}`,
+    );
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data.detail || "Task group loading failed");
+    const incoming = Array.isArray(data.tasks) ? data.tasks : [];
+    const incomingById = new Map(incoming.map((task: any) => [String(task?.task_id || ""), task]));
+    state.tasks = state.tasks.map((task: any) => incomingById.get(String(task?.task_id || "")) || task);
+    const existingIds = new Set(state.tasks.map((task: any) => String(task?.task_id || "")));
+    incoming.forEach((task: any) => {
+      const taskId = String(task?.task_id || "");
+      if (!taskId || existingIds.has(taskId)) return;
+      state.tasks.push(task);
+      existingIds.add(taskId);
+    });
+    state.taskSidebarGroupCounts[key] = Math.max(0, Number(data.count || 0));
+    state.taskSidebarGroupLoadedCounts[key] = Math.max(offset, Number(data.next_offset || offset + incoming.length));
+  } finally {
+    state.taskSidebarGroupLoading = null;
+    state.tasksRenderKey = null;
+    renderTasks({ preserveScroll: true });
+  }
+}
+
+async function refreshTasksAfterDeletion() {
+  await refreshTasks();
+}
+
 async function applyTaskUpdate(task: any) {
+  const previousTask = state.tasks.find((item: any) => String(item?.task_id || "") === String(task?.task_id || ""));
+  const movedFromActiveToHistory = Boolean(
+    previousTask
+    && ["submitting", "queued", "running"].includes(String(previousTask.status || ""))
+    && !["submitting", "queued", "running"].includes(String(task?.status || "")),
+  );
   if (!updateTaskInState(task)) return;
   if (String(task.task_id) === String(state.selectedTaskId) && taskHasViewableUpdate(task)) {
     void markTaskViewed(task.task_id);
   }
   cleanupSessionSelections();
-  renderTasks();
+  renderTasks({ preserveScroll: true });
   renderArchiveButton();
   renderArchiveModal();
   await renderSelectedTaskPreview();
+  if (movedFromActiveToHistory) {
+    await refreshTasks();
+  }
 }
 
 function currentTaskSearchQuery(): string {
@@ -97,6 +162,7 @@ function historyTaskSummaryToSidebarTask(task: any) {
     created_at: String(task.created_at || ""),
     updated_at: String(task.updated_at || ""),
     completed_at: String(task.completed_at || ""),
+    terminal_at: String(task.terminal_at || task.completed_at || ""),
     status: String(task.status || ""),
     mode: String(task.mode || ""),
     prompt: String(task.prompt_preview || task.task_id || ""),
@@ -213,6 +279,8 @@ export function initTaskFeature() {
     refreshTasks,
     applyTasksSnapshot,
     applyTaskUpdate,
+    loadMoreSidebarTaskGroup,
+    refreshTasksAfterDeletion,
     syncTaskSearchHistoryResults,
   });
 }

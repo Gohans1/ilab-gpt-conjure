@@ -94,6 +94,7 @@ from .schemas import (
     DEFAULT_WEBUI_API_SETTINGS_PATH,
     DEFAULT_WEBUI_COLOR_SETTINGS_PATH,
     DEFAULT_WEBUI_GALLERY_SUBDIR,
+    DEFAULT_WEBUI_NETWORK_EGRESS_SETTINGS_PATH,
     DEFAULT_WEBUI_OUTPUT_ROOT,
     DEFAULT_WEBUI_PROMPT_SNIPPETS_PATH,
     DEFAULT_WEBUI_PROMPT_TEMPLATES_PATH,
@@ -102,6 +103,7 @@ from .schemas import (
     DEFAULT_WEBUI_SETTINGS_PATH,
     DEFAULT_WEBUI_SOURCE_DATA_SUBDIR,
 )
+from .network_egress import NetworkEgressManager, NetworkEgressSettings
 from .storage import GalleryStorage, QueueStorage, ReferenceAssetStorage, SQLiteQueueStorage, TaskStorage, _guess_mime_type, utc_now
 from .reference_files import ReferenceFileStorage
 from .settings_store import (
@@ -200,6 +202,7 @@ def create_app(
     batch_delay_seconds: float = 5.0,
     auth_settings_path: Path | str = DEFAULT_WEBUI_AUTH_SETTINGS_PATH,
     api_settings_path: Path | str = DEFAULT_WEBUI_API_SETTINGS_PATH,
+    network_egress_settings_path: Path | str = DEFAULT_WEBUI_NETWORK_EGRESS_SETTINGS_PATH,
     color_settings_path: Path | str = DEFAULT_WEBUI_COLOR_SETTINGS_PATH,
     prompt_snippets_path: Path | str = DEFAULT_WEBUI_PROMPT_SNIPPETS_PATH,
     prompt_templates_path: Path | str = DEFAULT_WEBUI_PROMPT_TEMPLATES_PATH,
@@ -221,7 +224,13 @@ def create_app(
         if source_data_root is not None
         else (output_path / DEFAULT_WEBUI_SOURCE_DATA_SUBDIR if custom_output else configured_paths["source_data_root"])
     )
-    storage = TaskStorage(output_path, input_root=input_path, source_data_root=source_data_path)
+    legacy_task_roots = [Path("output") / "webui", Path(output_root)]
+    storage = TaskStorage(
+        output_path,
+        input_root=input_path,
+        source_data_root=source_data_path,
+        legacy_task_roots=legacy_task_roots,
+    )
     _migrate_legacy_gallery_directory(gallery_path, [Path("output") / "webui-gallery"])
     gallery_storage = GalleryStorage(gallery_path)
     reference_asset_storage = ReferenceAssetStorage(reference_asset_path)
@@ -231,12 +240,14 @@ def create_app(
         if queue_path is not None
         else SQLiteQueueStorage(source_data_path / "webui.db", legacy_json_path=source_data_path / "webui-queue.json")
     )
-    _migrate_legacy_task_directories(storage, [Path("output") / "webui", Path(output_root)])
+    _migrate_legacy_task_directories(storage, legacy_task_roots)
     _prune_duplicate_request_payloads(storage)
     _prune_missing_queue_tasks(queue_storage, storage)
     _recover_queue_state(storage, queue_storage)
     auth_settings = AuthSettings(Path(auth_settings_path))
     api_settings = ApiSettings(Path(api_settings_path))
+    network_egress_settings = NetworkEgressSettings(Path(network_egress_settings_path))
+    network_egress_manager = NetworkEgressManager(network_egress_settings)
     color_settings = ColorPaletteSettings(Path(color_settings_path))
     prompt_snippet_settings = PromptSnippetSettings(Path(prompt_snippets_path))
     prompt_template_settings = PromptTemplateSettings(Path(prompt_templates_path))
@@ -255,6 +266,8 @@ def create_app(
         webui_settings=settings,
         auth_settings=auth_settings,
         api_settings=api_settings,
+        network_egress_settings=network_egress_settings,
+        network_egress_manager=network_egress_manager,
         color_settings=color_settings,
         prompt_snippet_settings=prompt_snippet_settings,
         prompt_template_settings=prompt_template_settings,

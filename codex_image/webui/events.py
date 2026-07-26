@@ -92,10 +92,17 @@ def queue_snapshot(ctx: WebUIContext) -> dict[str, Any]:
     }
 
 
-def _generation_page_tasks(ctx: WebUIContext, queue: dict[str, Any]) -> list[dict[str, Any]]:
-    tasks = ctx.storage.list_recent_task_cards(limit=GENERATION_PAGE_TASK_LIMIT)
+def generation_page_payload(
+    ctx: WebUIContext,
+    queue: dict[str, Any] | None = None,
+    *,
+    limit_per_group: int = GENERATION_PAGE_TASK_LIMIT,
+) -> dict[str, Any]:
+    current_queue = queue or queue_snapshot(ctx)
+    task_groups = ctx.storage.generation_sidebar_groups(limit_per_group=limit_per_group)["groups"]
+    tasks = [task for group in task_groups for task in group.get("tasks", [])]
     task_ids = {str(task.get("task_id") or "") for task in tasks}
-    for active_task in list(queue.get("waiting") or []) + list(queue.get("running") or []):
+    for active_task in list(current_queue.get("waiting") or []) + list(current_queue.get("running") or []):
         task_id = str(active_task.get("task_id") or "") if isinstance(active_task, dict) else ""
         if not task_id or task_id in task_ids:
             continue
@@ -105,14 +112,15 @@ def _generation_page_tasks(ctx: WebUIContext, queue: dict[str, Any]) -> list[dic
             continue
         tasks.append(task)
         task_ids.add(task_id)
-    return tasks
+    return {"tasks": tasks, "task_groups": task_groups}
 
 
 def event_snapshot(ctx: WebUIContext) -> dict[str, Any]:
     queue = queue_snapshot(ctx)
+    page = generation_page_payload(ctx, queue)
     return {
         "type": "snapshot",
-        "tasks": _generation_page_tasks(ctx, queue),
+        **page,
         "queue": queue,
         "gallery": [_gallery_item_response(item) for item in ctx.gallery_storage.list_items()],
         "auth": ctx.route_helpers["auth_event_payload"](),

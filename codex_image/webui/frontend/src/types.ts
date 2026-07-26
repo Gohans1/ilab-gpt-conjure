@@ -252,6 +252,7 @@ export interface WebUITask {
   started_at?: string;
   attempt_started_at?: string;
   completed_at?: string;
+  terminal_at?: string;
   mode?: TaskMode;
   status?: TaskStatus;
   prompt?: string;
@@ -272,6 +273,8 @@ export interface WebUITask {
   input_sources?: Array<Record<string, unknown>>;
   last_error?: string;
   error?: string;
+  cancel_requested?: boolean;
+  cancelled_at?: string;
   channel_id?: string;
   account_id?: string | null;
   requested_backend?: string;
@@ -306,6 +309,7 @@ export interface QueueState {
 export interface RealtimePayload {
   type?: "snapshot" | "queue" | "task";
   tasks?: WebUITask[];
+  task_groups?: Array<{ key: string; count: number; tasks?: WebUITask[] }>;
   queue?: QueueState;
   task?: WebUITask;
   gallery?: unknown[];

@@ -13,6 +13,20 @@ from codex_image.webui.storage import QueueStorage, SQLiteQueueStorage, TaskStor
 
 
 class WebUIRefactorContractTests(unittest.TestCase):
+    def test_network_ui_never_renders_proxy_credentials(self) -> None:
+        html = Path("codex_image/webui/static/index.html").read_text(encoding="utf-8")
+        source_path = Path(
+            "codex_image/webui/frontend/src/network-egress-settings.ts"
+        )
+
+        self.assertTrue(source_path.is_file())
+        source = source_path.read_text(encoding="utf-8")
+        self.assertIn('type="url"', html)
+        self.assertNotIn("innerHTML", source)
+        self.assertNotIn("proxy_map", source)
+        self.assertNotIn("resolved.proxy_url", source)
+        self.assertIn("textContent", source)
+
     def test_generation_and_provider_layers_have_dedicated_public_entries(self) -> None:
         from codex_image.generation.catalog import get_model_manifest
         from codex_image.generation.service import GenerationService
@@ -383,6 +397,10 @@ class WebUIRefactorContractTests(unittest.TestCase):
                 ("/api/api-settings", "PATCH"),
                 ("/api/tasks", "GET"),
                 ("/api/tasks/recent", "GET"),
+                ("/api/tasks/sidebar", "GET"),
+                ("/api/tasks/sidebar/groups/{group_key}", "GET"),
+                ("/api/tasks/sidebar/groups/{group_key}/selection", "GET"),
+                ("/api/tasks/delete-batch", "POST"),
                 ("/api/task-history/summary", "GET"),
                 ("/api/task-history/tasks", "GET"),
                 ("/api/tasks/{task_id}", "GET"),
@@ -393,6 +411,7 @@ class WebUIRefactorContractTests(unittest.TestCase):
                 ("/api/tasks/{task_id}/inputs/{input_index}/thumbnail", "GET"),
                 ("/api/tasks/{task_id}/reference-files/{file_index}/download", "GET"),
                 ("/api/tasks/{task_id}/outputs/{output_index}/thumbnail", "GET"),
+                ("/api/tasks/{task_id}/outputs/{output_index}/sidebar-thumbnail", "GET"),
                 ("/api/tasks/{task_id}/outputs/{output_index}/selected", "PATCH"),
                 ("/api/tasks/{task_id}/outputs/delete-unselected", "POST"),
                 ("/api/tasks/{task_id}/archive", "PATCH"),
@@ -400,6 +419,7 @@ class WebUIRefactorContractTests(unittest.TestCase):
                 ("/api/tasks/{task_id}/accept-successes", "POST"),
                 ("/api/queue", "GET"),
                 ("/api/queue/reorder", "PATCH"),
+                ("/api/queue/cancel-batch", "POST"),
                 ("/api/queue/{task_id}/promote", "POST"),
                 ("/api/queue/{task_id}", "DELETE"),
                 ("/api/events", "GET"),
@@ -420,6 +440,9 @@ class WebUIRefactorContractTests(unittest.TestCase):
                 ("/api/reference-assets/{asset_id}/image", "GET"),
                 ("/api/reference-files/recent", "GET"),
                 ("/api/generation-catalog", "GET"),
+                ("/api/network-egress", "GET"),
+                ("/api/network-egress", "PATCH"),
+                ("/api/network-egress/test", "POST"),
                 ("/api/generate", "POST"),
                 ("/api/edit", "POST"),
             }

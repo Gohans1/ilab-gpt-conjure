@@ -64,7 +64,8 @@ Images API 或 Responses API 形态。
 - 图像编辑器支持插入输入框里的其他图片、多图层组合、默认锁定比例变换、
   Shift 自由变换、局部擦除和真实图层缩略图。
 - 系统设置提供语言下拉菜单，支持简体中文、正體中文、繁体中文、日语、韩语、English、西班牙语、葡萄牙语、法语、德语、俄语、意大利语和印地语；首次启动自动跟随浏览器语言，手动选择后偏好保存在当前浏览器。
-- 系统设置整合 API 设置、语言 / Language、存储与通知三个 Tab；Codex Image / Codex Responses 直接在生成页供应商菜单中选择。
+- 系统设置整合 API 设置、网络、语言 / Language、存储与通知四个 Tab；Codex Image / Codex Responses 直接在生成页供应商菜单中选择。
+- 网络设置明确提供系统、直连和自定义 HTTP(S) 代理三种出口，保存在应用数据目录，并从后续生成尝试开始生效，无需重启。
 - API 供应商以卡片快速选择，默认只读详情，支持显式编辑、复制、删除确认和多供应商排序；自定义供应商可选一个 emoji 标识以便快速识别。
 - 标准 macOS DMG 和 Windows App ZIP 提供 Rust 托盘 / 菜单栏启动器、小兔子图标、系统语言跟随、原生关于窗口，并在首次启动时由用户确认复制旧 portable 数据。
 - 包含标准更新助手的 macOS App 支持用户确认后的一键覆盖：helper 校验 signed manifest 与 DMG SHA256，退出当前 App，带回滚保护地替换并重新启动；用户数据仍保存在应用包外。旧版 macOS App 需要手动引导升级一次，Windows 标准 ZIP 仍手动替换。
@@ -137,14 +138,14 @@ http://127.0.0.1:8787/
 ## 应用包下载
 
 当前可用的标准包和一键包见 [下载 / Releases](RELEASES.md)，也可以直接打开
-[GitHub Release v0.7.0](https://github.com/kadevin/ilab-conjure/releases/tag/v0.7.0)。
+[GitHub Release v0.7.1](https://github.com/kadevin/ilab-conjure/releases/tag/v0.7.1)。
 
 新用户建议优先下载标准包：
 
-1. macOS：Apple Silicon 下载 `iLab-GPT-CONJURE-macos-arm64-0.7.0.dmg`，
-   Intel 下载 `iLab-GPT-CONJURE-macos-x64-0.7.0.dmg`，然后把
+1. macOS：Apple Silicon 下载 `iLab-GPT-CONJURE-macos-arm64-0.7.1.dmg`，
+   Intel 下载 `iLab-GPT-CONJURE-macos-x64-0.7.1.dmg`，然后把
    `iLab GPT CONJURE.app` 拖到 Applications。
-2. Windows：下载 `iLab-GPT-CONJURE-windows-x64_0.7.0.zip`，
+2. Windows：下载 `iLab-GPT-CONJURE-windows-x64_0.7.1.zip`，
    解压到普通用户目录，双击 `iLab GPT CONJURE.exe`。
 
 标准包的用户数据会写入 macOS 的
@@ -210,7 +211,7 @@ GitHub Release。对于已经通过 CI 的 tag，也可以手动运行同一个 
 
 1. 在顶部选择认证来源。`Codex` 在本机 OAuth 可用时默认使用 Image 通道；
    稳定或共享使用建议选择 `API`，也就是 OpenAI-compatible API 模式。
-2. 打开系统设置维护 API 供应商卡片、Codex Image/Responses 通道、界面语言、存储目录和通知偏好。
+2. 打开系统设置维护 API 供应商卡片、网络出口、界面语言、存储目录和通知偏好。
 3. 添加参考图：支持上传、拖拽、粘贴、最近上传和公用图库。
 4. 编写提示词：可直接输入文本，也可插入图库、颜色和片段 chip，并选择原始、
    保真或创意提示词模式。

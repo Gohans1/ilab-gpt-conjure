@@ -6,7 +6,9 @@ import threading
 import tempfile
 import time
 import unittest
+from datetime import datetime
 from pathlib import Path
+from unittest.mock import patch
 
 from PIL import Image
 
@@ -18,6 +20,92 @@ def _png_bytes(size: tuple[int, int] = (400, 600)) -> bytes:
 
 
 class WebUIStorageTests(unittest.TestCase):
+    def test_legacy_terminal_task_uses_created_at_when_first_maintenance_write_sets_terminal_at(self) -> None:
+        from codex_image.webui.storage import TaskStorage
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            storage = TaskStorage(
+                input_root=root / "inputs",
+                output_root=root / "outputs",
+                source_data_root=root / "outputs" / "source-data",
+            )
+            task = storage.create_task("generate")
+            created_at = "2026-07-25T12:14:38+08:00"
+            maintenance_at = "2026-07-26T01:45:00+08:00"
+            legacy = {
+                "task_id": task.task_id,
+                "created_at": created_at,
+                "updated_at": maintenance_at,
+                "status": "completed",
+                "mode": "generate",
+                "prompt": "legacy partial cleanup",
+                "partial_failure_cleared_at": maintenance_at,
+                "params": {},
+            }
+            storage.metadata_path(task.task_id).write_text(
+                json.dumps(legacy),
+                encoding="utf-8",
+            )
+
+            storage.write_metadata(task.task_id, {**legacy, "viewed_at": maintenance_at})
+            stored = storage.read_metadata(task.task_id)
+
+        self.assertEqual(stored["terminal_at"], created_at)
+        self.assertEqual(stored["updated_at"], maintenance_at)
+
+    def test_generation_sidebar_groups_by_terminal_activity_with_bounded_rows_and_exact_counts(self) -> None:
+        from codex_image.webui.storage import TaskStorage
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            storage = TaskStorage(
+                input_root=root / "inputs",
+                output_root=root / "outputs",
+                source_data_root=root / "outputs" / "source-data",
+            )
+
+            tasks = [
+                ("today-newest", "2026-07-01T00:00:00+08:00", "2026-07-24T18:00:00+08:00", "completed", ""),
+                ("today-middle", "2026-07-23T23:00:00+08:00", "2026-07-24T12:00:00+08:00", "failed", ""),
+                ("today-oldest", "2026-07-24T11:00:00+08:00", "2026-07-24T09:00:00+08:00", "completed", ""),
+                ("yesterday", "2026-07-24T19:00:00+08:00", "2026-07-23T20:00:00+08:00", "partial_failed", ""),
+                ("last7", "2026-07-24T20:00:00+08:00", "2026-07-20T08:00:00+08:00", "cancelled", ""),
+                ("active", "2026-07-18T08:00:00+08:00", "2026-07-24T19:00:00+08:00", "queued", ""),
+                ("archived", "2026-07-24T08:00:00+08:00", "2026-07-24T19:30:00+08:00", "completed", "2026-07-24T19:45:00+08:00"),
+            ]
+            for task_id, created_at, terminal_at, status, archived_at in tasks:
+                metadata = {
+                    "task_id": task_id,
+                    "created_at": created_at,
+                    "updated_at": terminal_at,
+                    "status": status,
+                    "mode": "generate",
+                    "prompt": task_id,
+                    "params": {},
+                }
+                if status in {"completed", "partial_failed"}:
+                    metadata["completed_at"] = terminal_at
+                if archived_at:
+                    metadata["archived_at"] = archived_at
+                storage.write_metadata(task_id, metadata)
+
+            result = storage.generation_sidebar_groups(
+                limit_per_group=2,
+                now=datetime.fromisoformat("2026-07-24T20:00:00+08:00"),
+            )
+
+        groups = {group["key"]: group for group in result["groups"]}
+        self.assertEqual([group["key"] for group in result["groups"]], ["today", "yesterday", "last7"])
+        self.assertEqual(groups["today"]["count"], 3)
+        self.assertEqual([task["task_id"] for task in groups["today"]["tasks"]], ["today-newest", "today-middle"])
+        self.assertEqual(groups["yesterday"]["count"], 1)
+        self.assertEqual([task["task_id"] for task in groups["yesterday"]["tasks"]], ["yesterday"])
+        self.assertEqual(groups["last7"]["count"], 1)
+        self.assertEqual([task["task_id"] for task in groups["last7"]["tasks"]], ["last7"])
+        self.assertNotIn("active", {task["task_id"] for group in result["groups"] for task in group["tasks"]})
+        self.assertNotIn("archived", {task["task_id"] for group in result["groups"] for task in group["tasks"]})
+
     def test_creates_sharded_task_files_and_lists_newest_first(self) -> None:
         from codex_image.webui.storage import TaskStorage
 
@@ -351,6 +439,44 @@ class WebUIStorageTests(unittest.TestCase):
         self.assertFalse(artifact.exists())
         self.assertFalse(metadata_path.exists())
         self.assertFalse(metadata_path.exists())
+
+    def test_delete_task_keeps_metadata_and_index_when_source_cleanup_fails(self) -> None:
+        from codex_image.webui.storage import TaskStorage
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            storage = TaskStorage(
+                input_root=root / "inputs",
+                output_root=root / "outputs",
+                source_data_root=root / "outputs" / "source-data",
+            )
+            task = storage.create_task("generate")
+            metadata_path = storage.write_metadata(
+                task.task_id,
+                {
+                    "task_id": task.task_id,
+                    "created_at": "2026-07-26T01:00:00+00:00",
+                    "updated_at": "2026-07-26T01:01:00+00:00",
+                    "status": "completed",
+                },
+            )
+            request_path = storage.write_request(task.task_id, {"model": "gpt-image-2"})
+            original_unlink = Path.unlink
+
+            def fail_request_unlink(path: Path, *args: object, **kwargs: object) -> None:
+                if path == request_path:
+                    raise OSError("simulated request cleanup failure")
+                original_unlink(path, *args, **kwargs)
+
+            with patch.object(Path, "unlink", new=fail_request_unlink):
+                with self.assertRaisesRegex(OSError, "simulated request cleanup failure"):
+                    storage.delete_task(task.task_id)
+
+            metadata_exists = metadata_path.is_file()
+            indexed_task_ids = [item["task_id"] for item in storage.task_index.list_summaries()]
+
+        self.assertTrue(metadata_exists)
+        self.assertIn(task.task_id, indexed_task_ids)
 
     def test_queue_storage_persists_waiting_order_and_running_channels(self) -> None:
         from codex_image.webui.storage import QueueStorage

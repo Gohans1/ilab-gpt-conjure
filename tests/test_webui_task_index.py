@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from contextlib import closing
+from datetime import datetime
+import json
 from pathlib import Path
 import sqlite3
 from tempfile import TemporaryDirectory
@@ -10,6 +12,144 @@ from codex_image.webui.task_index import RATIO_OTHER_VALUE, SQLiteTaskIndex, _en
 
 
 class WebUITaskIndexTests(unittest.TestCase):
+    def test_sidebar_uses_stable_terminal_time_instead_of_maintenance_update_time(self) -> None:
+        with TemporaryDirectory() as tmp:
+            index = SQLiteTaskIndex(Path(tmp) / "tasks.db")
+            index.upsert(
+                {
+                    "task_id": "maintained-old-task",
+                    "created_at": "2026-07-25T12:14:38+08:00",
+                    "updated_at": "2026-07-26T02:58:15+08:00",
+                    "terminal_at": "2026-07-25T12:16:03+08:00",
+                    "status": "completed",
+                    "partial_failure_cleared_at": "2026-07-26T02:58:15+08:00",
+                }
+            )
+
+            result = index.generation_sidebar_groups(
+                now=datetime.fromisoformat("2026-07-26T09:00:00+08:00"),
+            )
+
+        groups = {group["key"]: group for group in result["groups"]}
+        self.assertEqual(groups["today"]["count"], 0)
+        self.assertEqual([task["task_id"] for task in groups["yesterday"]["tasks"]], ["maintained-old-task"])
+        self.assertEqual(groups["yesterday"]["tasks"][0]["terminal_at"], "2026-07-25T12:16:03+08:00")
+
+    def test_sidebar_legacy_terminal_task_without_completion_time_falls_back_to_created_time(self) -> None:
+        with TemporaryDirectory() as tmp:
+            index = SQLiteTaskIndex(Path(tmp) / "tasks.db")
+            index.upsert(
+                {
+                    "task_id": "legacy-maintained-task",
+                    "created_at": "2026-07-25T09:00:00+08:00",
+                    "updated_at": "2026-07-26T03:00:00+08:00",
+                    "status": "completed",
+                }
+            )
+
+            result = index.generation_sidebar_groups(
+                now=datetime.fromisoformat("2026-07-26T09:00:00+08:00"),
+            )
+
+        groups = {group["key"]: group for group in result["groups"]}
+        self.assertEqual(groups["today"]["count"], 0)
+        self.assertEqual([task["task_id"] for task in groups["yesterday"]["tasks"]], ["legacy-maintained-task"])
+
+    def test_sidebar_group_page_loads_beyond_initial_fifty_without_duplicates(self) -> None:
+        with TemporaryDirectory() as tmp:
+            index = SQLiteTaskIndex(Path(tmp) / "tasks.db")
+            for number in range(125):
+                minute = number // 60
+                second = number % 60
+                timestamp = f"2026-07-26T08:{minute:02d}:{second:02d}+08:00"
+                index.upsert(
+                    {
+                        "task_id": f"task-{number:03d}",
+                        "created_at": timestamp,
+                        "updated_at": timestamp,
+                        "terminal_at": timestamp,
+                        "status": "failed" if number % 2 else "completed",
+                        "params": {"ratio": "1:1", "orientation": "square"},
+                    }
+                )
+
+            query_now = datetime.fromisoformat("2026-07-26T09:00:00+08:00")
+            first = index.generation_sidebar_group("today", offset=0, limit=50, now=query_now)
+            second = index.generation_sidebar_group("today", offset=50, limit=50, now=query_now)
+            third = index.generation_sidebar_group("today", offset=100, limit=50, now=query_now)
+            failed_ids = index.generation_sidebar_group_task_ids("today", status="failed", now=query_now)
+
+        all_ids = [
+            task["task_id"]
+            for page in (first, second, third)
+            for task in page["tasks"]
+        ]
+        self.assertEqual([len(first["tasks"]), len(second["tasks"]), len(third["tasks"])], [50, 50, 25])
+        self.assertEqual(first["count"], 125)
+        self.assertTrue(first["has_more"])
+        self.assertFalse(third["has_more"])
+        self.assertEqual(len(all_ids), len(set(all_ids)))
+        self.assertEqual(len(failed_ids["task_ids"]), 62)
+        self.assertEqual(failed_ids["count"], 62)
+
+    def test_index_preserves_user_cancellation_marker(self) -> None:
+        with TemporaryDirectory() as tmp:
+            index = SQLiteTaskIndex(Path(tmp) / "tasks.db")
+            index.upsert(
+                {
+                    "task_id": "cancelled-task",
+                    "created_at": "2026-07-24T20:00:00+08:00",
+                    "status": "failed",
+                    "cancel_requested": True,
+                    "cancelled_at": "2026-07-24T20:01:00+08:00",
+                    "error": "Task cancelled by user.",
+                }
+            )
+
+            summary = index.list_summaries()[0]
+
+        self.assertTrue(summary["cancel_requested"])
+        self.assertEqual(summary["cancelled_at"], "2026-07-24T20:01:00+08:00")
+
+    def test_sidebar_activity_migration_preserves_structured_completed_at_from_legacy_summary(self) -> None:
+        with TemporaryDirectory() as tmp:
+            path = Path(tmp) / "tasks.db"
+            index = SQLiteTaskIndex(path)
+            completed_at = "2026-07-24T18:30:00+08:00"
+            index.upsert(
+                {
+                    "task_id": "legacy-completed",
+                    "created_at": "2026-07-01T08:00:00+08:00",
+                    "updated_at": "2026-07-24T19:30:00+08:00",
+                    "completed_at": completed_at,
+                    "status": "completed",
+                    "prompt": "legacy completed",
+                }
+            )
+            with closing(sqlite3.connect(path)) as connection:
+                row = connection.execute(
+                    "select summary_json from task_index where task_id = ?",
+                    ("legacy-completed",),
+                ).fetchone()
+                summary = json.loads(str(row[0]))
+                summary.pop("completed_at", None)
+                connection.execute(
+                    """
+                    update task_index
+                    set summary_json = ?, activity_at = '', schema_version = 7
+                    where task_id = ?
+                    """,
+                    (json.dumps(summary), "legacy-completed"),
+                )
+                connection.commit()
+
+            migrated = SQLiteTaskIndex(path)
+            result = migrated.generation_sidebar_groups(
+                now=datetime.fromisoformat("2026-07-24T20:00:00+08:00"),
+            )
+
+        task = result["groups"][0]["tasks"][0]
+        self.assertEqual(task["completed_at"], completed_at)
     def test_index_derives_gpt_card_canvas_fields_from_frozen_size(self) -> None:
         with TemporaryDirectory() as tmp:
             index = SQLiteTaskIndex(Path(tmp) / "tasks.db")

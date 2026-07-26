@@ -6,10 +6,10 @@ let systemSettingsHeightAnimationToken = 0;
 let systemSettingsHeightAnimationTimer: number | undefined;
 let systemSettingsReturnFocus: HTMLElement | null = null;
 
-type SystemSettingsTab = "api" | "language" | "storage";
+type SystemSettingsTab = "api" | "network" | "language" | "storage";
 
 const MIN_SYSTEM_SETTINGS_MODAL_EDGE = 30;
-const VALID_TABS = new Set<SystemSettingsTab>(["api", "language", "storage"]);
+const VALID_TABS = new Set<SystemSettingsTab>(["api", "network", "language", "storage"]);
 
 function normalizedTab(tab: any): SystemSettingsTab {
   if (tab === "codex") return "api";
@@ -109,6 +109,7 @@ export function setSystemSettingsTab(tab: any, options: { refresh?: boolean } = 
   });
   [
     ["api", els.systemSettingsApiPanel],
+    ["network", els.systemSettingsNetworkPanel],
     ["language", els.systemSettingsLanguagePanel],
     ["storage", els.systemSettingsStoragePanel],
   ].forEach(([name, panel]: any[]) => {
@@ -119,6 +120,7 @@ export function setSystemSettingsTab(tab: any, options: { refresh?: boolean } = 
   });
   if (options.refresh === false) return;
   if (selected === "storage") maybeCall("refreshSettings");
+  if (selected === "network") maybeCall("refreshNetworkEgress");
   if (selected === "api") {
     maybeCall("setApiSettingsFeedback", "", "");
     maybeCall("populateApiSettingsForm");

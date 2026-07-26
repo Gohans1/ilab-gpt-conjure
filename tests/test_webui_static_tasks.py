@@ -17,7 +17,7 @@ class WebUIStaticTaskTests(WebUIStaticTestCase):
         i18n_source = self._i18n_dictionary_source()
         sidebar_styles = Path("codex_image/webui/static/styles/10-sidebar.css").read_text(encoding="utf-8")
 
-        self.assertIn('fetch("/api/tasks/recent?limit=50")', tasks_source)
+        self.assertIn('fetch("/api/tasks/sidebar?limit=50")', tasks_source)
         self.assertNotIn('fetch("/api/tasks")', tasks_source)
         self.assertNotIn('["older", translate("taskGroup.older")]', render_source)
         self.assertIn("historyLibraryGroup", render_source)
@@ -131,7 +131,9 @@ class WebUIStaticTaskTests(WebUIStaticTestCase):
         self.assertIn("function setExpandedTaskGroupKey(", anchor_source)
         self.assertIn("TASK_HISTORY_ALL_COLLAPSED_SENTINEL", anchor_source)
         self.assertIn("function syncTaskHistoryAnchorInset()", anchor_source)
-        self.assertIn("new ResizeObserver(() => syncTaskHistoryAnchorInset())", anchor_source)
+        self.assertIn("new ResizeObserver(() => {", anchor_source)
+        self.assertIn("syncTaskHistoryAnchorInset();", anchor_source)
+        self.assertIn("scheduleLatestTaskNavigationRefresh();", anchor_source)
         self.assertIn("function scrollExpandedTaskGroupToTop(", anchor_source)
         self.assertIn("function renderTaskHistoryAnchors(", anchor_source)
         self.assertIn("state.expandedTaskGroupAnimationPending = true", anchor_source)
@@ -191,6 +193,7 @@ class WebUIStaticTaskTests(WebUIStaticTestCase):
     def test_active_task_group_renders_running_and_waiting_sections(self) -> None:
         render_source = self._task_list_render_source()
         bootstrap_source = self._bootstrap_source()
+        zh_cn_source = Path("codex_image/webui/frontend/src/i18n/zh-cn.ts").read_text(encoding="utf-8")
 
         self.assertIn("function activeTaskGroupHtml", render_source)
         self.assertIn("function activeTaskGroup(tasks", render_source)
@@ -203,6 +206,9 @@ class WebUIStaticTaskTests(WebUIStaticTestCase):
         self.assertIn('class="task-active-section task-active-section-waiting"', render_source)
         self.assertIn('data-active-task-section="running"', render_source)
         self.assertIn('data-active-task-section="waiting"', render_source)
+        self.assertIn('label: translate("sidebar.activeTasks")', render_source)
+        self.assertIn('"sidebar.activeTasks": "活动任务"', zh_cn_source)
+        self.assertIn('"taskGroup.running": "运行中"', zh_cn_source)
         self.assertIn('data-active-task-group-toggle="true"', render_source)
         self.assertIn('activeTaskGroupCollapsed: Boolean(state.activeTaskGroupCollapsed)', render_source)
         self.assertIn('state.activeTaskGroupCollapsed = !state.activeTaskGroupCollapsed', self._task_list_controls_source())
@@ -217,6 +223,21 @@ class WebUIStaticTaskTests(WebUIStaticTestCase):
         self.assertIn("revealActiveTaskGroup", render_source)
         self.assertIn('revealActiveTaskGroup: proxy("revealActiveTaskGroup")', bootstrap_source)
         self.assertIn('isQueueDispatchPending: proxy("isQueueDispatchPending")', bootstrap_source)
+        self.assertRegex(styles, r"\.task-active-list\s*\{[^}]*border-bottom:\s*1px solid var\(--panel-border\)")
+        self.assertRegex(
+            styles,
+            r"\.task-active-list\s*>\s*\.task-group-expanded\s*>\s*\.task-active-group-header\s*\{[^}]*position:\s*sticky",
+        )
+
+    def test_terminal_task_groups_sort_by_terminal_activity_and_use_server_counts(self) -> None:
+        render_source = self._task_list_render_source()
+        anchors_source = self._task_history_anchors_source()
+
+        self.assertIn("function taskHistoryActivityTimestamp(task: any)", render_source)
+        self.assertIn("terminal_at || task?.completed_at || task?.created_at", render_source)
+        self.assertNotIn("terminal_at || task?.completed_at || task?.updated_at", render_source)
+        self.assertIn("function taskGroupCount(group: any)", render_source)
+        self.assertIn("taskGroupCount(group)", anchors_source)
 
     def test_task_viewed_update_rerenders_when_backend_returns_structural_task_change(self) -> None:
         task_actions_source = self._task_actions_source()
@@ -496,6 +517,229 @@ class WebUIStaticTaskTests(WebUIStaticTestCase):
         self.assertNotRegex(styles, r"\.task-history-anchor-row\.active\s*\{[^}]*background:\s*color-mix")
         self.assertRegex(styles, r"\.task-history-anchor-rail\s*\{[^}]*padding-right:\s*var\(--task-history-scrollbar-offset,\s*0px\)")
         self.assertRegex(styles, r"\.sidebar-content\s*\{[^}]*scrollbar-gutter:\s*stable")
+
+    def test_latest_task_navigation_view_model_and_notice_count(self) -> None:
+        node = shutil.which("node")
+        if not node:
+            self.skipTest("node is required")
+        source = self._javascript_like_typescript_source(
+            Path("codex_image/webui/frontend/src/task-history-anchors.ts")
+        )
+        try:
+            functions = "\n".join(
+                [
+                    self._extract_javascript_function(source, "latestTaskNavigationTargetGroupKey"),
+                    self._extract_javascript_function(source, "latestTaskNavigationViewModel"),
+                    self._extract_javascript_function(source, "latestTaskNavigationNextNoticeCount"),
+                    self._extract_javascript_function(source, "latestTaskNavigationPinnedScrollAnchor"),
+                ]
+            )
+        except (AssertionError, ValueError) as exc:
+            self.fail(f"latest task navigation behavior is missing: {exc}")
+
+        harness = f"""
+{functions}
+const away = latestTaskNavigationViewModel({{
+  scrollTop: 120,
+  scrollHeight: 900,
+  clientHeight: 400,
+  currentGroupKey: "today",
+  visibleGroupKeys: ["today", "yesterday"],
+  searchActive: false,
+  batchMode: false,
+  noticeCount: 2,
+}});
+const top = latestTaskNavigationViewModel({{
+  scrollTop: 0,
+  scrollHeight: 900,
+  clientHeight: 400,
+  currentGroupKey: "today",
+  visibleGroupKeys: ["today", "yesterday"],
+  searchActive: false,
+  batchMode: false,
+  noticeCount: 2,
+}});
+const transientRenderTop = latestTaskNavigationViewModel({{
+  scrollTop: 0,
+  scrollHeight: 900,
+  clientHeight: 400,
+  currentGroupKey: "today",
+  visibleGroupKeys: ["today", "yesterday"],
+  searchActive: false,
+  batchMode: false,
+  noticeCount: 2,
+  renderInProgress: true,
+}});
+const transientRenderAway = latestTaskNavigationViewModel({{
+  scrollTop: 0,
+  scrollHeight: 900,
+  clientHeight: 400,
+  currentGroupKey: "today",
+  visibleGroupKeys: ["today", "yesterday"],
+  searchActive: false,
+  batchMode: false,
+  noticeCount: 2,
+  renderInProgress: true,
+  preRenderAtLatest: false,
+}});
+const transientRenderLatest = latestTaskNavigationViewModel({{
+  scrollTop: 240,
+  scrollHeight: 900,
+  clientHeight: 400,
+  currentGroupKey: "today",
+  visibleGroupKeys: ["today", "yesterday"],
+  searchActive: false,
+  batchMode: false,
+  noticeCount: 2,
+  renderInProgress: true,
+  preRenderAtLatest: true,
+}});
+const olderGroup = latestTaskNavigationViewModel({{
+  scrollTop: 0,
+  scrollHeight: 900,
+  clientHeight: 400,
+  currentGroupKey: "yesterday",
+  visibleGroupKeys: ["today", "yesterday"],
+  searchActive: false,
+  batchMode: false,
+  noticeCount: 0,
+}});
+const noOverflow = latestTaskNavigationViewModel({{
+  scrollTop: 120,
+  scrollHeight: 400,
+  clientHeight: 400,
+  currentGroupKey: "today",
+  visibleGroupKeys: ["today"],
+  searchActive: false,
+  batchMode: false,
+  noticeCount: 0,
+}});
+const searching = latestTaskNavigationViewModel({{
+  scrollTop: 120,
+  scrollHeight: 900,
+  clientHeight: 400,
+  currentGroupKey: "today",
+  visibleGroupKeys: ["today"],
+  searchActive: true,
+  batchMode: false,
+  noticeCount: 0,
+}});
+const batching = latestTaskNavigationViewModel({{
+  scrollTop: 120,
+  scrollHeight: 900,
+  clientHeight: 400,
+  currentGroupKey: "today",
+  visibleGroupKeys: ["today"],
+  searchActive: false,
+  batchMode: true,
+  noticeCount: 0,
+}});
+console.log(JSON.stringify({{
+  away,
+  top,
+  transientRenderTop,
+  transientRenderAway,
+  transientRenderLatest,
+  olderGroup,
+  noOverflow,
+  searching,
+  batching,
+  fallback: latestTaskNavigationTargetGroupKey(["last7", "yesterday"]),
+  incremented: latestTaskNavigationNextNoticeCount(0, false),
+  cleared: latestTaskNavigationNextNoticeCount(7, true),
+  capped: latestTaskNavigationNextNoticeCount(99, false),
+  pinnedAnchor: latestTaskNavigationPinnedScrollAnchor({{
+    scrollTop: 420,
+    taskId: "old-task",
+    offsetTop: 12,
+    retryMissingTask: true,
+    marker: "history",
+  }}, true),
+  preservedAnchor: latestTaskNavigationPinnedScrollAnchor({{
+    scrollTop: 420,
+    taskId: "old-task",
+    offsetTop: 12,
+    retryMissingTask: true,
+    marker: "history",
+  }}, false),
+}}));
+"""
+        result = subprocess.run([node, "-e", harness], check=False, text=True, capture_output=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        payload = json.loads(result.stdout)
+        self.assertEqual(
+            payload["away"],
+            {
+                "visible": True,
+                "atLatest": False,
+                "latestGroupKey": "today",
+                "badgeText": "2",
+                "shouldClearNotice": False,
+            },
+        )
+        self.assertFalse(payload["top"]["visible"])
+        self.assertTrue(payload["top"]["atLatest"])
+        self.assertTrue(payload["top"]["shouldClearNotice"])
+        self.assertFalse(payload["transientRenderTop"]["shouldClearNotice"])
+        self.assertEqual(payload["transientRenderTop"]["badgeText"], "2")
+        self.assertFalse(payload["transientRenderAway"]["atLatest"])
+        self.assertTrue(payload["transientRenderAway"]["visible"])
+        self.assertTrue(payload["transientRenderLatest"]["atLatest"])
+        self.assertFalse(payload["transientRenderLatest"]["visible"])
+        self.assertFalse(payload["transientRenderLatest"]["shouldClearNotice"])
+        self.assertTrue(payload["olderGroup"]["visible"])
+        self.assertFalse(payload["noOverflow"]["visible"])
+        self.assertFalse(payload["searching"]["visible"])
+        self.assertFalse(payload["batching"]["visible"])
+        self.assertEqual(payload["fallback"], "yesterday")
+        self.assertEqual(payload["incremented"], 1)
+        self.assertEqual(payload["cleared"], 0)
+        self.assertEqual(payload["capped"], 99)
+        self.assertEqual(
+            payload["pinnedAnchor"],
+            {"scrollTop": 0, "retryMissingTask": False, "marker": "history"},
+        )
+        self.assertEqual(
+            payload["preservedAnchor"],
+            {
+                "scrollTop": 420,
+                "taskId": "old-task",
+                "offsetTop": 12,
+                "retryMissingTask": True,
+                "marker": "history",
+            },
+        )
+
+    def test_latest_task_navigation_is_accessible_and_does_not_select_a_task(self) -> None:
+        html = Path("codex_image/webui/static/index.html").read_text(encoding="utf-8")
+        styles = Path("codex_image/webui/static/styles.css").read_text(encoding="utf-8")
+        source = self._task_history_anchors_source()
+        render_source = self._task_list_render_source()
+        notifications_source = Path(
+            "codex_image/webui/frontend/src/task-notifications.ts"
+        ).read_text(encoding="utf-8")
+        elements_source = self._elements_source()
+        handler = self._extract_javascript_function(source, "returnToLatestTask")
+
+        self.assertIn('id="taskLatestButton"', html)
+        self.assertIn('id="taskLatestBadge"', html)
+        self.assertIn('aria-label="回到最新任务"', html)
+        self.assertIn('taskLatestButton: document.querySelector("#taskLatestButton")', elements_source)
+        self.assertIn('taskLatestBadge: document.querySelector("#taskLatestBadge")', elements_source)
+        self.assertRegex(styles, r"\.task-latest-button\s*\{[^}]*position:\s*sticky")
+        self.assertRegex(styles, r"\.task-latest-button\s*\{[^}]*top:\s*40px")
+        self.assertRegex(styles, r"\.task-latest-button\s*\{[^}]*margin:\s*0\s+auto\s+-34px")
+        self.assertIn('formatTranslation("taskList.backToLatestWithCount"', source)
+        self.assertIn('getLegacyBridge().methods.notifyLatestTaskAvailable?.(nextTask)', notifications_source)
+        self.assertIn("state.latestTaskKeepAtTop = true", source)
+        self.assertIn('addEventListener("pointerdown", cancelLatestTaskNavigationTopPin', source)
+        self.assertIn("function handleLatestTaskNavigationKeydown(", source)
+        self.assertIn("consumeLatestTaskNavigationScrollAnchor(historyAnchor)", render_source)
+        self.assertIn("rememberLatestTaskNavigationBeforeRender()", render_source)
+        self.assertIn('scrollExpandedTaskGroupToTop("smooth")', handler)
+        self.assertNotIn("selectTask", handler)
+        self.assertNotIn("selectedTaskId", handler)
+
     def test_sidebar_task_filters_are_integrated_into_search_and_group_bulk_controls_are_removed(self) -> None:
         html = Path("codex_image/webui/static/index.html").read_text(encoding="utf-8")
         script = self._frontend_script_source()
@@ -748,7 +992,9 @@ class WebUIStaticTaskTests(WebUIStaticTestCase):
         self.assertIn('taskCardElapsedLineHtml("preview.elapsedLine"', render_source)
         self.assertIn('class="task-card-time task-card-running-timer"', render_source)
         self.assertIn("const runningTimerHtml = taskCardRunningTimerHtml(task, taskId);", render_source)
-        self.assertIn("const detailRightHtml = runningTimerHtml || retryHtml || timeHtml;", render_source)
+        self.assertIn("const topTimeHtml = runningTimerHtml || runtimeHtml;", render_source)
+        self.assertIn("const detailRightHtml = retryHtml || timeHtml;", render_source)
+        self.assertIn("${topTimeHtml}", render_source)
         self.assertIn('const imageSummaryHtml = imageSummary ? `<span class="task-image-summary">${imageSummary}</span>` : "";', script)
         self.assertIn('${imageBlocks}\n            <span class="task-status-row task-status-inline"', script)
         self.assertIn("taskModelFamilyIconHtml(task)", script)
@@ -838,6 +1084,85 @@ class WebUIStaticTaskTests(WebUIStaticTestCase):
         self.assertNotIn("task-model-family-brand-mark-grok", styles)
         self.assertNotIn(".task-model-family-glyph", styles)
 
+    def _render_running_task_card_html(self) -> str:
+        node = shutil.which("node")
+        if node is None:
+            self.skipTest("node is required for frontend behavior checks")
+        script = self._frontend_script_source()
+        harness = "\n".join(
+            [
+                self._extract_javascript_function(script, "taskStatusLabelHtml"),
+                self._extract_javascript_function(script, "taskCardHtml"),
+                """
+                const state = {
+                  selectedTaskId: null,
+                  batchSelectedTaskIds: [],
+                  batchMode: false,
+                  generationCatalog: {},
+                };
+                const escapeHtml = (value) => String(value ?? "")
+                  .replaceAll("&", "&amp;")
+                  .replaceAll("<", "&lt;")
+                  .replaceAll(">", "&gt;")
+                  .replaceAll('"', "&quot;");
+                const translate = (key) => key === "taskStatus.unknown" ? "未知" : key;
+                const formatTranslation = () => "";
+                const formatTaskStatus = () => "生成中 · 00:01";
+                const formatTaskCardStatus = () => "生成中";
+                const taskThumbHtml = () => "";
+                const taskHasUnreadUpdate = () => false;
+                const taskImageSummaryVisible = () => true;
+                const taskImageBlocksHtml = () => '<span class="task-image-block running"></span>';
+                const taskImageSummaryText = () => "2 张";
+                const groundingSourceCount = () => 0;
+                const taskRetryStateText = () => "";
+                const taskCardRetryStateText = () => "";
+                const taskCardRunningTimerHtml = () =>
+                  '<span class="task-card-time task-card-running-timer">计时 00:01.1</span>';
+                const taskModelFamilyIconHtml = () =>
+                  '<span class="task-model-family-icon">品牌</span>';
+                const taskStatusAccessibleLabel = () => "生成中 · GPT Image · 2 张";
+                const taskMetaDetailsText = () => "2:3 · 1024×1536 · Codex Image";
+                const taskMetaDetailsWithCompletionText = taskMetaDetailsText;
+                const taskCardCompletionTimeText = () => "";
+                const taskCardRuntimeText = () => "";
+                const taskRuntimeText = () => "";
+                const taskCompletionTimestampTitle = () => "";
+                const queueTaskIdsBySection = () => ({});
+                const taskQueueSection = () => "";
+                const waitingQueueIndex = () => -1;
+                const taskQueueActionStripHtml = () => "";
+                const taskCardActionsHtml = () => "";
+                process.stdout.write(taskCardHtml({
+                  task_id: "running-task",
+                  status: "running",
+                  prompt: "测试任务",
+                }));
+                """,
+            ]
+        )
+        result = subprocess.run([node, "-e", harness], check=False, text=True, capture_output=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        return result.stdout
+
+    def test_running_task_status_label_does_not_repeat_elapsed_time(self) -> None:
+        html = self._render_running_task_card_html()
+        match = re.search(r'<span class="task-status-label"[^>]*>([^<]*)</span>', html)
+
+        self.assertIsNotNone(match)
+        self.assertEqual(match.group(1), "生成中")
+
+    def test_running_task_timer_uses_the_top_time_slot(self) -> None:
+        html = self._render_running_task_card_html()
+        meta_row_start = html.index('class="task-meta-row"')
+        title_row_start = html.index('class="task-title-row"')
+        detail_row_start = html.index('class="task-detail-row')
+        timer_start = html.index('class="task-card-time task-card-running-timer"')
+
+        self.assertLess(meta_row_start, timer_start)
+        self.assertLess(timer_start, title_row_start)
+        self.assertNotIn("task-card-running-timer", html[detail_row_start:])
+
     def test_restoring_task_keeps_current_api_provider_selection(self) -> None:
         submit_source = Path("codex_image/webui/frontend/src/task-submit.ts").read_text(encoding="utf-8")
         apply_source = self._extract_javascript_function(submit_source, "applyTaskToForm")
@@ -893,7 +1218,7 @@ class WebUIStaticTaskTests(WebUIStaticTestCase):
                     { index: 2, status: "running" },
                   ],
                 });
-                if (summary !== "生成中 2 · 等待 2") {
+                if (summary !== "2 张 · 等待 2") {
                   throw new Error(`unexpected summary: ${summary}`);
                 }
                 const orphanedInterruptedSummary = taskImageSummaryText({
@@ -929,7 +1254,7 @@ class WebUIStaticTaskTests(WebUIStaticTestCase):
                   ],
                 };
                 const staleSummary = taskImageSummaryText(staleProgressTask);
-                if (staleSummary !== "生成中 1 · 等待 2") {
+                if (staleSummary !== "1 张 · 等待 2") {
                   throw new Error(`unexpected stale progress summary: ${staleSummary}`);
                 }
                 const generated = taskGeneratedCount(staleProgressTask, 1);
@@ -957,7 +1282,7 @@ class WebUIStaticTaskTests(WebUIStaticTestCase):
                   ],
                 };
                 const retryingSummary = taskImageSummaryText(retryingSparseTask);
-                if (retryingSummary !== "生成中 1 · 等待 1") {
+                if (retryingSummary !== "1 张 · 等待 1") {
                   throw new Error(`sparse retry progress should not double-count output_urls: ${retryingSummary}`);
                 }
                 const prunedTask = {
@@ -1140,8 +1465,8 @@ class WebUIStaticTaskTests(WebUIStaticTestCase):
         self.assertIn("updateTaskInState", queue_source)
         self.assertIn("function renderActiveTaskGroupForQueueChange", queue_source)
         self.assertNotIn('bridge.state.expandedTaskGroupKey || "") !== "active"', queue_source)
-        self.assertIn("bridge.methods.renderTasks?.();", queue_source)
-        self.assertIn("bridge.methods.renderTasks?.()", queue_source)
+        self.assertIn("bridge.methods.renderTasks?.({ preserveScroll: true });", queue_source)
+        self.assertIn("bridge.methods.renderTasks({ preserveScroll: true })", queue_source)
         boot_source = Path("codex_image/webui/frontend/src/boot.ts").read_text(encoding="utf-8")
         self.assertIn("const realtimeStarted = window.startRealtimeUpdates?.({ migrateLegacyArchives: true });", boot_source)
         self.assertIn("if (!realtimeStarted) {", boot_source)
@@ -1345,6 +1670,7 @@ class WebUIStaticTaskTests(WebUIStaticTestCase):
         self.assertIn("export function initTaskNotificationsFeature", source)
         self.assertIn("function notifyTaskUpdate(previousTask", source)
         self.assertIn("function shouldNotifyTerminalTask(", source)
+        self.assertIn("if (taskWasCancelled(nextTask)) return;", source)
         self.assertIn("function openTaskNotificationCenter()", source)
         self.assertIn("function renderTaskNotifications()", source)
         self.assertIn("function requestSystemNotificationPermission()", source)
@@ -1779,14 +2105,16 @@ class WebUIStaticTaskTests(WebUIStaticTestCase):
         self.assertRegex(styles, r"\.task-card\s*\{[^}]*height:\s*66px")
         self.assertNotRegex(styles, r"\.task-card\.failed\s*,\s*\.task-card\.partial_failed\s*\{[^}]*height:")
         self.assertNotRegex(styles, r"\.task-card\.active\s*\{[^}]*height:")
-        self.assertRegex(styles, r"\.task-card\s*\{[^}]*padding-right:\s*30px")
+        self.assertRegex(styles, r"\.task-card\s*\{[^}]*padding:\s*6px 7px")
+        self.assertRegex(styles, r"\.task-card\s*\{[^}]*user-select:\s*none")
         self.assertRegex(styles, r"\.task-thumb\s*\{[^}]*height:\s*48px")
-        self.assertRegex(styles, r"\.task-card-actions\s*\{[^}]*right:\s*8px")
-        self.assertRegex(styles, r"\.task-card-actions\s*\{[^}]*top:\s*50%")
+        self.assertRegex(styles, r"\.task-card-actions\s*\{[^}]*right:\s*6px")
+        self.assertRegex(styles, r"\.task-card-actions\s*\{[^}]*top:\s*6px")
         self.assertRegex(styles, r"\.task-card-actions\s*\{[^}]*display:\s*inline-flex")
-        self.assertRegex(styles, r"\.task-card-actions\s*\{[^}]*flex-direction:\s*column")
-        self.assertRegex(styles, r"\.task-card-actions\s*\{[^}]*gap:\s*6px")
-        self.assertRegex(styles, r"\.task-card-actions\s*\{[^}]*transform:\s*translateY\(-50%\)")
+        self.assertRegex(styles, r"\.task-card-actions\s*\{[^}]*flex-direction:\s*row")
+        self.assertRegex(styles, r"\.task-card-actions\s*\{[^}]*gap:\s*3px")
+        self.assertRegex(styles, r"\.task-card-actions\s*\{[^}]*transform:\s*translateX\(4px\)")
+        self.assertRegex(styles, r"\.task-card-actions\s*\{[^}]*background:")
         self.assertRegex(styles, r"\.task-card-actions\s*\{[^}]*opacity:\s*0")
         self.assertRegex(styles, r"\.task-archive-button\s*,\s*\.task-delete-button\s*\{[^}]*display:\s*grid")
         self.assertRegex(styles, r"\.task-archive-button\s*,\s*\.task-delete-button\s*\{[^}]*place-items:\s*center")
@@ -1935,14 +2263,28 @@ class WebUIStaticTaskTests(WebUIStaticTestCase):
     def test_task_list_rerender_can_preserve_scroll_position(self) -> None:
         render_source = self._task_list_render_source()
         task_actions = self._task_actions_source()
+        queue_source = Path("codex_image/webui/frontend/src/queue.ts").read_text(encoding="utf-8")
+        tasks_source = Path("codex_image/webui/frontend/src/tasks.ts").read_text(encoding="utf-8")
 
         self.assertIn("function renderTasks(options: { preserveScroll?: boolean } = {})", render_source)
-        self.assertIn("function captureTaskListScrollAnchor()", render_source)
+        self.assertIn("function captureTaskListScrollAnchors()", render_source)
+        self.assertIn("function captureTaskListScrollAnchor(", render_source)
         self.assertIn("function restoreTaskListScrollAnchor(anchor", render_source)
-        self.assertIn("function taskListScrollContainer()", render_source)
+        self.assertIn("function restoreTaskListScrollAnchors(anchors", render_source)
+        self.assertIn("els.taskActiveList", render_source)
+        self.assertIn("els.sidebarContent", render_source)
+        self.assertIn("root.querySelector", render_source)
         self.assertIn("requestAnimationFrame(restore)", render_source)
         self.assertIn('".task-card[data-task-id]"', render_source)
         self.assertIn("renderTasks({ preserveScroll: true })", task_actions)
+        self.assertIn("bridge.methods.renderTasks?.({ preserveScroll: true })", queue_source)
+        self.assertIn("bridge.methods.renderTasks({ preserveScroll: true })", queue_source)
+        apply_task_update = tasks_source[
+            tasks_source.index("async function applyTaskUpdate"):
+            tasks_source.index("function currentTaskSearchQuery")
+        ]
+        self.assertIn("renderTasks({ preserveScroll: true })", apply_task_update)
+
     def test_retry_attempt_state_is_visible_in_cards_queue_and_preview(self) -> None:
         script = self._frontend_script_source()
         render_source = self._task_list_render_source()
@@ -2530,10 +2872,14 @@ class WebUIStaticTaskTests(WebUIStaticTestCase):
         styles = Path("codex_image/webui/static/styles.css").read_text(encoding="utf-8")
 
         self.assertNotIn('id="archiveButton"', html)
+        self.assertIn('id="batchCancelTasksButton"', html)
         self.assertIn('id="batchManageButton"', html)
+        self.assertRegex(html, r'id="batchCancelTasksButton"[\s\S]*id="batchManageButton"')
         self.assertIn('id="archiveModal"', html)
         self.assertIn('id="archiveList"', html)
         self.assertIn('id="batchToolbar"', html)
+        self.assertIn('id="batchSelectGroupButton"', html)
+        self.assertIn('id="batchCancelSelectedButton"', html)
         self.assertIn('id="batchArchiveButton"', html)
         self.assertIn('id="batchDeleteButton"', html)
         self.assertIn("ARCHIVED_TASKS_STORAGE_KEY", script)
@@ -2545,16 +2891,31 @@ class WebUIStaticTaskTests(WebUIStaticTestCase):
         self.assertIn("migrateLegacyArchivedTasks", script)
         self.assertIn("Boolean(task?.archived_at)", script)
         self.assertIn("batchManageButton: document.querySelector(\"#batchManageButton\")", script)
+        self.assertIn("batchCancelTasksButton: document.querySelector(\"#batchCancelTasksButton\")", script)
+        self.assertIn("batchSelectGroupButton: document.querySelector(\"#batchSelectGroupButton\")", script)
+        self.assertIn("batchCancelSelectedButton: document.querySelector(\"#batchCancelSelectedButton\")", script)
         self.assertIn("openArchiveModal", script)
         self.assertIn("archiveTask", script)
         self.assertIn("restoreArchivedTask", script)
         self.assertIn("toggleBatchMode", script)
         self.assertIn("archiveSelectedTasks", script)
         self.assertIn("deleteSelectedTasks", script)
+        self.assertIn('fetch("/api/tasks/delete-batch"', script)
+        self.assertIn("/selection?", script)
         self.assertIn("batchSelectionAnchorTaskId", script)
         self.assertIn("handleBatchTaskShortcutSelection", script)
         self.assertIn("selectBatchTaskRange", script)
         self.assertIn("visibleBatchTaskIds", script)
+        self.assertIn("selectActiveTasksForBatchCancel", script)
+        self.assertIn("openBatchCancelConfirm", script)
+        self.assertIn('fetch("/api/queue/cancel-batch"', script)
+        self.assertIn("activeIds.length >= 2", script)
+        self.assertIn("state.batchSelectedTaskIds = activeTaskIds()", script)
+        self.assertIn('if (taskWasCancelled(task)) return translate("queue.runningCancelled")', script)
+        self.assertIn("if (taskWasCancelled(nextTask)) return;", script)
+        self.assertIn('error === USER_CANCELLATION_ERROR', script)
+        self.assertIn("task-cancelled-thumb", script)
+        self.assertRegex(styles, r"\.task-cancelled-thumb\s*\{[^}]*background:\s*var\(--surface-soft\)")
         self.assertIn("event.shiftKey", script)
         self.assertIn("event.metaKey", script)
         self.assertIn("event.ctrlKey", script)
@@ -2566,6 +2927,54 @@ class WebUIStaticTaskTests(WebUIStaticTestCase):
         self.assertRegex(styles, r"\.task-card:hover\s+\.task-card-actions\s*,\s*\.task-card:focus-within\s+\.task-card-actions")
         self.assertRegex(styles, r"\.batch-toolbar\s*\{[^}]*display:\s*grid")
         self.assertRegex(styles, r"\.archive-modal-panel\s*\{[^}]*width:\s*min\(520px,\s*94vw\)")
+
+    def test_sidebar_history_supports_progressive_group_loading_and_stable_terminal_order(self) -> None:
+        tasks_source = Path("codex_image/webui/frontend/src/tasks.ts").read_text(encoding="utf-8")
+        render_source = self._task_list_render_source()
+        controls_source = self._task_list_controls_source()
+
+        self.assertIn("/api/tasks/sidebar/groups/", tasks_source)
+        self.assertIn("loadMoreSidebarTaskGroup", tasks_source)
+        self.assertIn("refreshTasksAfterDeletion", tasks_source)
+        self.assertIn("data-load-more-task-group", render_source)
+        self.assertIn("loadMoreSidebarTaskGroup", controls_source)
+        self.assertIn("task?.terminal_at || task?.completed_at || task?.created_at", render_source)
+
+    def test_task_cards_remove_with_motion_and_keep_a_whole_card_hit_area(self) -> None:
+        task_actions_source = self._task_actions_source()
+        batch_source = self._task_batch_controls_source()
+        task_styles = Path("codex_image/webui/static/styles/20-tasks.css").read_text(encoding="utf-8")
+
+        self.assertIn('const TASK_CARD_REMOVING_CLASS = "task-card-removing"', task_actions_source)
+        self.assertIn("function captureTaskCardLayout(", task_actions_source)
+        self.assertIn("function animateTaskCardReflow(", task_actions_source)
+        self.assertIn("async function runTaskCardRemovalTransition(", task_actions_source)
+        self.assertIn("await runTaskCardRemovalTransition([taskId], renderTasks)", task_actions_source)
+        self.assertIn("runTaskCardRemovalTransition", batch_source)
+        self.assertIn("deletedTaskIds", batch_source)
+        self.assertRegex(
+            task_styles,
+            r"\.task-card\s*\{[^}]*padding:\s*6px 7px;[^}]*user-select:\s*none",
+        )
+        self.assertNotRegex(
+            task_styles,
+            r"\.task-card\s*\{[^}]*padding-right:\s*30px",
+        )
+        self.assertRegex(
+            task_styles,
+            r"\.task-card-actions\s*\{[^}]*flex-direction:\s*row;[^}]*background:",
+        )
+        self.assertRegex(
+            task_styles,
+            r"\.task-card\.task-card-removing\s*\{[^}]*animation:\s*task-card-remove",
+        )
+        self.assertIn("@keyframes task-card-remove", task_styles)
+        self.assertRegex(
+            task_styles,
+            r"@media \(prefers-reduced-motion:\s*reduce\)\s*\{[\s\S]*?"
+            r"\.task-card\.task-card-removing\s*\{[^}]*animation:\s*none",
+        )
+
     def test_batch_mode_supports_drag_marquee_selection(self) -> None:
         script = self._frontend_script_source()
         batch_source = self._task_batch_controls_source()

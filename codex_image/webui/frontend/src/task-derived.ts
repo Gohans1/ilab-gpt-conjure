@@ -1,4 +1,5 @@
 import { getLegacyBridge } from "./state";
+import { taskWasCancelled } from "./task-cancellation";
 import { formatTranslation, translate } from "./i18n";
 
 const RATIO_ORIENTATION: Record<string, string> = {
@@ -464,6 +465,7 @@ function nonnegativeInt(value: any) {
 
 function taskFailureMessage(task: any) {
   if (!task || (task.status !== "failed" && task.status !== "partial_failed")) return "";
+  if (taskWasCancelled(task)) return translate("queue.runningCancelled");
   return String(task.error || task.last_error || "").trim();
 }
 
@@ -769,6 +771,7 @@ export function initTaskDerivedFeature() {
     taskImageStatusCounts,
     positiveInt,
     taskFailureMessage,
+    taskWasCancelled,
     canRetryFailedTask,
     canAcceptTaskSuccesses,
     taskRetryReasonText,

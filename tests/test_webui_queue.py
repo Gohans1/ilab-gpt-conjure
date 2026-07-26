@@ -9,6 +9,7 @@ import threading
 import time
 import unittest
 import zipfile
+from datetime import UTC, datetime
 from io import BytesIO
 from pathlib import Path
 from unittest.mock import patch
@@ -94,7 +95,9 @@ class WebUIQueueTests(unittest.TestCase):
                 "20260510101010-aaaaaaaa",
                 {
                     "task_id": "20260510101010-aaaaaaaa",
-                    "created_at": "2026-05-10T10:10:10+00:00",
+                    "created_at": datetime.now(UTC).isoformat(),
+                    "updated_at": datetime.now(UTC).isoformat(),
+                    "completed_at": datetime.now(UTC).isoformat(),
                     "status": "completed",
                     "prompt": "event snapshot",
                     "prompt_for_model": "expanded event prompt should stay out of the main snapshot",

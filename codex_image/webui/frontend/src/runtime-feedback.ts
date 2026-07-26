@@ -2,6 +2,7 @@ import { getLegacyBridge } from "./state";
 import { formatTranslation, translate } from "./i18n";
 import { cssEscape } from "./webui-utils";
 import type { WebUITask } from "./types";
+import { taskWasCancelled } from "./task-cancellation";
 
 function legacyMethod(name: string, ...args: any[]): any {
   const method = getLegacyBridge().methods[name];
@@ -53,6 +54,7 @@ export function updateTaskInState(task: WebUITask | null | undefined): boolean {
 
 export function formatTaskStatus(task: WebUITask | null | undefined): string {
   if (!task) return "";
+  if (taskWasCancelled(task)) return translate("queue.runningCancelled");
   if (task.status === "submitting") return translate("taskStatus.submitting");
   if (task.status === "running") {
     const progressStartedAt = taskProgressStartValue(task);
@@ -65,6 +67,11 @@ export function formatTaskStatus(task: WebUITask | null | undefined): string {
   if (task.status === "failed") return translate("taskStatus.failed");
   if (task.status === "queued") return translate("taskStatus.queued");
   return task.status || "";
+}
+
+export function formatTaskCardStatus(task: WebUITask | null | undefined): string {
+  if (task?.status === "running" && !taskWasCancelled(task)) return translate("taskStatus.running");
+  return formatTaskStatus(task);
 }
 
 let uiClockVisibilityBound = false;
@@ -122,7 +129,7 @@ function activeElapsedTaskCards(els: any, taskId: string): HTMLElement[] {
 function updateTaskElapsedCard(card: HTMLElement, task: any): void {
   const statusElement = card.querySelector("[data-task-status-id]");
   if (statusElement) {
-    setTextIfChanged(statusElement, formatTaskStatus(task) || translate("taskStatus.unknown"));
+    setTextIfChanged(statusElement, formatTaskCardStatus(task) || translate("taskStatus.unknown"));
     const statusRow = statusElement.closest(".task-status-row");
     if (statusRow) {
       const accessibleLabel = taskStatusAccessibleLabel(task);

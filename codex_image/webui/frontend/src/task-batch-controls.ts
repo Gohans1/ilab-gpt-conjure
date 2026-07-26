@@ -29,13 +29,22 @@ function renderArchiveButton(...args: any[]) { return legacyMethod("renderArchiv
 function renderArchiveModal(...args: any[]) { return legacyMethod("renderArchiveModal", ...args); }
 function renderPreview(...args: any[]) { return legacyMethod("renderPreview", ...args); }
 function openConfirmPopover(...args: any[]) { return legacyMethod("openConfirmPopover", ...args); }
-function deleteTaskById(...args: any[]) { return legacyMethod("deleteTaskById", ...args); }
+function runTaskCardRemovalTransition(...args: any[]) { return legacyMethod("runTaskCardRemovalTransition", ...args); }
+function refreshTasksAfterDeletion(...args: any[]) { return legacyMethod("refreshTasksAfterDeletion", ...args); }
+function taskFilterValues(...args: any[]) { return legacyMethod("taskFilterValues", ...args); }
+
+function activeTaskIds() {
+  return [...(state.queue.running || []), ...(state.queue.waiting || [])]
+    .map((task: any) => String(task?.task_id || ""))
+    .filter(Boolean);
+}
 
 function toggleBatchMode(force?: any) {
   state.batchMode = typeof force === "boolean" ? force : !state.batchMode;
   if (!state.batchMode) {
     state.batchSelectedTaskIds = [];
     state.batchSelectionAnchorTaskId = null;
+    state.batchSelectionIncludesUnloaded = false;
     finishBatchMarqueeSelection();
   }
   renderTasks({ preserveScroll: true });
@@ -128,16 +137,125 @@ function syncBatchTaskSelectionVisuals() {
 
 function renderBatchToolbar() {
   if (!els.batchToolbar) return;
+  const activeIds = activeTaskIds();
+  const showCancelShortcut = activeIds.length >= 2;
+  if (!showCancelShortcut && document.activeElement === els.batchCancelTasksButton) {
+    els.batchManageButton?.focus({ preventScroll: true });
+  }
+  if (els.batchCancelTasksButton) {
+    els.batchCancelTasksButton.hidden = !showCancelShortcut;
+    els.batchCancelTasksButton.classList.toggle("hidden", !showCancelShortcut);
+  }
   els.batchToolbar.classList.toggle("hidden", !state.batchMode);
   els.taskList?.classList.toggle("batch-marquee-enabled", state.batchMode);
   els.batchManageButton?.classList.toggle("active", state.batchMode);
   const count = state.batchSelectedTaskIds.length;
+  const activeIdSet = new Set(activeIds);
+  const selectedActiveCount = state.batchSelectedTaskIds.filter((taskId: any) => activeIdSet.has(String(taskId))).length;
   if (els.batchSelectedCount) {
     els.batchSelectedCount.textContent = formatTranslation("batch.selectedCount", { count });
+  }
+  if (els.batchSelectGroupButton) {
+    els.batchSelectGroupButton.disabled = !["today", "yesterday", "last7"].includes(String(state.expandedTaskGroupKey || ""));
   }
   [els.batchArchiveButton, els.batchDeleteButton].forEach((button: any) => {
     if (button) button.disabled = count === 0;
   });
+  if (els.batchCancelSelectedButton) {
+    els.batchCancelSelectedButton.disabled = selectedActiveCount === 0;
+  }
+}
+
+async function selectAllMatchingTasksInExpandedGroup() {
+  const groupKey = String(state.expandedTaskGroupKey || "");
+  if (!groupKey) return;
+  const filters = taskFilterValues();
+  const params = new URLSearchParams();
+  [
+    ["status", filters.status],
+    ["prompt_mode", filters.promptFidelity],
+    ["ratio", filters.ratio],
+    ["orientation", filters.orientation],
+    ["resolution", filters.resolution],
+  ].forEach(([key, value]) => {
+    if (value) params.set(String(key), String(value));
+  });
+  try {
+    const response = await fetch(
+      `/api/tasks/sidebar/groups/${encodeURIComponent(groupKey)}/selection?${params.toString()}`,
+    );
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data.detail || formatTranslation("batch.deleteFailed"));
+    const taskIds = Array.isArray(data.task_ids) ? data.task_ids.map(String).filter(Boolean) : [];
+    state.batchSelectionIncludesUnloaded = true;
+    applyBatchTaskSelection(taskIds, taskIds[0] || null);
+  } catch (error) {
+    setStatus(errorMessage(error, formatTranslation("batch.deleteFailed")), "error");
+  }
+}
+
+function selectActiveTasksForBatchCancel() {
+  if (activeTaskIds().length < 2) return;
+  state.batchSelectedTaskIds = activeTaskIds();
+  state.batchSelectionAnchorTaskId = state.batchSelectedTaskIds[0] || null;
+  state.batchSelectionIncludesUnloaded = false;
+  state.batchMode = true;
+  renderTasks({ preserveScroll: true });
+  renderBatchToolbar();
+  els.batchCancelSelectedButton?.focus({ preventScroll: true });
+}
+
+function openBatchCancelConfirm() {
+  const runningIds = new Set((state.queue.running || []).map((task: any) => String(task?.task_id || "")));
+  const waitingIds = new Set((state.queue.waiting || []).map((task: any) => String(task?.task_id || "")));
+  const selectedActiveIds = state.batchSelectedTaskIds.filter(
+    (taskId: any) => runningIds.has(String(taskId)) || waitingIds.has(String(taskId)),
+  );
+  const runningCount = selectedActiveIds.filter((taskId: any) => runningIds.has(String(taskId))).length;
+  const waitingCount = selectedActiveIds.filter((taskId: any) => waitingIds.has(String(taskId))).length;
+  if (!selectedActiveIds.length) {
+    setStatus(formatTranslation("batch.noActiveSelected"), "error");
+    return;
+  }
+  openConfirmPopover(els.batchCancelSelectedButton, {
+    title: formatTranslation("batch.cancelTitle", { count: selectedActiveIds.length }),
+    message: formatTranslation("batch.cancelMessage"),
+    detail: formatTranslation("batch.cancelDetail", { running: runningCount, waiting: waitingCount }),
+    confirmText: formatTranslation("batch.cancelConfirm"),
+    onConfirm: async () => {
+      await cancelSelectedActiveTasks(selectedActiveIds);
+    },
+  });
+}
+
+async function cancelSelectedActiveTasks(taskIds: any[]) {
+  try {
+    const response = await fetch("/api/queue/cancel-batch", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ task_ids: taskIds }),
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data.detail || formatTranslation("batch.cancelFailed"));
+
+    state.batchSelectedTaskIds = [];
+    state.batchSelectionAnchorTaskId = null;
+    state.batchSelectionIncludesUnloaded = false;
+    state.batchMode = false;
+    await window.refreshQueue?.();
+    await legacyMethod("refreshTasks");
+    renderPreview();
+    const summary = data.summary || {};
+    const statusType = Number(summary.failed || 0) > 0 ? "error" : "ok";
+    setStatus(formatTranslation("batch.cancelResult", {
+      cancelled: Number(summary.cancelled || 0),
+      skipped: Number(summary.skipped || 0),
+      failed: Number(summary.failed || 0),
+    }), statusType);
+  } catch (error) {
+    renderTasks({ preserveScroll: true });
+    setStatus(errorMessage(error, formatTranslation("batch.cancelFailed")), "error");
+  }
 }
 
 async function archiveSelectedTasks() {
@@ -155,6 +273,7 @@ async function archiveSelectedTasks() {
     }
     state.batchSelectedTaskIds = [];
     state.batchSelectionAnchorTaskId = null;
+    state.batchSelectionIncludesUnloaded = false;
     state.batchMode = false;
     renderTasks();
     renderArchiveButton();
@@ -172,42 +291,62 @@ async function archiveSelectedTasks() {
 }
 
 function openBatchDeleteConfirm() {
-  const selectedTasks = state.batchSelectedTaskIds
-    .map((taskId: any) => state.tasks.find((task: any) => String(task.task_id) === String(taskId)))
-    .filter(Boolean);
-  const deletableTasks = selectedTasks.filter((task: any) => task.status !== "running" && !task.local_pending);
-  const skippedCount = selectedTasks.length - deletableTasks.length;
-  if (!deletableTasks.length) {
+  const activeIds = new Set(activeTaskIds());
+  const localPendingIds = new Set(
+    state.tasks.filter((task: any) => task?.local_pending).map((task: any) => String(task.task_id || "")),
+  );
+  const deletableTaskIds = state.batchSelectedTaskIds
+    .map(String)
+    .filter((taskId: string) => !activeIds.has(taskId) && !localPendingIds.has(taskId));
+  const skippedCount = state.batchSelectedTaskIds.length - deletableTaskIds.length;
+  if (!deletableTaskIds.length) {
     setStatus(formatTranslation("batch.runningCannotDeleteSelected"), "error");
     return;
   }
   openConfirmPopover(els.batchDeleteButton, {
-    title: formatTranslation("batch.deleteTitle", { count: deletableTasks.length }),
+    title: formatTranslation("batch.deleteTitle", { count: deletableTaskIds.length }),
     message: formatTranslation("batch.deleteMessage"),
     detail: skippedCount ? formatTranslation("batch.deleteSkippedDetail", { count: skippedCount }) : "",
     confirmText: formatTranslation("action.delete"),
     onConfirm: async () => {
-      await deleteSelectedTasks(deletableTasks, skippedCount);
+      await deleteSelectedTasks(deletableTaskIds, skippedCount);
     },
   });
 }
 
-async function deleteSelectedTasks(deletableTasks: any, skippedCount = 0) {
+async function deleteSelectedTasks(deletableTaskIds: string[], skippedCount = 0) {
+  const deletedTaskIds: string[] = [];
   try {
-    for (const task of deletableTasks as any[]) {
-      await deleteTaskById(task.task_id);
+    const response = await fetch("/api/tasks/delete-batch", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ task_ids: deletableTaskIds }),
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data.detail || formatTranslation("batch.deleteFailed"));
+    deletedTaskIds.push(...(Array.isArray(data.deleted) ? data.deleted.map(String) : []));
+    skippedCount += Array.isArray(data.skipped) ? data.skipped.length : 0;
+    state.tasks = state.tasks.filter((task: any) => !deletedTaskIds.includes(String(task?.task_id || "")));
+    if (deletedTaskIds.includes(String(state.selectedTaskId || ""))) {
+      state.selectedTaskId = firstVisibleTaskId();
     }
     state.batchSelectedTaskIds = [];
     state.batchSelectionAnchorTaskId = null;
+    state.batchSelectionIncludesUnloaded = false;
     state.batchMode = false;
-    renderTasks();
+    await runTaskCardRemovalTransition(deletedTaskIds, renderTasks);
+    await refreshTasksAfterDeletion();
     renderArchiveButton();
     renderArchiveModal();
     renderPreview();
     const skippedText = skippedCount ? formatTranslation("batch.deleteSkippedSuffix", { count: skippedCount }) : "";
-    setStatus(formatTranslation("batch.deletedCount", { count: deletableTasks.length, skipped: skippedText }), "ok");
+    setStatus(formatTranslation("batch.deletedCount", { count: deletedTaskIds.length, skipped: skippedText }), "ok");
   } catch (error) {
-    renderTasks();
+    if (deletedTaskIds.length) {
+      await runTaskCardRemovalTransition(deletedTaskIds, renderTasks);
+    } else {
+      renderTasks();
+    }
     renderArchiveButton();
     renderArchiveModal();
     renderPreview();
@@ -351,6 +490,11 @@ export function initTaskBatchControlsFeature() {
     selectBatchTaskRange,
     handleBatchTaskShortcutSelection,
     renderBatchToolbar,
+    activeTaskIds,
+    selectActiveTasksForBatchCancel,
+    selectAllMatchingTasksInExpandedGroup,
+    openBatchCancelConfirm,
+    cancelSelectedActiveTasks,
     archiveSelectedTasks,
     openBatchDeleteConfirm,
     deleteSelectedTasks,

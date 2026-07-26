@@ -5,6 +5,25 @@ import unittest
 
 
 class PortablePackagingTests(unittest.TestCase):
+    def test_all_packaged_webui_entrypoints_persist_network_egress_settings(self) -> None:
+        entrypoints = (
+            Path("packaging/macos/portable_webui_app.py"),
+            Path("packaging/macos/standard_webui_app.py"),
+            Path("packaging/windows/portable_webui_app.py"),
+            Path("packaging/windows/standard_webui_app.py"),
+        )
+        expected = (
+            'network_egress_settings_path=DATA_DIR '
+            '/ "webui-network-egress-settings.json"'
+        )
+
+        for entrypoint in entrypoints:
+            text = entrypoint.read_text(encoding="utf-8")
+            self.assertIn(expected, text, str(entrypoint))
+
+        launcher_text = Path("launcher/src/lib.rs").read_text(encoding="utf-8")
+        self.assertIn('"webui-network-egress-settings.json"', launcher_text)
+
     def test_github_workflows_use_node24_compatible_actions(self) -> None:
         workflow_paths = [
             Path(".github/workflows/ci.yml"),

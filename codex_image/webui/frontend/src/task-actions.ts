@@ -1,9 +1,16 @@
 import { getLegacyBridge } from "./state";
 import { translate } from "./i18n";
+import { prefersReducedMotion } from "./webui-utils";
 
 const bridge = getLegacyBridge();
 const state = bridge.state;
 const els = bridge.els;
+const TASK_CARD_REMOVING_CLASS = "task-card-removing";
+const TASK_CARD_REMOVAL_FALLBACK_MS = 240;
+const TASK_CARD_REFLOW_DURATION_MS = 180;
+const TASK_CARD_REFLOW_EASING = "cubic-bezier(0.22, 1, 0.36, 1)";
+
+type TaskCardLayout = Record<string, { left: number; top: number }>;
 
 function legacyMethod(name: string, ...args: any[]): any {
   const method = getLegacyBridge().methods[name];
@@ -47,6 +54,86 @@ function canRetryFailedTask(...args: any[]) { return legacyMethod("canRetryFaile
 function canAcceptTaskSuccesses(...args: any[]) { return legacyMethod("canAcceptTaskSuccesses", ...args); }
 function currentApiProviderId(...args: any[]) { return legacyMethod("currentApiProviderId", ...args); }
 function updateTaskInState(...args: any[]) { return legacyMethod("updateTaskInState", ...args); }
+function captureTaskHistoryLayout(...args: any[]) { return legacyMethod("captureTaskHistoryLayout", ...args); }
+function animateTaskHistoryLayout(...args: any[]) { return legacyMethod("animateTaskHistoryLayout", ...args); }
+function refreshTasksAfterDeletion(...args: any[]) { return legacyMethod("refreshTasksAfterDeletion", ...args); }
+
+function taskCardElements() {
+  return Array.from(document.querySelectorAll<HTMLElement>(".task-card[data-task-id]"));
+}
+
+function normalizedTaskIdSet(taskIds: any[]) {
+  return new Set(taskIds.map((taskId) => String(taskId || "")).filter(Boolean));
+}
+
+function captureTaskCardLayout(excludedTaskIds: any[] = []): TaskCardLayout {
+  const excluded = normalizedTaskIdSet(excludedTaskIds);
+  return taskCardElements().reduce((layout, card) => {
+    const taskId = String(card.dataset.taskId || "");
+    if (!taskId || excluded.has(taskId)) return layout;
+    const rect = card.getBoundingClientRect();
+    layout[taskId] = { left: rect.left, top: rect.top };
+    return layout;
+  }, {} as TaskCardLayout);
+}
+
+function animateTaskCardReflow(previousLayout: TaskCardLayout) {
+  if (prefersReducedMotion()) return;
+  requestAnimationFrame(() => {
+    taskCardElements().forEach((card) => {
+      const taskId = String(card.dataset.taskId || "");
+      const previous = previousLayout[taskId];
+      if (!previous) return;
+      const rect = card.getBoundingClientRect();
+      const dx = previous.left - rect.left;
+      const dy = previous.top - rect.top;
+      if (Math.abs(dx) <= 0.5 && Math.abs(dy) <= 0.5) return;
+      card.animate(
+        [
+          { transform: `translate(${dx}px, ${dy}px)` },
+          { transform: "translate(0px, 0px)" },
+        ],
+        {
+          duration: TASK_CARD_REFLOW_DURATION_MS,
+          easing: TASK_CARD_REFLOW_EASING,
+        },
+      );
+    });
+  });
+}
+
+function waitForTaskCardRemoval(card: HTMLElement) {
+  return new Promise<void>((resolve) => {
+    let settled = false;
+    const finish = () => {
+      if (settled) return;
+      settled = true;
+      resolve();
+    };
+    card.addEventListener("animationend", finish, { once: true });
+    window.setTimeout(finish, TASK_CARD_REMOVAL_FALLBACK_MS);
+    card.classList.add(TASK_CARD_REMOVING_CLASS);
+    card.setAttribute("aria-busy", "true");
+    card.tabIndex = -1;
+  });
+}
+
+async function runTaskCardRemovalTransition(taskIds: any[], commit: () => void) {
+  const removingIds = normalizedTaskIdSet(taskIds);
+  const previousCardLayout = captureTaskCardLayout([...removingIds]);
+  const previousHistoryLayout = captureTaskHistoryLayout();
+  const removingCards = taskCardElements().filter(
+    (card) => removingIds.has(String(card.dataset.taskId || "")),
+  );
+
+  if (!prefersReducedMotion() && removingCards.length) {
+    await Promise.all(removingCards.map(waitForTaskCardRemoval));
+  }
+
+  commit();
+  animateTaskCardReflow(previousCardLayout);
+  animateTaskHistoryLayout(previousHistoryLayout);
+}
 
 function taskListStructureKey(task: any): string {
   if (!task) return "";
@@ -122,7 +209,8 @@ async function deleteTask(taskId: any) {
   closePromptPopover();
   try {
     await deleteTaskById(taskId);
-    renderTasks();
+    await runTaskCardRemovalTransition([taskId], renderTasks);
+    await refreshTasksAfterDeletion();
     renderArchiveButton();
     renderArchiveModal();
     renderPreview();
@@ -267,6 +355,7 @@ export function initTaskActionsFeature() {
     archiveTask,
     deleteTask,
     deleteTaskById,
+    runTaskCardRemovalTransition,
     retryFailedTask,
     acceptTaskSuccesses,
     markTaskViewed,

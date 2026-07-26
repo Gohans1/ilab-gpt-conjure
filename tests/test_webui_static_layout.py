@@ -10,6 +10,30 @@ from tests.webui_helpers import WebUIStaticTestCase
 
 
 class WebUIStaticLayoutTests(WebUIStaticTestCase):
+    def test_system_settings_has_four_tabs_and_network_controls(self) -> None:
+        html = Path("codex_image/webui/static/index.html").read_text(encoding="utf-8")
+        styles = Path("codex_image/webui/static/styles.css").read_text(encoding="utf-8")
+        source = Path(
+            "codex_image/webui/frontend/src/network-egress-settings.ts"
+        ).read_text(encoding="utf-8")
+
+        self.assertEqual(html.count('data-system-settings-tab="'), 4)
+        self.assertIn('id="systemSettingsNetworkTab"', html)
+        self.assertIn('id="systemSettingsNetworkPanel"', html)
+        self.assertIn('id="networkEgressMode"', html)
+        self.assertIn('data-network-egress-mode="system"', html)
+        self.assertIn('data-network-egress-mode="direct"', html)
+        self.assertIn('data-network-egress-mode="custom"', html)
+        self.assertIn('id="networkEgressCustomProxy"', html)
+        self.assertIn('id="testNetworkEgressButton"', html)
+        self.assertIn('id="saveNetworkEgressButton"', html)
+        self.assertRegex(
+            styles,
+            r"\.system-settings-tabs\s*\{[^}]*grid-template-columns:\s*repeat\(4,\s*minmax\(0,\s*1fr\)\)",
+        )
+        self.assertIn('fetch("/api/network-egress")', source)
+        self.assertIn('fetch("/api/network-egress/test"', source)
+
     def test_sidebar_brand_keeps_product_name_stable_and_model_selector_on_its_own_row(self) -> None:
         html = Path("codex_image/webui/static/index.html").read_text(encoding="utf-8")
         sidebar = Path("codex_image/webui/static/styles/10-sidebar.css").read_text(encoding="utf-8")
@@ -328,8 +352,8 @@ class WebUIStaticLayoutTests(WebUIStaticTestCase):
         script = self._frontend_script_source()
         styles = Path("codex_image/webui/static/styles.css").read_text(encoding="utf-8")
 
-        self.assertIn('/static/app.js?v=runtime-641', html)
-        self.assertIn('/static/styles.css?v=runtime-641', html)
+        self.assertIn('/static/app.js?v=runtime-653', html)
+        self.assertIn('/static/styles.css?v=runtime-653', html)
         self.assertIn('id="recentAssetDock"', html)
         self.assertRegex(html, r'class="image-input-footer"[\s\S]*id="recentAssetDock"[\s\S]*id="recentAssetList"')
         self.assertRegex(html, r'id="recentAssetDock"[\s\S]*id="quickGalleryDock"[\s\S]*id="galleryManagePanel"')
@@ -2270,7 +2294,7 @@ class WebUIStaticLayoutTests(WebUIStaticTestCase):
         self.assertRegex(styles, r"\.system-settings-modal-panel\s*>\s*\.modal-heading\s+\.drawer-close-button\s*\{[^}]*position:\s*absolute")
         self.assertRegex(styles, r"\.system-settings-section\s*\{[^}]*padding-right:\s*0")
         self.assertNotIn(".system-settings-section-heading", styles)
-        self.assertRegex(styles, r"\.system-settings-tabs\s*\{[^}]*grid-template-columns:\s*repeat\(3,\s*minmax\(0,\s*1fr\)\)")
+        self.assertRegex(styles, r"\.system-settings-tabs\s*\{[^}]*grid-template-columns:\s*repeat\(4,\s*minmax\(0,\s*1fr\)\)")
         self.assertRegex(styles, r"\.system-settings-tabs\s*\{[^}]*--segmented-indicator-radius:\s*999px")
         self.assertRegex(styles, r"\.system-settings-tab\.active\s*\{[^}]*color:\s*var\(--primary-foreground\)")
         self.assertRegex(styles, r"\.system-settings-tabs\s+\.segmented-indicator\s*\{[^}]*border-radius:\s*999px")
@@ -3237,8 +3261,8 @@ class WebUIStaticLayoutTests(WebUIStaticTestCase):
         script = self._frontend_script_source()
         styles = Path("codex_image/webui/static/styles.css").read_text(encoding="utf-8")
 
-        self.assertIn('/static/app.js?v=runtime-641', html)
-        self.assertIn('/static/styles.css?v=runtime-641', html)
+        self.assertIn('/static/app.js?v=runtime-653', html)
+        self.assertIn('/static/styles.css?v=runtime-653', html)
         self.assertIn('id="pasteClipboardButton"', html)
         self.assertIn('id="statusText"', html)
         self.assertRegex(
@@ -3683,8 +3707,8 @@ class WebUIStaticLayoutTests(WebUIStaticTestCase):
         script = self._frontend_script_source()
         styles = Path("codex_image/webui/static/styles.css").read_text(encoding="utf-8")
 
-        self.assertIn("/static/app.js?v=runtime-641", html)
-        self.assertIn("/static/styles.css?v=runtime-641", html)
+        self.assertIn("/static/app.js?v=runtime-653", html)
+        self.assertIn("/static/styles.css?v=runtime-653", html)
         self.assertIn('const THEME_STORAGE_KEY = "codex-image-theme-preference";', script)
         self.assertIn('themePreference: "system"', script)
         self.assertIn('call(methods, "restoreThemePreference")', script)

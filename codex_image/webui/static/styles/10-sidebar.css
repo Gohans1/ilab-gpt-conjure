@@ -450,6 +450,13 @@
   white-space: nowrap;
 }
 
+.task-history-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
 .sidebar-content {
   flex: 1;
   min-height: 0;

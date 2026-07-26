@@ -113,7 +113,7 @@
         });
       })();
     </script>
-    <link rel="stylesheet" href="/static/styles.css?v=runtime-641" />
+    <link rel="stylesheet" href="/static/styles.css?v=runtime-653" />
   </head>
   <body>
     <div class="layout-container">
@@ -202,6 +202,12 @@
                 <button id="taskFilterClearButton" class="ghost-button text-sm task-filter-clear-button" type="button" aria-label="清空" data-i18n="action.clear" data-i18n-attr="aria-label:action.clear">清空</button>
               </div>
               <div class="sidebar-filter-grid">
+                <select id="taskStatusFilter" class="task-filter-select" aria-label="按状态筛选">
+                  <option value="" data-i18n="sidebar.allStatuses">全部状态</option>
+                  <option value="completed" data-i18n="taskStatus.completed">已完成</option>
+                  <option value="partial_failed" data-i18n="taskStatus.partialFailed">部分失败</option>
+                  <option value="failed" data-i18n="taskStatus.failed">失败</option>
+                </select>
                 <select id="taskRatioFilter" class="task-filter-select" aria-label="按比例筛选">
                   <option value="" data-i18n="sidebar.allRatios">全部比例</option>
                   <option value="1:1">1:1</option>
@@ -242,12 +248,23 @@
         <div class="task-history-shell">
           <div class="task-history-tools">
             <div id="statusText" class="status-text" aria-live="polite" data-i18n="status.waiting">等待任务</div>
-            <button id="batchManageButton" class="ghost-button icon-button task-history-batch-button" type="button" data-i18n="footer.batch">批量管理</button>
+            <div class="task-history-actions">
+              <button
+                id="batchCancelTasksButton"
+                class="ghost-button icon-button task-history-batch-button danger-button hidden"
+                type="button"
+                data-i18n="batch.cancelTasksShortcut"
+                hidden
+              >批量取消</button>
+              <button id="batchManageButton" class="ghost-button icon-button task-history-batch-button" type="button" data-i18n="footer.batch">批量管理</button>
+            </div>
           </div>
           <div id="batchToolbar" class="batch-toolbar hidden" aria-live="polite">
             <div id="batchSelectedCount" class="batch-selected-count" data-i18n="batch.selected">已选择 0 个</div>
             <div class="batch-toolbar-actions">
+              <button id="batchSelectGroupButton" class="ghost-button text-sm" type="button" data-i18n="batch.selectCurrentGroup">全选本组</button>
               <button id="batchArchiveButton" class="ghost-button text-sm" type="button" disabled data-i18n="action.archive">归档</button>
+              <button id="batchCancelSelectedButton" class="ghost-button text-sm danger-button" type="button" disabled data-i18n="batch.cancelSelected">取消任务</button>
               <button id="batchDeleteButton" class="ghost-button text-sm danger-button" type="button" disabled data-i18n="action.delete">删除</button>
               <button id="batchCancelButton" class="ghost-button text-sm" type="button" data-i18n="action.cancel">取消</button>
             </div>
@@ -265,6 +282,19 @@
             data-i18n-attr="aria-label:sidebar.topAnchors"
           ></div>
           <div class="sidebar-content">
+            <button
+              id="taskLatestButton"
+              class="task-latest-button hidden"
+              type="button"
+              aria-label="回到最新任务"
+              title="回到最新任务"
+              hidden
+            >
+              <svg class="task-latest-icon" viewBox="0 0 16 16" focusable="false" aria-hidden="true">
+                <path d="M3.5 9.5 8 5l4.5 4.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"/>
+              </svg>
+              <span id="taskLatestBadge" class="task-latest-badge" aria-hidden="true" hidden></span>
+            </button>
             <div id="taskList" class="task-list"></div>
           </div>
           <div
@@ -963,6 +993,7 @@
         </div>
         <div id="systemSettingsTabs" class="system-settings-tabs" role="tablist" aria-label="系统设置选项" data-i18n-attr="aria-label:systemSettings.tabsLabel">
           <button id="systemSettingsApiTab" class="system-settings-tab active" type="button" role="tab" aria-selected="true" aria-controls="systemSettingsApiPanel" data-system-settings-tab="api" data-i18n="systemSettings.apiTab">API 设置</button>
+          <button id="systemSettingsNetworkTab" class="system-settings-tab" type="button" role="tab" aria-selected="false" aria-controls="systemSettingsNetworkPanel" data-system-settings-tab="network" data-i18n="systemSettings.networkTab">网络</button>
           <button id="systemSettingsLanguageTab" class="system-settings-tab" type="button" role="tab" aria-selected="false" aria-controls="systemSettingsLanguagePanel" data-system-settings-tab="language" data-i18n="systemSettings.languageTab">语言 / Language</button>
           <button id="systemSettingsStorageTab" class="system-settings-tab" type="button" role="tab" aria-selected="false" aria-controls="systemSettingsStoragePanel" data-system-settings-tab="storage" data-i18n="systemSettings.storageTab">存储与通知</button>
         </div>
@@ -1091,6 +1122,29 @@
           </div>
           <div id="apiSettingsActions" class="settings-modal-actions settings-status-only">
             <p id="apiSettingsStatus" class="api-settings-feedback settings-action-status" aria-live="polite"></p>
+          </div>
+        </section>
+        <section id="systemSettingsNetworkPanel" class="system-settings-section" role="tabpanel" aria-labelledby="systemSettingsNetworkTab" hidden aria-hidden="true">
+          <div class="network-egress-panel">
+            <div class="field">
+              <span id="networkEgressModeLabel" data-i18n="networkEgress.mode">网络出口</span>
+              <div class="network-egress-mode-selector" role="group" aria-labelledby="networkEgressModeLabel">
+                <button class="network-egress-mode-button active" type="button" aria-pressed="true" data-network-egress-mode="system" data-i18n="networkEgress.system">系统</button>
+                <button class="network-egress-mode-button" type="button" aria-pressed="false" data-network-egress-mode="direct" data-i18n="networkEgress.direct">直连</button>
+                <button class="network-egress-mode-button" type="button" aria-pressed="false" data-network-egress-mode="custom" data-i18n="networkEgress.custom">自定义</button>
+              </div>
+              <input id="networkEgressMode" type="hidden" value="system" />
+            </div>
+            <label id="networkEgressCustomProxyField" class="field" hidden>
+              <span data-i18n="networkEgress.customProxy">自定义代理地址</span>
+              <input id="networkEgressCustomProxy" class="control" type="url" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="http://127.0.0.1:7890" />
+            </label>
+            <p id="networkEgressCurrentRoute" class="network-egress-current-route" data-i18n="networkEgress.currentRoute">当前出口：系统</p>
+            <div class="settings-modal-actions network-egress-actions">
+              <p id="networkEgressStatus" class="settings-action-status network-egress-feedback" aria-live="polite"></p>
+              <button id="testNetworkEgressButton" class="ghost-button" type="button" data-i18n="networkEgress.test">检测连接</button>
+              <button id="saveNetworkEgressButton" class="run-button" type="button" data-i18n="networkEgress.save">保存并应用</button>
+            </div>
           </div>
         </section>
         <section id="systemSettingsLanguagePanel" class="system-settings-section" role="tabpanel" aria-labelledby="systemSettingsLanguageTab" hidden aria-hidden="true">
@@ -1409,7 +1463,7 @@
     </div>
 
     <div id="taskNotificationToastRegion" class="task-notification-toast-region" aria-live="polite"></div>
-  <script src="/static/app.js?v=runtime-641"></script>
+  <script src="/static/app.js?v=runtime-653"></script>
     <script>
       (() => {
         document.querySelectorAll(".radio-group").forEach((group) => {

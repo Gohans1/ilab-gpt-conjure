@@ -67,6 +67,7 @@ function replaceTask(updatedTask: any) {
 }
 
 function cleanupSessionSelections() {
+  if (state.batchSelectionIncludesUnloaded) return;
   const taskIds = new Set(state.tasks.map((task) => String(task.task_id)));
   state.batchSelectedTaskIds = state.batchSelectedTaskIds.filter((taskId: any) => {
     return taskIds.has(String(taskId)) && !isTaskArchived(taskId);

@@ -7,7 +7,7 @@ import time
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
-from typing import Protocol
+from typing import Mapping, Protocol
 from urllib import error, request
 from urllib.parse import urlsplit
 
@@ -87,8 +87,14 @@ class _SameOriginRedirectHandler(request.HTTPRedirectHandler):
 
 
 class UrllibTransport:
-    def __init__(self, *, timeout: float | None = None) -> None:
+    def __init__(
+        self,
+        *,
+        timeout: float | None = None,
+        proxy_map: Mapping[str, str] | None = None,
+    ) -> None:
         self.timeout = _request_timeout_seconds(timeout)
+        self.proxy_map = None if proxy_map is None else dict(proxy_map)
 
     def request(
         self,
@@ -102,7 +108,14 @@ class UrllibTransport:
         started_at = time.monotonic()
         try:
             context = _https_ssl_context() if url.lower().startswith("https://") else None
-            with request.urlopen(req, timeout=self.timeout, context=context) as response:
+            if self.proxy_map is None:
+                response_context = request.urlopen(req, timeout=self.timeout, context=context)
+            else:
+                handlers: list[object] = [request.ProxyHandler(self.proxy_map)]
+                if context is not None:
+                    handlers.append(request.HTTPSHandler(context=context))
+                response_context = request.build_opener(*handlers).open(req, timeout=self.timeout)
+            with response_context as response:
                 return HTTPResponse(
                     status=getattr(response, "status", response.getcode()),
                     body=response.read(),
@@ -134,7 +147,10 @@ class UrllibTransport:
         body: bytes,
     ) -> HTTPResponse:
         req = request.Request(url=url, data=body, headers=headers, method=method)
-        handlers: list[object] = [_SameOriginRedirectHandler()]
+        handlers: list[object] = []
+        if self.proxy_map is not None:
+            handlers.append(request.ProxyHandler(self.proxy_map))
+        handlers.append(_SameOriginRedirectHandler())
         context = _https_ssl_context() if url.lower().startswith("https://") else None
         if context is not None:
             handlers.append(request.HTTPSHandler(context=context))

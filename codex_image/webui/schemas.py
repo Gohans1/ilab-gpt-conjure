@@ -16,6 +16,7 @@ DEFAULT_WEBUI_SETTINGS_PATH = Path("output") / "webui-settings.json"
 DEFAULT_WEBUI_AUTH_SETTINGS_PATH = Path("output") / "webui-auth-settings.json"
 DEFAULT_WEBUI_API_SETTINGS_PATH = Path("output") / "webui-api-settings.json"
 DEFAULT_WEBUI_COLOR_SETTINGS_PATH = Path("output") / "webui-color-settings.json"
+DEFAULT_WEBUI_NETWORK_EGRESS_SETTINGS_PATH = Path("output") / "webui-network-egress-settings.json"
 DEFAULT_WEBUI_PROMPT_SNIPPETS_PATH = Path("output") / "webui-prompt-snippets.json"
 DEFAULT_WEBUI_PROMPT_TEMPLATES_PATH = Path("output") / "webui-prompt-templates.json"
 

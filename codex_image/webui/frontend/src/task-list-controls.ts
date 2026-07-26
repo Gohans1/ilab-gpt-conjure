@@ -17,6 +17,7 @@ const syncTaskSearchHistoryResults = () => legacyMethod("syncTaskSearchHistoryRe
 const taskSearchQuery = () => legacyMethod("taskSearchQuery");
 const filteredVisibleTasks = (...args: any[]) => legacyMethod("filteredVisibleTasks", ...args);
 const taskHistoryGroups = (...args: any[]) => legacyMethod("taskHistoryGroups", ...args);
+const taskGroupCount = (...args: any[]) => legacyMethod("taskGroupCount", ...args);
 const setExpandedTaskGroupKey = (...args: any[]) => legacyMethod("setExpandedTaskGroupKey", ...args);
 const scrollExpandedTaskGroupToTop = (...args: any[]) => legacyMethod("scrollExpandedTaskGroupToTop", ...args);
 const captureTaskHistoryLayout = (...args: any[]) => legacyMethod("captureTaskHistoryLayout", ...args);
@@ -27,15 +28,19 @@ const toggleBatchMode = (...args: any[]) => legacyMethod("toggleBatchMode", ...a
 const toggleBatchTaskSelection = (...args: any[]) => legacyMethod("toggleBatchTaskSelection", ...args);
 const handleBatchTaskShortcutSelection = (...args: any[]) => legacyMethod("handleBatchTaskShortcutSelection", ...args);
 const archiveSelectedTasks = (...args: any[]) => legacyMethod("archiveSelectedTasks", ...args);
+const selectActiveTasksForBatchCancel = (...args: any[]) => legacyMethod("selectActiveTasksForBatchCancel", ...args);
+const openBatchCancelConfirm = (...args: any[]) => legacyMethod("openBatchCancelConfirm", ...args);
 const openBatchDeleteConfirm = (...args: any[]) => legacyMethod("openBatchDeleteConfirm", ...args);
+const selectAllMatchingTasksInExpandedGroup = (...args: any[]) => legacyMethod("selectAllMatchingTasksInExpandedGroup", ...args);
 const handleTaskListPointerDown = (...args: any[]) => legacyMethod("handleTaskListPointerDown", ...args);
+const loadMoreSidebarTaskGroup = (...args: any[]) => legacyMethod("loadMoreSidebarTaskGroup", ...args);
 const closeArchiveModal = (...args: any[]) => legacyMethod("closeArchiveModal", ...args);
 
 let taskListControlsInitialized = false;
 let taskListControlEventsBound = false;
 
 function taskFilterControls() {
-  return [els.taskRatioFilter, els.taskOrientationFilter, els.taskPromptFidelityFilter, els.taskResolutionFilter].filter(Boolean);
+  return [els.taskStatusFilter, els.taskRatioFilter, els.taskOrientationFilter, els.taskPromptFidelityFilter, els.taskResolutionFilter].filter(Boolean);
 }
 
 function activeTaskFilterCount() {
@@ -112,8 +117,11 @@ function bindTaskListControlEvents() {
   els.archiveModal?.addEventListener("click", (event: any) => {
     if (event.target === els.archiveModal) closeArchiveModal();
   });
+  els.batchCancelTasksButton?.addEventListener("click", selectActiveTasksForBatchCancel);
   els.batchManageButton?.addEventListener("click", () => toggleBatchMode());
+  els.batchSelectGroupButton?.addEventListener("click", selectAllMatchingTasksInExpandedGroup);
   els.batchArchiveButton?.addEventListener("click", archiveSelectedTasks);
+  els.batchCancelSelectedButton?.addEventListener("click", openBatchCancelConfirm);
   els.batchDeleteButton?.addEventListener("click", openBatchDeleteConfirm);
   els.batchCancelButton?.addEventListener("click", () => toggleBatchMode(false));
   els.taskSearch.addEventListener("input", handleTaskSearchInput);
@@ -140,7 +148,7 @@ function handleTaskSearchInput() {
 
 function replacementGroupKey(currentKey: string) {
   const query = taskSearchQuery();
-  const groups = taskHistoryGroups(filteredVisibleTasks(query), query).filter((group: any) => group.tasks.length);
+  const groups = taskHistoryGroups(filteredVisibleTasks(query), query).filter((group: any) => taskGroupCount(group) > 0);
   const index = groups.findIndex((group: any) => String(group.key) === String(currentKey));
   return groups[index + 1]?.key || groups[index - 1]?.key || "";
 }
@@ -213,6 +221,13 @@ function handleTaskListClick(event: any) {
     state.suppressTaskClickAfterDrag = false;
     event.preventDefault();
     event.stopPropagation();
+    return;
+  }
+
+  const loadMoreButton = event.target.closest("[data-load-more-task-group]");
+  if (loadMoreButton) {
+    event.stopPropagation();
+    void loadMoreSidebarTaskGroup(loadMoreButton.dataset.loadMoreTaskGroup);
     return;
   }
 

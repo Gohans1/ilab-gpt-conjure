@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import re
+import shutil
 import uuid
 from datetime import UTC, datetime
 from pathlib import Path
@@ -37,7 +38,7 @@ from .reference_files import (
     ReferenceFileStorage,
 )
 from .queue_storage import QueueStorage, SQLiteQueueStorage
-from .task_index import SQLiteTaskIndex, project_task_generation_snapshot
+from .task_index import TERMINAL_TASK_STATUSES, SQLiteTaskIndex, project_task_generation_snapshot
 from .storage_utils import (
     _guess_mime_type,
     _safe_extension,
@@ -46,7 +47,12 @@ from .storage_utils import (
     _task_date_directory,
     utc_now,
 )
-from .thumbnails import create_image_thumbnail, input_thumbnail_filename, output_thumbnail_filename
+from .thumbnails import (
+    create_image_thumbnail,
+    input_thumbnail_filename,
+    output_sidebar_thumbnail_filename,
+    output_thumbnail_filename,
+)
 
 
 TASK_SOURCE_DATA_SUBDIR = "tasks"
@@ -61,10 +67,12 @@ class TaskStorage:
         *,
         input_root: Path | str | None = None,
         source_data_root: Path | str | None = None,
+        legacy_task_roots: list[Path | str] | tuple[Path | str, ...] = (),
     ) -> None:
         self.output_root = Path(output_root)
         self.input_root = Path(input_root) if input_root is not None else self.output_root.parent / "webui-inputs"
         self.source_data_root = Path(source_data_root) if source_data_root is not None else self.output_root / "source-data"
+        self.legacy_task_roots = tuple(dict.fromkeys(Path(root) for root in legacy_task_roots))
         # `root` is kept as a compatibility alias for existing app code while
         # paths are migrated to the explicit roots above.
         self.root = self.output_root
@@ -81,6 +89,7 @@ class TaskStorage:
 
     def write_metadata(self, task_id: str, metadata: dict[str, Any]) -> Path:
         path = self.metadata_path(task_id)
+        _stabilize_task_terminal_timestamp(path, metadata)
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(json.dumps(metadata, indent=2, ensure_ascii=False), encoding="utf-8")
         self.task_index.upsert(metadata)
@@ -123,7 +132,7 @@ class TaskStorage:
     def delete_task(self, task_id: str) -> None:
         self._validate_task_id(task_id)
         thumbnail_root = self.output_root / "thumbnails"
-        output_paths = []
+        output_paths: list[Path] = []
         if self.output_root.exists():
             output_paths = [
                 path for path in self.output_root.rglob(f"{task_id}-*")
@@ -131,19 +140,53 @@ class TaskStorage:
                 and not path.is_relative_to(thumbnail_root)
                 and not path.is_relative_to(self.source_data_root)
             ]
-        thumbnail_paths = list(thumbnail_root.rglob(f"{task_id}-*-thumb.*")) if thumbnail_root.exists() else []
-        paths = [
+        thumbnail_paths = (
+            [
+                *thumbnail_root.rglob(f"{task_id}-*-thumb.*"),
+                *thumbnail_root.rglob(f"{task_id}-*-sidebar.*"),
+            ]
+            if thumbnail_root.exists()
+            else []
+        )
+        task_source_dir = self._task_source_data_dir(task_id)
+        source_data_paths = [
+            *self.source_data_root.glob(f"{task_id}.*"),
+            *(task_source_dir.glob(f"{task_id}.*") if task_source_dir.exists() else []),
+        ]
+        source_data_paths = list(dict.fromkeys(path for path in source_data_paths if path.is_file() or path.is_symlink()))
+        metadata_filename = f"{task_id}.metadata.json"
+        metadata_paths = [path for path in source_data_paths if path.name == metadata_filename]
+        nonmetadata_source_paths = [path for path in source_data_paths if path.name != metadata_filename]
+        artifact_paths = list(dict.fromkeys([
             *self.input_root.glob(f"{task_id}-input-*"),
             *self.input_root.glob(f"{task_id}-mask-*"),
             *output_paths,
             *thumbnail_paths,
-            *self._task_source_data_paths(task_id),
-        ]
-        if not paths:
+            *nonmetadata_source_paths,
+        ]))
+        legacy_task_entries = list(dict.fromkeys(
+            root / task_id
+            for root in self.legacy_task_roots
+            if (root / task_id).exists() or (root / task_id).is_symlink()
+        ))
+        if not artifact_paths and not metadata_paths and not legacy_task_entries:
             raise FileNotFoundError(task_id)
         output_dirs = {path.parent for path in [*output_paths, *thumbnail_paths]}
-        source_data_dirs = {path.parent for path in self._task_source_data_paths(task_id)}
-        for path in paths:
+        source_data_dirs = {path.parent for path in source_data_paths}
+        for path in artifact_paths:
+            try:
+                path.unlink()
+            except FileNotFoundError:
+                pass
+        for legacy_task_entry in legacy_task_entries:
+            try:
+                if legacy_task_entry.is_symlink() or not legacy_task_entry.is_dir():
+                    legacy_task_entry.unlink()
+                else:
+                    shutil.rmtree(legacy_task_entry)
+            except FileNotFoundError:
+                pass
+        for path in metadata_paths:
             try:
                 path.unlink()
             except FileNotFoundError:
@@ -176,6 +219,73 @@ class TaskStorage:
 
     def task_sidebar_card(self, task_id: str) -> dict[str, Any]:
         return _sidebar_task_card(self.read_metadata(task_id))
+
+    def generation_sidebar_groups(
+        self,
+        *,
+        limit_per_group: int = 50,
+        now: datetime | None = None,
+    ) -> dict[str, Any]:
+        indexed = self.task_index.generation_sidebar_groups(limit_per_group=limit_per_group, now=now)
+        return {
+            "groups": [
+                {
+                    **group,
+                    "tasks": [_sidebar_task_card(task) for task in group.get("tasks", [])],
+                }
+                for group in indexed.get("groups", [])
+            ]
+        }
+
+    def generation_sidebar_group(
+        self,
+        key: str,
+        *,
+        offset: int = 0,
+        limit: int = 50,
+        status: str = "",
+        prompt_mode: str = "",
+        ratio: str = "",
+        orientation: str = "",
+        resolution: str = "",
+        now: datetime | None = None,
+    ) -> dict[str, Any]:
+        group = self.task_index.generation_sidebar_group(
+            key,
+            offset=offset,
+            limit=limit,
+            status=status,
+            prompt_mode=prompt_mode,
+            ratio=ratio,
+            orientation=orientation,
+            resolution=resolution,
+            now=now,
+        )
+        return {
+            **group,
+            "tasks": [_sidebar_task_card(task) for task in group.get("tasks", [])],
+        }
+
+    def generation_sidebar_group_task_ids(
+        self,
+        key: str,
+        *,
+        status: str = "",
+        prompt_mode: str = "",
+        ratio: str = "",
+        orientation: str = "",
+        resolution: str = "",
+        now: datetime | None = None,
+    ) -> dict[str, Any]:
+        return self.task_index.generation_sidebar_group_task_ids(
+            key,
+            status=status,
+            prompt_mode=prompt_mode,
+            ratio=ratio,
+            orientation=orientation,
+            resolution=resolution,
+            now=now,
+        )
 
     def task_history_summary(self) -> dict[str, Any]:
         self.refresh_stale_task_index()
@@ -341,6 +451,10 @@ class TaskStorage:
         self._validate_task_id(task_id)
         return self.output_root / "thumbnails" / _task_date_directory(task_id) / output_thumbnail_filename(task_id, output_index)
 
+    def output_sidebar_thumbnail_path(self, task_id: str, output_index: int) -> Path:
+        self._validate_task_id(task_id)
+        return self.output_root / "thumbnails" / _task_date_directory(task_id) / output_sidebar_thumbnail_filename(task_id, output_index)
+
     def input_thumbnail_path(self, task_id: str, input_index: int) -> Path:
         self._validate_task_id(task_id)
         return self.output_root / "thumbnails" / _task_date_directory(task_id) / input_thumbnail_filename(task_id, input_index)
@@ -429,6 +543,7 @@ def _sidebar_task_card(metadata: dict[str, Any]) -> dict[str, Any]:
         "started_at": metadata.get("started_at") or "",
         "attempt_started_at": metadata.get("attempt_started_at") or "",
         "completed_at": metadata.get("completed_at") or "",
+        "terminal_at": metadata.get("terminal_at") or metadata.get("completed_at") or "",
         "archived_at": metadata.get("archived_at") or "",
         "status": metadata.get("status") or "",
         "mode": metadata.get("mode") or "",
@@ -456,6 +571,8 @@ def _sidebar_task_card(metadata: dict[str, Any]) -> dict[str, Any]:
         "max_attempts": _nonnegative_int(metadata.get("max_attempts"), 0),
         "last_error": metadata.get("last_error") or metadata.get("error") or "",
         "error": metadata.get("error") or "",
+        "cancel_requested": bool(metadata.get("cancel_requested")),
+        "cancelled_at": metadata.get("cancelled_at") or "",
         "retrying_failed_slots": metadata.get("retrying_failed_slots") if isinstance(metadata.get("retrying_failed_slots"), list) else [],
         "input_thumbnail_urls": _sidebar_input_thumbnail_urls(metadata),
         "thumbnail_urls": [thumbnail_url] if thumbnail_url else [],
@@ -587,16 +704,16 @@ def _first_output_thumbnail_route(metadata: dict[str, Any]) -> str:
                 or _is_local_output_url(output.get("url"))
                 or (index <= len(output_urls) and _is_local_output_url(output_urls[index - 1]))
             ):
-                return f"/api/tasks/{task_id}/outputs/{index}/thumbnail"
+                return f"/api/tasks/{task_id}/outputs/{index}/sidebar-thumbnail"
     if output_files:
-        return f"/api/tasks/{task_id}/outputs/1/thumbnail"
+        return f"/api/tasks/{task_id}/outputs/1/sidebar-thumbnail"
     if output_urls and _is_local_output_url(output_urls[0]):
-        return f"/api/tasks/{task_id}/outputs/1/thumbnail"
+        return f"/api/tasks/{task_id}/outputs/1/sidebar-thumbnail"
     output_file = metadata.get("output_file")
     if output_file:
-        return f"/api/tasks/{task_id}/outputs/1/thumbnail"
+        return f"/api/tasks/{task_id}/outputs/1/sidebar-thumbnail"
     if _is_local_output_url(metadata.get("output_url")):
-        return f"/api/tasks/{task_id}/outputs/1/thumbnail"
+        return f"/api/tasks/{task_id}/outputs/1/sidebar-thumbnail"
     return ""
 
 
@@ -637,3 +754,33 @@ def _same_file_bytes(first: Path, second: Path) -> bool:
         return first.read_bytes() == second.read_bytes()
     except OSError:
         return False
+
+
+def _stabilize_task_terminal_timestamp(path: Path, metadata: dict[str, Any]) -> None:
+    status = str(metadata.get("status") or "")
+    if status not in TERMINAL_TASK_STATUSES:
+        metadata.pop("terminal_at", None)
+        return
+    if metadata.get("terminal_at"):
+        return
+
+    existing: dict[str, Any] = {}
+    try:
+        loaded = json.loads(path.read_text(encoding="utf-8"))
+        if isinstance(loaded, dict):
+            existing = loaded
+    except (FileNotFoundError, OSError, json.JSONDecodeError):
+        pass
+
+    existing_was_terminal = str(existing.get("status") or "") in TERMINAL_TASK_STATUSES
+    terminal_at = (
+        existing.get("terminal_at")
+        or existing.get("completed_at")
+        or (existing.get("created_at") if existing_was_terminal else "")
+        or (existing.get("updated_at") if existing_was_terminal else "")
+        or metadata.get("completed_at")
+        or metadata.get("updated_at")
+        or metadata.get("created_at")
+    )
+    if terminal_at:
+        metadata["terminal_at"] = str(terminal_at)

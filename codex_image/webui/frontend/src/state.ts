@@ -17,6 +17,9 @@ export interface WebUIState {
   queueDragTaskId: string | null;
   activeTaskGroupCollapsed: boolean;
   expandedTaskGroupKey: string | null;
+  latestTaskNoticeCount: number;
+  latestTaskKeepAtTop: boolean;
+  latestTaskKeepAtTopExpiresAt: number;
   taskNotifications: TaskNotification[];
   taskNotificationUnreadCount: number;
   taskNotificationCenterOpen: boolean;

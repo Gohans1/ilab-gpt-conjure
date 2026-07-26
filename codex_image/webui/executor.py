@@ -31,6 +31,7 @@ from .executor_transport import (
     _call_image_client,
     _debug_sse_path,
     _direct_images_concurrent_enabled,
+    _image_request_attempts,
     _image_request_timeout_seconds,
     _instructions_for_transport,
     _is_usage_limit_error,
@@ -233,7 +234,7 @@ async def _execute_stored_task(
                         elapsed_seconds=elapsed_seconds,
                         timeout_seconds=image_request_timeout_seconds,
                     ),
-                    "attempts": 1,
+                    "attempts": _image_request_attempts(exc),
                     "started_at": slot_started_at,
                     "updated_at": failed_at,
                     "failed_at": failed_at,
@@ -334,6 +335,9 @@ async def _execute_stored_task(
                                 "revised_prompt": result.revised_prompt,
                                 "usage": result.usage,
                             }
+                            request_attempts = _image_request_attempts(result)
+                            if request_attempts > 1:
+                                output_record["attempts"] = request_attempts
                             if result.tool_usage:
                                 output_record["tool_usage"] = result.tool_usage
                             completed_at = utc_now()
@@ -466,7 +470,7 @@ async def _execute_stored_task(
                                     elapsed_seconds=elapsed_seconds,
                                     timeout_seconds=image_request_timeout_seconds,
                                 ),
-                                "attempts": attempt,
+                                "attempts": _image_request_attempts(exc, attempt),
                                 "started_at": slot_started_at,
                                 "updated_at": failed_at,
                                 "failed_at": failed_at,
@@ -515,6 +519,9 @@ async def _execute_stored_task(
                 "revised_prompt": result.revised_prompt,
                 "usage": result.usage,
             }
+            request_attempts = _image_request_attempts(result)
+            if request_attempts > 1:
+                output_record["attempts"] = request_attempts
             if result.tool_usage:
                 output_record["tool_usage"] = result.tool_usage
             completed_at = utc_now()

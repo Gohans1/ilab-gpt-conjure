@@ -11,6 +11,7 @@ from fastapi import Body, FastAPI, HTTPException, Query, Request
 from fastapi.responses import FileResponse, StreamingResponse
 
 from codex_image.webui.context import WebUIContext
+from codex_image.webui.events import generation_page_payload
 from codex_image.webui.storage import utc_now
 from codex_image.webui.task_metadata import (
     _accept_partial_task_successes,
@@ -66,6 +67,85 @@ def register_task_routes(app: FastAPI, ctx: WebUIContext) -> None:
             tasks_by_id[task_id] = task
             tasks.append(task)
         return {"tasks": tasks}
+
+    @app.get("/api/tasks/sidebar")
+    def list_sidebar_tasks(limit: int = Query(50, ge=1, le=100)) -> dict[str, Any]:
+        return generation_page_payload(ctx, limit_per_group=limit)
+
+    @app.get("/api/tasks/sidebar/groups/{group_key}")
+    def list_sidebar_task_group(
+        group_key: str,
+        offset: int = Query(0, ge=0),
+        limit: int = Query(50, ge=1, le=100),
+        status: str = Query(""),
+        prompt_mode: str = Query(""),
+        ratio: str = Query(""),
+        orientation: str = Query(""),
+        resolution: str = Query(""),
+    ) -> dict[str, Any]:
+        try:
+            return ctx.storage.generation_sidebar_group(
+                group_key,
+                offset=offset,
+                limit=limit,
+                status=status,
+                prompt_mode=prompt_mode,
+                ratio=ratio,
+                orientation=orientation,
+                resolution=resolution,
+            )
+        except ValueError as exc:
+            raise HTTPException(status_code=404, detail="Task group not found") from exc
+
+    @app.get("/api/tasks/sidebar/groups/{group_key}/selection")
+    def select_sidebar_task_group(
+        group_key: str,
+        status: str = Query(""),
+        prompt_mode: str = Query(""),
+        ratio: str = Query(""),
+        orientation: str = Query(""),
+        resolution: str = Query(""),
+    ) -> dict[str, Any]:
+        try:
+            result = ctx.storage.generation_sidebar_group_task_ids(
+                group_key,
+                status=status,
+                prompt_mode=prompt_mode,
+                ratio=ratio,
+                orientation=orientation,
+                resolution=resolution,
+            )
+        except ValueError as exc:
+            raise HTTPException(status_code=404, detail="Task group not found") from exc
+        if result.get("truncated"):
+            raise HTTPException(status_code=409, detail="Too many matching tasks; narrow the filters first")
+        return result
+
+    @app.post("/api/tasks/delete-batch")
+    def delete_tasks_batch(payload: dict[str, Any] = Body(...)) -> dict[str, Any]:
+        raw_ids = payload.get("task_ids")
+        if not isinstance(raw_ids, list):
+            raise HTTPException(status_code=400, detail="task_ids must be a list")
+        task_ids = list(dict.fromkeys(str(task_id or "").strip() for task_id in raw_ids if str(task_id or "").strip()))
+        if not task_ids:
+            raise HTTPException(status_code=400, detail="At least one task id is required")
+        if len(task_ids) > 5000:
+            raise HTTPException(status_code=400, detail="At most 5000 tasks can be deleted at once")
+
+        deleted: list[str] = []
+        skipped: list[str] = []
+        failed: list[str] = []
+        for task_id in task_ids:
+            if task_id in ctx.active_task_ids or h["queue_has_running_task"](task_id):
+                skipped.append(task_id)
+                continue
+            try:
+                ctx.storage.delete_task(task_id)
+                ctx.queue_storage.remove_waiting(task_id)
+                deleted.append(task_id)
+            except (FileNotFoundError, ValueError, OSError):
+                failed.append(task_id)
+        return {"deleted": deleted, "skipped": skipped, "failed": failed}
 
     @app.get("/api/task-history/summary")
     def task_history_summary() -> dict[str, Any]:
@@ -244,6 +324,34 @@ def register_task_routes(app: FastAPI, ctx: WebUIContext) -> None:
             headers={"Cache-Control": "public, max-age=31536000, immutable"},
         )
 
+    @app.get("/api/tasks/{task_id}/outputs/{output_index}/sidebar-thumbnail")
+    def get_task_output_sidebar_thumbnail(task_id: str, output_index: int) -> FileResponse:
+        try:
+            metadata = ctx.storage.read_metadata(task_id)
+        except (FileNotFoundError, ValueError) as exc:
+            raise HTTPException(status_code=404, detail="Task not found") from exc
+        if output_index < 1:
+            raise HTTPException(status_code=404, detail="Output not found")
+
+        records = _visible_completed_output_records(metadata)
+        record = next((item for item in records if item.get("index") == output_index), None)
+        if record is None:
+            raise HTTPException(status_code=404, detail="Output not found")
+        output_path = _safe_output_path(ctx.storage, task_id, _output_record_filename(record))
+        if output_path is None or not output_path.is_file():
+            raise HTTPException(status_code=404, detail="Output not found")
+
+        fields = _output_thumbnail_fields(ctx.storage, task_id, output_index, output_path)
+        thumbnail_file = fields.get("sidebar_thumbnail_file")
+        if not thumbnail_file:
+            raise HTTPException(status_code=404, detail="Thumbnail unavailable")
+        thumbnail_path = ctx.storage.output_path(thumbnail_file)
+        return FileResponse(
+            thumbnail_path,
+            media_type="image/webp",
+            headers={"Cache-Control": "public, max-age=31536000, immutable"},
+        )
+
     @app.patch("/api/tasks/{task_id}/outputs/{output_index}/selected")
     def update_task_output_selection(task_id: str, output_index: int, payload: dict[str, Any] = Body(...)) -> dict[str, Any]:
         try:
@@ -378,8 +486,8 @@ def register_task_routes(app: FastAPI, ctx: WebUIContext) -> None:
         if task_id in ctx.active_task_ids or h["queue_has_running_task"](task_id):
             raise HTTPException(status_code=409, detail="Running task cannot be deleted")
         try:
-            ctx.queue_storage.remove_waiting(task_id)
             ctx.storage.delete_task(task_id)
+            ctx.queue_storage.remove_waiting(task_id)
         except (FileNotFoundError, ValueError) as exc:
             raise HTTPException(status_code=404, detail="Task not found") from exc
         return {"ok": True, "task_id": task_id}

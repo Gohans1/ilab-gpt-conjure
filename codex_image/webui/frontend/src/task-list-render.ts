@@ -1,4 +1,5 @@
 import { getLegacyBridge } from "./state";
+import { taskWasCancelled } from "./task-cancellation";
 import { cssEscape, prefersReducedMotion } from "./webui-utils";
 import { formatTranslation, LOCALE_CHANGE_EVENT, translate } from "./i18n";
 import { groundingAttributionKey, groundingSourceCount } from "./grounding-attribution";
@@ -15,14 +16,17 @@ const state = bridge.state;
 const els = bridge.els;
 const EXPANDED_TASK_GROUP_INITIAL_CARD_COUNT = 24;
 const EXPANDED_TASK_GROUP_CHUNK_SIZE = 48;
+const TASK_SIDEBAR_GROUP_PAGE_SIZE = 50;
 const EXPANDED_TASK_GROUP_ANIMATION_FALLBACK_MS = 320;
 let expandedTaskGroupRenderToken = 0;
 type QueueTaskIdSections = { running: Map<string, number>; waiting: Map<string, number> };
 type TaskListScrollAnchor = {
   scroller: HTMLElement;
+  root: HTMLElement;
   scrollTop: number;
   taskId?: string;
   offsetTop?: number;
+  retryMissingTask?: boolean;
 };
 let queueTaskIdsCacheKey = "";
 let queueTaskIdsCache: QueueTaskIdSections | null = null;
@@ -44,6 +48,7 @@ function updateTaskElapsedDisplays(...args: any[]) { return legacyMethod("update
 function taskBackendLabel(...args: any[]) { return legacyMethod("taskBackendLabel", ...args); }
 function taskApiProviderId(...args: any[]) { return legacyMethod("taskApiProviderId", ...args); }
 function taskApiProviderLabel(...args: any[]) { return legacyMethod("taskApiProviderLabel", ...args); }
+function formatTaskCardStatus(...args: any[]) { return legacyMethod("formatTaskCardStatus", ...args); }
 function formatTaskStatus(...args: any[]) { return legacyMethod("formatTaskStatus", ...args); }
 function ensureExpandedTaskGroupKey(...args: any[]) { return legacyMethod("ensureExpandedTaskGroupKey", ...args); }
 function renderTaskHistoryAnchors(...args: any[]) { return legacyMethod("renderTaskHistoryAnchors", ...args); }
@@ -51,6 +56,9 @@ function setExpandedTaskGroupKey(...args: any[]) { return legacyMethod("setExpan
 function scrollExpandedTaskGroupToTop(...args: any[]) { return legacyMethod("scrollExpandedTaskGroupToTop", ...args); }
 function captureTaskHistoryLayout(...args: any[]) { return legacyMethod("captureTaskHistoryLayout", ...args); }
 function animateTaskHistoryLayout(...args: any[]) { return legacyMethod("animateTaskHistoryLayout", ...args); }
+function scheduleLatestTaskNavigationRefresh(...args: any[]) { return legacyMethod("scheduleLatestTaskNavigationRefresh", ...args); }
+function consumeLatestTaskNavigationScrollAnchor(...args: any[]) { return legacyMethod("consumeLatestTaskNavigationScrollAnchor", ...args); }
+function rememberLatestTaskNavigationBeforeRender(...args: any[]) { return legacyMethod("rememberLatestTaskNavigationBeforeRender", ...args); }
 const taskRatio = (...args: any[]) => legacyMethod("taskRatio", ...args);
 const taskOrientation = (...args: any[]) => legacyMethod("taskOrientation", ...args);
 const taskPromptFidelity = (...args: any[]) => legacyMethod("taskPromptFidelity", ...args);
@@ -72,7 +80,8 @@ const taskCompletionTimestampTitle = (...args: any[]) => legacyMethod("taskCompl
 const timestampMs = (...args: any[]) => legacyMethod("timestampMs", ...args);
 
 function renderTasks(options: { preserveScroll?: boolean } = {}) {
-  const scrollAnchor = options.preserveScroll ? captureTaskListScrollAnchor() : null;
+  if (options.preserveScroll) rememberLatestTaskNavigationBeforeRender();
+  const scrollAnchors = options.preserveScroll ? captureTaskListScrollAnchors() : [];
   const query = taskSearchQuery();
   const filters = taskFilterValues();
   const visibleTasks = state.tasks.filter((task: any) => !isTaskArchived(task.task_id));
@@ -80,7 +89,9 @@ function renderTasks(options: { preserveScroll?: boolean } = {}) {
     return taskMatchesSearch(task, query) && taskMatchesFilters(task, filters);
   });
   const visibleTaskIds = visibleTasks.map((task: any) => String(task.task_id));
-  state.batchSelectedTaskIds = state.batchSelectedTaskIds.filter((taskId: any) => visibleTaskIds.includes(String(taskId)));
+  if (!state.batchSelectionIncludesUnloaded) {
+    state.batchSelectedTaskIds = state.batchSelectedTaskIds.filter((taskId: any) => visibleTaskIds.includes(String(taskId)));
+  }
   renderBatchToolbar();
   const activeGroup = activeTaskGroup(tasks, query);
   const groups = taskHistoryGroups(tasks, query);
@@ -89,7 +100,8 @@ function renderTasks(options: { preserveScroll?: boolean } = {}) {
   const nextRenderKey = taskListRenderKey(tasks, query, layout, filters, activeGroup);
   if (state.tasksRenderKey === nextRenderKey) {
     updateTaskElapsedDisplays();
-    restoreTaskListScrollAnchor(scrollAnchor);
+    restoreTaskListScrollAnchors(scrollAnchors);
+    scheduleLatestTaskNavigationRefresh();
     return;
   }
   state.tasksRenderKey = nextRenderKey;
@@ -102,14 +114,16 @@ function renderTasks(options: { preserveScroll?: boolean } = {}) {
     expandedTaskGroupRenderToken += 1;
     els.taskList.innerHTML = `<div class="task-meta">${escapeHtml(translate("taskList.empty"))}</div>`;
     updateDocumentTitle();
-    restoreTaskListScrollAnchor(scrollAnchor);
+    restoreTaskListScrollAnchors(scrollAnchors);
+    scheduleLatestTaskNavigationRefresh();
     return;
   }
   if (!layout.expandedGroup) {
     expandedTaskGroupRenderToken += 1;
     els.taskList.innerHTML = "";
     updateDocumentTitle();
-    restoreTaskListScrollAnchor(scrollAnchor);
+    restoreTaskListScrollAnchors(scrollAnchors);
+    scheduleLatestTaskNavigationRefresh();
     return;
   }
 
@@ -120,16 +134,27 @@ function renderTasks(options: { preserveScroll?: boolean } = {}) {
   });
   scheduleExpandedTaskGroupItemsRender(group, layout.expandedKey || group?.key || null);
   updateDocumentTitle();
-  restoreTaskListScrollAnchor(scrollAnchor);
+  restoreTaskListScrollAnchors(scrollAnchors);
+  scheduleLatestTaskNavigationRefresh();
 }
 
-function taskListScrollContainer(): HTMLElement | null {
-  return els.sidebarContent || els.taskHistoryShell || els.taskList || null;
+function captureTaskListScrollAnchors(): TaskListScrollAnchor[] {
+  const historyAnchor = captureTaskListScrollAnchor(
+    els.sidebarContent || els.taskHistoryShell || els.taskList,
+    els.taskList,
+    { retryMissingTask: true },
+  );
+  return [
+    captureTaskListScrollAnchor(els.taskActiveList, els.taskActiveList),
+    consumeLatestTaskNavigationScrollAnchor(historyAnchor),
+  ].filter((anchor): anchor is TaskListScrollAnchor => Boolean(anchor));
 }
 
-function captureTaskListScrollAnchor(): TaskListScrollAnchor | null {
-  const scroller = taskListScrollContainer();
-  const root = taskCardRoot();
+function captureTaskListScrollAnchor(
+  scroller: HTMLElement | null,
+  root: HTMLElement | null,
+  { retryMissingTask = false }: { retryMissingTask?: boolean } = {},
+): TaskListScrollAnchor | null {
   if (!scroller || !root) return null;
   const scrollerRect = scroller.getBoundingClientRect();
   const cards = Array.from(root.querySelectorAll(".task-card[data-task-id]")) as HTMLElement[];
@@ -137,15 +162,21 @@ function captureTaskListScrollAnchor(): TaskListScrollAnchor | null {
     const rect = card.getBoundingClientRect();
     return rect.bottom > scrollerRect.top && rect.top < scrollerRect.bottom;
   });
-  if (!visibleCard) return { scroller, scrollTop: scroller.scrollTop };
+  if (!visibleCard) return { scroller, root, scrollTop: scroller.scrollTop, retryMissingTask };
   const rect = visibleCard.getBoundingClientRect();
   const anchor: TaskListScrollAnchor = {
     scroller,
+    root,
     scrollTop: scroller.scrollTop,
     offsetTop: rect.top - scrollerRect.top,
+    retryMissingTask,
   };
   if (visibleCard.dataset.taskId) anchor.taskId = visibleCard.dataset.taskId;
   return anchor;
+}
+
+function restoreTaskListScrollAnchors(anchors: TaskListScrollAnchor[]): void {
+  anchors.forEach(restoreTaskListScrollAnchor);
 }
 
 function restoreTaskListScrollAnchor(anchor: TaskListScrollAnchor | null): void {
@@ -154,7 +185,7 @@ function restoreTaskListScrollAnchor(anchor: TaskListScrollAnchor | null): void 
   const restore = () => {
     if (!anchor.scroller.isConnected) return;
     if (anchor.taskId) {
-      const card = taskCardElement(anchor.taskId);
+      const card = anchor.root.querySelector(`.task-card[data-task-id="${cssEscape(anchor.taskId)}"]`);
       if (card instanceof HTMLElement) {
         const scrollerRect = anchor.scroller.getBoundingClientRect();
         const rect = card.getBoundingClientRect();
@@ -162,14 +193,14 @@ function restoreTaskListScrollAnchor(anchor: TaskListScrollAnchor | null): void 
         return;
       }
     }
-    if (anchor.taskId && attempts > 0) {
+    if (anchor.taskId && anchor.retryMissingTask && attempts > 0) {
       attempts -= 1;
       requestAnimationFrame(restore);
       return;
     }
     anchor.scroller.scrollTop = anchor.scrollTop;
   };
-  requestAnimationFrame(restore);
+  restore();
 }
 
 function renderHistoryLibraryGroup(tasks: any[], query: string) {
@@ -288,8 +319,10 @@ function scheduleExpandedTaskGroupItemsRender(group: any, activeGroupKey: string
     const chunkSize = index === 0 ? EXPANDED_TASK_GROUP_INITIAL_CARD_COUNT : EXPANDED_TASK_GROUP_CHUNK_SIZE;
     const nextTasks = tasks.slice(index, index + chunkSize);
     if (!nextTasks.length) {
+      body.insertAdjacentHTML("beforeend", taskGroupLoadMoreHtml(group));
       finalizeExpandedTaskGroupBody(groupKey);
       body.dataset.renderComplete = "true";
+      scheduleLatestTaskNavigationRefresh();
       return;
     }
     body.insertAdjacentHTML("beforeend", nextTasks.map((task: any) => taskCardHtml(task)).join(""));
@@ -306,8 +339,10 @@ function scheduleExpandedTaskGroupItemsRender(group: any, activeGroupKey: string
     if (index < tasks.length) {
       requestAnimationFrame(renderChunk);
     } else {
+      body.insertAdjacentHTML("beforeend", taskGroupLoadMoreHtml(group));
       body.dataset.renderComplete = "true";
     }
+    scheduleLatestTaskNavigationRefresh();
   };
   requestAnimationFrame(renderChunk);
 }
@@ -350,6 +385,7 @@ function taskSearchQuery() {
 
 function taskFilterValues() {
   return {
+    status: els.taskStatusFilter?.value || "",
     ratio: els.taskRatioFilter?.value || "",
     orientation: els.taskOrientationFilter?.value || "",
     promptFidelity: els.taskPromptFidelityFilter?.value || "",
@@ -374,6 +410,7 @@ function taskMatchesSearch(task: any, query: any) {
 }
 
 function taskMatchesFilters(task: any, filters: any) {
+  if (filters.status && String(task?.status || "") !== filters.status) return false;
   if (filters.ratio && taskRatio(task) !== filters.ratio) return false;
   if (filters.orientation && taskOrientation(task) !== filters.orientation) return false;
   if (filters.promptFidelity && taskPromptFidelity(task) !== filters.promptFidelity) return false;
@@ -393,7 +430,7 @@ function clearTaskListFiltersForActiveGroup() {
     els.taskSearch.value = "";
     changed = true;
   }
-  [els.taskRatioFilter, els.taskOrientationFilter, els.taskPromptFidelityFilter, els.taskResolutionFilter]
+  [els.taskStatusFilter, els.taskRatioFilter, els.taskOrientationFilter, els.taskPromptFidelityFilter, els.taskResolutionFilter]
     .filter(Boolean)
     .forEach((element: any) => {
       if (element.value) {
@@ -440,7 +477,7 @@ function renderExpandedTaskGroupShellHtml(group: any, options: { startExpanded?:
           <span class="task-group-title">
             <span class="task-group-label">${escapeHtml(group.label)}</span>
             <span class="task-group-count-separator" aria-hidden="true"> · </span>
-            <span class="task-group-count">${group.tasks.length}</span>
+            <span class="task-group-count">${taskGroupCount(group)}</span>
           </span>
         </span>
         <span
@@ -510,7 +547,7 @@ function activeTaskGroup(tasks: any[], query: any = "") {
   if (!activeTasks.length) return null;
   return {
     key: "active",
-    label: translate("taskGroup.active"),
+    label: translate("sidebar.activeTasks"),
     tasks: activeTasks,
     collapsible: false,
     defaultCollapsed: false,
@@ -577,7 +614,7 @@ function expandedTaskGroupHtml(group: any) {
           <span class="task-group-title">
             <span class="task-group-label">${escapeHtml(group.label)}</span>
             <span class="task-group-count-separator" aria-hidden="true"> · </span>
-            <span class="task-group-count">${group.tasks.length}</span>
+            <span class="task-group-count">${taskGroupCount(group)}</span>
           </span>
         </span>
         <span
@@ -603,7 +640,7 @@ function taskGroupHtml(group: any) {
 }
 
 function taskGroupButtonLabel(group: any) {
-  return formatTranslation("taskGroup.buttonLabel", { label: group.label, count: group.tasks.length });
+  return formatTranslation("taskGroup.buttonLabel", { label: group.label, count: taskGroupCount(group) });
 }
 
 function taskQueueSection(task: any, queueIds = queueTaskIdsBySection()) {
@@ -740,11 +777,9 @@ function taskCardHtml(task: any) {
   const runningTimerHtml = taskCardRunningTimerHtml(task, taskId);
   const statusLabel = taskStatusLabelHtml(task);
   const modelFamilyIcon = taskModelFamilyIconHtml(task);
-  const statusMetaText = runningTimerHtml && retryText
-    ? [taskMetaDetailsText(task), retryText].filter(Boolean).join(" · ")
-    : retryText
-      ? taskMetaDetailsWithCompletionText(task)
-      : taskMetaDetailsText(task);
+  const statusMetaText = retryText
+    ? taskMetaDetailsWithCompletionText(task)
+    : taskMetaDetailsText(task);
   const statusMeta = escapeHtml(statusMetaText);
   const taskTime = taskCardCompletionTimeText(task);
   const runtime = taskCardRuntimeText(task);
@@ -753,6 +788,7 @@ function taskCardHtml(task: any) {
   const runtimeTitleText = [runtimeFullText, completionTitle].filter(Boolean).join(" · ");
   const runtimeTitle = runtimeTitleText ? ` title="${escapeHtml(runtimeTitleText)}"` : "";
   const runtimeHtml = runtime ? `<span class="task-runtime" data-task-runtime-id="${taskId}" data-task-completed-at-id="${taskId}"${runtimeTitle}>${escapeHtml(runtime)}</span>` : "";
+  const topTimeHtml = runningTimerHtml || runtimeHtml;
   const imageRow = showImageSummary ? `
           <span class="task-image-row">
             ${imageBlocks}
@@ -764,9 +800,9 @@ function taskCardHtml(task: any) {
           </span>
     ` : "";
   const retryTitle = retryFullText && retryFullText !== retryText ? ` title="${escapeHtml(retryFullText)}"` : "";
-  const retryHtml = !runningTimerHtml && retryText ? `<span class="task-retry-state" data-task-retry-id="${taskId}"${retryTitle}>${escapeHtml(retryText)}</span>` : "";
+  const retryHtml = retryText ? `<span class="task-retry-state" data-task-retry-id="${taskId}"${retryTitle}>${escapeHtml(retryText)}</span>` : "";
   const timeHtml = !retryText && taskTime ? `<span class="task-card-time">${escapeHtml(taskTime)}</span>` : "";
-  const detailRightHtml = runningTimerHtml || retryHtml || timeHtml;
+  const detailRightHtml = retryHtml || timeHtml;
   const detailRowClass = detailRightHtml ? "task-detail-row" : "task-detail-row task-detail-row-meta-only";
   const detailRow = statusMeta || detailRightHtml ? `
         <div class="${detailRowClass}">
@@ -797,7 +833,7 @@ function taskCardHtml(task: any) {
       <div class="task-info">
         <div class="task-meta-row">
           ${imageRow}
-          ${runtimeHtml}
+          ${topTimeHtml}
         </div>
         <div class="task-title-row">
           ${unreadDot}
@@ -841,24 +877,37 @@ function taskHistoryGroups(tasks: any, query: any) {
   const groups: any[] = [];
   const assignedTaskIds = new Set();
   const addGroup = (key: any, label: any, groupTasks: any, options: any = {}) => {
-    if (!groupTasks.length) return;
+    const count = Math.max(groupTasks.length, Number(options.count || 0));
+    if (!count) return;
     groups.push({
       key,
       label,
       tasks: groupTasks,
+      count,
       collapsible: Boolean(options.collapsible),
       defaultCollapsed: Boolean(options.defaultCollapsed),
     });
     groupTasks.forEach((task: any) => assignedTaskIds.add(String(task.task_id)));
   };
-  const historicalTasks = tasks.filter((task: any) => !isAlwaysVisibleTask(task));
+  const filters = taskFilterValues();
+  const useServerCounts = Object.values(filters).every((value) => !String(value || ""));
+  const serverCount = (key: string) => useServerCounts
+    ? Math.max(0, Number(state.taskSidebarGroupCounts?.[key] || 0))
+    : 0;
+  const historicalTasks = tasks
+    .filter((task: any) => !isAlwaysVisibleTask(task))
+    .slice()
+    .sort((left: any, right: any) => (
+      taskHistoryActivityTimestamp(right) - taskHistoryActivityTimestamp(left)
+      || String(right?.task_id || "").localeCompare(String(left?.task_id || ""))
+    ));
   const unassignedTasks = () => historicalTasks.filter((task: any) => !assignedTaskIds.has(String(task.task_id)));
 
   addGroup(
     "today",
     translate("taskGroup.today"),
     unassignedTasks().filter((task: any) => taskDateBucket(task) === "today"),
-    { collapsible: true, defaultCollapsed: false },
+    { collapsible: true, defaultCollapsed: false, count: serverCount("today") },
   );
 
   [
@@ -869,7 +918,7 @@ function taskHistoryGroups(tasks: any, query: any) {
       key,
       label,
       unassignedTasks().filter((task: any) => taskDateBucket(task) === key),
-      { collapsible: true, defaultCollapsed: true },
+      { collapsible: true, defaultCollapsed: true, count: serverCount(String(key)) },
     );
   });
 
@@ -923,9 +972,14 @@ function activeTasksForGroup(tasks: any[]) {
     .sort((left: any, right: any) => activeTaskOrderIndex(left, sectionIds) - activeTaskOrderIndex(right, sectionIds));
 }
 
+function taskHistoryActivityTimestamp(task: any) {
+  const timestamp = timestampMs(task?.terminal_at || task?.completed_at || task?.created_at);
+  return timestamp === null ? Number.NEGATIVE_INFINITY : timestamp;
+}
+
 function taskDateBucket(task: any) {
-  const timestamp = timestampMs(task?.created_at || task?.updated_at || task?.started_at);
-  if (timestamp === null) return "older";
+  const timestamp = taskHistoryActivityTimestamp(task);
+  if (!Number.isFinite(timestamp)) return "older";
   const now = new Date();
   const taskDate = new Date(timestamp);
   const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
@@ -935,6 +989,28 @@ function taskDateBucket(task: any) {
   if (dayDiff === 1) return "yesterday";
   if (dayDiff <= 6) return "last7";
   return "older";
+}
+
+function taskGroupCount(group: any) {
+  const loadedCount = Array.isArray(group?.tasks) ? group.tasks.length : 0;
+  return Math.max(loadedCount, Math.max(0, Number(group?.count || 0)));
+}
+
+function taskGroupLoadMoreHtml(group: any) {
+  const loadedCount = Array.isArray(group?.tasks) ? group.tasks.length : 0;
+  const totalCount = Math.max(0, Number(group?.count || 0));
+  if (!group?.key || loadedCount >= totalCount) return "";
+  const loading = String(state.taskSidebarGroupLoading || "") === String(group.key);
+  const remaining = Math.min(TASK_SIDEBAR_GROUP_PAGE_SIZE, totalCount - loadedCount);
+  return `
+    <button
+      class="ghost-button text-sm task-group-load-more"
+      type="button"
+      data-load-more-task-group="${escapeHtml(group.key)}"
+      aria-busy="${loading ? "true" : "false"}"
+      ${loading ? "disabled" : ""}
+    >${escapeHtml(formatTranslation("taskGroup.loadMore", { count: remaining }))}</button>
+  `;
 }
 
 function taskListRenderKey(tasks: any, query: any, layout: any = {}, filters: any = {}, activeGroup: any = null) {
@@ -952,17 +1028,18 @@ function taskListRenderKey(tasks: any, query: any, layout: any = {}, filters: an
     expandedTaskGroupKey: state.expandedTaskGroupKey,
     queryMode: Boolean(layout.queryMode),
     expandedGroup: layout.expandedGroup
-      ? [layout.expandedGroup.key, layout.expandedGroup.label, layout.expandedGroup.tasks.length]
+      ? [layout.expandedGroup.key, layout.expandedGroup.label, taskGroupCount(layout.expandedGroup)]
       : null,
     anchorGroups: [
-      (layout.top || []).map((group: any) => [group.key, group.tasks.length]),
-      (layout.bottom || []).map((group: any) => [group.key, group.tasks.length]),
+      (layout.top || []).map((group: any) => [group.key, taskGroupCount(group)]),
+      (layout.bottom || []).map((group: any) => [group.key, taskGroupCount(group)]),
     ],
     tasks: tasks.map((task: any) => [
       task.task_id,
       task.status,
       task.updated_at,
       task.completed_at,
+      task.terminal_at,
       task.started_at,
       task.prompt,
       task.mode,
@@ -1037,6 +1114,9 @@ function taskThumbHtml(task: any, className: any = "task-thumb") {
       </div>
     `;
   }
+  if (taskWasCancelled(task)) {
+    return `<div class="${safeClassName} failed-thumb task-cancelled-thumb" aria-label="${escapeHtml(translate("queue.runningCancelled"))}"><span>×</span></div>`;
+  }
   if (task.status === "failed") {
     return `<div class="${safeClassName} failed-thumb" aria-label="${escapeHtml(translate("taskCard.failedThumb"))}"><span>!</span></div>`;
   }
@@ -1044,7 +1124,7 @@ function taskThumbHtml(task: any, className: any = "task-thumb") {
 }
 
 function taskStatusLabelHtml(task: any) {
-  const label = escapeHtml(formatTaskStatus(task) || translate("taskStatus.unknown"));
+  const label = escapeHtml(formatTaskCardStatus(task) || translate("taskStatus.unknown"));
   const taskId = escapeHtml(task?.task_id || "");
   return `<span class="task-status-label" data-task-status-id="${taskId}">${label}</span>`;
 }
@@ -1057,7 +1137,7 @@ function taskModelFamilyIconHtml(task: any) {
 
 function taskStatusAccessibleLabel(task: any) {
   return [
-    formatTaskStatus(task) || translate("taskStatus.unknown"),
+    formatTaskCardStatus(task) || translate("taskStatus.unknown"),
     taskModelDisplayName(task, state.generationCatalog),
     taskImageSummaryText(task),
     taskMetaDetailsText(task),
@@ -1135,9 +1215,10 @@ function taskImageSummaryText(task: any) {
   const states = taskImageBlockStates(task);
   const counts = taskImageStatusCounts(states);
   const parts = [];
-  if (counts.running) parts.push(formatTranslation("taskCard.runningCount", { count: counts.running }));
+  if (counts.running) parts.push(formatTranslation("taskCard.count", { count: counts.running }));
   if (counts.queued || counts.waiting) {
-    parts.push(formatTranslation("taskCard.waitingCount", { count: counts.queued + counts.waiting }));
+    const waitingCount = counts.queued + counts.waiting;
+    parts.push(formatTranslation(counts.running ? "taskCard.waitingCount" : "taskCard.count", { count: waitingCount }));
   }
   return parts.join(" · ");
 }
@@ -1179,8 +1260,10 @@ export function initTaskListRenderFeature() {
     taskHasUnreadUpdate,
     taskHasViewableUpdate,
     taskHistoryGroups,
+    taskHistoryActivityTimestamp,
     isAlwaysVisibleTask,
     taskDateBucket,
+    taskGroupCount,
     taskListRenderKey,
     taskCardElement,
     updateTaskSelectionVisuals,

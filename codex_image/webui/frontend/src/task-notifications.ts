@@ -1,6 +1,7 @@
 import { getLegacyBridge } from "./state";
 import { formatTranslation, LOCALE_CHANGE_EVENT, translate } from "./i18n";
 import type { TaskNotification, TaskNotificationSettings, TaskStatus, WebUITask } from "./types";
+import { taskWasCancelled } from "./task-cancellation";
 
 const TASK_NOTIFICATION_SETTINGS_KEY = "codex-image-task-notification-settings";
 const TASK_NOTIFICATION_SEEN_KEY = "codex-image-task-notification-seen";
@@ -48,8 +49,10 @@ export function showTransientNotice(message: string): void {
 }
 
 function notifyTaskUpdate(previousTask: WebUITask | null | undefined, nextTask: WebUITask | null | undefined): void {
+  if (taskWasCancelled(nextTask)) return;
   const status = terminalTaskStatus(nextTask?.status);
   if (!nextTask || !status || !shouldNotifyTerminalTask(previousTask, nextTask)) return;
+  getLegacyBridge().methods.notifyLatestTaskAvailable?.(nextTask);
   const notification = buildTaskNotification(nextTask, status);
   rememberTaskNotification(nextTask, status);
   if (getLegacyBridge().state.taskNotificationSettings.inApp) {

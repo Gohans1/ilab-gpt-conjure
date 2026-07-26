@@ -86,6 +86,7 @@ export async function handleRealtimePayload(payload: RealtimePayload | null | un
     applyQueueState(payload.queue);
     await bridge.methods.applyTasksSnapshot(payload.tasks || [], {
       migrateLegacyArchives: state.realtimeSnapshotNeedsArchiveMigration,
+      ...(payload.task_groups ? { taskGroups: payload.task_groups } : {}),
     });
     applyQueueTasks(payload.queue);
     state.realtimeSnapshotNeedsArchiveMigration = false;
@@ -188,7 +189,7 @@ export function renderQueue(): void {
 
 function renderActiveTaskGroupForQueueChange(): void {
   const bridge = getLegacyBridge();
-  bridge.methods.renderTasks?.();
+  bridge.methods.renderTasks?.({ preserveScroll: true });
 }
 
 export function renderQueueStatusChip({
@@ -515,7 +516,7 @@ export function applyQueueTasks(queue: QueueState | null | undefined): void {
     return;
   }
   bridge.methods.cleanupSessionSelections();
-  bridge.methods.renderTasks();
+  bridge.methods.renderTasks({ preserveScroll: true });
   bridge.methods.renderArchiveButton();
   bridge.methods.renderArchiveModal();
   bridge.methods.renderPreview();

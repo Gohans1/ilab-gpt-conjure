@@ -8,7 +8,11 @@ export interface LegacyMethods {
   setStatus(message: string, type?: string): void;
   applyTasksSnapshot(
     tasks: WebUITask[],
-    options?: { migrateLegacyArchives?: boolean; requestSeq?: number },
+    options?: {
+      migrateLegacyArchives?: boolean;
+      requestSeq?: number;
+      taskGroups?: Array<{ key: string; count: number; tasks?: WebUITask[] }>;
+    },
   ): Promise<void>;
   applyTaskUpdate(task: WebUITask | null | undefined): void;
   ensureSelectedTaskDetail(taskId?: string | null): Promise<WebUITask | null> | WebUITask | null;
@@ -20,6 +24,10 @@ export interface LegacyMethods {
   markTaskViewed(taskId: string): Promise<void> | void;
   cleanupSessionSelections(): void;
   renderTasks(options?: { preserveScroll?: boolean }): void;
+  scheduleLatestTaskNavigationRefresh(): void;
+  notifyLatestTaskAvailable(task: WebUITask | null | undefined): void;
+  consumeLatestTaskNavigationScrollAnchor(anchor: any): any;
+  rememberLatestTaskNavigationBeforeRender(): void;
   renderArchiveButton(): void;
   renderArchiveModal(): void;
   renderPreview(task?: WebUITask | null): void;
@@ -34,6 +42,7 @@ export interface LegacyMethods {
       onConfirm: () => Promise<void> | void;
     },
   ): void;
+  formatTaskCardStatus(task: WebUITask | null | undefined): string;
   formatTaskStatus(task: WebUITask | null | undefined): string;
   taskTotalCount(task: WebUITask | null | undefined): number;
   taskBackendLabel(task: WebUITask | null | undefined): string;

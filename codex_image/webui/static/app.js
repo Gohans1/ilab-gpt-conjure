@@ -211,6 +211,8 @@
       taskHistoryShell: document.querySelector(".task-history-shell"),
       sidebarContent: document.querySelector(".sidebar-content"),
       taskActiveList: document.querySelector("#taskActiveList"),
+      taskLatestButton: document.querySelector("#taskLatestButton"),
+      taskLatestBadge: document.querySelector("#taskLatestBadge"),
       taskList: document.querySelector("#taskList"),
       taskSearch: document.querySelector("#taskSearch"),
       taskSearchClearButton: document.querySelector("#taskSearchClearButton"),
@@ -218,6 +220,7 @@
       taskFilterPopover: document.querySelector("#taskFilterPopover"),
       taskFilterClearButton: document.querySelector("#taskFilterClearButton"),
       taskFilterActiveCount: document.querySelector("#taskFilterActiveCount"),
+      taskStatusFilter: document.querySelector("#taskStatusFilter"),
       taskRatioFilter: document.querySelector("#taskRatioFilter"),
       taskOrientationFilter: document.querySelector("#taskOrientationFilter"),
       taskPromptFidelityFilter: document.querySelector("#taskPromptFidelityFilter"),
@@ -226,10 +229,13 @@
       taskHistoryBottomAnchors: document.querySelector("#taskHistoryBottomAnchors"),
       taskHistoryLibrarySlot: document.querySelector("#taskHistoryLibrarySlot"),
       archiveButton: document.querySelector("#archiveButton"),
+      batchCancelTasksButton: document.querySelector("#batchCancelTasksButton"),
       batchManageButton: document.querySelector("#batchManageButton"),
       batchToolbar: document.querySelector("#batchToolbar"),
       batchSelectedCount: document.querySelector("#batchSelectedCount"),
+      batchSelectGroupButton: document.querySelector("#batchSelectGroupButton"),
       batchArchiveButton: document.querySelector("#batchArchiveButton"),
+      batchCancelSelectedButton: document.querySelector("#batchCancelSelectedButton"),
       batchDeleteButton: document.querySelector("#batchDeleteButton"),
       batchCancelButton: document.querySelector("#batchCancelButton"),
       archiveModal: document.querySelector("#archiveModal"),
@@ -240,11 +246,20 @@
       systemSettingsModalClose: document.querySelector("#systemSettingsModalClose"),
       systemSettingsTabs: document.querySelector("#systemSettingsTabs"),
       systemSettingsApiTab: document.querySelector("#systemSettingsApiTab"),
+      systemSettingsNetworkTab: document.querySelector("#systemSettingsNetworkTab"),
       systemSettingsLanguageTab: document.querySelector("#systemSettingsLanguageTab"),
       systemSettingsStorageTab: document.querySelector("#systemSettingsStorageTab"),
       systemSettingsApiPanel: document.querySelector("#systemSettingsApiPanel"),
+      systemSettingsNetworkPanel: document.querySelector("#systemSettingsNetworkPanel"),
       systemSettingsLanguagePanel: document.querySelector("#systemSettingsLanguagePanel"),
       systemSettingsStoragePanel: document.querySelector("#systemSettingsStoragePanel"),
+      networkEgressMode: document.querySelector("#networkEgressMode"),
+      networkEgressCustomProxyField: document.querySelector("#networkEgressCustomProxyField"),
+      networkEgressCustomProxy: document.querySelector("#networkEgressCustomProxy"),
+      networkEgressCurrentRoute: document.querySelector("#networkEgressCurrentRoute"),
+      networkEgressStatus: document.querySelector("#networkEgressStatus"),
+      testNetworkEgressButton: document.querySelector("#testNetworkEgressButton"),
+      saveNetworkEgressButton: document.querySelector("#saveNetworkEgressButton"),
       languageSettingsStatus: document.querySelector("#languageSettingsStatus"),
       settingsStatus: document.querySelector("#settingsStatus"),
       settingsInputRoot: document.querySelector("#settingsInputRoot"),
@@ -490,12 +505,14 @@
     "sidebar.allOrientations": "All orientations",
     "sidebar.allModes": "All modes",
     "sidebar.allResolutions": "All resolutions",
+    "sidebar.allStatuses": "All statuses",
     "sidebar.activeTasks": "Active tasks",
     "sidebar.topAnchors": "Top time navigation",
     "sidebar.bottomAnchors": "Bottom time navigation",
     "sidebar.resize": "Resize sidebar",
     "batch.selected": "0 selected",
     "batch.selectedCount": "{count} selected",
+    "batch.selectCurrentGroup": "Select all in group",
     "batch.archivedCount": "Archived {count} chats",
     "batch.archiveFailed": "Batch archive failed",
     "batch.runningCannotDeleteSelected": "Selected chats are running and cannot be deleted",
@@ -505,6 +522,15 @@
     "batch.deleteSkippedSuffix": ", {count} running tasks not deleted",
     "batch.deletedCount": "Deleted {count} chats{skipped}",
     "batch.deleteFailed": "Batch delete failed",
+    "batch.cancelTasksShortcut": "Cancel tasks",
+    "batch.cancelSelected": "Cancel tasks",
+    "batch.noActiveSelected": "The selected tasks are no longer running or waiting",
+    "batch.cancelTitle": "Cancel {count} tasks?",
+    "batch.cancelMessage": "Running tasks will stop and waiting tasks will leave the queue. History will be kept.",
+    "batch.cancelDetail": "Running {running} \xB7 waiting {waiting}",
+    "batch.cancelConfirm": "Cancel tasks",
+    "batch.cancelResult": "Cancelled {cancelled}, skipped {skipped}, failed {failed}",
+    "batch.cancelFailed": "Batch cancellation failed",
     "action.archive": "Archive",
     "action.delete": "Delete",
     "action.cancel": "Cancel",
@@ -1108,6 +1134,8 @@
     "taskList.selectSession": "Select chat",
     "taskList.unreadUpdate": "Unread update",
     "taskList.viewing": "Viewing",
+    "taskList.backToLatest": "Back to latest task",
+    "taskList.backToLatestWithCount": "Back to latest task, {count} new tasks above",
     "taskDerived.usageLimited": "Usage limited",
     "taskSubmit.requestFailed": "Request failed",
     "taskSubmit.queued": "Task added to queue",
@@ -1234,6 +1262,7 @@
     "taskGroup.expand": "Expand {label}",
     "taskGroup.collapse": "Collapse {label}",
     "taskGroup.buttonLabel": "{label}, {count} tasks",
+    "taskGroup.loadMore": "Load {count} more",
     "archive.title": "Archive",
     "archive.empty": "No archived chats",
     "archive.count": "{count} archived chats",
@@ -1268,6 +1297,20 @@
     "systemSettings.codexTab": "Codex Channel",
     "systemSettings.languageTab": "Language",
     "systemSettings.storageTab": "Storage & Notifications",
+    "systemSettings.networkTab": "Network",
+    "networkEgress.mode": "Network route",
+    "networkEgress.system": "System",
+    "networkEgress.direct": "Direct",
+    "networkEgress.custom": "Custom",
+    "networkEgress.customProxy": "Custom proxy URL",
+    "networkEgress.currentRoute": "Current route: {route}",
+    "networkEgress.test": "Test connection",
+    "networkEgress.save": "Save and apply",
+    "networkEgress.saved": "Network route saved",
+    "networkEgress.testSucceeded": "Connection succeeded: {target} ({elapsed} ms)",
+    "networkEgress.testFailed": "Connection test failed",
+    "networkEgress.loadFailed": "Could not load network settings",
+    "networkEgress.saveFailed": "Could not save network settings",
     "languageSettings.instantStatus": "Language changes apply immediately",
     "apiSettings.title": "API Settings",
     "apiSettings.status": "Saved settings apply immediately in API mode",
@@ -1521,12 +1564,14 @@
     "sidebar.allOrientations": "Alle Ausrichtungen",
     "sidebar.allModes": "Alle Modi",
     "sidebar.allResolutions": "Alle Vors\xE4tze",
+    "sidebar.allStatuses": "Alle Status",
     "sidebar.activeTasks": "Aktive Aufgaben",
     "sidebar.topAnchors": "Top-Zeitnavigation",
     "sidebar.bottomAnchors": "Grundzeitnavigation",
     "sidebar.resize": "Gr\xF6\xDFe der Seitenleiste \xE4ndern",
     "batch.selected": "0 ausgew\xE4hlt",
     "batch.selectedCount": "{count} ausgew\xE4hlt",
+    "batch.selectCurrentGroup": "Alle in Gruppe",
     "batch.archivedCount": "Archivierte {count}-Chats",
     "batch.archiveFailed": "Batch-Archivierung fehlgeschlagen",
     "batch.runningCannotDeleteSelected": "Ausgew\xE4hlte Chats laufen und k\xF6nnen nicht gel\xF6scht werden",
@@ -1536,6 +1581,15 @@
     "batch.deleteSkippedSuffix": ", {count} laufende Aufgaben wurden nicht gel\xF6scht",
     "batch.deletedCount": "Gel\xF6schte {count} Chats{skipped}",
     "batch.deleteFailed": "Das L\xF6schen im Stapel ist fehlgeschlagen",
+    "batch.cancelTasksShortcut": "Mehrfach abbrechen",
+    "batch.cancelSelected": "Aufgaben abbrechen",
+    "batch.noActiveSelected": "Die ausgew\xE4hlten Aufgaben werden nicht mehr ausgef\xFChrt oder warten",
+    "batch.cancelTitle": "{count} Aufgaben abbrechen?",
+    "batch.cancelMessage": "Laufende Aufgaben werden gestoppt und wartende Aufgaben verlassen die Warteschlange. Der Verlauf bleibt erhalten.",
+    "batch.cancelDetail": "Laufend {running} \xB7 wartend {waiting}",
+    "batch.cancelConfirm": "Aufgaben abbrechen",
+    "batch.cancelResult": "Abgebrochen {cancelled}, \xFCbersprungen {skipped}, fehlgeschlagen {failed}",
+    "batch.cancelFailed": "Mehrfachabbruch fehlgeschlagen",
     "action.archive": "Archiv",
     "action.delete": "L\xF6schen",
     "action.cancel": "Abbrechen",
@@ -2129,6 +2183,8 @@
     "taskList.selectSession": "W\xE4hlen Sie Chat aus",
     "taskList.unreadUpdate": "Ungelesenes Update",
     "taskList.viewing": "Anzeigen",
+    "taskList.backToLatest": "Zur neuesten Aufgabe",
+    "taskList.backToLatestWithCount": "Zur neuesten Aufgabe, {count} neue Aufgaben oben",
     "taskDerived.usageLimited": "Nutzung begrenzt",
     "taskSubmit.requestFailed": "Die Anfrage ist fehlgeschlagen",
     "taskSubmit.queued": "Aufgabe zur Warteschlange hinzugef\xFCgt",
@@ -2255,6 +2311,7 @@
     "taskGroup.expand": "Erweitern {label}",
     "taskGroup.collapse": "Zusammenbruch {label}",
     "taskGroup.buttonLabel": "{label}, {count} Aufgaben",
+    "taskGroup.loadMore": "{count} weitere laden",
     "archive.title": "Archiv",
     "archive.empty": "Keine archivierten Chats",
     "archive.count": "{count} archivierte Chats",
@@ -2289,6 +2346,20 @@
     "systemSettings.codexTab": "Codex Kanal",
     "systemSettings.languageTab": "Sprache / Language",
     "systemSettings.storageTab": "Speicherung und Benachrichtigungen",
+    "systemSettings.networkTab": "Netzwerk",
+    "networkEgress.mode": "Netzwerkroute",
+    "networkEgress.system": "System",
+    "networkEgress.direct": "Direkt",
+    "networkEgress.custom": "Benutzerdefiniert",
+    "networkEgress.customProxy": "Benutzerdefinierte Proxy-URL",
+    "networkEgress.currentRoute": "Aktuelle Route: {route}",
+    "networkEgress.test": "Verbindung testen",
+    "networkEgress.save": "Speichern und anwenden",
+    "networkEgress.saved": "Netzwerkroute gespeichert",
+    "networkEgress.testSucceeded": "Verbindung erfolgreich: {target} ({elapsed} ms)",
+    "networkEgress.testFailed": "Verbindungstest fehlgeschlagen",
+    "networkEgress.loadFailed": "Netzwerkeinstellungen konnten nicht geladen werden",
+    "networkEgress.saveFailed": "Netzwerkeinstellungen konnten nicht gespeichert werden",
     "languageSettings.instantStatus": "Sprach\xE4nderungen gelten ab sofort",
     "apiSettings.title": "API Einstellungen",
     "apiSettings.status": "Gespeicherte Einstellungen gelten sofort im API-Modus",
@@ -2542,12 +2613,14 @@
     "sidebar.allOrientations": "Todas las orientaciones",
     "sidebar.allModes": "Todos los modos",
     "sidebar.allResolutions": "Todas las resoluciones",
+    "sidebar.allStatuses": "Todos los estados",
     "sidebar.activeTasks": "Tareas activas",
     "sidebar.topAnchors": "Navegaci\xF3n en el mejor momento",
     "sidebar.bottomAnchors": "Navegaci\xF3n en el tiempo inferior",
     "sidebar.resize": "Cambiar el tama\xF1o de la barra lateral",
     "batch.selected": "0 seleccionado",
     "batch.selectedCount": "{count} seleccionado",
+    "batch.selectCurrentGroup": "Seleccionar todo el grupo",
     "batch.archivedCount": "Chats {count} archivados",
     "batch.archiveFailed": "Error al archivar por lotes",
     "batch.runningCannotDeleteSelected": "Los chats seleccionados se est\xE1n ejecutando y no se pueden eliminar",
@@ -2557,6 +2630,15 @@
     "batch.deleteSkippedSuffix": ", {count} tareas en ejecuci\xF3n no eliminadas",
     "batch.deletedCount": "Eliminados {count} chats{skipped}",
     "batch.deleteFailed": "Error al eliminar el lote",
+    "batch.cancelTasksShortcut": "Cancelar en lote",
+    "batch.cancelSelected": "Cancelar tareas",
+    "batch.noActiveSelected": "Las tareas seleccionadas ya no est\xE1n en ejecuci\xF3n ni en espera",
+    "batch.cancelTitle": "\xBFCancelar {count} tareas?",
+    "batch.cancelMessage": "Las tareas en ejecuci\xF3n se detendr\xE1n y las que esperan saldr\xE1n de la cola. Se conservar\xE1 el historial.",
+    "batch.cancelDetail": "En ejecuci\xF3n {running} \xB7 en espera {waiting}",
+    "batch.cancelConfirm": "Cancelar tareas",
+    "batch.cancelResult": "Canceladas {cancelled}, omitidas {skipped}, fallidas {failed}",
+    "batch.cancelFailed": "Error en la cancelaci\xF3n por lotes",
     "action.archive": "Archivo",
     "action.delete": "Eliminar",
     "action.cancel": "Cancelar",
@@ -3150,6 +3232,8 @@
     "taskList.selectSession": "Seleccionar chat",
     "taskList.unreadUpdate": "Actualizaci\xF3n no le\xEDda",
     "taskList.viewing": "Visualizaci\xF3n",
+    "taskList.backToLatest": "Volver a la tarea m\xE1s reciente",
+    "taskList.backToLatestWithCount": "Volver a la tarea m\xE1s reciente, hay {count} tareas nuevas arriba",
     "taskDerived.usageLimited": "Uso limitado",
     "taskSubmit.requestFailed": "Solicitud fallida",
     "taskSubmit.queued": "Tarea agregada a la cola",
@@ -3276,6 +3360,7 @@
     "taskGroup.expand": "Ampliar {label}",
     "taskGroup.collapse": "Contraer {label}",
     "taskGroup.buttonLabel": "Tareas {label}, {count}",
+    "taskGroup.loadMore": "Cargar {count} m\xE1s",
     "archive.title": "Archivo",
     "archive.empty": "No hay chats archivados",
     "archive.count": "{count} chats archivados",
@@ -3310,6 +3395,20 @@
     "systemSettings.codexTab": "Codex Canal",
     "systemSettings.languageTab": "Idioma / Language",
     "systemSettings.storageTab": "Almacenamiento y notificaciones",
+    "systemSettings.networkTab": "Red",
+    "networkEgress.mode": "Ruta de red",
+    "networkEgress.system": "Sistema",
+    "networkEgress.direct": "Directa",
+    "networkEgress.custom": "Personalizada",
+    "networkEgress.customProxy": "URL de proxy personalizada",
+    "networkEgress.currentRoute": "Ruta actual: {route}",
+    "networkEgress.test": "Probar conexi\xF3n",
+    "networkEgress.save": "Guardar y aplicar",
+    "networkEgress.saved": "Ruta de red guardada",
+    "networkEgress.testSucceeded": "Conexi\xF3n correcta: {target} ({elapsed} ms)",
+    "networkEgress.testFailed": "La prueba de conexi\xF3n fall\xF3",
+    "networkEgress.loadFailed": "No se pudo cargar la configuraci\xF3n de red",
+    "networkEgress.saveFailed": "No se pudo guardar la configuraci\xF3n de red",
     "languageSettings.instantStatus": "Los cambios de idioma se aplican inmediatamente.",
     "apiSettings.title": "API Configuraci\xF3n",
     "apiSettings.status": "La configuraci\xF3n guardada se aplica inmediatamente en el modo API",
@@ -3563,12 +3662,14 @@
     "sidebar.allOrientations": "Toutes les orientations",
     "sidebar.allModes": "Tous les modes",
     "sidebar.allResolutions": "Toutes les r\xE9solutions",
+    "sidebar.allStatuses": "Tous les statuts",
     "sidebar.activeTasks": "T\xE2ches actives",
     "sidebar.topAnchors": "Navigation dans le meilleur temps",
     "sidebar.bottomAnchors": "Navigation temporelle inf\xE9rieure",
     "sidebar.resize": "Redimensionner la barre lat\xE9rale",
     "batch.selected": "0 s\xE9lectionn\xE9",
     "batch.selectedCount": "{count} s\xE9lectionn\xE9",
+    "batch.selectCurrentGroup": "Tout s\xE9lectionner",
     "batch.archivedCount": "Discussions {count} archiv\xE9es",
     "batch.archiveFailed": "L'archivage par lots a \xE9chou\xE9",
     "batch.runningCannotDeleteSelected": "Les discussions s\xE9lectionn\xE9es sont en cours et ne peuvent pas \xEAtre supprim\xE9es",
@@ -3578,6 +3679,15 @@
     "batch.deleteSkippedSuffix": ", {count} t\xE2ches en cours d'ex\xE9cution non supprim\xE9es",
     "batch.deletedCount": "Chats {count} supprim\xE9s{skipped}",
     "batch.deleteFailed": "\xC9chec de la suppression par lots",
+    "batch.cancelTasksShortcut": "Annuler en lot",
+    "batch.cancelSelected": "Annuler les t\xE2ches",
+    "batch.noActiveSelected": "Les t\xE2ches s\xE9lectionn\xE9es ne sont plus en cours ni en attente",
+    "batch.cancelTitle": "Annuler {count} t\xE2ches ?",
+    "batch.cancelMessage": "Les t\xE2ches en cours seront arr\xEAt\xE9es et celles en attente quitteront la file. L\u2019historique sera conserv\xE9.",
+    "batch.cancelDetail": "En cours {running} \xB7 en attente {waiting}",
+    "batch.cancelConfirm": "Annuler les t\xE2ches",
+    "batch.cancelResult": "Annul\xE9es {cancelled}, ignor\xE9es {skipped}, \xE9chou\xE9es {failed}",
+    "batch.cancelFailed": "\xC9chec de l\u2019annulation par lot",
     "action.archive": "Archiver",
     "action.delete": "Supprimer",
     "action.cancel": "Annuler",
@@ -4171,6 +4281,8 @@
     "taskList.selectSession": "S\xE9lectionnez le chat",
     "taskList.unreadUpdate": "Mise \xE0 jour non lue",
     "taskList.viewing": "Affichage",
+    "taskList.backToLatest": "Revenir \xE0 la t\xE2che la plus r\xE9cente",
+    "taskList.backToLatestWithCount": "Revenir \xE0 la t\xE2che la plus r\xE9cente, {count} nouvelles t\xE2ches au-dessus",
     "taskDerived.usageLimited": "Utilisation limit\xE9e",
     "taskSubmit.requestFailed": "La demande a \xE9chou\xE9",
     "taskSubmit.queued": "T\xE2che ajout\xE9e \xE0 la file d'attente",
@@ -4297,6 +4409,7 @@
     "taskGroup.expand": "D\xE9veloppez {label}",
     "taskGroup.collapse": "R\xE9duire {label}",
     "taskGroup.buttonLabel": "T\xE2ches {label}, {count}",
+    "taskGroup.loadMore": "Charger {count} de plus",
     "archive.title": "Archiver",
     "archive.empty": "Aucune discussion archiv\xE9e",
     "archive.count": "{count} discussions archiv\xE9es",
@@ -4331,6 +4444,20 @@
     "systemSettings.codexTab": "Canal Codex",
     "systemSettings.languageTab": "Langue / Language",
     "systemSettings.storageTab": "Stockage et notifications",
+    "systemSettings.networkTab": "R\xE9seau",
+    "networkEgress.mode": "Route r\xE9seau",
+    "networkEgress.system": "Syst\xE8me",
+    "networkEgress.direct": "Directe",
+    "networkEgress.custom": "Personnalis\xE9e",
+    "networkEgress.customProxy": "URL de proxy personnalis\xE9e",
+    "networkEgress.currentRoute": "Route actuelle : {route}",
+    "networkEgress.test": "Tester la connexion",
+    "networkEgress.save": "Enregistrer et appliquer",
+    "networkEgress.saved": "Route r\xE9seau enregistr\xE9e",
+    "networkEgress.testSucceeded": "Connexion r\xE9ussie : {target} ({elapsed} ms)",
+    "networkEgress.testFailed": "Le test de connexion a \xE9chou\xE9",
+    "networkEgress.loadFailed": "Impossible de charger les param\xE8tres r\xE9seau",
+    "networkEgress.saveFailed": "Impossible d'enregistrer les param\xE8tres r\xE9seau",
     "languageSettings.instantStatus": "Les changements de langue s'appliquent imm\xE9diatement",
     "apiSettings.title": "API Param\xE8tres",
     "apiSettings.status": "Les param\xE8tres enregistr\xE9s s'appliquent imm\xE9diatement en mode API",
@@ -4584,12 +4711,14 @@
     "sidebar.allOrientations": "\u3059\u3079\u3066\u306E\u65B9\u5411",
     "sidebar.allModes": "\u3059\u3079\u3066\u306E\u30E2\u30FC\u30C9",
     "sidebar.allResolutions": "\u3059\u3079\u3066\u306E\u89E3\u50CF\u5EA6",
+    "sidebar.allStatuses": "\u3059\u3079\u3066\u306E\u30B9\u30C6\u30FC\u30BF\u30B9",
     "sidebar.activeTasks": "\u30A2\u30AF\u30C6\u30A3\u30D6\u306A\u30BF\u30B9\u30AF",
     "sidebar.topAnchors": "\u4E0A\u90E8\u306E\u6642\u9593\u30CA\u30D3\u30B2\u30FC\u30B7\u30E7\u30F3",
     "sidebar.bottomAnchors": "\u4E0B\u90E8\u306E\u6642\u9593\u30CA\u30D3\u30B2\u30FC\u30B7\u30E7\u30F3",
     "sidebar.resize": "\u30B5\u30A4\u30C9\u30D0\u30FC\u306E\u30B5\u30A4\u30BA\u3092\u5909\u66F4\u3059\u308B",
     "batch.selected": "0 \u500B\u304C\u9078\u629E\u3055\u308C\u307E\u3057\u305F",
     "batch.selectedCount": "{count} \u4EF6\u3092\u9078\u629E\u4E2D",
+    "batch.selectCurrentGroup": "\u30B0\u30EB\u30FC\u30D7\u3092\u3059\u3079\u3066\u9078\u629E",
     "batch.archivedCount": "{count} \u4EF6\u306E\u30C1\u30E3\u30C3\u30C8\u3092\u30A2\u30FC\u30AB\u30A4\u30D6\u3057\u307E\u3057\u305F",
     "batch.archiveFailed": "\u30D0\u30C3\u30C1 \u30A2\u30FC\u30AB\u30A4\u30D6\u306B\u5931\u6557\u3057\u307E\u3057\u305F",
     "batch.runningCannotDeleteSelected": "\u9078\u629E\u3057\u305F\u30C1\u30E3\u30C3\u30C8\u306F\u5B9F\u884C\u4E2D\u306E\u305F\u3081\u524A\u9664\u3067\u304D\u307E\u305B\u3093",
@@ -4599,6 +4728,15 @@
     "batch.deleteSkippedSuffix": "\u3001\u5B9F\u884C\u4E2D\u306E\u30BF\u30B9\u30AF {count} \u4EF6\u306F\u524A\u9664\u3055\u308C\u307E\u305B\u3093\u3067\u3057\u305F",
     "batch.deletedCount": "{count} \u4EF6\u306E\u30C1\u30E3\u30C3\u30C8\u3092\u524A\u9664\u3057\u307E\u3057\u305F{skipped}",
     "batch.deleteFailed": "\u4E00\u62EC\u524A\u9664\u306B\u5931\u6557\u3057\u307E\u3057\u305F",
+    "batch.cancelTasksShortcut": "\u4E00\u62EC\u30AD\u30E3\u30F3\u30BB\u30EB",
+    "batch.cancelSelected": "\u30BF\u30B9\u30AF\u3092\u30AD\u30E3\u30F3\u30BB\u30EB",
+    "batch.noActiveSelected": "\u9078\u629E\u3057\u305F\u30BF\u30B9\u30AF\u306F\u5B9F\u884C\u4E2D\u307E\u305F\u306F\u5F85\u6A5F\u4E2D\u3067\u306F\u3042\u308A\u307E\u305B\u3093",
+    "batch.cancelTitle": "{count} \u4EF6\u306E\u30BF\u30B9\u30AF\u3092\u30AD\u30E3\u30F3\u30BB\u30EB\u3057\u307E\u3059\u304B\uFF1F",
+    "batch.cancelMessage": "\u5B9F\u884C\u4E2D\u306E\u30BF\u30B9\u30AF\u306F\u505C\u6B62\u3057\u3001\u5F85\u6A5F\u4E2D\u306E\u30BF\u30B9\u30AF\u306F\u30AD\u30E5\u30FC\u304B\u3089\u5916\u308C\u307E\u3059\u3002\u5C65\u6B74\u306F\u4FDD\u6301\u3055\u308C\u307E\u3059\u3002",
+    "batch.cancelDetail": "\u5B9F\u884C\u4E2D {running} \xB7 \u5F85\u6A5F\u4E2D {waiting}",
+    "batch.cancelConfirm": "\u30AD\u30E3\u30F3\u30BB\u30EB\u3059\u308B",
+    "batch.cancelResult": "\u30AD\u30E3\u30F3\u30BB\u30EB {cancelled}\u3001\u30B9\u30AD\u30C3\u30D7 {skipped}\u3001\u5931\u6557 {failed}",
+    "batch.cancelFailed": "\u4E00\u62EC\u30AD\u30E3\u30F3\u30BB\u30EB\u306B\u5931\u6557\u3057\u307E\u3057\u305F",
     "action.archive": "\u30A2\u30FC\u30AB\u30A4\u30D6",
     "action.delete": "\u524A\u9664",
     "action.cancel": "\u30AD\u30E3\u30F3\u30BB\u30EB",
@@ -5192,6 +5330,8 @@
     "taskList.selectSession": "\u30C1\u30E3\u30C3\u30C8\u3092\u9078\u629E",
     "taskList.unreadUpdate": "\u672A\u8AAD\u306E\u66F4\u65B0",
     "taskList.viewing": "\u95B2\u89A7\u4E2D",
+    "taskList.backToLatest": "\u6700\u65B0\u306E\u30BF\u30B9\u30AF\u306B\u623B\u308B",
+    "taskList.backToLatestWithCount": "\u6700\u65B0\u306E\u30BF\u30B9\u30AF\u306B\u623B\u308B\uFF08\u4E0A\u306B\u65B0\u3057\u3044\u30BF\u30B9\u30AF\u304C{count}\u4EF6\uFF09",
     "taskDerived.usageLimited": "\u4F7F\u7528\u5236\u9650\u3042\u308A",
     "taskSubmit.requestFailed": "\u30EA\u30AF\u30A8\u30B9\u30C8\u304C\u5931\u6557\u3057\u307E\u3057\u305F",
     "taskSubmit.queued": "\u30BF\u30B9\u30AF\u304C\u30AD\u30E5\u30FC\u306B\u8FFD\u52A0\u3055\u308C\u307E\u3057\u305F",
@@ -5318,6 +5458,7 @@
     "taskGroup.expand": "{label}\u3092\u5C55\u958B",
     "taskGroup.collapse": "\u5D29\u58CA{label}",
     "taskGroup.buttonLabel": "{label}\u3001{count}\u30BF\u30B9\u30AF",
+    "taskGroup.loadMore": "\u3055\u3089\u306B {count} \u4EF6\u8AAD\u307F\u8FBC\u3080",
     "archive.title": "\u30A2\u30FC\u30AB\u30A4\u30D6",
     "archive.empty": "\u30A2\u30FC\u30AB\u30A4\u30D6\u3055\u308C\u305F\u30C1\u30E3\u30C3\u30C8\u306F\u3042\u308A\u307E\u305B\u3093",
     "archive.count": "\u30A2\u30FC\u30AB\u30A4\u30D6\u6E08\u307F\u30C1\u30E3\u30C3\u30C8 {count} \u4EF6",
@@ -5352,6 +5493,20 @@
     "systemSettings.codexTab": "Codex\u30C1\u30E3\u30CD\u30EB",
     "systemSettings.languageTab": "\u8A00\u8A9E / Language",
     "systemSettings.storageTab": "\u30B9\u30C8\u30EC\u30FC\u30B8\u3068\u901A\u77E5",
+    "systemSettings.networkTab": "\u30CD\u30C3\u30C8\u30EF\u30FC\u30AF",
+    "networkEgress.mode": "\u30CD\u30C3\u30C8\u30EF\u30FC\u30AF\u7D4C\u8DEF",
+    "networkEgress.system": "\u30B7\u30B9\u30C6\u30E0",
+    "networkEgress.direct": "\u76F4\u63A5\u63A5\u7D9A",
+    "networkEgress.custom": "\u30AB\u30B9\u30BF\u30E0",
+    "networkEgress.customProxy": "\u30AB\u30B9\u30BF\u30E0\u30D7\u30ED\u30AD\u30B7 URL",
+    "networkEgress.currentRoute": "\u73FE\u5728\u306E\u7D4C\u8DEF\uFF1A{route}",
+    "networkEgress.test": "\u63A5\u7D9A\u3092\u30C6\u30B9\u30C8",
+    "networkEgress.save": "\u4FDD\u5B58\u3057\u3066\u9069\u7528",
+    "networkEgress.saved": "\u30CD\u30C3\u30C8\u30EF\u30FC\u30AF\u7D4C\u8DEF\u3092\u4FDD\u5B58\u3057\u307E\u3057\u305F",
+    "networkEgress.testSucceeded": "\u63A5\u7D9A\u6210\u529F\uFF1A{target}\uFF08{elapsed} \u30DF\u30EA\u79D2\uFF09",
+    "networkEgress.testFailed": "\u63A5\u7D9A\u30C6\u30B9\u30C8\u306B\u5931\u6557\u3057\u307E\u3057\u305F",
+    "networkEgress.loadFailed": "\u30CD\u30C3\u30C8\u30EF\u30FC\u30AF\u8A2D\u5B9A\u3092\u8AAD\u307F\u8FBC\u3081\u307E\u305B\u3093\u3067\u3057\u305F",
+    "networkEgress.saveFailed": "\u30CD\u30C3\u30C8\u30EF\u30FC\u30AF\u8A2D\u5B9A\u3092\u4FDD\u5B58\u3067\u304D\u307E\u305B\u3093\u3067\u3057\u305F",
     "languageSettings.instantStatus": "\u8A00\u8A9E\u306E\u5909\u66F4\u306F\u3059\u3050\u306B\u53CD\u6620\u3055\u308C\u307E\u3059",
     "apiSettings.title": "API\u8A2D\u5B9A",
     "apiSettings.status": "\u4FDD\u5B58\u3057\u305F\u8A2D\u5B9A\u306F API \u30E2\u30FC\u30C9\u306B\u3059\u3050\u53CD\u6620\u3055\u308C\u307E\u3059",
@@ -5605,12 +5760,14 @@
     "sidebar.allOrientations": "\uBAA8\uB4E0 \uBC29\uD5A5",
     "sidebar.allModes": "\uBAA8\uB4E0 \uBAA8\uB4DC",
     "sidebar.allResolutions": "\uBAA8\uB4E0 \uD574\uC0C1\uB3C4",
+    "sidebar.allStatuses": "\uBAA8\uB4E0 \uC0C1\uD0DC",
     "sidebar.activeTasks": "\uD65C\uC131 \uC791\uC5C5",
     "sidebar.topAnchors": "\uC0C1\uB2E8 \uC2DC\uAC04 \uD0D0\uC0C9",
     "sidebar.bottomAnchors": "\uD558\uB2E8 \uC2DC\uAC04 \uD0D0\uC0C9",
     "sidebar.resize": "\uC0AC\uC774\uB4DC\uBC14 \uD06C\uAE30 \uC870\uC815",
     "batch.selected": "0 \uC120\uD0DD\uB428",
     "batch.selectedCount": "{count}\uAC1C \uC120\uD0DD\uB428",
+    "batch.selectCurrentGroup": "\uADF8\uB8F9 \uC804\uCCB4 \uC120\uD0DD",
     "batch.archivedCount": "\uCC44\uD305 {count}\uAC1C \uBCF4\uAD00\uB428",
     "batch.archiveFailed": "\uC77C\uAD04 \uBCF4\uAD00 \uC2E4\uD328",
     "batch.runningCannotDeleteSelected": "\uC120\uD0DD\uD55C \uCC44\uD305\uC774 \uC2E4\uD589 \uC911\uC774\uBBC0\uB85C \uC0AD\uC81C\uD560 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4.",
@@ -5620,6 +5777,15 @@
     "batch.deleteSkippedSuffix": ", \uC2E4\uD589 \uC911\uC778 \uC791\uC5C5 {count}\uAC1C\uB294 \uC0AD\uC81C\uB418\uC9C0 \uC54A\uC558\uC2B5\uB2C8\uB2E4",
     "batch.deletedCount": "\uCC44\uD305 {count}\uAC1C \uC0AD\uC81C\uB428{skipped}",
     "batch.deleteFailed": "\uC77C\uAD04 \uC0AD\uC81C\uC5D0 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4.",
+    "batch.cancelTasksShortcut": "\uC77C\uAD04 \uCDE8\uC18C",
+    "batch.cancelSelected": "\uC791\uC5C5 \uCDE8\uC18C",
+    "batch.noActiveSelected": "\uC120\uD0DD\uD55C \uC791\uC5C5\uC774 \uB354 \uC774\uC0C1 \uC2E4\uD589 \uC911\uC774\uAC70\uB098 \uB300\uAE30 \uC911\uC774 \uC544\uB2D9\uB2C8\uB2E4",
+    "batch.cancelTitle": "{count}\uAC1C \uC791\uC5C5\uC744 \uCDE8\uC18C\uD560\uAE4C\uC694?",
+    "batch.cancelMessage": "\uC2E4\uD589 \uC911\uC778 \uC791\uC5C5\uC740 \uC911\uC9C0\uB418\uACE0 \uB300\uAE30 \uC911\uC778 \uC791\uC5C5\uC740 \uB300\uAE30\uC5F4\uC5D0\uC11C \uC81C\uAC70\uB429\uB2C8\uB2E4. \uAE30\uB85D\uC740 \uC720\uC9C0\uB429\uB2C8\uB2E4.",
+    "batch.cancelDetail": "\uC2E4\uD589 {running} \xB7 \uB300\uAE30 {waiting}",
+    "batch.cancelConfirm": "\uC791\uC5C5 \uCDE8\uC18C",
+    "batch.cancelResult": "\uCDE8\uC18C {cancelled}, \uAC74\uB108\uB700 {skipped}, \uC2E4\uD328 {failed}",
+    "batch.cancelFailed": "\uC77C\uAD04 \uCDE8\uC18C \uC2E4\uD328",
     "action.archive": "\uBCF4\uAD00",
     "action.delete": "\uC0AD\uC81C",
     "action.cancel": "\uCDE8\uC18C",
@@ -6213,6 +6379,8 @@
     "taskList.selectSession": "\uCC44\uD305 \uC120\uD0DD",
     "taskList.unreadUpdate": "\uC77D\uC9C0 \uC54A\uC740 \uC5C5\uB370\uC774\uD2B8",
     "taskList.viewing": "\uBCF4\uAE30",
+    "taskList.backToLatest": "\uCD5C\uC2E0 \uC791\uC5C5\uC73C\uB85C \uB3CC\uC544\uAC00\uAE30",
+    "taskList.backToLatestWithCount": "\uCD5C\uC2E0 \uC791\uC5C5\uC73C\uB85C \uB3CC\uC544\uAC00\uAE30, \uC704\uC5D0 \uC0C8 \uC791\uC5C5 {count}\uAC1C",
     "taskDerived.usageLimited": "\uC0AC\uC6A9\uC774 \uC81C\uD55C\uB428",
     "taskSubmit.requestFailed": "\uC694\uCCAD\uC774 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4.",
     "taskSubmit.queued": "\uB300\uAE30\uC5F4\uC5D0 \uC791\uC5C5\uC774 \uCD94\uAC00\uB418\uC5C8\uC2B5\uB2C8\uB2E4.",
@@ -6339,6 +6507,7 @@
     "taskGroup.expand": "\uD655\uC7A5{label}",
     "taskGroup.collapse": "\uCD95\uC18C{label}",
     "taskGroup.buttonLabel": "{label}, \uC791\uC5C5 {count}\uAC1C",
+    "taskGroup.loadMore": "{count}\uAC1C \uB354 \uBD88\uB7EC\uC624\uAE30",
     "archive.title": "\uBCF4\uAD00\uD568",
     "archive.empty": "\uBCF4\uAD00\uB41C \uCC44\uD305\uC774 \uC5C6\uC2B5\uB2C8\uB2E4.",
     "archive.count": "\uBCF4\uAD00\uB41C \uCC44\uD305 {count}\uAC1C",
@@ -6373,6 +6542,20 @@
     "systemSettings.codexTab": "Codex \uCC44\uB110",
     "systemSettings.languageTab": "\uC5B8\uC5B4 / Language",
     "systemSettings.storageTab": "\uC800\uC7A5\uC18C \uBC0F \uC54C\uB9BC",
+    "systemSettings.networkTab": "\uB124\uD2B8\uC6CC\uD06C",
+    "networkEgress.mode": "\uB124\uD2B8\uC6CC\uD06C \uACBD\uB85C",
+    "networkEgress.system": "\uC2DC\uC2A4\uD15C",
+    "networkEgress.direct": "\uC9C1\uC811 \uC5F0\uACB0",
+    "networkEgress.custom": "\uC0AC\uC6A9\uC790 \uC9C0\uC815",
+    "networkEgress.customProxy": "\uC0AC\uC6A9\uC790 \uC9C0\uC815 \uD504\uB85D\uC2DC URL",
+    "networkEgress.currentRoute": "\uD604\uC7AC \uACBD\uB85C: {route}",
+    "networkEgress.test": "\uC5F0\uACB0 \uD14C\uC2A4\uD2B8",
+    "networkEgress.save": "\uC800\uC7A5 \uBC0F \uC801\uC6A9",
+    "networkEgress.saved": "\uB124\uD2B8\uC6CC\uD06C \uACBD\uB85C\uAC00 \uC800\uC7A5\uB418\uC5C8\uC2B5\uB2C8\uB2E4",
+    "networkEgress.testSucceeded": "\uC5F0\uACB0 \uC131\uACF5: {target} ({elapsed}ms)",
+    "networkEgress.testFailed": "\uC5F0\uACB0 \uD14C\uC2A4\uD2B8 \uC2E4\uD328",
+    "networkEgress.loadFailed": "\uB124\uD2B8\uC6CC\uD06C \uC124\uC815\uC744 \uBD88\uB7EC\uC624\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4",
+    "networkEgress.saveFailed": "\uB124\uD2B8\uC6CC\uD06C \uC124\uC815\uC744 \uC800\uC7A5\uD558\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4",
     "languageSettings.instantStatus": "\uC5B8\uC5B4 \uBCC0\uACBD \uC0AC\uD56D\uC740 \uC989\uC2DC \uC801\uC6A9\uB429\uB2C8\uB2E4",
     "apiSettings.title": "API \uC124\uC815",
     "apiSettings.status": "\uC800\uC7A5\uB41C \uC124\uC815\uC740 API \uBAA8\uB4DC\uC5D0 \uC989\uC2DC \uC801\uC6A9\uB429\uB2C8\uB2E4",
@@ -6626,12 +6809,14 @@
     "sidebar.allOrientations": "Todas as orienta\xE7\xF5es",
     "sidebar.allModes": "Todos os modos",
     "sidebar.allResolutions": "Todas as resolu\xE7\xF5es",
+    "sidebar.allStatuses": "Todos os estados",
     "sidebar.activeTasks": "Tarefas ativas",
     "sidebar.topAnchors": "Navega\xE7\xE3o no hor\xE1rio principal",
     "sidebar.bottomAnchors": "Navega\xE7\xE3o no tempo inferior",
     "sidebar.resize": "Redimensionar barra lateral",
     "batch.selected": "0 selecionado",
     "batch.selectedCount": "{count} selecionado",
+    "batch.selectCurrentGroup": "Selecionar todo o grupo",
     "batch.archivedCount": "Bate-papos {count} arquivados",
     "batch.archiveFailed": "Falha no arquivamento em lote",
     "batch.runningCannotDeleteSelected": "Os bate-papos selecionados est\xE3o em execu\xE7\xE3o e n\xE3o podem ser exclu\xEDdos",
@@ -6641,6 +6826,15 @@
     "batch.deleteSkippedSuffix": ", {count} executando tarefas n\xE3o exclu\xEDdas",
     "batch.deletedCount": "Bate-papos {count} exclu\xEDdos{skipped}",
     "batch.deleteFailed": "Falha na exclus\xE3o do lote",
+    "batch.cancelTasksShortcut": "Cancelar em lote",
+    "batch.cancelSelected": "Cancelar tarefas",
+    "batch.noActiveSelected": "As tarefas selecionadas j\xE1 n\xE3o est\xE3o em execu\xE7\xE3o nem em espera",
+    "batch.cancelTitle": "Cancelar {count} tarefas?",
+    "batch.cancelMessage": "As tarefas em execu\xE7\xE3o ser\xE3o interrompidas e as tarefas em espera sair\xE3o da fila. O hist\xF3rico ser\xE1 mantido.",
+    "batch.cancelDetail": "Em execu\xE7\xE3o {running} \xB7 em espera {waiting}",
+    "batch.cancelConfirm": "Cancelar tarefas",
+    "batch.cancelResult": "Canceladas {cancelled}, ignoradas {skipped}, falhas {failed}",
+    "batch.cancelFailed": "Falha no cancelamento em lote",
     "action.archive": "Arquivo",
     "action.delete": "Excluir",
     "action.cancel": "Cancelar",
@@ -7234,6 +7428,8 @@
     "taskList.selectSession": "Selecione bate-papo",
     "taskList.unreadUpdate": "Atualiza\xE7\xE3o n\xE3o lida",
     "taskList.viewing": "Visualizando",
+    "taskList.backToLatest": "Voltar \xE0 tarefa mais recente",
+    "taskList.backToLatestWithCount": "Voltar \xE0 tarefa mais recente, {count} novas tarefas acima",
     "taskDerived.usageLimited": "Uso limitado",
     "taskSubmit.requestFailed": "Falha na solicita\xE7\xE3o",
     "taskSubmit.queued": "Tarefa adicionada \xE0 fila",
@@ -7360,6 +7556,7 @@
     "taskGroup.expand": "Expandir {label}",
     "taskGroup.collapse": "Recolher {label}",
     "taskGroup.buttonLabel": "Tarefas {label}, {count}",
+    "taskGroup.loadMore": "Carregar mais {count}",
     "archive.title": "Arquivo",
     "archive.empty": "Nenhum bate-papo arquivado",
     "archive.count": "{count} bate-papos arquivados",
@@ -7394,6 +7591,20 @@
     "systemSettings.codexTab": "Codex Canal",
     "systemSettings.languageTab": "Idioma / Language",
     "systemSettings.storageTab": "Armazenamento e notifica\xE7\xF5es",
+    "systemSettings.networkTab": "Rede",
+    "networkEgress.mode": "Rota de rede",
+    "networkEgress.system": "Sistema",
+    "networkEgress.direct": "Direta",
+    "networkEgress.custom": "Personalizada",
+    "networkEgress.customProxy": "URL de proxy personalizada",
+    "networkEgress.currentRoute": "Rota atual: {route}",
+    "networkEgress.test": "Testar conex\xE3o",
+    "networkEgress.save": "Salvar e aplicar",
+    "networkEgress.saved": "Rota de rede salva",
+    "networkEgress.testSucceeded": "Conex\xE3o bem-sucedida: {target} ({elapsed} ms)",
+    "networkEgress.testFailed": "O teste de conex\xE3o falhou",
+    "networkEgress.loadFailed": "N\xE3o foi poss\xEDvel carregar as configura\xE7\xF5es de rede",
+    "networkEgress.saveFailed": "N\xE3o foi poss\xEDvel salvar as configura\xE7\xF5es de rede",
     "languageSettings.instantStatus": "As altera\xE7\xF5es de idioma s\xE3o aplicadas imediatamente",
     "apiSettings.title": "API Configura\xE7\xF5es",
     "apiSettings.status": "As configura\xE7\xF5es salvas s\xE3o aplicadas imediatamente no modo API",
@@ -7647,12 +7858,14 @@
     "sidebar.allOrientations": "\u0412\u0441\u0435 \u043E\u0440\u0438\u0435\u043D\u0442\u0430\u0446\u0438\u0438",
     "sidebar.allModes": "\u0412\u0441\u0435 \u0440\u0435\u0436\u0438\u043C\u044B",
     "sidebar.allResolutions": "\u0412\u0441\u0435 \u0440\u0430\u0437\u0440\u0435\u0448\u0435\u043D\u0438\u044F",
+    "sidebar.allStatuses": "\u0412\u0441\u0435 \u0441\u0442\u0430\u0442\u0443\u0441\u044B",
     "sidebar.activeTasks": "\u0410\u043A\u0442\u0438\u0432\u043D\u044B\u0435 \u0437\u0430\u0434\u0430\u0447\u0438",
     "sidebar.topAnchors": "\u041D\u0430\u0432\u0438\u0433\u0430\u0446\u0438\u044F \u043F\u043E \u0432\u0435\u0440\u0445\u043D\u0435\u043C\u0443 \u0432\u0440\u0435\u043C\u0435\u043D\u0438",
     "sidebar.bottomAnchors": "\u041D\u0438\u0436\u043D\u044F\u044F \u043D\u0430\u0432\u0438\u0433\u0430\u0446\u0438\u044F \u043F\u043E \u0432\u0440\u0435\u043C\u0435\u043D\u0438",
     "sidebar.resize": "\u0418\u0437\u043C\u0435\u043D\u0435\u043D\u0438\u0435 \u0440\u0430\u0437\u043C\u0435\u0440\u0430 \u0431\u043E\u043A\u043E\u0432\u043E\u0439 \u043F\u0430\u043D\u0435\u043B\u0438",
     "batch.selected": "0 \u0432\u044B\u0431\u0440\u0430\u043D\u043E",
     "batch.selectedCount": "{count} \u0432\u044B\u0431\u0440\u0430\u043D\u043E",
+    "batch.selectCurrentGroup": "\u0412\u044B\u0431\u0440\u0430\u0442\u044C \u0432\u0441\u044E \u0433\u0440\u0443\u043F\u043F\u0443",
     "batch.archivedCount": "\u0410\u0440\u0445\u0438\u0432\u0438\u0440\u043E\u0432\u0430\u043D\u043D\u044B\u0435 \u0447\u0430\u0442\u044B {count}",
     "batch.archiveFailed": "\u041F\u0430\u043A\u0435\u0442\u043D\u044B\u0439 \u0430\u0440\u0445\u0438\u0432 \u043D\u0435 \u0432\u044B\u043F\u043E\u043B\u043D\u0435\u043D",
     "batch.runningCannotDeleteSelected": "\u0412\u044B\u0431\u0440\u0430\u043D\u043D\u044B\u0435 \u0447\u0430\u0442\u044B \u0430\u043A\u0442\u0438\u0432\u043D\u044B \u0438 \u043D\u0435 \u043C\u043E\u0433\u0443\u0442 \u0431\u044B\u0442\u044C \u0443\u0434\u0430\u043B\u0435\u043D\u044B.",
@@ -7662,6 +7875,15 @@
     "batch.deleteSkippedSuffix": ", {count} \u0437\u0430\u043F\u0443\u0449\u0435\u043D\u043D\u044B\u0435 \u0437\u0430\u0434\u0430\u0447\u0438 \u043D\u0435 \u0443\u0434\u0430\u043B\u0435\u043D\u044B",
     "batch.deletedCount": "\u0423\u0434\u0430\u043B\u0435\u043D\u044B {count} \u0447\u0430\u0442\u044B{skipped}",
     "batch.deleteFailed": "\u041F\u0430\u043A\u0435\u0442\u043D\u043E\u0435 \u0443\u0434\u0430\u043B\u0435\u043D\u0438\u0435 \u043D\u0435 \u0443\u0434\u0430\u043B\u043E\u0441\u044C",
+    "batch.cancelTasksShortcut": "\u041E\u0442\u043C\u0435\u043D\u0438\u0442\u044C \u043D\u0435\u0441\u043A\u043E\u043B\u044C\u043A\u043E",
+    "batch.cancelSelected": "\u041E\u0442\u043C\u0435\u043D\u0438\u0442\u044C \u0437\u0430\u0434\u0430\u0447\u0438",
+    "batch.noActiveSelected": "\u0412\u044B\u0431\u0440\u0430\u043D\u043D\u044B\u0435 \u0437\u0430\u0434\u0430\u0447\u0438 \u0431\u043E\u043B\u044C\u0448\u0435 \u043D\u0435 \u0432\u044B\u043F\u043E\u043B\u043D\u044F\u044E\u0442\u0441\u044F \u0438 \u043D\u0435 \u043E\u0436\u0438\u0434\u0430\u044E\u0442",
+    "batch.cancelTitle": "\u041E\u0442\u043C\u0435\u043D\u0438\u0442\u044C \u0437\u0430\u0434\u0430\u0447\u0438: {count}?",
+    "batch.cancelMessage": "\u0412\u044B\u043F\u043E\u043B\u043D\u044F\u0435\u043C\u044B\u0435 \u0437\u0430\u0434\u0430\u0447\u0438 \u0431\u0443\u0434\u0443\u0442 \u043E\u0441\u0442\u0430\u043D\u043E\u0432\u043B\u0435\u043D\u044B, \u0430 \u043E\u0436\u0438\u0434\u0430\u044E\u0449\u0438\u0435 \u0443\u0434\u0430\u043B\u0435\u043D\u044B \u0438\u0437 \u043E\u0447\u0435\u0440\u0435\u0434\u0438. \u0418\u0441\u0442\u043E\u0440\u0438\u044F \u0441\u043E\u0445\u0440\u0430\u043D\u0438\u0442\u0441\u044F.",
+    "batch.cancelDetail": "\u0412\u044B\u043F\u043E\u043B\u043D\u044F\u0435\u0442\u0441\u044F {running} \xB7 \u043E\u0436\u0438\u0434\u0430\u0435\u0442 {waiting}",
+    "batch.cancelConfirm": "\u041E\u0442\u043C\u0435\u043D\u0438\u0442\u044C \u0437\u0430\u0434\u0430\u0447\u0438",
+    "batch.cancelResult": "\u041E\u0442\u043C\u0435\u043D\u0435\u043D\u043E {cancelled}, \u043F\u0440\u043E\u043F\u0443\u0449\u0435\u043D\u043E {skipped}, \u043E\u0448\u0438\u0431\u043E\u043A {failed}",
+    "batch.cancelFailed": "\u041D\u0435 \u0443\u0434\u0430\u043B\u043E\u0441\u044C \u043E\u0442\u043C\u0435\u043D\u0438\u0442\u044C \u0437\u0430\u0434\u0430\u0447\u0438",
     "action.archive": "\u0410\u0440\u0445\u0438\u0432",
     "action.delete": "\u0423\u0434\u0430\u043B\u0438\u0442\u044C",
     "action.cancel": "\u041E\u0442\u043C\u0435\u043D\u0430",
@@ -8255,6 +8477,8 @@
     "taskList.selectSession": "\u0412\u044B\u0431\u0435\u0440\u0438\u0442\u0435 \u0447\u0430\u0442",
     "taskList.unreadUpdate": "\u041D\u0435\u043F\u0440\u043E\u0447\u0438\u0442\u0430\u043D\u043D\u043E\u0435 \u043E\u0431\u043D\u043E\u0432\u043B\u0435\u043D\u0438\u0435",
     "taskList.viewing": "\u041F\u0440\u043E\u0441\u043C\u043E\u0442\u0440",
+    "taskList.backToLatest": "\u0412\u0435\u0440\u043D\u0443\u0442\u044C\u0441\u044F \u043A \u043F\u043E\u0441\u043B\u0435\u0434\u043D\u0435\u0439 \u0437\u0430\u0434\u0430\u0447\u0435",
+    "taskList.backToLatestWithCount": "\u0412\u0435\u0440\u043D\u0443\u0442\u044C\u0441\u044F \u043A \u043F\u043E\u0441\u043B\u0435\u0434\u043D\u0435\u0439 \u0437\u0430\u0434\u0430\u0447\u0435, \u0441\u0432\u0435\u0440\u0445\u0443 \u043D\u043E\u0432\u044B\u0445 \u0437\u0430\u0434\u0430\u0447: {count}",
     "taskDerived.usageLimited": "\u0418\u0441\u043F\u043E\u043B\u044C\u0437\u043E\u0432\u0430\u043D\u0438\u0435 \u043E\u0433\u0440\u0430\u043D\u0438\u0447\u0435\u043D\u043E",
     "taskSubmit.requestFailed": "\u0417\u0430\u043F\u0440\u043E\u0441 \u043D\u0435 \u0432\u044B\u043F\u043E\u043B\u043D\u0435\u043D",
     "taskSubmit.queued": "\u0417\u0430\u0434\u0430\u0447\u0430 \u0434\u043E\u0431\u0430\u0432\u043B\u0435\u043D\u0430 \u0432 \u043E\u0447\u0435\u0440\u0435\u0434\u044C",
@@ -8381,6 +8605,7 @@
     "taskGroup.expand": "\u0420\u0430\u0437\u0432\u0435\u0440\u043D\u0443\u0442\u044C {label}",
     "taskGroup.collapse": "\u0421\u0432\u0435\u0440\u043D\u0443\u0442\u044C {label}",
     "taskGroup.buttonLabel": "{label}, {count} \u0437\u0430\u0434\u0430\u0447",
+    "taskGroup.loadMore": "\u0417\u0430\u0433\u0440\u0443\u0437\u0438\u0442\u044C \u0435\u0449\u0451 {count}",
     "archive.title": "\u0410\u0440\u0445\u0438\u0432",
     "archive.empty": "\u041D\u0435\u0442 \u0430\u0440\u0445\u0438\u0432\u0438\u0440\u043E\u0432\u0430\u043D\u043D\u044B\u0445 \u0447\u0430\u0442\u043E\u0432",
     "archive.count": "{count} \u0430\u0440\u0445\u0438\u0432\u0438\u0440\u043E\u0432\u0430\u043D\u043D\u044B\u0435 \u0447\u0430\u0442\u044B",
@@ -8415,6 +8640,20 @@
     "systemSettings.codexTab": "Codex \u041A\u0430\u043D\u0430\u043B",
     "systemSettings.languageTab": "\u042F\u0437\u044B\u043A / Language",
     "systemSettings.storageTab": "\u0425\u0440\u0430\u043D\u0435\u043D\u0438\u0435 \u0438 \u0443\u0432\u0435\u0434\u043E\u043C\u043B\u0435\u043D\u0438\u044F",
+    "systemSettings.networkTab": "\u0421\u0435\u0442\u044C",
+    "networkEgress.mode": "\u0421\u0435\u0442\u0435\u0432\u043E\u0439 \u043C\u0430\u0440\u0448\u0440\u0443\u0442",
+    "networkEgress.system": "\u0421\u0438\u0441\u0442\u0435\u043C\u043D\u044B\u0439",
+    "networkEgress.direct": "\u041F\u0440\u044F\u043C\u043E\u0439",
+    "networkEgress.custom": "\u041F\u043E\u043B\u044C\u0437\u043E\u0432\u0430\u0442\u0435\u043B\u044C\u0441\u043A\u0438\u0439",
+    "networkEgress.customProxy": "URL \u043F\u043E\u043B\u044C\u0437\u043E\u0432\u0430\u0442\u0435\u043B\u044C\u0441\u043A\u043E\u0433\u043E \u043F\u0440\u043E\u043A\u0441\u0438",
+    "networkEgress.currentRoute": "\u0422\u0435\u043A\u0443\u0449\u0438\u0439 \u043C\u0430\u0440\u0448\u0440\u0443\u0442: {route}",
+    "networkEgress.test": "\u041F\u0440\u043E\u0432\u0435\u0440\u0438\u0442\u044C \u0441\u043E\u0435\u0434\u0438\u043D\u0435\u043D\u0438\u0435",
+    "networkEgress.save": "\u0421\u043E\u0445\u0440\u0430\u043D\u0438\u0442\u044C \u0438 \u043F\u0440\u0438\u043C\u0435\u043D\u0438\u0442\u044C",
+    "networkEgress.saved": "\u0421\u0435\u0442\u0435\u0432\u043E\u0439 \u043C\u0430\u0440\u0448\u0440\u0443\u0442 \u0441\u043E\u0445\u0440\u0430\u043D\u0435\u043D",
+    "networkEgress.testSucceeded": "\u0421\u043E\u0435\u0434\u0438\u043D\u0435\u043D\u0438\u0435 \u0443\u0441\u0442\u0430\u043D\u043E\u0432\u043B\u0435\u043D\u043E: {target} ({elapsed} \u043C\u0441)",
+    "networkEgress.testFailed": "\u041F\u0440\u043E\u0432\u0435\u0440\u043A\u0430 \u0441\u043E\u0435\u0434\u0438\u043D\u0435\u043D\u0438\u044F \u043D\u0435 \u0432\u044B\u043F\u043E\u043B\u043D\u0435\u043D\u0430",
+    "networkEgress.loadFailed": "\u041D\u0435 \u0443\u0434\u0430\u043B\u043E\u0441\u044C \u0437\u0430\u0433\u0440\u0443\u0437\u0438\u0442\u044C \u0441\u0435\u0442\u0435\u0432\u044B\u0435 \u043D\u0430\u0441\u0442\u0440\u043E\u0439\u043A\u0438",
+    "networkEgress.saveFailed": "\u041D\u0435 \u0443\u0434\u0430\u043B\u043E\u0441\u044C \u0441\u043E\u0445\u0440\u0430\u043D\u0438\u0442\u044C \u0441\u0435\u0442\u0435\u0432\u044B\u0435 \u043D\u0430\u0441\u0442\u0440\u043E\u0439\u043A\u0438",
     "languageSettings.instantStatus": "\u0421\u043E\u0445\u0440\u0430\u043D\u0435\u043D\u043E. \u041F\u0440\u0438\u043C\u0435\u043D\u0435\u043D\u043E \u0441\u0440\u0430\u0437\u0443.",
     "apiSettings.title": "API \u041D\u0430\u0441\u0442\u0440\u043E\u0439\u043A\u0438",
     "apiSettings.status": "\u0421\u043E\u0445\u0440\u0430\u043D\u0435\u043D\u043D\u044B\u0435 \u043D\u0430\u0441\u0442\u0440\u043E\u0439\u043A\u0438 \u043F\u0440\u0438\u043C\u0435\u043D\u044F\u044E\u0442\u0441\u044F \u043D\u0435\u043C\u0435\u0434\u043B\u0435\u043D\u043D\u043E \u0432 \u0440\u0435\u0436\u0438\u043C\u0435 API.",
@@ -8668,12 +8907,14 @@
     "sidebar.allOrientations": "Tutti gli orientamenti",
     "sidebar.allModes": "Tutte le modalit\xE0",
     "sidebar.allResolutions": "Tutte le risoluzioni",
+    "sidebar.allStatuses": "Tutti gli stati",
     "sidebar.activeTasks": "Compiti attivi",
     "sidebar.topAnchors": "Navigazione in tempo migliore",
     "sidebar.bottomAnchors": "Navigazione del tempo inferiore",
     "sidebar.resize": "Ridimensiona la barra laterale",
     "batch.selected": "0 selezionato",
     "batch.selectedCount": "{count} selezionato",
+    "batch.selectCurrentGroup": "Seleziona tutto il gruppo",
     "batch.archivedCount": "Chat {count} archiviate",
     "batch.archiveFailed": "L'archiviazione batch non \xE8 riuscita",
     "batch.runningCannotDeleteSelected": "Le chat selezionate sono in esecuzione e non possono essere eliminate",
@@ -8683,6 +8924,15 @@
     "batch.deleteSkippedSuffix": ", {count} attivit\xE0 in esecuzione non eliminate",
     "batch.deletedCount": "{count} chat{skipped} eliminate",
     "batch.deleteFailed": "Eliminazione batch non riuscita",
+    "batch.cancelTasksShortcut": "Annulla in blocco",
+    "batch.cancelSelected": "Annulla attivit\xE0",
+    "batch.noActiveSelected": "Le attivit\xE0 selezionate non sono pi\xF9 in esecuzione o in attesa",
+    "batch.cancelTitle": "Annullare {count} attivit\xE0?",
+    "batch.cancelMessage": "Le attivit\xE0 in esecuzione verranno interrotte e quelle in attesa usciranno dalla coda. La cronologia verr\xE0 conservata.",
+    "batch.cancelDetail": "In esecuzione {running} \xB7 in attesa {waiting}",
+    "batch.cancelConfirm": "Annulla attivit\xE0",
+    "batch.cancelResult": "Annullate {cancelled}, ignorate {skipped}, non riuscite {failed}",
+    "batch.cancelFailed": "Annullamento multiplo non riuscito",
     "action.archive": "Archivio",
     "action.delete": "Elimina",
     "action.cancel": "Annulla",
@@ -9276,6 +9526,8 @@
     "taskList.selectSession": "Seleziona chatta",
     "taskList.unreadUpdate": "Aggiornamento non letto",
     "taskList.viewing": "Visualizzazione",
+    "taskList.backToLatest": "Torna all'attivit\xE0 pi\xF9 recente",
+    "taskList.backToLatestWithCount": "Torna all'attivit\xE0 pi\xF9 recente, {count} nuove attivit\xE0 sopra",
     "taskDerived.usageLimited": "Utilizzo limitato",
     "taskSubmit.requestFailed": "Richiesta non riuscita",
     "taskSubmit.queued": "Attivit\xE0 aggiunta alla coda",
@@ -9402,6 +9654,7 @@
     "taskGroup.expand": "Espandi {label}",
     "taskGroup.collapse": "Comprimi {label}",
     "taskGroup.buttonLabel": "{label}, {count} attivit\xE0",
+    "taskGroup.loadMore": "Carica altri {count}",
     "archive.title": "Archivio",
     "archive.empty": "Nessuna chat archiviata",
     "archive.count": "{count} chat archiviate",
@@ -9436,6 +9689,20 @@
     "systemSettings.codexTab": "Codex Canale",
     "systemSettings.languageTab": "Lingua / Language",
     "systemSettings.storageTab": "Archiviazione e notifiche",
+    "systemSettings.networkTab": "Rete",
+    "networkEgress.mode": "Instradamento di rete",
+    "networkEgress.system": "Sistema",
+    "networkEgress.direct": "Diretto",
+    "networkEgress.custom": "Personalizzato",
+    "networkEgress.customProxy": "URL proxy personalizzato",
+    "networkEgress.currentRoute": "Instradamento attuale: {route}",
+    "networkEgress.test": "Verifica connessione",
+    "networkEgress.save": "Salva e applica",
+    "networkEgress.saved": "Instradamento di rete salvato",
+    "networkEgress.testSucceeded": "Connessione riuscita: {target} ({elapsed} ms)",
+    "networkEgress.testFailed": "Verifica della connessione non riuscita",
+    "networkEgress.loadFailed": "Impossibile caricare le impostazioni di rete",
+    "networkEgress.saveFailed": "Impossibile salvare le impostazioni di rete",
     "languageSettings.instantStatus": "Salvato. Applicato subito.",
     "apiSettings.title": "API Impostazioni",
     "apiSettings.status": "Le impostazioni salvate vengono applicate immediatamente in modalit\xE0 API",
@@ -9689,12 +9956,14 @@
     "sidebar.allOrientations": "\u0938\u092D\u0940 \u091D\u0941\u0915\u093E\u0935",
     "sidebar.allModes": "\u0938\u092D\u0940 \u092E\u094B\u0921",
     "sidebar.allResolutions": "\u0938\u092D\u0940 \u0930\u093F\u091C\u093C\u0949\u0932\u094D\u092F\u0942\u0936\u0928",
+    "sidebar.allStatuses": "\u0938\u092D\u0940 \u0938\u094D\u0925\u093F\u0924\u093F\u092F\u093E\u0901",
     "sidebar.activeTasks": "\u0938\u0915\u094D\u0930\u093F\u092F \u0915\u093E\u0930\u094D\u092F",
     "sidebar.topAnchors": "\u0936\u0940\u0930\u094D\u0937 \u0938\u092E\u092F \u0928\u0947\u0935\u093F\u0917\u0947\u0936\u0928",
     "sidebar.bottomAnchors": "\u0928\u093F\u091A\u0932\u093E \u0938\u092E\u092F \u0928\u0947\u0935\u093F\u0917\u0947\u0936\u0928",
     "sidebar.resize": "\u0938\u093E\u0907\u0921\u092C\u093E\u0930 \u0915\u093E \u0906\u0915\u093E\u0930 \u092C\u0926\u0932\u0947\u0902",
     "batch.selected": "0 \u091A\u092F\u0928\u093F\u0924",
     "batch.selectedCount": "{count} \u091A\u092F\u0928\u093F\u0924",
+    "batch.selectCurrentGroup": "\u0938\u092E\u0942\u0939 \u092E\u0947\u0902 \u0938\u092D\u0940 \u091A\u0941\u0928\u0947\u0902",
     "batch.archivedCount": "\u0938\u0902\u0917\u094D\u0930\u0939\u0940\u0924 {count} \u091A\u0948\u091F",
     "batch.archiveFailed": "\u092C\u0948\u091A \u0938\u0902\u0917\u094D\u0930\u0939 \u0935\u093F\u092B\u0932 \u0930\u0939\u093E",
     "batch.runningCannotDeleteSelected": "\u091A\u092F\u0928\u093F\u0924 \u091A\u0948\u091F \u091A\u0932 \u0930\u0939\u0940 \u0939\u0948\u0902 \u0914\u0930 \u0909\u0928\u094D\u0939\u0947\u0902 \u0939\u091F\u093E\u092F\u093E \u0928\u0939\u0940\u0902 \u091C\u093E \u0938\u0915\u0924\u093E",
@@ -9704,6 +9973,15 @@
     "batch.deleteSkippedSuffix": ", {count} \u091A\u0932 \u0930\u0939\u0947 \u0915\u093E\u0930\u094D\u092F \u0939\u091F\u093E\u090F \u0928\u0939\u0940\u0902 \u0917\u090F",
     "batch.deletedCount": "\u0939\u091F\u093E\u0908 \u0917\u0908 {count} \u091A\u0948\u091F{skipped}",
     "batch.deleteFailed": "\u092C\u0948\u091A \u0939\u091F\u093E\u0928\u093E \u0935\u093F\u092B\u0932 \u0930\u0939\u093E",
+    "batch.cancelTasksShortcut": "\u090F\u0915 \u0938\u093E\u0925 \u0930\u0926\u094D\u0926 \u0915\u0930\u0947\u0902",
+    "batch.cancelSelected": "\u0915\u093E\u0930\u094D\u092F \u0930\u0926\u094D\u0926 \u0915\u0930\u0947\u0902",
+    "batch.noActiveSelected": "\u091A\u0941\u0928\u0947 \u0917\u090F \u0915\u093E\u0930\u094D\u092F \u0905\u092C \u091A\u0932 \u092F\u093E \u092A\u094D\u0930\u0924\u0940\u0915\u094D\u0937\u093E \u0928\u0939\u0940\u0902 \u0915\u0930 \u0930\u0939\u0947 \u0939\u0948\u0902",
+    "batch.cancelTitle": "{count} \u0915\u093E\u0930\u094D\u092F \u0930\u0926\u094D\u0926 \u0915\u0930\u0947\u0902?",
+    "batch.cancelMessage": "\u091A\u0932 \u0930\u0939\u0947 \u0915\u093E\u0930\u094D\u092F \u0930\u0941\u0915 \u091C\u093E\u090F\u0902\u0917\u0947 \u0914\u0930 \u092A\u094D\u0930\u0924\u0940\u0915\u094D\u0937\u093E\u0930\u0924 \u0915\u093E\u0930\u094D\u092F \u0915\u0924\u093E\u0930 \u0938\u0947 \u0939\u091F \u091C\u093E\u090F\u0902\u0917\u0947\u0964 \u0907\u0924\u093F\u0939\u093E\u0938 \u0938\u0941\u0930\u0915\u094D\u0937\u093F\u0924 \u0930\u0939\u0947\u0917\u093E\u0964",
+    "batch.cancelDetail": "\u091A\u0932 \u0930\u0939\u0947 {running} \xB7 \u092A\u094D\u0930\u0924\u0940\u0915\u094D\u0937\u093E\u0930\u0924 {waiting}",
+    "batch.cancelConfirm": "\u0915\u093E\u0930\u094D\u092F \u0930\u0926\u094D\u0926 \u0915\u0930\u0947\u0902",
+    "batch.cancelResult": "\u0930\u0926\u094D\u0926 {cancelled}, \u091B\u094B\u0921\u093C\u0947 {skipped}, \u0935\u093F\u092B\u0932 {failed}",
+    "batch.cancelFailed": "\u090F\u0915 \u0938\u093E\u0925 \u0930\u0926\u094D\u0926 \u0915\u0930\u0928\u093E \u0935\u093F\u092B\u0932",
     "action.archive": "\u0938\u0902\u0917\u094D\u0930\u0939\u093F\u0924 \u0915\u0930\u0947\u0902",
     "action.delete": "\u0939\u091F\u093E\u090F\u0901",
     "action.cancel": "\u0930\u0926\u094D\u0926 \u0915\u0930\u0947\u0902",
@@ -10297,6 +10575,8 @@
     "taskList.selectSession": "\u091A\u0948\u091F \u091A\u0941\u0928\u0947\u0902",
     "taskList.unreadUpdate": "\u0905\u092A\u0920\u093F\u0924 \u0905\u0926\u094D\u092F\u0924\u0928",
     "taskList.viewing": "\u0926\u0947\u0916\u0928\u093E",
+    "taskList.backToLatest": "\u0928\u0935\u0940\u0928\u0924\u092E \u0915\u093E\u0930\u094D\u092F \u092A\u0930 \u091C\u093E\u090F\u0901",
+    "taskList.backToLatestWithCount": "\u0928\u0935\u0940\u0928\u0924\u092E \u0915\u093E\u0930\u094D\u092F \u092A\u0930 \u091C\u093E\u090F\u0901, \u090A\u092A\u0930 {count} \u0928\u090F \u0915\u093E\u0930\u094D\u092F \u0939\u0948\u0902",
     "taskDerived.usageLimited": "\u0909\u092A\u092F\u094B\u0917 \u0938\u0940\u092E\u093F\u0924",
     "taskSubmit.requestFailed": "\u0905\u0928\u0941\u0930\u094B\u0927 \u0935\u093F\u092B\u0932",
     "taskSubmit.queued": "\u0915\u093E\u0930\u094D\u092F \u0915\u0924\u093E\u0930 \u092E\u0947\u0902 \u091C\u094B\u0921\u093C\u093E \u0917\u092F\u093E",
@@ -10423,6 +10703,7 @@
     "taskGroup.expand": "\u0935\u093F\u0938\u094D\u0924\u0943\u0924 \u0915\u0930\u0947\u0902{label}",
     "taskGroup.collapse": "\u0938\u0902\u0915\u094D\u0937\u093F\u092A\u094D\u0924 \u0915\u0930\u0947\u0902 {label}",
     "taskGroup.buttonLabel": "{label}, {count} \u0915\u093E\u0930\u094D\u092F",
+    "taskGroup.loadMore": "{count} \u0914\u0930 \u0932\u094B\u0921 \u0915\u0930\u0947\u0902",
     "archive.title": "\u0938\u0902\u0917\u094D\u0930\u0939",
     "archive.empty": "\u0915\u094B\u0908 \u0938\u0902\u0917\u094D\u0930\u0939\u0940\u0924 \u091A\u0948\u091F \u0928\u0939\u0940\u0902",
     "archive.count": "{count} \u0938\u0902\u0917\u094D\u0930\u0939\u0940\u0924 \u091A\u0948\u091F",
@@ -10457,6 +10738,20 @@
     "systemSettings.codexTab": "Codex \u091A\u0948\u0928\u0932",
     "systemSettings.languageTab": "\u092D\u093E\u0937\u093E / Language",
     "systemSettings.storageTab": "\u092D\u0902\u0921\u093E\u0930\u0923 \u090F\u0935\u0902 \u0938\u0942\u091A\u0928\u093E\u090F\u0902",
+    "systemSettings.networkTab": "\u0928\u0947\u091F\u0935\u0930\u094D\u0915",
+    "networkEgress.mode": "\u0928\u0947\u091F\u0935\u0930\u094D\u0915 \u092E\u093E\u0930\u094D\u0917",
+    "networkEgress.system": "\u0938\u093F\u0938\u094D\u091F\u092E",
+    "networkEgress.direct": "\u0938\u0940\u0927\u093E",
+    "networkEgress.custom": "\u0915\u0938\u094D\u091F\u092E",
+    "networkEgress.customProxy": "\u0915\u0938\u094D\u091F\u092E \u092A\u094D\u0930\u0949\u0915\u094D\u0938\u0940 URL",
+    "networkEgress.currentRoute": "\u0935\u0930\u094D\u0924\u092E\u093E\u0928 \u092E\u093E\u0930\u094D\u0917: {route}",
+    "networkEgress.test": "\u0915\u0928\u0947\u0915\u094D\u0936\u0928 \u091C\u093E\u0902\u091A\u0947\u0902",
+    "networkEgress.save": "\u0938\u0939\u0947\u091C\u0947\u0902 \u0914\u0930 \u0932\u093E\u0917\u0942 \u0915\u0930\u0947\u0902",
+    "networkEgress.saved": "\u0928\u0947\u091F\u0935\u0930\u094D\u0915 \u092E\u093E\u0930\u094D\u0917 \u0938\u0939\u0947\u091C\u093E \u0917\u092F\u093E",
+    "networkEgress.testSucceeded": "\u0915\u0928\u0947\u0915\u094D\u0936\u0928 \u0938\u092B\u0932: {target} ({elapsed} \u092E\u093F.\u0938\u0947.)",
+    "networkEgress.testFailed": "\u0915\u0928\u0947\u0915\u094D\u0936\u0928 \u091C\u093E\u0902\u091A \u0935\u093F\u092B\u0932",
+    "networkEgress.loadFailed": "\u0928\u0947\u091F\u0935\u0930\u094D\u0915 \u0938\u0947\u091F\u093F\u0902\u0917 \u0932\u094B\u0921 \u0928\u0939\u0940\u0902 \u0939\u094B \u0938\u0915\u0940\u0902",
+    "networkEgress.saveFailed": "\u0928\u0947\u091F\u0935\u0930\u094D\u0915 \u0938\u0947\u091F\u093F\u0902\u0917 \u0938\u0939\u0947\u091C\u0940 \u0928\u0939\u0940\u0902 \u091C\u093E \u0938\u0915\u0940\u0902",
     "languageSettings.instantStatus": "\u0938\u0939\u0947\u091C\u093E \u0917\u092F\u093E\u0964 \u0924\u0941\u0930\u0902\u0924 \u0932\u093E\u0917\u0942\u0964",
     "apiSettings.title": "API \u0938\u0947\u091F\u093F\u0902\u0917\u094D\u0938",
     "apiSettings.status": "\u0938\u0939\u0947\u091C\u0940 \u0917\u0908 \u0938\u0947\u091F\u093F\u0902\u0917\u094D\u0938 API \u092E\u094B\u0921 \u092E\u0947\u0902 \u0924\u0941\u0930\u0902\u0924 \u0932\u093E\u0917\u0942 \u0939\u094B\u0924\u0940 \u0939\u0948\u0902",
@@ -10710,12 +11005,14 @@
     "sidebar.allOrientations": "\u5168\u90E8\u65B9\u5411",
     "sidebar.allModes": "\u5168\u90E8\u6A21\u5F0F",
     "sidebar.allResolutions": "\u5168\u90E8\u5206\u8FA8\u7387",
-    "sidebar.activeTasks": "\u8FDB\u884C\u4E2D\u4EFB\u52A1",
+    "sidebar.allStatuses": "\u5168\u90E8\u72B6\u6001",
+    "sidebar.activeTasks": "\u6D3B\u52A8\u4EFB\u52A1",
     "sidebar.topAnchors": "\u9876\u90E8\u65F6\u95F4\u5BFC\u822A",
     "sidebar.bottomAnchors": "\u5E95\u90E8\u65F6\u95F4\u5BFC\u822A",
     "sidebar.resize": "\u8C03\u6574\u4FA7\u680F\u5BBD\u5EA6",
     "batch.selected": "\u5DF2\u9009\u62E9 0 \u4E2A",
     "batch.selectedCount": "\u5DF2\u9009\u62E9 {count} \u4E2A",
+    "batch.selectCurrentGroup": "\u5168\u9009\u672C\u7EC4",
     "batch.archivedCount": "\u5DF2\u5F52\u6863 {count} \u4E2A\u4F1A\u8BDD",
     "batch.archiveFailed": "\u6279\u91CF\u5F52\u6863\u5931\u8D25",
     "batch.runningCannotDeleteSelected": "\u9009\u4E2D\u7684\u4F1A\u8BDD\u6B63\u5728\u8FD0\u884C\uFF0C\u4E0D\u80FD\u5220\u9664",
@@ -10725,6 +11022,15 @@
     "batch.deleteSkippedSuffix": "\uFF0C{count} \u4E2A\u8FD0\u884C\u4E2D\u672A\u5220\u9664",
     "batch.deletedCount": "\u5DF2\u5220\u9664 {count} \u4E2A\u4F1A\u8BDD{skipped}",
     "batch.deleteFailed": "\u6279\u91CF\u5220\u9664\u5931\u8D25",
+    "batch.cancelTasksShortcut": "\u6279\u91CF\u53D6\u6D88",
+    "batch.cancelSelected": "\u53D6\u6D88\u4EFB\u52A1",
+    "batch.noActiveSelected": "\u9009\u4E2D\u7684\u4EFB\u52A1\u5DF2\u4E0D\u5728\u8FD0\u884C\u6216\u7B49\u5F85\u961F\u5217\u4E2D",
+    "batch.cancelTitle": "\u53D6\u6D88 {count} \u4E2A\u4EFB\u52A1\uFF1F",
+    "batch.cancelMessage": "\u8FD0\u884C\u4E2D\u7684\u4EFB\u52A1\u4F1A\u505C\u6B62\uFF0C\u7B49\u5F85\u4E2D\u7684\u4EFB\u52A1\u4F1A\u79BB\u5F00\u961F\u5217\uFF1B\u5386\u53F2\u8BB0\u5F55\u90FD\u4F1A\u4FDD\u7559\u3002",
+    "batch.cancelDetail": "\u8FD0\u884C {running} \u4E2A \xB7 \u7B49\u5F85 {waiting} \u4E2A",
+    "batch.cancelConfirm": "\u786E\u8BA4\u53D6\u6D88",
+    "batch.cancelResult": "\u5DF2\u53D6\u6D88 {cancelled} \u4E2A\uFF0C\u8DF3\u8FC7 {skipped} \u4E2A\uFF0C\u5931\u8D25 {failed} \u4E2A",
+    "batch.cancelFailed": "\u6279\u91CF\u53D6\u6D88\u5931\u8D25",
     "action.archive": "\u5F52\u6863",
     "action.delete": "\u5220\u9664",
     "action.cancel": "\u53D6\u6D88",
@@ -11328,6 +11634,8 @@
     "taskList.selectSession": "\u9009\u62E9\u4F1A\u8BDD",
     "taskList.unreadUpdate": "\u672A\u8BFB\u66F4\u65B0",
     "taskList.viewing": "\u67E5\u770B\u4E2D",
+    "taskList.backToLatest": "\u56DE\u5230\u6700\u65B0\u4EFB\u52A1",
+    "taskList.backToLatestWithCount": "\u56DE\u5230\u6700\u65B0\u4EFB\u52A1\uFF0C\u4E0A\u65B9\u6709 {count} \u4E2A\u65B0\u4EFB\u52A1",
     "taskDerived.usageLimited": "\u7528\u91CF\u53D7\u9650",
     "taskSubmit.requestFailed": "\u8BF7\u6C42\u5931\u8D25",
     "taskSubmit.queued": "\u4EFB\u52A1\u5DF2\u52A0\u5165\u961F\u5217",
@@ -11447,13 +11755,14 @@
     "taskGroup.last7": "\u6700\u8FD1 7 \u5929",
     "taskGroup.older": "\u66F4\u65E9",
     "taskGroup.searchResults": "\u641C\u7D22\u7ED3\u679C",
-    "taskGroup.active": "\u8FDB\u884C\u4E2D",
+    "taskGroup.active": "\u6D3B\u52A8\u4EFB\u52A1",
     "taskGroup.running": "\u8FD0\u884C\u4E2D",
     "taskGroup.waiting": "\u7B49\u5F85\u4E2D",
     "taskGroup.dispatchPending": "\u6B63\u5728\u5206\u914D\u53EF\u7528\u901A\u9053...",
     "taskGroup.expand": "\u5C55\u5F00 {label}",
     "taskGroup.collapse": "\u6536\u8D77 {label}",
     "taskGroup.buttonLabel": "{label}\uFF0C{count} \u4E2A\u4EFB\u52A1",
+    "taskGroup.loadMore": "\u518D\u52A0\u8F7D {count} \u6761",
     "archive.title": "\u4F1A\u8BDD\u5F52\u6863",
     "archive.empty": "\u6682\u65E0\u5F52\u6863\u4F1A\u8BDD",
     "archive.count": "{count} \u4E2A\u5F52\u6863\u4F1A\u8BDD",
@@ -11488,6 +11797,20 @@
     "systemSettings.codexTab": "Codex \u901A\u9053",
     "systemSettings.languageTab": "\u8BED\u8A00 / Language",
     "systemSettings.storageTab": "\u5B58\u50A8\u4E0E\u901A\u77E5",
+    "systemSettings.networkTab": "\u7F51\u7EDC",
+    "networkEgress.mode": "\u7F51\u7EDC\u51FA\u53E3",
+    "networkEgress.system": "\u7CFB\u7EDF",
+    "networkEgress.direct": "\u76F4\u8FDE",
+    "networkEgress.custom": "\u81EA\u5B9A\u4E49",
+    "networkEgress.customProxy": "\u81EA\u5B9A\u4E49\u4EE3\u7406\u5730\u5740",
+    "networkEgress.currentRoute": "\u5F53\u524D\u51FA\u53E3\uFF1A{route}",
+    "networkEgress.test": "\u68C0\u6D4B\u8FDE\u63A5",
+    "networkEgress.save": "\u4FDD\u5B58\u5E76\u5E94\u7528",
+    "networkEgress.saved": "\u7F51\u7EDC\u51FA\u53E3\u5DF2\u4FDD\u5B58",
+    "networkEgress.testSucceeded": "\u8FDE\u63A5\u6210\u529F\uFF1A{target}\uFF08{elapsed} \u6BEB\u79D2\uFF09",
+    "networkEgress.testFailed": "\u8FDE\u63A5\u68C0\u6D4B\u5931\u8D25",
+    "networkEgress.loadFailed": "\u7F51\u7EDC\u8BBE\u7F6E\u52A0\u8F7D\u5931\u8D25",
+    "networkEgress.saveFailed": "\u7F51\u7EDC\u8BBE\u7F6E\u4FDD\u5B58\u5931\u8D25",
     "languageSettings.instantStatus": "\u8BED\u8A00\u5207\u6362\u540E\u7ACB\u5373\u751F\u6548",
     "apiSettings.title": "API \u8BBE\u7F6E",
     "apiSettings.status": "\u4FDD\u5B58\u540E\u7ACB\u5373\u7528\u4E8E API \u6A21\u5F0F",
@@ -11741,12 +12064,14 @@
     "sidebar.allOrientations": "\u5168\u90E8\u65B9\u5411",
     "sidebar.allModes": "\u5168\u90E8\u6A21\u5F0F",
     "sidebar.allResolutions": "\u5168\u90E8\u89E3\u6790\u5EA6",
-    "sidebar.activeTasks": "\u9032\u884C\u4E2D\u4EFB\u52D9",
+    "sidebar.allStatuses": "\u5168\u90E8\u72C0\u614B",
+    "sidebar.activeTasks": "\u6D3B\u52D5\u4EFB\u52D9",
     "sidebar.topAnchors": "\u9802\u90E8\u6642\u9593\u5C0E\u822A",
     "sidebar.bottomAnchors": "\u5E95\u90E8\u6642\u9593\u5C0E\u822A",
     "sidebar.resize": "\u8ABF\u6574\u5074\u6B04\u5BEC\u5EA6",
     "batch.selected": "\u5DF2\u9078\u64C7 0 \u500B",
     "batch.selectedCount": "\u5DF2\u9078\u64C7{count}\u500B",
+    "batch.selectCurrentGroup": "\u5168\u9078\u672C\u7D44",
     "batch.archivedCount": "\u5DF2\u6B78\u6A94{count}\u500B\u6703\u8A71",
     "batch.archiveFailed": "\u6279\u6B21\u6B78\u6A94\u5931\u6557",
     "batch.runningCannotDeleteSelected": "\u9078\u53D6\u7684\u6703\u8A71\u6B63\u5728\u57F7\u884C\uFF0C\u4E14\u7121\u6CD5\u522A\u9664",
@@ -11756,6 +12081,15 @@
     "batch.deleteSkippedSuffix": "\uFF0C{count}\u500B\u904B\u884C\u4E2D\u672A\u522A\u9664",
     "batch.deletedCount": "\u5DF2\u522A\u9664{count}\u500B\u6703\u8A71{skipped}",
     "batch.deleteFailed": "\u6279\u6B21\u522A\u9664\u5931\u6557",
+    "batch.cancelTasksShortcut": "\u6279\u6B21\u53D6\u6D88",
+    "batch.cancelSelected": "\u53D6\u6D88\u4EFB\u52D9",
+    "batch.noActiveSelected": "\u6240\u9078\u4EFB\u52D9\u5DF2\u4E0D\u5728\u57F7\u884C\u6216\u7B49\u5019\u4F47\u5217\u4E2D",
+    "batch.cancelTitle": "\u53D6\u6D88 {count} \u500B\u4EFB\u52D9\uFF1F",
+    "batch.cancelMessage": "\u57F7\u884C\u4E2D\u7684\u4EFB\u52D9\u6703\u505C\u6B62\uFF0C\u7B49\u5019\u4E2D\u7684\u4EFB\u52D9\u6703\u96E2\u958B\u4F47\u5217\uFF1B\u6B77\u53F2\u8A18\u9304\u90FD\u6703\u4FDD\u7559\u3002",
+    "batch.cancelDetail": "\u57F7\u884C {running} \u500B \xB7 \u7B49\u5019 {waiting} \u500B",
+    "batch.cancelConfirm": "\u78BA\u8A8D\u53D6\u6D88",
+    "batch.cancelResult": "\u5DF2\u53D6\u6D88 {cancelled} \u500B\uFF0C\u7565\u904E {skipped} \u500B\uFF0C\u5931\u6557 {failed} \u500B",
+    "batch.cancelFailed": "\u6279\u6B21\u53D6\u6D88\u5931\u6557",
     "action.archive": "\u6B78\u6A94",
     "action.delete": "\u522A\u9664",
     "action.cancel": "\u53D6\u6D88",
@@ -12359,6 +12693,8 @@
     "taskList.selectSession": "\u9078\u64C7\u6703\u8A71",
     "taskList.unreadUpdate": "\u672A\u8B80\u66F4\u65B0",
     "taskList.viewing": "\u67E5\u770B\u4E2D",
+    "taskList.backToLatest": "\u56DE\u5230\u6700\u65B0\u4EFB\u52D9",
+    "taskList.backToLatestWithCount": "\u56DE\u5230\u6700\u65B0\u4EFB\u52D9\uFF0C\u4E0A\u65B9\u6709 {count} \u500B\u65B0\u4EFB\u52D9",
     "taskDerived.usageLimited": "\u7528\u91CF\u53D7\u9650",
     "taskSubmit.requestFailed": "\u8ACB\u6C42\u5931\u6557",
     "taskSubmit.queued": "\u4EFB\u52D9\u5DF2\u52A0\u5165\u4F47\u5217",
@@ -12478,13 +12814,14 @@
     "taskGroup.last7": "\u6700\u8FD1 7 \u5929",
     "taskGroup.older": "\u66F4\u65E9",
     "taskGroup.searchResults": "\u641C\u5C0B\u7D50\u679C",
-    "taskGroup.active": "\u9032\u884C\u4E2D",
+    "taskGroup.active": "\u6D3B\u52D5\u4EFB\u52D9",
     "taskGroup.running": "\u904B\u4F5C\u4E2D",
     "taskGroup.waiting": "\u7B49\u5F85\u4E2D",
     "taskGroup.dispatchPending": "\u6B63\u5728\u5206\u914D\u53EF\u7528\u901A\u9053...",
     "taskGroup.expand": "\u5C55\u958B{label}",
     "taskGroup.collapse": "\u6536\u8D77{label}",
     "taskGroup.buttonLabel": "{label}\uFF0C{count}\u500B\u4EFB\u52D9",
+    "taskGroup.loadMore": "\u518D\u8F09\u5165{count}\u689D",
     "archive.title": "\u6703\u8A71\u6B78\u6A94",
     "archive.empty": "\u66AB\u7121\u6B78\u6A94\u6703\u8A71",
     "archive.count": "{count}\u500B\u6B78\u6A94\u6703\u8A71",
@@ -12519,6 +12856,20 @@
     "systemSettings.codexTab": "Codex \u901A\u9053",
     "systemSettings.languageTab": "\u8A9E\u8A00 / Language",
     "systemSettings.storageTab": "\u5132\u5B58\u8207\u901A\u77E5",
+    "systemSettings.networkTab": "\u7DB2\u7D61",
+    "networkEgress.mode": "\u7DB2\u7D61\u51FA\u53E3",
+    "networkEgress.system": "\u7CFB\u7D71",
+    "networkEgress.direct": "\u76F4\u9023",
+    "networkEgress.custom": "\u81EA\u8A02",
+    "networkEgress.customProxy": "\u81EA\u8A02\u4EE3\u7406\u5730\u5740",
+    "networkEgress.currentRoute": "\u76EE\u524D\u51FA\u53E3\uFF1A{route}",
+    "networkEgress.test": "\u6E2C\u8A66\u9023\u7DDA",
+    "networkEgress.save": "\u5132\u5B58\u4E26\u5957\u7528",
+    "networkEgress.saved": "\u7DB2\u7D61\u51FA\u53E3\u5DF2\u5132\u5B58",
+    "networkEgress.testSucceeded": "\u9023\u7DDA\u6210\u529F\uFF1A{target}\uFF08{elapsed} \u6BEB\u79D2\uFF09",
+    "networkEgress.testFailed": "\u9023\u7DDA\u6E2C\u8A66\u5931\u6557",
+    "networkEgress.loadFailed": "\u7121\u6CD5\u8F09\u5165\u7DB2\u7D61\u8A2D\u5B9A",
+    "networkEgress.saveFailed": "\u7121\u6CD5\u5132\u5B58\u7DB2\u7D61\u8A2D\u5B9A",
     "languageSettings.instantStatus": "\u8A9E\u8A00\u5207\u63DB\u5F8C\u5373\u6642\u751F\u6548",
     "apiSettings.title": "API\u8A2D\u5B9A",
     "apiSettings.status": "\u5132\u5B58\u5F8C\u7ACB\u5373\u7528\u65BCAPI\u6A21\u5F0F",
@@ -12772,12 +13123,14 @@
     "sidebar.allOrientations": "\u5168\u90E8\u65B9\u5411",
     "sidebar.allModes": "\u5168\u90E8\u6A21\u5F0F",
     "sidebar.allResolutions": "\u5168\u90E8\u89E3\u6790\u5EA6",
-    "sidebar.activeTasks": "\u9032\u884C\u4E2D\u4EFB\u52D9",
+    "sidebar.allStatuses": "\u5168\u90E8\u72C0\u614B",
+    "sidebar.activeTasks": "\u6D3B\u52D5\u4EFB\u52D9",
     "sidebar.topAnchors": "\u9802\u90E8\u6642\u9593\u5C0E\u822A",
     "sidebar.bottomAnchors": "\u5E95\u90E8\u6642\u9593\u5C0E\u822A",
     "sidebar.resize": "\u8ABF\u6574\u5074\u6B04\u5BEC\u5EA6",
     "batch.selected": "\u5DF2\u9078\u64C7 0 \u500B",
     "batch.selectedCount": "\u5DF2\u9078\u64C7{count}\u500B",
+    "batch.selectCurrentGroup": "\u5168\u9078\u672C\u7D44",
     "batch.archivedCount": "\u5DF2\u6B78\u6A94{count}\u500B\u6703\u8A71",
     "batch.archiveFailed": "\u6279\u6B21\u6B78\u6A94\u5931\u6557",
     "batch.runningCannotDeleteSelected": "\u9078\u53D6\u7684\u6703\u8A71\u6B63\u5728\u57F7\u884C\uFF0C\u4E14\u7121\u6CD5\u522A\u9664",
@@ -12787,6 +13140,15 @@
     "batch.deleteSkippedSuffix": "\uFF0C{count}\u500B\u904B\u884C\u4E2D\u672A\u522A\u9664",
     "batch.deletedCount": "\u5DF2\u522A\u9664{count}\u500B\u6703\u8A71{skipped}",
     "batch.deleteFailed": "\u6279\u6B21\u522A\u9664\u5931\u6557",
+    "batch.cancelTasksShortcut": "\u6279\u6B21\u53D6\u6D88",
+    "batch.cancelSelected": "\u53D6\u6D88\u4EFB\u52D9",
+    "batch.noActiveSelected": "\u6240\u9078\u4EFB\u52D9\u5DF2\u4E0D\u5728\u57F7\u884C\u6216\u7B49\u5F85\u4F47\u5217\u4E2D",
+    "batch.cancelTitle": "\u53D6\u6D88 {count} \u500B\u4EFB\u52D9\uFF1F",
+    "batch.cancelMessage": "\u57F7\u884C\u4E2D\u7684\u4EFB\u52D9\u6703\u505C\u6B62\uFF0C\u7B49\u5F85\u4E2D\u7684\u4EFB\u52D9\u6703\u96E2\u958B\u4F47\u5217\uFF1B\u6B77\u53F2\u8A18\u9304\u90FD\u6703\u4FDD\u7559\u3002",
+    "batch.cancelDetail": "\u57F7\u884C {running} \u500B \xB7 \u7B49\u5F85 {waiting} \u500B",
+    "batch.cancelConfirm": "\u78BA\u8A8D\u53D6\u6D88",
+    "batch.cancelResult": "\u5DF2\u53D6\u6D88 {cancelled} \u500B\uFF0C\u7565\u904E {skipped} \u500B\uFF0C\u5931\u6557 {failed} \u500B",
+    "batch.cancelFailed": "\u6279\u6B21\u53D6\u6D88\u5931\u6557",
     "action.archive": "\u6B78\u6A94",
     "action.delete": "\u522A\u9664",
     "action.cancel": "\u53D6\u6D88",
@@ -13390,6 +13752,8 @@
     "taskList.selectSession": "\u9078\u64C7\u6703\u8A71",
     "taskList.unreadUpdate": "\u672A\u8B80\u66F4\u65B0",
     "taskList.viewing": "\u67E5\u770B\u4E2D",
+    "taskList.backToLatest": "\u56DE\u5230\u6700\u65B0\u4EFB\u52D9",
+    "taskList.backToLatestWithCount": "\u56DE\u5230\u6700\u65B0\u4EFB\u52D9\uFF0C\u4E0A\u65B9\u6709 {count} \u500B\u65B0\u4EFB\u52D9",
     "taskDerived.usageLimited": "\u7528\u91CF\u53D7\u9650",
     "taskSubmit.requestFailed": "\u8ACB\u6C42\u5931\u6557",
     "taskSubmit.queued": "\u4EFB\u52D9\u5DF2\u52A0\u5165\u4F47\u5217",
@@ -13509,13 +13873,14 @@
     "taskGroup.last7": "\u6700\u8FD1 7 \u5929",
     "taskGroup.older": "\u66F4\u65E9",
     "taskGroup.searchResults": "\u641C\u5C0B\u7D50\u679C",
-    "taskGroup.active": "\u9032\u884C\u4E2D",
+    "taskGroup.active": "\u6D3B\u52D5\u4EFB\u52D9",
     "taskGroup.running": "\u904B\u4F5C\u4E2D",
     "taskGroup.waiting": "\u7B49\u5F85\u4E2D",
     "taskGroup.dispatchPending": "\u6B63\u5728\u5206\u914D\u53EF\u7528\u901A\u9053...",
     "taskGroup.expand": "\u5C55\u958B{label}",
     "taskGroup.collapse": "\u6536\u8D77{label}",
     "taskGroup.buttonLabel": "{label}\uFF0C{count}\u500B\u4EFB\u52D9",
+    "taskGroup.loadMore": "\u518D\u8F09\u5165{count}\u7B46",
     "archive.title": "\u6703\u8A71\u6B78\u6A94",
     "archive.empty": "\u66AB\u7121\u6B78\u6A94\u6703\u8A71",
     "archive.count": "{count}\u500B\u6B78\u6A94\u6703\u8A71",
@@ -13550,6 +13915,20 @@
     "systemSettings.codexTab": "Codex \u901A\u9053",
     "systemSettings.languageTab": "\u8A9E\u8A00 / Language",
     "systemSettings.storageTab": "\u5132\u5B58\u8207\u901A\u77E5",
+    "systemSettings.networkTab": "\u7DB2\u8DEF",
+    "networkEgress.mode": "\u7DB2\u8DEF\u51FA\u53E3",
+    "networkEgress.system": "\u7CFB\u7D71",
+    "networkEgress.direct": "\u76F4\u9023",
+    "networkEgress.custom": "\u81EA\u8A02",
+    "networkEgress.customProxy": "\u81EA\u8A02\u4EE3\u7406\u4F4D\u5740",
+    "networkEgress.currentRoute": "\u76EE\u524D\u51FA\u53E3\uFF1A{route}",
+    "networkEgress.test": "\u6E2C\u8A66\u9023\u7DDA",
+    "networkEgress.save": "\u5132\u5B58\u4E26\u5957\u7528",
+    "networkEgress.saved": "\u7DB2\u8DEF\u51FA\u53E3\u5DF2\u5132\u5B58",
+    "networkEgress.testSucceeded": "\u9023\u7DDA\u6210\u529F\uFF1A{target}\uFF08{elapsed} \u6BEB\u79D2\uFF09",
+    "networkEgress.testFailed": "\u9023\u7DDA\u6E2C\u8A66\u5931\u6557",
+    "networkEgress.loadFailed": "\u7121\u6CD5\u8F09\u5165\u7DB2\u8DEF\u8A2D\u5B9A",
+    "networkEgress.saveFailed": "\u7121\u6CD5\u5132\u5B58\u7DB2\u8DEF\u8A2D\u5B9A",
     "languageSettings.instantStatus": "\u8A9E\u8A00\u5207\u63DB\u5F8C\u7ACB\u5373\u751F\u6548",
     "apiSettings.title": "API\u8A2D\u5B9A",
     "apiSettings.status": "\u5132\u5B58\u5F8C\u7ACB\u5373\u7528\u65BCAPI\u6A21\u5F0F",
@@ -14316,6 +14695,13 @@
     return Boolean(window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches);
   }
 
+  // codex_image/webui/frontend/src/task-cancellation.ts
+  var USER_CANCELLATION_ERROR = "Task cancelled by user.";
+  function taskWasCancelled(task) {
+    const error = String(task?.error || task?.last_error || "").trim();
+    return Boolean(task?.cancel_requested || error === USER_CANCELLATION_ERROR);
+  }
+
   // codex_image/webui/frontend/src/runtime-feedback.ts
   function legacyMethod(name, ...args) {
     const method = getLegacyBridge().methods[name];
@@ -14364,6 +14750,7 @@
   }
   function formatTaskStatus(task) {
     if (!task) return "";
+    if (taskWasCancelled(task)) return translate("queue.runningCancelled");
     if (task.status === "submitting") return translate("taskStatus.submitting");
     if (task.status === "running") {
       const progressStartedAt = taskProgressStartValue(task);
@@ -14374,6 +14761,10 @@
     if (task.status === "failed") return translate("taskStatus.failed");
     if (task.status === "queued") return translate("taskStatus.queued");
     return task.status || "";
+  }
+  function formatTaskCardStatus(task) {
+    if (task?.status === "running" && !taskWasCancelled(task)) return translate("taskStatus.running");
+    return formatTaskStatus(task);
   }
   var uiClockVisibilityBound = false;
   function startUiClock() {
@@ -14422,7 +14813,7 @@
   function updateTaskElapsedCard(card, task) {
     const statusElement = card.querySelector("[data-task-status-id]");
     if (statusElement) {
-      setTextIfChanged(statusElement, formatTaskStatus(task) || translate("taskStatus.unknown"));
+      setTextIfChanged(statusElement, formatTaskCardStatus(task) || translate("taskStatus.unknown"));
       const statusRow = statusElement.closest(".task-status-row");
       if (statusRow) {
         const accessibleLabel = taskStatusAccessibleLabel(task);
@@ -14583,6 +14974,9 @@
       images: [],
       referenceFiles: [],
       tasks: [],
+      taskSidebarGroupCounts: {},
+      taskSidebarGroupLoadedCounts: {},
+      taskSidebarGroupLoading: null,
       selectedTaskId: null,
       taskInputRestoreSeq: 0,
       authAvailable: false,
@@ -14655,6 +15049,9 @@
       activeTaskGroupCollapsed: false,
       expandedTaskGroupKey: null,
       expandedTaskGroupAnimationPending: false,
+      latestTaskNoticeCount: 0,
+      latestTaskKeepAtTop: false,
+      latestTaskKeepAtTopExpiresAt: 0,
       taskNotifications: [],
       taskNotificationUnreadCount: 0,
       taskNotificationCenterOpen: false,
@@ -14679,6 +15076,7 @@
       batchMode: false,
       batchSelectedTaskIds: [],
       batchSelectionAnchorTaskId: null,
+      batchSelectionIncludesUnloaded: false,
       batchSelectionDrag: null,
       suppressTaskClickAfterDrag: false,
       sidebarResize: null,
@@ -14735,6 +15133,7 @@
     closePromptPopover: proxy("closePromptPopover"),
     closeSettingsModal: proxy("closeSettingsModal"),
     cleanupSessionSelections: proxy("cleanupSessionSelections"),
+    consumeLatestTaskNavigationScrollAnchor: proxy("consumeLatestTaskNavigationScrollAnchor"),
     collectReferenceOutput: proxy("collectReferenceOutput"),
     colorNameForHex: proxy("colorNameForHex"),
     colorSwatchButton: proxy("colorSwatchButton"),
@@ -14759,6 +15158,7 @@
     favoriteColorsForDisplay: proxy("favoriteColorsForDisplay"),
     findGalleryItem: proxy("findGalleryItem"),
     firstVisibleTaskId: proxy("firstVisibleTaskId"),
+    formatTaskCardStatus,
     formatTaskStatus,
     galleryInputs: proxy("galleryInputs"),
     gallerySource: proxy("gallerySource"),
@@ -14781,6 +15181,7 @@
     normalizeApiImagesConcurrency: proxy("normalizeApiImagesConcurrency"),
     normalizeApiSettings: proxy("normalizeApiSettings"),
     normalizeHexColor: proxy("normalizeHexColor"),
+    notifyLatestTaskAvailable: proxy("notifyLatestTaskAvailable"),
     notifyTaskUpdate: proxy("notifyTaskUpdate"),
     openAddToGallery: proxy("openAddToGallery"),
     openApiSettingsModal: proxy("openApiSettingsModal"),
@@ -14807,6 +15208,7 @@
     revealActiveTaskGroup: proxy("revealActiveTaskGroup"),
     retryFailedTask: proxy("retryFailedTask"),
     referenceAssetInputs: proxy("referenceAssetInputs"),
+    rememberLatestTaskNavigationBeforeRender: proxy("rememberLatestTaskNavigationBeforeRender"),
     rememberRecentColor: proxy("rememberRecentColor"),
     removeBatchSelectedTaskId: proxy("removeBatchSelectedTaskId"),
     removeFavoriteColor: proxy("removeFavoriteColor"),
@@ -14821,6 +15223,7 @@
     renderTaskHistoryAnchors: proxy("renderTaskHistoryAnchors"),
     renderReferenceCollector: proxy("renderReferenceCollector"),
     renderTasks: proxy("renderTasks"),
+    scheduleLatestTaskNavigationRefresh: proxy("scheduleLatestTaskNavigationRefresh"),
     replacePendingTask,
     replaceTask: proxy("replaceTask"),
     restoreApiSettings: proxy("restoreApiSettings"),
@@ -33085,7 +33488,7 @@ ${hint}` : hint;
   var systemSettingsHeightAnimationTimer;
   var systemSettingsReturnFocus = null;
   var MIN_SYSTEM_SETTINGS_MODAL_EDGE = 30;
-  var VALID_TABS = /* @__PURE__ */ new Set(["api", "language", "storage"]);
+  var VALID_TABS = /* @__PURE__ */ new Set(["api", "network", "language", "storage"]);
   function normalizedTab(tab) {
     if (tab === "codex") return "api";
     return VALID_TABS.has(tab) ? tab : "api";
@@ -33176,6 +33579,7 @@ ${hint}` : hint;
     });
     [
       ["api", els43.systemSettingsApiPanel],
+      ["network", els43.systemSettingsNetworkPanel],
       ["language", els43.systemSettingsLanguagePanel],
       ["storage", els43.systemSettingsStoragePanel]
     ].forEach(([name, panel2]) => {
@@ -33186,6 +33590,7 @@ ${hint}` : hint;
     });
     if (options.refresh === false) return;
     if (selected === "storage") maybeCall("refreshSettings");
+    if (selected === "network") maybeCall("refreshNetworkEgress");
     if (selected === "api") {
       maybeCall("setApiSettingsFeedback", "", "");
       maybeCall("populateApiSettingsForm");
@@ -34949,6 +35354,160 @@ ${hint}` : hint;
       openSettingsModal,
       closeSettingsModal,
       saveSettings
+    });
+  }
+
+  // codex_image/webui/frontend/src/network-egress-settings.ts
+  var networkEgressFeatureInitialized = false;
+  var currentNetworkEgress = null;
+  function normalizedMode(value) {
+    return value === "direct" || value === "custom" ? value : "system";
+  }
+  function modeTranslationKey(mode) {
+    return `networkEgress.${mode}`;
+  }
+  function setNetworkEgressFeedback(message, type = "") {
+    const { els: els43 } = getLegacyBridge();
+    if (!els43.networkEgressStatus) return;
+    els43.networkEgressStatus.textContent = message;
+    els43.networkEgressStatus.classList.toggle("ok", type === "ok");
+    els43.networkEgressStatus.classList.toggle("error", type === "error");
+    els43.networkEgressStatus.classList.toggle("running", type === "running");
+  }
+  function selectedNetworkEgressMode() {
+    const { els: els43 } = getLegacyBridge();
+    return normalizedMode(els43.networkEgressMode?.value);
+  }
+  function renderNetworkEgressMode(mode) {
+    const { els: els43 } = getLegacyBridge();
+    if (els43.networkEgressMode) els43.networkEgressMode.value = mode;
+    const buttons = Array.from(
+      els43.systemSettingsNetworkPanel?.querySelectorAll("[data-network-egress-mode]") || []
+    );
+    buttons.forEach((button) => {
+      const active = button.dataset.networkEgressMode === mode;
+      button.classList.toggle("active", active);
+      button.setAttribute("aria-pressed", active ? "true" : "false");
+    });
+    if (els43.networkEgressCustomProxyField) {
+      els43.networkEgressCustomProxyField.hidden = mode !== "custom";
+    }
+  }
+  function renderNetworkEgress(payload2) {
+    const { els: els43 } = getLegacyBridge();
+    currentNetworkEgress = payload2;
+    const mode = normalizedMode(payload2.settings?.mode);
+    renderNetworkEgressMode(mode);
+    if (els43.networkEgressCustomProxy) {
+      els43.networkEgressCustomProxy.value = payload2.settings?.custom_proxy_url || "";
+    }
+    if (els43.networkEgressCurrentRoute) {
+      const resolvedMode = normalizedMode(payload2.resolved?.mode);
+      els43.networkEgressCurrentRoute.textContent = formatTranslation(
+        "networkEgress.currentRoute",
+        { route: translate(modeTranslationKey(resolvedMode)) }
+      );
+    }
+  }
+  function networkEgressFormPayload() {
+    const { els: els43 } = getLegacyBridge();
+    return {
+      mode: selectedNetworkEgressMode(),
+      custom_proxy_url: String(els43.networkEgressCustomProxy?.value || "").trim()
+    };
+  }
+  async function refreshNetworkEgress() {
+    try {
+      const response = await fetch("/api/network-egress");
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.detail || translate("networkEgress.loadFailed"));
+      renderNetworkEgress(data);
+      setNetworkEgressFeedback("", "");
+    } catch (error) {
+      setNetworkEgressFeedback(
+        error.message || translate("networkEgress.loadFailed"),
+        "error"
+      );
+    }
+  }
+  async function saveNetworkEgress() {
+    const { els: els43 } = getLegacyBridge();
+    if (!els43.saveNetworkEgressButton) return;
+    els43.saveNetworkEgressButton.disabled = true;
+    try {
+      const response = await fetch("/api/network-egress", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(networkEgressFormPayload())
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.detail || translate("networkEgress.saveFailed"));
+      renderNetworkEgress(data);
+      setNetworkEgressFeedback(translate("networkEgress.saved"), "ok");
+    } catch (error) {
+      setNetworkEgressFeedback(
+        error.message || translate("networkEgress.saveFailed"),
+        "error"
+      );
+    } finally {
+      els43.saveNetworkEgressButton.disabled = false;
+    }
+  }
+  async function testNetworkEgress() {
+    const { els: els43 } = getLegacyBridge();
+    if (!els43.testNetworkEgressButton) return;
+    els43.testNetworkEgressButton.disabled = true;
+    setNetworkEgressFeedback(translate("networkEgress.test"), "running");
+    try {
+      const response = await fetch("/api/network-egress/test", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(networkEgressFormPayload())
+      });
+      const data = await response.json();
+      if (!response.ok || !data.ok) {
+        throw new Error(data.detail || data.error || translate("networkEgress.testFailed"));
+      }
+      setNetworkEgressFeedback(
+        formatTranslation("networkEgress.testSucceeded", {
+          target: data.target,
+          elapsed: data.elapsed_ms
+        }),
+        "ok"
+      );
+    } catch (error) {
+      setNetworkEgressFeedback(
+        error.message || translate("networkEgress.testFailed"),
+        "error"
+      );
+    } finally {
+      els43.testNetworkEgressButton.disabled = false;
+    }
+  }
+  function handleNetworkEgressModeClick(event) {
+    const target = event.target;
+    const button = target?.closest?.("[data-network-egress-mode]");
+    if (!button) return;
+    renderNetworkEgressMode(normalizedMode(button.dataset.networkEgressMode));
+    setNetworkEgressFeedback("", "");
+  }
+  function initNetworkEgressSettingsFeature() {
+    if (networkEgressFeatureInitialized) return;
+    networkEgressFeatureInitialized = true;
+    const { els: els43 } = getLegacyBridge();
+    els43.systemSettingsNetworkPanel?.addEventListener(
+      "click",
+      handleNetworkEgressModeClick
+    );
+    els43.testNetworkEgressButton?.addEventListener("click", testNetworkEgress);
+    els43.saveNetworkEgressButton?.addEventListener("click", saveNetworkEgress);
+    document.addEventListener(LOCALE_CHANGE_EVENT, () => {
+      if (currentNetworkEgress) renderNetworkEgress(currentNetworkEgress);
+    });
+    Object.assign(getLegacyBridge().methods, {
+      refreshNetworkEgress,
+      saveNetworkEgress,
+      testNetworkEgress
     });
   }
 
@@ -40613,6 +41172,7 @@ ${galleryText}`;
   var els28 = bridge25.els;
   var EXPANDED_TASK_GROUP_INITIAL_CARD_COUNT = 24;
   var EXPANDED_TASK_GROUP_CHUNK_SIZE = 48;
+  var TASK_SIDEBAR_GROUP_PAGE_SIZE = 50;
   var EXPANDED_TASK_GROUP_ANIMATION_FALLBACK_MS = 320;
   var expandedTaskGroupRenderToken = 0;
   var queueTaskIdsCacheKey = "";
@@ -40651,6 +41211,9 @@ ${galleryText}`;
   function taskApiProviderLabel2(...args) {
     return legacyMethod31("taskApiProviderLabel", ...args);
   }
+  function formatTaskCardStatus2(...args) {
+    return legacyMethod31("formatTaskCardStatus", ...args);
+  }
   function formatTaskStatus2(...args) {
     return legacyMethod31("formatTaskStatus", ...args);
   }
@@ -40668,6 +41231,15 @@ ${galleryText}`;
   }
   function animateTaskHistoryLayout(...args) {
     return legacyMethod31("animateTaskHistoryLayout", ...args);
+  }
+  function scheduleLatestTaskNavigationRefresh(...args) {
+    return legacyMethod31("scheduleLatestTaskNavigationRefresh", ...args);
+  }
+  function consumeLatestTaskNavigationScrollAnchor(...args) {
+    return legacyMethod31("consumeLatestTaskNavigationScrollAnchor", ...args);
+  }
+  function rememberLatestTaskNavigationBeforeRender(...args) {
+    return legacyMethod31("rememberLatestTaskNavigationBeforeRender", ...args);
   }
   var taskRatio = (...args) => legacyMethod31("taskRatio", ...args);
   var taskOrientation = (...args) => legacyMethod31("taskOrientation", ...args);
@@ -40689,7 +41261,8 @@ ${galleryText}`;
   var taskCompletionTimestampTitle = (...args) => legacyMethod31("taskCompletionTimestampTitle", ...args);
   var timestampMs2 = (...args) => legacyMethod31("timestampMs", ...args);
   function renderTasks2(options = {}) {
-    const scrollAnchor = options.preserveScroll ? captureTaskListScrollAnchor() : null;
+    if (options.preserveScroll) rememberLatestTaskNavigationBeforeRender();
+    const scrollAnchors = options.preserveScroll ? captureTaskListScrollAnchors() : [];
     const query = taskSearchQuery();
     const filters = taskFilterValues();
     const visibleTasks = state19.tasks.filter((task) => !isTaskArchived(task.task_id));
@@ -40697,7 +41270,9 @@ ${galleryText}`;
       return taskMatchesSearch(task, query) && taskMatchesFilters(task, filters);
     });
     const visibleTaskIds = visibleTasks.map((task) => String(task.task_id));
-    state19.batchSelectedTaskIds = state19.batchSelectedTaskIds.filter((taskId) => visibleTaskIds.includes(String(taskId)));
+    if (!state19.batchSelectionIncludesUnloaded) {
+      state19.batchSelectedTaskIds = state19.batchSelectedTaskIds.filter((taskId) => visibleTaskIds.includes(String(taskId)));
+    }
     renderBatchToolbar();
     const activeGroup = activeTaskGroup(tasks, query);
     const groups = taskHistoryGroups(tasks, query);
@@ -40706,7 +41281,8 @@ ${galleryText}`;
     const nextRenderKey = taskListRenderKey(tasks, query, layout, filters, activeGroup);
     if (state19.tasksRenderKey === nextRenderKey) {
       updateTaskElapsedDisplays2();
-      restoreTaskListScrollAnchor(scrollAnchor);
+      restoreTaskListScrollAnchors(scrollAnchors);
+      scheduleLatestTaskNavigationRefresh();
       return;
     }
     state19.tasksRenderKey = nextRenderKey;
@@ -40718,14 +41294,16 @@ ${galleryText}`;
       expandedTaskGroupRenderToken += 1;
       els28.taskList.innerHTML = `<div class="task-meta">${escapeHtml13(translate("taskList.empty"))}</div>`;
       updateDocumentTitle();
-      restoreTaskListScrollAnchor(scrollAnchor);
+      restoreTaskListScrollAnchors(scrollAnchors);
+      scheduleLatestTaskNavigationRefresh();
       return;
     }
     if (!layout.expandedGroup) {
       expandedTaskGroupRenderToken += 1;
       els28.taskList.innerHTML = "";
       updateDocumentTitle();
-      restoreTaskListScrollAnchor(scrollAnchor);
+      restoreTaskListScrollAnchors(scrollAnchors);
+      scheduleLatestTaskNavigationRefresh();
       return;
     }
     const group = layout.expandedGroup;
@@ -40735,14 +41313,21 @@ ${galleryText}`;
     });
     scheduleExpandedTaskGroupItemsRender(group, layout.expandedKey || group?.key || null);
     updateDocumentTitle();
-    restoreTaskListScrollAnchor(scrollAnchor);
+    restoreTaskListScrollAnchors(scrollAnchors);
+    scheduleLatestTaskNavigationRefresh();
   }
-  function taskListScrollContainer() {
-    return els28.sidebarContent || els28.taskHistoryShell || els28.taskList || null;
+  function captureTaskListScrollAnchors() {
+    const historyAnchor = captureTaskListScrollAnchor(
+      els28.sidebarContent || els28.taskHistoryShell || els28.taskList,
+      els28.taskList,
+      { retryMissingTask: true }
+    );
+    return [
+      captureTaskListScrollAnchor(els28.taskActiveList, els28.taskActiveList),
+      consumeLatestTaskNavigationScrollAnchor(historyAnchor)
+    ].filter((anchor) => Boolean(anchor));
   }
-  function captureTaskListScrollAnchor() {
-    const scroller = taskListScrollContainer();
-    const root = taskCardRoot();
+  function captureTaskListScrollAnchor(scroller, root, { retryMissingTask = false } = {}) {
     if (!scroller || !root) return null;
     const scrollerRect = scroller.getBoundingClientRect();
     const cards = Array.from(root.querySelectorAll(".task-card[data-task-id]"));
@@ -40750,15 +41335,20 @@ ${galleryText}`;
       const rect2 = card.getBoundingClientRect();
       return rect2.bottom > scrollerRect.top && rect2.top < scrollerRect.bottom;
     });
-    if (!visibleCard) return { scroller, scrollTop: scroller.scrollTop };
+    if (!visibleCard) return { scroller, root, scrollTop: scroller.scrollTop, retryMissingTask };
     const rect = visibleCard.getBoundingClientRect();
     const anchor = {
       scroller,
+      root,
       scrollTop: scroller.scrollTop,
-      offsetTop: rect.top - scrollerRect.top
+      offsetTop: rect.top - scrollerRect.top,
+      retryMissingTask
     };
     if (visibleCard.dataset.taskId) anchor.taskId = visibleCard.dataset.taskId;
     return anchor;
+  }
+  function restoreTaskListScrollAnchors(anchors) {
+    anchors.forEach(restoreTaskListScrollAnchor);
   }
   function restoreTaskListScrollAnchor(anchor) {
     if (!anchor?.scroller) return;
@@ -40766,7 +41356,7 @@ ${galleryText}`;
     const restore = () => {
       if (!anchor.scroller.isConnected) return;
       if (anchor.taskId) {
-        const card = taskCardElement(anchor.taskId);
+        const card = anchor.root.querySelector(`.task-card[data-task-id="${cssEscape(anchor.taskId)}"]`);
         if (card instanceof HTMLElement) {
           const scrollerRect = anchor.scroller.getBoundingClientRect();
           const rect = card.getBoundingClientRect();
@@ -40774,14 +41364,14 @@ ${galleryText}`;
           return;
         }
       }
-      if (anchor.taskId && attempts > 0) {
+      if (anchor.taskId && anchor.retryMissingTask && attempts > 0) {
         attempts -= 1;
         requestAnimationFrame(restore);
         return;
       }
       anchor.scroller.scrollTop = anchor.scrollTop;
     };
-    requestAnimationFrame(restore);
+    restore();
   }
   function renderHistoryLibraryGroup(tasks, query) {
     if (!els28.taskHistoryLibrarySlot) return;
@@ -40892,8 +41482,10 @@ ${galleryText}`;
       const chunkSize = index === 0 ? EXPANDED_TASK_GROUP_INITIAL_CARD_COUNT : EXPANDED_TASK_GROUP_CHUNK_SIZE;
       const nextTasks = tasks.slice(index, index + chunkSize);
       if (!nextTasks.length) {
+        body.insertAdjacentHTML("beforeend", taskGroupLoadMoreHtml(group));
         finalizeExpandedTaskGroupBody(groupKey);
         body.dataset.renderComplete = "true";
+        scheduleLatestTaskNavigationRefresh();
         return;
       }
       body.insertAdjacentHTML("beforeend", nextTasks.map((task) => taskCardHtml(task)).join(""));
@@ -40910,8 +41502,10 @@ ${galleryText}`;
       if (index < tasks.length) {
         requestAnimationFrame(renderChunk);
       } else {
+        body.insertAdjacentHTML("beforeend", taskGroupLoadMoreHtml(group));
         body.dataset.renderComplete = "true";
       }
+      scheduleLatestTaskNavigationRefresh();
     };
     requestAnimationFrame(renderChunk);
   }
@@ -40949,6 +41543,7 @@ ${galleryText}`;
   }
   function taskFilterValues() {
     return {
+      status: els28.taskStatusFilter?.value || "",
       ratio: els28.taskRatioFilter?.value || "",
       orientation: els28.taskOrientationFilter?.value || "",
       promptFidelity: els28.taskPromptFidelityFilter?.value || "",
@@ -40970,6 +41565,7 @@ ${galleryText}`;
     return text.includes(normalizedQuery);
   }
   function taskMatchesFilters(task, filters) {
+    if (filters.status && String(task?.status || "") !== filters.status) return false;
     if (filters.ratio && taskRatio(task) !== filters.ratio) return false;
     if (filters.orientation && taskOrientation(task) !== filters.orientation) return false;
     if (filters.promptFidelity && taskPromptFidelity(task) !== filters.promptFidelity) return false;
@@ -40987,7 +41583,7 @@ ${galleryText}`;
       els28.taskSearch.value = "";
       changed = true;
     }
-    [els28.taskRatioFilter, els28.taskOrientationFilter, els28.taskPromptFidelityFilter, els28.taskResolutionFilter].filter(Boolean).forEach((element2) => {
+    [els28.taskStatusFilter, els28.taskRatioFilter, els28.taskOrientationFilter, els28.taskPromptFidelityFilter, els28.taskResolutionFilter].filter(Boolean).forEach((element2) => {
       if (element2.value) {
         element2.value = "";
         changed = true;
@@ -41030,7 +41626,7 @@ ${galleryText}`;
           <span class="task-group-title">
             <span class="task-group-label">${escapeHtml13(group.label)}</span>
             <span class="task-group-count-separator" aria-hidden="true"> \xB7 </span>
-            <span class="task-group-count">${group.tasks.length}</span>
+            <span class="task-group-count">${taskGroupCount(group)}</span>
           </span>
         </span>
         <span
@@ -41092,7 +41688,7 @@ ${galleryText}`;
     if (!activeTasks.length) return null;
     return {
       key: "active",
-      label: translate("taskGroup.active"),
+      label: translate("sidebar.activeTasks"),
       tasks: activeTasks,
       collapsible: false,
       defaultCollapsed: false
@@ -41157,7 +41753,7 @@ ${galleryText}`;
           <span class="task-group-title">
             <span class="task-group-label">${escapeHtml13(group.label)}</span>
             <span class="task-group-count-separator" aria-hidden="true"> \xB7 </span>
-            <span class="task-group-count">${group.tasks.length}</span>
+            <span class="task-group-count">${taskGroupCount(group)}</span>
           </span>
         </span>
         <span
@@ -41181,7 +41777,7 @@ ${galleryText}`;
     return expandedTaskGroupHtml(group);
   }
   function taskGroupButtonLabel(group) {
-    return formatTranslation("taskGroup.buttonLabel", { label: group.label, count: group.tasks.length });
+    return formatTranslation("taskGroup.buttonLabel", { label: group.label, count: taskGroupCount(group) });
   }
   function taskQueueSection(task, queueIds = queueTaskIdsBySection()) {
     const taskId = String(task?.task_id || "");
@@ -41310,7 +41906,7 @@ ${galleryText}`;
     const runningTimerHtml = taskCardRunningTimerHtml(task, taskId);
     const statusLabel = taskStatusLabelHtml(task);
     const modelFamilyIcon = taskModelFamilyIconHtml(task);
-    const statusMetaText = runningTimerHtml && retryText ? [taskMetaDetailsText2(task), retryText].filter(Boolean).join(" \xB7 ") : retryText ? taskMetaDetailsWithCompletionText(task) : taskMetaDetailsText2(task);
+    const statusMetaText = retryText ? taskMetaDetailsWithCompletionText(task) : taskMetaDetailsText2(task);
     const statusMeta = escapeHtml13(statusMetaText);
     const taskTime = taskCardCompletionTimeText(task);
     const runtime = taskCardRuntimeText2(task);
@@ -41319,6 +41915,7 @@ ${galleryText}`;
     const runtimeTitleText = [runtimeFullText, completionTitle].filter(Boolean).join(" \xB7 ");
     const runtimeTitle = runtimeTitleText ? ` title="${escapeHtml13(runtimeTitleText)}"` : "";
     const runtimeHtml = runtime ? `<span class="task-runtime" data-task-runtime-id="${taskId}" data-task-completed-at-id="${taskId}"${runtimeTitle}>${escapeHtml13(runtime)}</span>` : "";
+    const topTimeHtml = runningTimerHtml || runtimeHtml;
     const imageRow = showImageSummary ? `
           <span class="task-image-row">
             ${imageBlocks}
@@ -41330,9 +41927,9 @@ ${galleryText}`;
           </span>
     ` : "";
     const retryTitle = retryFullText && retryFullText !== retryText ? ` title="${escapeHtml13(retryFullText)}"` : "";
-    const retryHtml = !runningTimerHtml && retryText ? `<span class="task-retry-state" data-task-retry-id="${taskId}"${retryTitle}>${escapeHtml13(retryText)}</span>` : "";
+    const retryHtml = retryText ? `<span class="task-retry-state" data-task-retry-id="${taskId}"${retryTitle}>${escapeHtml13(retryText)}</span>` : "";
     const timeHtml = !retryText && taskTime ? `<span class="task-card-time">${escapeHtml13(taskTime)}</span>` : "";
-    const detailRightHtml = runningTimerHtml || retryHtml || timeHtml;
+    const detailRightHtml = retryHtml || timeHtml;
     const detailRowClass = detailRightHtml ? "task-detail-row" : "task-detail-row task-detail-row-meta-only";
     const detailRow = statusMeta || detailRightHtml ? `
         <div class="${detailRowClass}">
@@ -41363,7 +41960,7 @@ ${galleryText}`;
       <div class="task-info">
         <div class="task-meta-row">
           ${imageRow}
-          ${runtimeHtml}
+          ${topTimeHtml}
         </div>
         <div class="task-title-row">
           ${unreadDot}
@@ -41403,23 +42000,28 @@ ${galleryText}`;
     const groups = [];
     const assignedTaskIds = /* @__PURE__ */ new Set();
     const addGroup = (key, label, groupTasks, options = {}) => {
-      if (!groupTasks.length) return;
+      const count = Math.max(groupTasks.length, Number(options.count || 0));
+      if (!count) return;
       groups.push({
         key,
         label,
         tasks: groupTasks,
+        count,
         collapsible: Boolean(options.collapsible),
         defaultCollapsed: Boolean(options.defaultCollapsed)
       });
       groupTasks.forEach((task) => assignedTaskIds.add(String(task.task_id)));
     };
-    const historicalTasks = tasks.filter((task) => !isAlwaysVisibleTask(task));
+    const filters = taskFilterValues();
+    const useServerCounts = Object.values(filters).every((value) => !String(value || ""));
+    const serverCount = (key) => useServerCounts ? Math.max(0, Number(state19.taskSidebarGroupCounts?.[key] || 0)) : 0;
+    const historicalTasks = tasks.filter((task) => !isAlwaysVisibleTask(task)).slice().sort((left, right) => taskHistoryActivityTimestamp(right) - taskHistoryActivityTimestamp(left) || String(right?.task_id || "").localeCompare(String(left?.task_id || "")));
     const unassignedTasks = () => historicalTasks.filter((task) => !assignedTaskIds.has(String(task.task_id)));
     addGroup(
       "today",
       translate("taskGroup.today"),
       unassignedTasks().filter((task) => taskDateBucket(task) === "today"),
-      { collapsible: true, defaultCollapsed: false }
+      { collapsible: true, defaultCollapsed: false, count: serverCount("today") }
     );
     [
       ["yesterday", translate("taskGroup.yesterday")],
@@ -41429,7 +42031,7 @@ ${galleryText}`;
         key,
         label,
         unassignedTasks().filter((task) => taskDateBucket(task) === key),
-        { collapsible: true, defaultCollapsed: true }
+        { collapsible: true, defaultCollapsed: true, count: serverCount(String(key)) }
       );
     });
     return groups;
@@ -41473,9 +42075,13 @@ ${galleryText}`;
     const sectionIds = queueTaskIdsBySection();
     return tasks.filter((task) => isAlwaysVisibleTask(task)).slice().sort((left, right) => activeTaskOrderIndex(left, sectionIds) - activeTaskOrderIndex(right, sectionIds));
   }
+  function taskHistoryActivityTimestamp(task) {
+    const timestamp = timestampMs2(task?.terminal_at || task?.completed_at || task?.created_at);
+    return timestamp === null ? Number.NEGATIVE_INFINITY : timestamp;
+  }
   function taskDateBucket(task) {
-    const timestamp = timestampMs2(task?.created_at || task?.updated_at || task?.started_at);
-    if (timestamp === null) return "older";
+    const timestamp = taskHistoryActivityTimestamp(task);
+    if (!Number.isFinite(timestamp)) return "older";
     const now2 = /* @__PURE__ */ new Date();
     const taskDate = new Date(timestamp);
     const todayStart = new Date(now2.getFullYear(), now2.getMonth(), now2.getDate()).getTime();
@@ -41485,6 +42091,26 @@ ${galleryText}`;
     if (dayDiff === 1) return "yesterday";
     if (dayDiff <= 6) return "last7";
     return "older";
+  }
+  function taskGroupCount(group) {
+    const loadedCount = Array.isArray(group?.tasks) ? group.tasks.length : 0;
+    return Math.max(loadedCount, Math.max(0, Number(group?.count || 0)));
+  }
+  function taskGroupLoadMoreHtml(group) {
+    const loadedCount = Array.isArray(group?.tasks) ? group.tasks.length : 0;
+    const totalCount = Math.max(0, Number(group?.count || 0));
+    if (!group?.key || loadedCount >= totalCount) return "";
+    const loading = String(state19.taskSidebarGroupLoading || "") === String(group.key);
+    const remaining = Math.min(TASK_SIDEBAR_GROUP_PAGE_SIZE, totalCount - loadedCount);
+    return `
+    <button
+      class="ghost-button text-sm task-group-load-more"
+      type="button"
+      data-load-more-task-group="${escapeHtml13(group.key)}"
+      aria-busy="${loading ? "true" : "false"}"
+      ${loading ? "disabled" : ""}
+    >${escapeHtml13(formatTranslation("taskGroup.loadMore", { count: remaining }))}</button>
+  `;
   }
   function taskListRenderKey(tasks, query, layout = {}, filters = {}, activeGroup = null) {
     return JSON.stringify({
@@ -41498,16 +42124,17 @@ ${galleryText}`;
       archivedTaskIds: state19.tasks.filter(taskArchived).map((task) => String(task.task_id)).sort(),
       expandedTaskGroupKey: state19.expandedTaskGroupKey,
       queryMode: Boolean(layout.queryMode),
-      expandedGroup: layout.expandedGroup ? [layout.expandedGroup.key, layout.expandedGroup.label, layout.expandedGroup.tasks.length] : null,
+      expandedGroup: layout.expandedGroup ? [layout.expandedGroup.key, layout.expandedGroup.label, taskGroupCount(layout.expandedGroup)] : null,
       anchorGroups: [
-        (layout.top || []).map((group) => [group.key, group.tasks.length]),
-        (layout.bottom || []).map((group) => [group.key, group.tasks.length])
+        (layout.top || []).map((group) => [group.key, taskGroupCount(group)]),
+        (layout.bottom || []).map((group) => [group.key, taskGroupCount(group)])
       ],
       tasks: tasks.map((task) => [
         task.task_id,
         task.status,
         task.updated_at,
         task.completed_at,
+        task.terminal_at,
         task.started_at,
         task.prompt,
         task.mode,
@@ -41575,13 +42202,16 @@ ${galleryText}`;
       </div>
     `;
     }
+    if (taskWasCancelled(task)) {
+      return `<div class="${safeClassName} failed-thumb task-cancelled-thumb" aria-label="${escapeHtml13(translate("queue.runningCancelled"))}"><span>\xD7</span></div>`;
+    }
     if (task.status === "failed") {
       return `<div class="${safeClassName} failed-thumb" aria-label="${escapeHtml13(translate("taskCard.failedThumb"))}"><span>!</span></div>`;
     }
     return `<div class="${safeClassName} running-thumb"><span></span></div>`;
   }
   function taskStatusLabelHtml(task) {
-    const label = escapeHtml13(formatTaskStatus2(task) || translate("taskStatus.unknown"));
+    const label = escapeHtml13(formatTaskCardStatus2(task) || translate("taskStatus.unknown"));
     const taskId = escapeHtml13(task?.task_id || "");
     return `<span class="task-status-label" data-task-status-id="${taskId}">${label}</span>`;
   }
@@ -41592,7 +42222,7 @@ ${galleryText}`;
   }
   function taskStatusAccessibleLabel2(task) {
     return [
-      formatTaskStatus2(task) || translate("taskStatus.unknown"),
+      formatTaskCardStatus2(task) || translate("taskStatus.unknown"),
       taskModelDisplayName(task, state19.generationCatalog),
       taskImageSummaryText(task),
       taskMetaDetailsText2(task)
@@ -41654,9 +42284,10 @@ ${galleryText}`;
     const states = taskImageBlockStates(task);
     const counts = taskImageStatusCounts(states);
     const parts = [];
-    if (counts.running) parts.push(formatTranslation("taskCard.runningCount", { count: counts.running }));
+    if (counts.running) parts.push(formatTranslation("taskCard.count", { count: counts.running }));
     if (counts.queued || counts.waiting) {
-      parts.push(formatTranslation("taskCard.waitingCount", { count: counts.queued + counts.waiting }));
+      const waitingCount = counts.queued + counts.waiting;
+      parts.push(formatTranslation(counts.running ? "taskCard.waitingCount" : "taskCard.count", { count: waitingCount }));
     }
     return parts.join(" \xB7 ");
   }
@@ -41695,8 +42326,10 @@ ${galleryText}`;
       taskHasUnreadUpdate,
       taskHasViewableUpdate,
       taskHistoryGroups,
+      taskHistoryActivityTimestamp,
       isAlwaysVisibleTask,
       taskDateBucket,
+      taskGroupCount,
       taskListRenderKey,
       taskCardElement,
       updateTaskSelectionVisuals,
@@ -41717,6 +42350,10 @@ ${galleryText}`;
   var state20 = bridge26.state;
   var els29 = bridge26.els;
   var taskHistoryAnchorInsetObserver = null;
+  var latestTaskNavigationFrameId = 0;
+  var latestTaskNavigationPinToken = 0;
+  var latestTaskNavigationInitialized = false;
+  var latestTaskNavigationPreRenderAtLatest = null;
   var TASK_HISTORY_LAYOUT_EASING = "ease";
   var TASK_HISTORY_LAYOUT_DURATION_MS = 180;
   var TASK_GROUP_ORDER = ["active", "today", "yesterday", "last7", "older", "search"];
@@ -41731,8 +42368,91 @@ ${galleryText}`;
   function escapeHtml14(...args) {
     return legacyMethod32("escapeHtml", ...args);
   }
+  function taskGroupCount2(...args) {
+    return legacyMethod32("taskGroupCount", ...args);
+  }
   function element(node) {
     return node instanceof HTMLElement ? node : null;
+  }
+  function latestTaskNavigationTargetGroupKey(visibleGroupKeys) {
+    const groupOrder = ["today", "yesterday", "last7"];
+    const keys = new Set((visibleGroupKeys || []).map((key) => String(key || "")));
+    return groupOrder.find((key) => keys.has(key)) || null;
+  }
+  function latestTaskNavigationViewModel(input) {
+    const latestGroupKey = latestTaskNavigationTargetGroupKey(input?.visibleGroupKeys || []);
+    const hasOverflow = Number(input?.scrollHeight || 0) > Number(input?.clientHeight || 0) + 1;
+    const scrollTopThreshold = 8;
+    const atLatestPosition = input?.renderInProgress && typeof input?.preRenderAtLatest === "boolean" ? input.preRenderAtLatest : Number(input?.scrollTop || 0) <= scrollTopThreshold;
+    const atLatest = Boolean(
+      latestGroupKey && String(input?.currentGroupKey || "") === latestGroupKey && atLatestPosition
+    );
+    const noticeCount = Math.max(0, Number(input?.noticeCount || 0));
+    return {
+      visible: Boolean(
+        hasOverflow && latestGroupKey && !atLatest && !input?.searchActive && !input?.batchMode
+      ),
+      atLatest,
+      latestGroupKey,
+      badgeText: noticeCount > 9 ? "9+" : noticeCount > 0 ? String(noticeCount) : "",
+      shouldClearNotice: Boolean(atLatest && !input?.renderInProgress)
+    };
+  }
+  function latestTaskNavigationNextNoticeCount(currentCount, atLatest) {
+    if (atLatest) return 0;
+    return Math.min(99, Math.max(0, Number(currentCount || 0)) + 1);
+  }
+  function latestTaskNavigationPinnedScrollAnchor(anchor, keepAtTop) {
+    if (!anchor || !keepAtTop) return anchor;
+    const pinnedAnchor = {
+      ...anchor,
+      scrollTop: 0,
+      retryMissingTask: false
+    };
+    delete pinnedAnchor.taskId;
+    delete pinnedAnchor.offsetTop;
+    return pinnedAnchor;
+  }
+  function consumeLatestTaskNavigationScrollAnchor2(anchor) {
+    const keepAtTop = Boolean(
+      state20.latestTaskKeepAtTop === true && Number(state20.latestTaskKeepAtTopExpiresAt || 0) >= Date.now()
+    );
+    if (!keepAtTop) {
+      state20.latestTaskKeepAtTop = false;
+      state20.latestTaskKeepAtTopExpiresAt = 0;
+    }
+    return latestTaskNavigationPinnedScrollAnchor(anchor, keepAtTop);
+  }
+  function settleLatestTaskNavigationAtTop() {
+    const token = ++latestTaskNavigationPinToken;
+    let remainingFrames = 4;
+    const pinToTop = () => {
+      if (token !== latestTaskNavigationPinToken || state20.latestTaskKeepAtTop !== true) return;
+      const sidebarContent = element(els29.sidebarContent);
+      if (sidebarContent) sidebarContent.scrollTop = 0;
+      remainingFrames -= 1;
+      if (remainingFrames > 0) {
+        requestAnimationFrame(pinToTop);
+        return;
+      }
+      state20.latestTaskKeepAtTop = false;
+      state20.latestTaskKeepAtTopExpiresAt = 0;
+      scheduleLatestTaskNavigationRefresh2();
+    };
+    requestAnimationFrame(pinToTop);
+  }
+  function cancelLatestTaskNavigationTopPin() {
+    if (state20.latestTaskKeepAtTop !== true) return;
+    state20.latestTaskKeepAtTop = false;
+    state20.latestTaskKeepAtTopExpiresAt = 0;
+    latestTaskNavigationPinToken += 1;
+  }
+  function handleLatestTaskNavigationKeydown(event) {
+    const sidebarContent = element(els29.sidebarContent);
+    if (!sidebarContent || !(document.activeElement instanceof Node)) return;
+    if (!sidebarContent.contains(document.activeElement)) return;
+    if (!["ArrowUp", "ArrowDown", "PageUp", "PageDown", "Home", "End", " "].includes(event.key)) return;
+    cancelLatestTaskNavigationTopPin();
   }
   function isAllCollapsedExpandedTaskGroupKey(groupKey) {
     return String(groupKey || "") === TASK_HISTORY_ALL_COLLAPSED_SENTINEL;
@@ -41782,7 +42502,7 @@ ${galleryText}`;
     return visibleKeys[0] || null;
   }
   function ensureExpandedTaskGroupKey2(groups) {
-    const visible = groups.filter((group) => Array.isArray(group?.tasks) && group.tasks.length);
+    const visible = groups.filter((group) => taskGroupCount2(group) > 0);
     if (!visible.length) {
       state20.expandedTaskGroupKey = null;
       persistExpandedTaskGroupKey();
@@ -41827,6 +42547,111 @@ ${galleryText}`;
     if (!sidebarContent) return;
     sidebarContent.scrollTo({ top: 0, behavior: prefersReducedMotion() ? "auto" : behavior });
   }
+  function visibleTaskHistoryGroupKeys() {
+    const keys = /* @__PURE__ */ new Set();
+    document.querySelectorAll("[data-task-group-anchor-key], #taskList [data-task-group]").forEach((node) => {
+      const key = String(node.dataset.taskGroupAnchorKey || node.dataset.taskGroup || "");
+      if (key) keys.add(key);
+    });
+    return Array.from(keys);
+  }
+  function currentTaskHistoryGroupKey() {
+    const group = els29.taskList?.querySelector?.("[data-task-group]");
+    return String(group?.dataset?.taskGroup || state20.expandedTaskGroupKey || "");
+  }
+  function taskHistoryRenderInProgress() {
+    const expandedItems = els29.taskList?.querySelector?.(".task-group-items-expanded");
+    return Boolean(
+      expandedItems && expandedItems instanceof HTMLElement && expandedItems.dataset.renderComplete !== "true"
+    );
+  }
+  function latestTaskNavigationCurrentViewModel() {
+    const sidebarContent = element(els29.sidebarContent);
+    const renderInProgress = taskHistoryRenderInProgress();
+    return latestTaskNavigationViewModel({
+      scrollTop: sidebarContent?.scrollTop || 0,
+      scrollHeight: sidebarContent?.scrollHeight || 0,
+      clientHeight: sidebarContent?.clientHeight || 0,
+      currentGroupKey: currentTaskHistoryGroupKey(),
+      visibleGroupKeys: visibleTaskHistoryGroupKeys(),
+      searchActive: Boolean(String(els29.taskSearch?.value || "").trim()),
+      batchMode: Boolean(state20.batchMode),
+      noticeCount: state20.latestTaskNoticeCount,
+      renderInProgress,
+      preRenderAtLatest: renderInProgress ? latestTaskNavigationPreRenderAtLatest : null
+    });
+  }
+  function rememberLatestTaskNavigationBeforeRender2() {
+    if (taskHistoryRenderInProgress()) return;
+    latestTaskNavigationPreRenderAtLatest = latestTaskNavigationCurrentViewModel().atLatest;
+  }
+  function focusExpandedTaskGroupHeader() {
+    const header = els29.taskList?.querySelector?.(".task-group-header-split");
+    if (header instanceof HTMLElement) header.focus({ preventScroll: true });
+  }
+  function refreshLatestTaskNavigation() {
+    const button = element(els29.taskLatestButton);
+    const badge = element(els29.taskLatestBadge);
+    if (!button) return;
+    const viewModel = latestTaskNavigationCurrentViewModel();
+    if (viewModel.shouldClearNotice && state20.latestTaskNoticeCount) {
+      state20.latestTaskNoticeCount = 0;
+    }
+    const noticeCount = Math.max(0, Number(state20.latestTaskNoticeCount || 0));
+    const badgeText = noticeCount > 9 ? "9+" : noticeCount > 0 ? String(noticeCount) : "";
+    const shouldHide = !viewModel.visible;
+    if (shouldHide && document.activeElement === button) {
+      focusExpandedTaskGroupHeader();
+    }
+    button.hidden = shouldHide;
+    button.classList.toggle("hidden", shouldHide);
+    button.classList.toggle("has-newer", noticeCount > 0);
+    if (badge) {
+      badge.textContent = badgeText;
+      badge.hidden = !badgeText;
+    }
+    const label = noticeCount > 0 ? formatTranslation("taskList.backToLatestWithCount", { count: noticeCount }) : translate("taskList.backToLatest");
+    button.setAttribute("aria-label", label);
+    button.title = label;
+  }
+  function scheduleLatestTaskNavigationRefresh2() {
+    if (latestTaskNavigationFrameId) return;
+    latestTaskNavigationFrameId = requestAnimationFrame(() => {
+      latestTaskNavigationFrameId = 0;
+      refreshLatestTaskNavigation();
+    });
+  }
+  function notifyLatestTaskAvailable(task) {
+    const incomingGroupKey = String(legacyMethod32("taskDateBucket", task) || "");
+    const viewModel = latestTaskNavigationCurrentViewModel();
+    const atIncomingTask = Boolean(
+      incomingGroupKey && viewModel.latestGroupKey === incomingGroupKey && viewModel.atLatest
+    );
+    if (atIncomingTask) {
+      state20.latestTaskKeepAtTop = true;
+      state20.latestTaskKeepAtTopExpiresAt = Date.now() + 500;
+      settleLatestTaskNavigationAtTop();
+    }
+    state20.latestTaskNoticeCount = latestTaskNavigationNextNoticeCount(
+      state20.latestTaskNoticeCount,
+      atIncomingTask
+    );
+    scheduleLatestTaskNavigationRefresh2();
+  }
+  function returnToLatestTask() {
+    const viewModel = latestTaskNavigationCurrentViewModel();
+    if (!viewModel.latestGroupKey) return;
+    state20.latestTaskNoticeCount = 0;
+    const changed = setExpandedTaskGroupKey(viewModel.latestGroupKey, { immediate: true });
+    if (changed) {
+      legacyMethod32("renderTasks");
+    }
+    requestAnimationFrame(() => {
+      focusExpandedTaskGroupHeader();
+      scrollExpandedTaskGroupToTop2("smooth");
+      scheduleLatestTaskNavigationRefresh2();
+    });
+  }
   function anchorRowHtml(group) {
     const key = escapeHtml14(group.key);
     return `
@@ -41842,7 +42667,7 @@ ${galleryText}`;
         <span class="task-group-title">
           <span class="task-group-label">${escapeHtml14(group.label)}</span>
           <span class="task-group-count-separator" aria-hidden="true"> \xB7 </span>
-          <span class="task-group-count">${group.tasks.length}</span>
+          <span class="task-group-count">${taskGroupCount2(group)}</span>
         </span>
       </span>
       <span
@@ -41945,11 +42770,6 @@ ${galleryText}`;
     });
   }
   function initTaskHistoryAnchorsFeature() {
-    if (typeof ResizeObserver === "function" && !taskHistoryAnchorInsetObserver && element(els29.sidebarContent)) {
-      taskHistoryAnchorInsetObserver = new ResizeObserver(() => syncTaskHistoryAnchorInset());
-      taskHistoryAnchorInsetObserver.observe(element(els29.sidebarContent));
-    }
-    syncTaskHistoryAnchorInset();
     Object.assign(getLegacyBridge().methods, {
       restoreExpandedTaskGroupKey,
       ensureExpandedTaskGroupKey: ensureExpandedTaskGroupKey2,
@@ -41957,8 +42777,31 @@ ${galleryText}`;
       scrollExpandedTaskGroupToTop: scrollExpandedTaskGroupToTop2,
       renderTaskHistoryAnchors: renderTaskHistoryAnchors2,
       captureTaskHistoryLayout: captureTaskHistoryLayout2,
-      animateTaskHistoryLayout: animateTaskHistoryLayout2
+      animateTaskHistoryLayout: animateTaskHistoryLayout2,
+      scheduleLatestTaskNavigationRefresh: scheduleLatestTaskNavigationRefresh2,
+      notifyLatestTaskAvailable,
+      consumeLatestTaskNavigationScrollAnchor: consumeLatestTaskNavigationScrollAnchor2,
+      rememberLatestTaskNavigationBeforeRender: rememberLatestTaskNavigationBeforeRender2
     });
+    if (typeof ResizeObserver === "function" && !taskHistoryAnchorInsetObserver && element(els29.sidebarContent)) {
+      taskHistoryAnchorInsetObserver = new ResizeObserver(() => {
+        syncTaskHistoryAnchorInset();
+        scheduleLatestTaskNavigationRefresh2();
+      });
+      taskHistoryAnchorInsetObserver.observe(element(els29.sidebarContent));
+    }
+    if (!latestTaskNavigationInitialized) {
+      latestTaskNavigationInitialized = true;
+      els29.sidebarContent?.addEventListener("scroll", scheduleLatestTaskNavigationRefresh2, { passive: true });
+      els29.sidebarContent?.addEventListener("wheel", cancelLatestTaskNavigationTopPin, { passive: true });
+      els29.sidebarContent?.addEventListener("pointerdown", cancelLatestTaskNavigationTopPin, { passive: true });
+      els29.taskLatestButton?.addEventListener("click", returnToLatestTask);
+      window.addEventListener("resize", scheduleLatestTaskNavigationRefresh2);
+      document.addEventListener(LOCALE_CHANGE_EVENT, scheduleLatestTaskNavigationRefresh2);
+      document.addEventListener("keydown", handleLatestTaskNavigationKeydown);
+    }
+    syncTaskHistoryAnchorInset();
+    scheduleLatestTaskNavigationRefresh2();
   }
 
   // codex_image/webui/frontend/src/task-archive-controls.ts
@@ -42028,6 +42871,7 @@ ${galleryText}`;
     state21.tasks = state21.tasks.map((task) => String(task.task_id) === String(updatedTask.task_id) ? updatedTask : task);
   }
   function cleanupSessionSelections() {
+    if (state21.batchSelectionIncludesUnloaded) return;
     const taskIds = new Set(state21.tasks.map((task) => String(task.task_id)));
     state21.batchSelectedTaskIds = state21.batchSelectedTaskIds.filter((taskId) => {
       return taskIds.has(String(taskId)) && !isTaskArchived2(taskId);
@@ -42208,14 +43052,24 @@ ${galleryText}`;
   function openConfirmPopover5(...args) {
     return legacyMethod34("openConfirmPopover", ...args);
   }
-  function deleteTaskById(...args) {
-    return legacyMethod34("deleteTaskById", ...args);
+  function runTaskCardRemovalTransition(...args) {
+    return legacyMethod34("runTaskCardRemovalTransition", ...args);
+  }
+  function refreshTasksAfterDeletion(...args) {
+    return legacyMethod34("refreshTasksAfterDeletion", ...args);
+  }
+  function taskFilterValues2(...args) {
+    return legacyMethod34("taskFilterValues", ...args);
+  }
+  function activeTaskIds() {
+    return [...state22.queue.running || [], ...state22.queue.waiting || []].map((task) => String(task?.task_id || "")).filter(Boolean);
   }
   function toggleBatchMode(force) {
     state22.batchMode = typeof force === "boolean" ? force : !state22.batchMode;
     if (!state22.batchMode) {
       state22.batchSelectedTaskIds = [];
       state22.batchSelectionAnchorTaskId = null;
+      state22.batchSelectionIncludesUnloaded = false;
       finishBatchMarqueeSelection();
     }
     renderTasks4({ preserveScroll: true });
@@ -42296,16 +43150,120 @@ ${galleryText}`;
   }
   function renderBatchToolbar2() {
     if (!els31.batchToolbar) return;
+    const activeIds = activeTaskIds();
+    const showCancelShortcut = activeIds.length >= 2;
+    if (!showCancelShortcut && document.activeElement === els31.batchCancelTasksButton) {
+      els31.batchManageButton?.focus({ preventScroll: true });
+    }
+    if (els31.batchCancelTasksButton) {
+      els31.batchCancelTasksButton.hidden = !showCancelShortcut;
+      els31.batchCancelTasksButton.classList.toggle("hidden", !showCancelShortcut);
+    }
     els31.batchToolbar.classList.toggle("hidden", !state22.batchMode);
     els31.taskList?.classList.toggle("batch-marquee-enabled", state22.batchMode);
     els31.batchManageButton?.classList.toggle("active", state22.batchMode);
     const count = state22.batchSelectedTaskIds.length;
+    const activeIdSet = new Set(activeIds);
+    const selectedActiveCount = state22.batchSelectedTaskIds.filter((taskId) => activeIdSet.has(String(taskId))).length;
     if (els31.batchSelectedCount) {
       els31.batchSelectedCount.textContent = formatTranslation("batch.selectedCount", { count });
+    }
+    if (els31.batchSelectGroupButton) {
+      els31.batchSelectGroupButton.disabled = !["today", "yesterday", "last7"].includes(String(state22.expandedTaskGroupKey || ""));
     }
     [els31.batchArchiveButton, els31.batchDeleteButton].forEach((button) => {
       if (button) button.disabled = count === 0;
     });
+    if (els31.batchCancelSelectedButton) {
+      els31.batchCancelSelectedButton.disabled = selectedActiveCount === 0;
+    }
+  }
+  async function selectAllMatchingTasksInExpandedGroup() {
+    const groupKey = String(state22.expandedTaskGroupKey || "");
+    if (!groupKey) return;
+    const filters = taskFilterValues2();
+    const params = new URLSearchParams();
+    [
+      ["status", filters.status],
+      ["prompt_mode", filters.promptFidelity],
+      ["ratio", filters.ratio],
+      ["orientation", filters.orientation],
+      ["resolution", filters.resolution]
+    ].forEach(([key, value]) => {
+      if (value) params.set(String(key), String(value));
+    });
+    try {
+      const response = await fetch(
+        `/api/tasks/sidebar/groups/${encodeURIComponent(groupKey)}/selection?${params.toString()}`
+      );
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.detail || formatTranslation("batch.deleteFailed"));
+      const taskIds = Array.isArray(data.task_ids) ? data.task_ids.map(String).filter(Boolean) : [];
+      state22.batchSelectionIncludesUnloaded = true;
+      applyBatchTaskSelection(taskIds, taskIds[0] || null);
+    } catch (error) {
+      setStatus15(errorMessage2(error, formatTranslation("batch.deleteFailed")), "error");
+    }
+  }
+  function selectActiveTasksForBatchCancel() {
+    if (activeTaskIds().length < 2) return;
+    state22.batchSelectedTaskIds = activeTaskIds();
+    state22.batchSelectionAnchorTaskId = state22.batchSelectedTaskIds[0] || null;
+    state22.batchSelectionIncludesUnloaded = false;
+    state22.batchMode = true;
+    renderTasks4({ preserveScroll: true });
+    renderBatchToolbar2();
+    els31.batchCancelSelectedButton?.focus({ preventScroll: true });
+  }
+  function openBatchCancelConfirm() {
+    const runningIds = new Set((state22.queue.running || []).map((task) => String(task?.task_id || "")));
+    const waitingIds = new Set((state22.queue.waiting || []).map((task) => String(task?.task_id || "")));
+    const selectedActiveIds = state22.batchSelectedTaskIds.filter(
+      (taskId) => runningIds.has(String(taskId)) || waitingIds.has(String(taskId))
+    );
+    const runningCount = selectedActiveIds.filter((taskId) => runningIds.has(String(taskId))).length;
+    const waitingCount = selectedActiveIds.filter((taskId) => waitingIds.has(String(taskId))).length;
+    if (!selectedActiveIds.length) {
+      setStatus15(formatTranslation("batch.noActiveSelected"), "error");
+      return;
+    }
+    openConfirmPopover5(els31.batchCancelSelectedButton, {
+      title: formatTranslation("batch.cancelTitle", { count: selectedActiveIds.length }),
+      message: formatTranslation("batch.cancelMessage"),
+      detail: formatTranslation("batch.cancelDetail", { running: runningCount, waiting: waitingCount }),
+      confirmText: formatTranslation("batch.cancelConfirm"),
+      onConfirm: async () => {
+        await cancelSelectedActiveTasks(selectedActiveIds);
+      }
+    });
+  }
+  async function cancelSelectedActiveTasks(taskIds) {
+    try {
+      const response = await fetch("/api/queue/cancel-batch", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ task_ids: taskIds })
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.detail || formatTranslation("batch.cancelFailed"));
+      state22.batchSelectedTaskIds = [];
+      state22.batchSelectionAnchorTaskId = null;
+      state22.batchSelectionIncludesUnloaded = false;
+      state22.batchMode = false;
+      await window.refreshQueue?.();
+      await legacyMethod34("refreshTasks");
+      renderPreview2();
+      const summary = data.summary || {};
+      const statusType = Number(summary.failed || 0) > 0 ? "error" : "ok";
+      setStatus15(formatTranslation("batch.cancelResult", {
+        cancelled: Number(summary.cancelled || 0),
+        skipped: Number(summary.skipped || 0),
+        failed: Number(summary.failed || 0)
+      }), statusType);
+    } catch (error) {
+      renderTasks4({ preserveScroll: true });
+      setStatus15(errorMessage2(error, formatTranslation("batch.cancelFailed")), "error");
+    }
   }
   async function archiveSelectedTasks() {
     const ids = state22.batchSelectedTaskIds.slice();
@@ -42322,6 +43280,7 @@ ${galleryText}`;
       }
       state22.batchSelectedTaskIds = [];
       state22.batchSelectionAnchorTaskId = null;
+      state22.batchSelectionIncludesUnloaded = false;
       state22.batchMode = false;
       renderTasks4();
       renderArchiveButton2();
@@ -42338,39 +43297,59 @@ ${galleryText}`;
     }
   }
   function openBatchDeleteConfirm() {
-    const selectedTasks = state22.batchSelectedTaskIds.map((taskId) => state22.tasks.find((task) => String(task.task_id) === String(taskId))).filter(Boolean);
-    const deletableTasks = selectedTasks.filter((task) => task.status !== "running" && !task.local_pending);
-    const skippedCount = selectedTasks.length - deletableTasks.length;
-    if (!deletableTasks.length) {
+    const activeIds = new Set(activeTaskIds());
+    const localPendingIds = new Set(
+      state22.tasks.filter((task) => task?.local_pending).map((task) => String(task.task_id || ""))
+    );
+    const deletableTaskIds = state22.batchSelectedTaskIds.map(String).filter((taskId) => !activeIds.has(taskId) && !localPendingIds.has(taskId));
+    const skippedCount = state22.batchSelectedTaskIds.length - deletableTaskIds.length;
+    if (!deletableTaskIds.length) {
       setStatus15(formatTranslation("batch.runningCannotDeleteSelected"), "error");
       return;
     }
     openConfirmPopover5(els31.batchDeleteButton, {
-      title: formatTranslation("batch.deleteTitle", { count: deletableTasks.length }),
+      title: formatTranslation("batch.deleteTitle", { count: deletableTaskIds.length }),
       message: formatTranslation("batch.deleteMessage"),
       detail: skippedCount ? formatTranslation("batch.deleteSkippedDetail", { count: skippedCount }) : "",
       confirmText: formatTranslation("action.delete"),
       onConfirm: async () => {
-        await deleteSelectedTasks(deletableTasks, skippedCount);
+        await deleteSelectedTasks(deletableTaskIds, skippedCount);
       }
     });
   }
-  async function deleteSelectedTasks(deletableTasks, skippedCount = 0) {
+  async function deleteSelectedTasks(deletableTaskIds, skippedCount = 0) {
+    const deletedTaskIds = [];
     try {
-      for (const task of deletableTasks) {
-        await deleteTaskById(task.task_id);
+      const response = await fetch("/api/tasks/delete-batch", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ task_ids: deletableTaskIds })
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.detail || formatTranslation("batch.deleteFailed"));
+      deletedTaskIds.push(...Array.isArray(data.deleted) ? data.deleted.map(String) : []);
+      skippedCount += Array.isArray(data.skipped) ? data.skipped.length : 0;
+      state22.tasks = state22.tasks.filter((task) => !deletedTaskIds.includes(String(task?.task_id || "")));
+      if (deletedTaskIds.includes(String(state22.selectedTaskId || ""))) {
+        state22.selectedTaskId = firstVisibleTaskId2();
       }
       state22.batchSelectedTaskIds = [];
       state22.batchSelectionAnchorTaskId = null;
+      state22.batchSelectionIncludesUnloaded = false;
       state22.batchMode = false;
-      renderTasks4();
+      await runTaskCardRemovalTransition(deletedTaskIds, renderTasks4);
+      await refreshTasksAfterDeletion();
       renderArchiveButton2();
       renderArchiveModal2();
       renderPreview2();
       const skippedText = skippedCount ? formatTranslation("batch.deleteSkippedSuffix", { count: skippedCount }) : "";
-      setStatus15(formatTranslation("batch.deletedCount", { count: deletableTasks.length, skipped: skippedText }), "ok");
+      setStatus15(formatTranslation("batch.deletedCount", { count: deletedTaskIds.length, skipped: skippedText }), "ok");
     } catch (error) {
-      renderTasks4();
+      if (deletedTaskIds.length) {
+        await runTaskCardRemovalTransition(deletedTaskIds, renderTasks4);
+      } else {
+        renderTasks4();
+      }
       renderArchiveButton2();
       renderArchiveModal2();
       renderPreview2();
@@ -42496,6 +43475,11 @@ ${galleryText}`;
       selectBatchTaskRange,
       handleBatchTaskShortcutSelection,
       renderBatchToolbar: renderBatchToolbar2,
+      activeTaskIds,
+      selectActiveTasksForBatchCancel,
+      selectAllMatchingTasksInExpandedGroup,
+      openBatchCancelConfirm,
+      cancelSelectedActiveTasks,
       archiveSelectedTasks,
       openBatchDeleteConfirm,
       deleteSelectedTasks,
@@ -42514,6 +43498,10 @@ ${galleryText}`;
   var bridge29 = getLegacyBridge();
   var state23 = bridge29.state;
   var els32 = bridge29.els;
+  var TASK_CARD_REMOVING_CLASS = "task-card-removing";
+  var TASK_CARD_REMOVAL_FALLBACK_MS = 240;
+  var TASK_CARD_REFLOW_DURATION_MS = 180;
+  var TASK_CARD_REFLOW_EASING = "cubic-bezier(0.22, 1, 0.36, 1)";
   function legacyMethod35(name, ...args) {
     const method = getLegacyBridge().methods[name];
     if (typeof method !== "function") {
@@ -42583,6 +43571,84 @@ ${galleryText}`;
   function updateTaskInState2(...args) {
     return legacyMethod35("updateTaskInState", ...args);
   }
+  function captureTaskHistoryLayout3(...args) {
+    return legacyMethod35("captureTaskHistoryLayout", ...args);
+  }
+  function animateTaskHistoryLayout3(...args) {
+    return legacyMethod35("animateTaskHistoryLayout", ...args);
+  }
+  function refreshTasksAfterDeletion2(...args) {
+    return legacyMethod35("refreshTasksAfterDeletion", ...args);
+  }
+  function taskCardElements() {
+    return Array.from(document.querySelectorAll(".task-card[data-task-id]"));
+  }
+  function normalizedTaskIdSet(taskIds) {
+    return new Set(taskIds.map((taskId) => String(taskId || "")).filter(Boolean));
+  }
+  function captureTaskCardLayout(excludedTaskIds = []) {
+    const excluded = normalizedTaskIdSet(excludedTaskIds);
+    return taskCardElements().reduce((layout, card) => {
+      const taskId = String(card.dataset.taskId || "");
+      if (!taskId || excluded.has(taskId)) return layout;
+      const rect = card.getBoundingClientRect();
+      layout[taskId] = { left: rect.left, top: rect.top };
+      return layout;
+    }, {});
+  }
+  function animateTaskCardReflow(previousLayout) {
+    if (prefersReducedMotion()) return;
+    requestAnimationFrame(() => {
+      taskCardElements().forEach((card) => {
+        const taskId = String(card.dataset.taskId || "");
+        const previous = previousLayout[taskId];
+        if (!previous) return;
+        const rect = card.getBoundingClientRect();
+        const dx = previous.left - rect.left;
+        const dy = previous.top - rect.top;
+        if (Math.abs(dx) <= 0.5 && Math.abs(dy) <= 0.5) return;
+        card.animate(
+          [
+            { transform: `translate(${dx}px, ${dy}px)` },
+            { transform: "translate(0px, 0px)" }
+          ],
+          {
+            duration: TASK_CARD_REFLOW_DURATION_MS,
+            easing: TASK_CARD_REFLOW_EASING
+          }
+        );
+      });
+    });
+  }
+  function waitForTaskCardRemoval(card) {
+    return new Promise((resolve) => {
+      let settled = false;
+      const finish = () => {
+        if (settled) return;
+        settled = true;
+        resolve();
+      };
+      card.addEventListener("animationend", finish, { once: true });
+      window.setTimeout(finish, TASK_CARD_REMOVAL_FALLBACK_MS);
+      card.classList.add(TASK_CARD_REMOVING_CLASS);
+      card.setAttribute("aria-busy", "true");
+      card.tabIndex = -1;
+    });
+  }
+  async function runTaskCardRemovalTransition2(taskIds, commit) {
+    const removingIds = normalizedTaskIdSet(taskIds);
+    const previousCardLayout = captureTaskCardLayout([...removingIds]);
+    const previousHistoryLayout = captureTaskHistoryLayout3();
+    const removingCards = taskCardElements().filter(
+      (card) => removingIds.has(String(card.dataset.taskId || ""))
+    );
+    if (!prefersReducedMotion() && removingCards.length) {
+      await Promise.all(removingCards.map(waitForTaskCardRemoval));
+    }
+    commit();
+    animateTaskCardReflow(previousCardLayout);
+    animateTaskHistoryLayout3(previousHistoryLayout);
+  }
   function taskListStructureKey(task) {
     if (!task) return "";
     return JSON.stringify([
@@ -42651,8 +43717,9 @@ ${galleryText}`;
   async function deleteTask(taskId) {
     closePromptPopover5();
     try {
-      await deleteTaskById2(taskId);
-      renderTasks5();
+      await deleteTaskById(taskId);
+      await runTaskCardRemovalTransition2([taskId], renderTasks5);
+      await refreshTasksAfterDeletion2();
       renderArchiveButton3();
       renderArchiveModal3();
       renderPreview3();
@@ -42661,7 +43728,7 @@ ${galleryText}`;
       setStatus16(errorMessage3(error, translate("taskActions.deleteFailed")), "error");
     }
   }
-  async function deleteTaskById2(taskId) {
+  async function deleteTaskById(taskId) {
     const response = await fetch(`/api/tasks/${encodeURIComponent(taskId)}`, {
       method: "DELETE"
     });
@@ -42789,7 +43856,8 @@ ${galleryText}`;
     Object.assign(getLegacyBridge().methods, {
       archiveTask,
       deleteTask,
-      deleteTaskById: deleteTaskById2,
+      deleteTaskById,
+      runTaskCardRemovalTransition: runTaskCardRemovalTransition2,
       retryFailedTask,
       acceptTaskSuccesses,
       markTaskViewed,
@@ -43251,21 +44319,25 @@ ${galleryText}`;
   var syncTaskSearchHistoryResults = () => legacyMethod37("syncTaskSearchHistoryResults");
   var setExpandedTaskGroupKey2 = (...args) => legacyMethod37("setExpandedTaskGroupKey", ...args);
   var scrollExpandedTaskGroupToTop3 = (...args) => legacyMethod37("scrollExpandedTaskGroupToTop", ...args);
-  var captureTaskHistoryLayout3 = (...args) => legacyMethod37("captureTaskHistoryLayout", ...args);
-  var animateTaskHistoryLayout3 = (...args) => legacyMethod37("animateTaskHistoryLayout", ...args);
+  var captureTaskHistoryLayout4 = (...args) => legacyMethod37("captureTaskHistoryLayout", ...args);
+  var animateTaskHistoryLayout4 = (...args) => legacyMethod37("animateTaskHistoryLayout", ...args);
   var archiveTask2 = (...args) => legacyMethod37("archiveTask", ...args);
   var openTaskDeleteConfirm3 = (...args) => legacyMethod37("openTaskDeleteConfirm", ...args);
   var toggleBatchMode2 = (...args) => legacyMethod37("toggleBatchMode", ...args);
   var toggleBatchTaskSelection2 = (...args) => legacyMethod37("toggleBatchTaskSelection", ...args);
   var handleBatchTaskShortcutSelection2 = (...args) => legacyMethod37("handleBatchTaskShortcutSelection", ...args);
   var archiveSelectedTasks2 = (...args) => legacyMethod37("archiveSelectedTasks", ...args);
+  var selectActiveTasksForBatchCancel2 = (...args) => legacyMethod37("selectActiveTasksForBatchCancel", ...args);
+  var openBatchCancelConfirm2 = (...args) => legacyMethod37("openBatchCancelConfirm", ...args);
   var openBatchDeleteConfirm2 = (...args) => legacyMethod37("openBatchDeleteConfirm", ...args);
+  var selectAllMatchingTasksInExpandedGroup2 = (...args) => legacyMethod37("selectAllMatchingTasksInExpandedGroup", ...args);
   var handleTaskListPointerDown2 = (...args) => legacyMethod37("handleTaskListPointerDown", ...args);
+  var loadMoreSidebarTaskGroup = (...args) => legacyMethod37("loadMoreSidebarTaskGroup", ...args);
   var closeArchiveModal2 = (...args) => legacyMethod37("closeArchiveModal", ...args);
   var taskListControlsInitialized = false;
   var taskListControlEventsBound = false;
   function taskFilterControls() {
-    return [els34.taskRatioFilter, els34.taskOrientationFilter, els34.taskPromptFidelityFilter, els34.taskResolutionFilter].filter(Boolean);
+    return [els34.taskStatusFilter, els34.taskRatioFilter, els34.taskOrientationFilter, els34.taskPromptFidelityFilter, els34.taskResolutionFilter].filter(Boolean);
   }
   function activeTaskFilterCount() {
     return taskFilterControls().filter((element2) => Boolean(element2.value)).length;
@@ -43331,8 +44403,11 @@ ${galleryText}`;
     els34.archiveModal?.addEventListener("click", (event) => {
       if (event.target === els34.archiveModal) closeArchiveModal2();
     });
+    els34.batchCancelTasksButton?.addEventListener("click", selectActiveTasksForBatchCancel2);
     els34.batchManageButton?.addEventListener("click", () => toggleBatchMode2());
+    els34.batchSelectGroupButton?.addEventListener("click", selectAllMatchingTasksInExpandedGroup2);
     els34.batchArchiveButton?.addEventListener("click", archiveSelectedTasks2);
+    els34.batchCancelSelectedButton?.addEventListener("click", openBatchCancelConfirm2);
     els34.batchDeleteButton?.addEventListener("click", openBatchDeleteConfirm2);
     els34.batchCancelButton?.addEventListener("click", () => toggleBatchMode2(false));
     els34.taskSearch.addEventListener("input", handleTaskSearchInput);
@@ -43395,11 +44470,11 @@ ${galleryText}`;
     return true;
   }
   function commitExpandedTaskGroupKey(nextKey, behavior = null) {
-    const previousLayout = captureTaskHistoryLayout3();
+    const previousLayout = captureTaskHistoryLayout4();
     const changed = nextKey === null ? setExpandedTaskGroupKey2(null, { immediate: true }) : setExpandedTaskGroupKey2(nextKey, { immediate: true });
     if (changed) {
       renderTasks6();
-      animateTaskHistoryLayout3(previousLayout);
+      animateTaskHistoryLayout4(previousLayout);
     }
     if (nextKey && behavior) {
       scrollExpandedTaskGroupToTop3(behavior);
@@ -43413,6 +44488,12 @@ ${galleryText}`;
       state25.suppressTaskClickAfterDrag = false;
       event.preventDefault();
       event.stopPropagation();
+      return;
+    }
+    const loadMoreButton = event.target.closest("[data-load-more-task-group]");
+    if (loadMoreButton) {
+      event.stopPropagation();
+      void loadMoreSidebarTaskGroup(loadMoreButton.dataset.loadMoreTaskGroup);
       return;
     }
     const toggleButton = event.target.closest("[data-task-group-toggle-key]");
@@ -43429,11 +44510,11 @@ ${galleryText}`;
     const activeGroupToggle = event.target.closest("[data-active-task-group-toggle]");
     if (activeGroupToggle) {
       event.stopPropagation();
-      const previousLayout = captureTaskHistoryLayout3();
+      const previousLayout = captureTaskHistoryLayout4();
       state25.activeTaskGroupCollapsed = !state25.activeTaskGroupCollapsed;
       state25.tasksRenderKey = null;
       renderTasks6();
-      animateTaskHistoryLayout3(previousLayout);
+      animateTaskHistoryLayout4(previousLayout);
       return;
     }
     const archiveButton = event.target.closest("[data-archive-task-id]");
@@ -43560,7 +44641,8 @@ ${galleryText}`;
     if (payload2?.type === "snapshot") {
       applyQueueState(payload2.queue);
       await bridge39.methods.applyTasksSnapshot(payload2.tasks || [], {
-        migrateLegacyArchives: state32.realtimeSnapshotNeedsArchiveMigration
+        migrateLegacyArchives: state32.realtimeSnapshotNeedsArchiveMigration,
+        ...payload2.task_groups ? { taskGroups: payload2.task_groups } : {}
       });
       applyQueueTasks(payload2.queue);
       state32.realtimeSnapshotNeedsArchiveMigration = false;
@@ -43654,7 +44736,7 @@ ${galleryText}`;
   }
   function renderActiveTaskGroupForQueueChange() {
     const bridge39 = getLegacyBridge();
-    bridge39.methods.renderTasks?.();
+    bridge39.methods.renderTasks?.({ preserveScroll: true });
   }
   function renderQueueStatusChip({
     waitingCount,
@@ -43922,7 +45004,7 @@ ${galleryText}`;
       return;
     }
     bridge39.methods.cleanupSessionSelections();
-    bridge39.methods.renderTasks();
+    bridge39.methods.renderTasks({ preserveScroll: true });
     bridge39.methods.renderArchiveButton();
     bridge39.methods.renderArchiveModal();
     bridge39.methods.renderPreview();
@@ -44479,8 +45561,10 @@ ${galleryText}`;
     window.setTimeout(() => toast.remove(), TRANSIENT_NOTICE_MS);
   }
   function notifyTaskUpdate(previousTask, nextTask) {
+    if (taskWasCancelled(nextTask)) return;
     const status = terminalTaskStatus(nextTask?.status);
     if (!nextTask || !status || !shouldNotifyTerminalTask(previousTask, nextTask)) return;
+    getLegacyBridge().methods.notifyLatestTaskAvailable?.(nextTask);
     const notification = buildTaskNotification(nextTask, status);
     rememberTaskNotification(nextTask, status);
     if (getLegacyBridge().state.taskNotificationSettings.inApp) {
@@ -45307,6 +46391,7 @@ ${galleryText}`;
   }
   function taskFailureMessage(task) {
     if (!task || task.status !== "failed" && task.status !== "partial_failed") return "";
+    if (taskWasCancelled(task)) return translate("queue.runningCancelled");
     return String(task.error || task.last_error || "").trim();
   }
   function canRetryFailedTask2(task) {
@@ -45566,6 +46651,7 @@ ${galleryText}`;
       taskImageStatusCounts: taskImageStatusCounts2,
       positiveInt,
       taskFailureMessage,
+      taskWasCancelled,
       canRetryFailedTask: canRetryFailedTask2,
       canAcceptTaskSuccesses: canAcceptTaskSuccesses2,
       taskRetryReasonText,
@@ -46494,21 +47580,38 @@ ${galleryText}`;
   var ensureSelectedTaskDetail = (...args) => legacyMethod41("ensureSelectedTaskDetail", ...args);
   var TASK_SEARCH_HISTORY_LIMIT = 100;
   var TASK_SEARCH_HISTORY_DEBOUNCE_MS = 180;
+  var TASK_SIDEBAR_GROUP_PAGE_SIZE2 = 50;
   var taskSearchHistoryTimerId = 0;
   function normalizedTaskSearchResultQuery(query) {
     return String(query || "").trim().toLowerCase();
   }
   async function refreshTasks({ migrateLegacyArchives = false } = {}) {
     const requestSeq = ++state29.tasksRequestSeq;
-    const response = await fetch("/api/tasks/recent?limit=50");
+    const response = await fetch("/api/tasks/sidebar?limit=50");
     const data = await response.json();
     if (requestSeq !== state29.tasksRequestSeq) return;
-    await applyTasksSnapshot(data.tasks || [], { migrateLegacyArchives, requestSeq });
+    await applyTasksSnapshot(data.tasks || [], {
+      migrateLegacyArchives,
+      requestSeq,
+      taskGroups: data.task_groups
+    });
   }
-  async function applyTasksSnapshot(tasks, { migrateLegacyArchives = false, requestSeq = state29.tasksRequestSeq } = {}) {
+  async function applyTasksSnapshot(tasks, {
+    migrateLegacyArchives = false,
+    requestSeq = state29.tasksRequestSeq,
+    taskGroups
+  } = {}) {
     const previousLocalPendingTasks = state29.tasks.filter((task) => task?.local_pending);
     const pendingTask = state29.pendingTaskId ? state29.tasks.find((task) => task.task_id === state29.pendingTaskId) : null;
     state29.tasks = Array.isArray(tasks) ? tasks : [];
+    if (Array.isArray(taskGroups)) {
+      state29.taskSidebarGroupCounts = Object.fromEntries(
+        taskGroups.map((group) => [String(group?.key || ""), Math.max(0, Number(group?.count || 0))])
+      );
+      state29.taskSidebarGroupLoadedCounts = Object.fromEntries(
+        taskGroups.map((group) => [String(group?.key || ""), Array.isArray(group?.tasks) ? group.tasks.length : 0])
+      );
+    }
     if (pendingTask?.local_pending && !state29.tasks.some((task) => task.task_id === pendingTask.task_id)) {
       state29.tasks.unshift(pendingTask);
     }
@@ -46521,21 +47624,62 @@ ${galleryText}`;
       if (requestSeq !== state29.tasksRequestSeq) return;
     }
     cleanupSessionSelections2();
-    renderTasks8();
+    renderTasks8({ preserveScroll: true });
     renderArchiveButton4();
     renderArchiveModal4();
     await renderSelectedTaskPreview(requestSeq);
   }
+  async function loadMoreSidebarTaskGroup2(groupKey) {
+    const key = String(groupKey || "");
+    if (!key || state29.taskSidebarGroupLoading) return;
+    const offset = Math.max(0, Number(state29.taskSidebarGroupLoadedCounts?.[key] || 0));
+    state29.taskSidebarGroupLoading = key;
+    state29.tasksRenderKey = null;
+    renderTasks8({ preserveScroll: true });
+    try {
+      const response = await fetch(
+        `/api/tasks/sidebar/groups/${encodeURIComponent(key)}?offset=${offset}&limit=${TASK_SIDEBAR_GROUP_PAGE_SIZE2}`
+      );
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.detail || "Task group loading failed");
+      const incoming = Array.isArray(data.tasks) ? data.tasks : [];
+      const incomingById = new Map(incoming.map((task) => [String(task?.task_id || ""), task]));
+      state29.tasks = state29.tasks.map((task) => incomingById.get(String(task?.task_id || "")) || task);
+      const existingIds = new Set(state29.tasks.map((task) => String(task?.task_id || "")));
+      incoming.forEach((task) => {
+        const taskId = String(task?.task_id || "");
+        if (!taskId || existingIds.has(taskId)) return;
+        state29.tasks.push(task);
+        existingIds.add(taskId);
+      });
+      state29.taskSidebarGroupCounts[key] = Math.max(0, Number(data.count || 0));
+      state29.taskSidebarGroupLoadedCounts[key] = Math.max(offset, Number(data.next_offset || offset + incoming.length));
+    } finally {
+      state29.taskSidebarGroupLoading = null;
+      state29.tasksRenderKey = null;
+      renderTasks8({ preserveScroll: true });
+    }
+  }
+  async function refreshTasksAfterDeletion3() {
+    await refreshTasks();
+  }
   async function applyTaskUpdate(task) {
+    const previousTask = state29.tasks.find((item) => String(item?.task_id || "") === String(task?.task_id || ""));
+    const movedFromActiveToHistory = Boolean(
+      previousTask && ["submitting", "queued", "running"].includes(String(previousTask.status || "")) && !["submitting", "queued", "running"].includes(String(task?.status || ""))
+    );
     if (!updateTaskInState4(task)) return;
     if (String(task.task_id) === String(state29.selectedTaskId) && taskHasViewableUpdate2(task)) {
       void markTaskViewed2(task.task_id);
     }
     cleanupSessionSelections2();
-    renderTasks8();
+    renderTasks8({ preserveScroll: true });
     renderArchiveButton4();
     renderArchiveModal4();
     await renderSelectedTaskPreview();
+    if (movedFromActiveToHistory) {
+      await refreshTasks();
+    }
   }
   function currentTaskSearchQuery() {
     return String(els38.taskSearch?.value || "").trim();
@@ -46555,6 +47699,7 @@ ${galleryText}`;
       created_at: String(task.created_at || ""),
       updated_at: String(task.updated_at || ""),
       completed_at: String(task.completed_at || ""),
+      terminal_at: String(task.terminal_at || task.completed_at || ""),
       status: String(task.status || ""),
       mode: String(task.mode || ""),
       prompt: String(task.prompt_preview || task.task_id || ""),
@@ -46665,6 +47810,8 @@ ${galleryText}`;
       refreshTasks,
       applyTasksSnapshot,
       applyTaskUpdate,
+      loadMoreSidebarTaskGroup: loadMoreSidebarTaskGroup2,
+      refreshTasksAfterDeletion: refreshTasksAfterDeletion3,
       syncTaskSearchHistoryResults: syncTaskSearchHistoryResults2
     });
   }
@@ -48434,6 +49581,7 @@ ${galleryText}`;
   initApiSettingsFeature();
   initApiAdvancedSettingsFeature();
   initStorageSettingsFeature();
+  initNetworkEgressSettingsFeature();
   initSystemSettingsFeature();
   initColorPaletteFeature();
   initPromptColorsFeature();

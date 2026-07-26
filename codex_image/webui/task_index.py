@@ -4,6 +4,7 @@ import base64
 import json
 import sqlite3
 from contextlib import closing
+from datetime import UTC, datetime, timedelta
 from math import gcd
 from pathlib import Path
 from typing import Any
@@ -18,6 +19,8 @@ SUMMARY_KEYS = {
     "started_at",
     "attempt_started_at",
     "retry_requested_at",
+    "completed_at",
+    "terminal_at",
     "mode",
     "status",
     "prompt",
@@ -37,6 +40,7 @@ SUMMARY_KEYS = {
     "total_count",
     "original_total_count",
     "cleared_failed_count",
+    "partial_failure_cleared_at",
     "pruned_output_count",
     "output_file",
     "output_files",
@@ -62,6 +66,8 @@ SUMMARY_KEYS = {
     "retry_failed_slots",
     "last_error",
     "error",
+    "cancel_requested",
+    "cancelled_at",
     "orphaned_running",
     "archived_at",
     "selected_output_indexes",
@@ -74,7 +80,8 @@ SUMMARY_KEYS = {
     "assigned_auth_source",
 }
 
-TASK_INDEX_SCHEMA_VERSION = 7
+TASK_INDEX_SCHEMA_VERSION = 9
+TERMINAL_TASK_STATUSES = frozenset({"completed", "failed", "partial_failed"})
 TASK_CARD_PARAMETER_KEYS = ("canvas.aspect_ratio", "canvas.resolution")
 RATIO_OTHER_VALUE = "__other__"
 KNOWN_RATIO_ORIENTATIONS = {
@@ -176,6 +183,8 @@ class SQLiteTaskIndex:
         existing = {row["name"] for row in connection.execute("pragma table_info(task_index)").fetchall()}
         columns = {
             "completed_at": "text not null default ''",
+            "terminal_at": "text not null default ''",
+            "activity_at": "text not null default ''",
             "month_key": "text not null default ''",
             "mode": "text not null default ''",
             "size": "text not null default ''",
@@ -183,6 +192,7 @@ class SQLiteTaskIndex:
             "prompt_mode": "text not null default ''",
             "ratio": "text not null default ''",
             "orientation": "text not null default ''",
+            "resolution": "text not null default ''",
             "backend": "text not null default ''",
             "provider": "text not null default ''",
             "archived_at": "text not null default ''",
@@ -202,11 +212,16 @@ class SQLiteTaskIndex:
         connection.execute("create index if not exists idx_task_index_month_created on task_index(month_key, created_at desc, task_id desc)")
         connection.execute("create index if not exists idx_task_index_status on task_index(status)")
         connection.execute("create index if not exists idx_task_index_archived on task_index(archived_at)")
+        connection.execute(
+            "create index if not exists idx_task_index_sidebar_activity "
+            "on task_index(archived_at, activity_at desc, created_at desc, task_id desc)"
+        )
         connection.execute("create index if not exists idx_task_index_size on task_index(size)")
         connection.execute("create index if not exists idx_task_index_quality on task_index(quality)")
         connection.execute("create index if not exists idx_task_index_prompt_mode on task_index(prompt_mode)")
         connection.execute("create index if not exists idx_task_index_ratio on task_index(ratio)")
         connection.execute("create index if not exists idx_task_index_orientation on task_index(orientation)")
+        connection.execute("create index if not exists idx_task_index_resolution on task_index(resolution)")
         connection.execute("create index if not exists idx_task_index_backend on task_index(backend)")
         connection.execute("create index if not exists idx_task_index_provider on task_index(provider)")
 
@@ -225,9 +240,9 @@ class SQLiteTaskIndex:
     def _backfill_structured_columns(self, connection: sqlite3.Connection) -> None:
         rows = connection.execute(
             """
-            select task_id, summary_json
+            select task_id, summary_json, completed_at, terminal_at
             from task_index
-            where schema_version < ? or search_text = '' or month_key = '' or prompt_preview = ''
+            where schema_version < ? or search_text = '' or month_key = '' or prompt_preview = '' or activity_at = ''
             """
         , (TASK_INDEX_SCHEMA_VERSION,)).fetchall()
         for row in rows:
@@ -237,17 +252,23 @@ class SQLiteTaskIndex:
                 continue
             if not isinstance(summary, dict):
                 continue
+            if not summary.get("completed_at") and row["completed_at"]:
+                summary["completed_at"] = str(row["completed_at"])
+            if not summary.get("terminal_at") and row["terminal_at"]:
+                summary["terminal_at"] = str(row["terminal_at"])
             fields = _history_fields_for_metadata(summary)
             connection.execute(
                 """
                 update task_index
-                set completed_at = ?, month_key = ?, mode = ?, size = ?, quality = ?, prompt_mode = ?, ratio = ?, orientation = ?,
+                set completed_at = ?, terminal_at = ?, activity_at = ?, month_key = ?, mode = ?, size = ?, quality = ?, prompt_mode = ?, ratio = ?, orientation = ?, resolution = ?,
                     backend = ?, provider = ?, archived_at = ?, generated_count = ?, failed_count = ?,
                     total_count = ?, thumbnail_url = ?, prompt_preview = ?, search_text = ?, schema_version = ?
                 where task_id = ?
                 """,
                 (
                     fields["completed_at"],
+                    fields["terminal_at"],
+                    fields["activity_at"],
                     fields["month_key"],
                     fields["mode"],
                     fields["size"],
@@ -255,6 +276,7 @@ class SQLiteTaskIndex:
                     fields["prompt_mode"],
                     fields["ratio"],
                     fields["orientation"],
+                    fields["resolution"],
                     fields["backend"],
                     fields["provider"],
                     fields["archived_at"],
@@ -286,11 +308,11 @@ class SQLiteTaskIndex:
                     """
                     insert into task_index(
                         task_id, created_at, updated_at, status, prompt, summary_json,
-                        completed_at, month_key, mode, size, quality, prompt_mode, ratio, orientation, backend, provider,
+                        completed_at, terminal_at, activity_at, month_key, mode, size, quality, prompt_mode, ratio, orientation, resolution, backend, provider,
                         archived_at, generated_count, failed_count, total_count, thumbnail_url,
                         prompt_preview, search_text, schema_version
                     )
-                    values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     on conflict(task_id) do update set
                         created_at = excluded.created_at,
                         updated_at = excluded.updated_at,
@@ -298,6 +320,8 @@ class SQLiteTaskIndex:
                         prompt = excluded.prompt,
                         summary_json = excluded.summary_json,
                         completed_at = excluded.completed_at,
+                        terminal_at = excluded.terminal_at,
+                        activity_at = excluded.activity_at,
                         month_key = excluded.month_key,
                         mode = excluded.mode,
                         size = excluded.size,
@@ -305,6 +329,7 @@ class SQLiteTaskIndex:
                         prompt_mode = excluded.prompt_mode,
                         ratio = excluded.ratio,
                         orientation = excluded.orientation,
+                        resolution = excluded.resolution,
                         backend = excluded.backend,
                         provider = excluded.provider,
                         archived_at = excluded.archived_at,
@@ -324,6 +349,8 @@ class SQLiteTaskIndex:
                         prompt,
                         json.dumps(summary, ensure_ascii=False),
                         fields["completed_at"],
+                        fields["terminal_at"],
+                        fields["activity_at"],
                         fields["month_key"],
                         fields["mode"],
                         fields["size"],
@@ -331,6 +358,7 @@ class SQLiteTaskIndex:
                         fields["prompt_mode"],
                         fields["ratio"],
                         fields["orientation"],
+                        fields["resolution"],
                         fields["backend"],
                         fields["provider"],
                         fields["archived_at"],
@@ -369,6 +397,162 @@ class SQLiteTaskIndex:
                 summary["reference_file_count"] = _nonnegative_int(summary.get("reference_file_count"))
                 summaries.append(summary)
         return summaries
+
+    def generation_sidebar_groups(
+        self,
+        *,
+        limit_per_group: int = 50,
+        now: datetime | None = None,
+    ) -> dict[str, Any]:
+        return {
+            "groups": [
+                self.generation_sidebar_group(key, limit=limit_per_group, now=now)
+                for key in ("today", "yesterday", "last7")
+            ]
+        }
+
+    def generation_sidebar_group(
+        self,
+        key: str,
+        *,
+        offset: int = 0,
+        limit: int = 50,
+        now: datetime | None = None,
+        status: str = "",
+        prompt_mode: str = "",
+        ratio: str = "",
+        orientation: str = "",
+        resolution: str = "",
+    ) -> dict[str, Any]:
+        safe_limit = min(100, max(1, int(limit or 50)))
+        safe_offset = max(0, int(offset or 0))
+        where, params = self._generation_sidebar_group_query(
+            key,
+            now=now,
+            status=status,
+            prompt_mode=prompt_mode,
+            ratio=ratio,
+            orientation=orientation,
+            resolution=resolution,
+        )
+        with closing(self._connect()) as connection:
+            count = int(
+                connection.execute(
+                    f"select count(*) from task_index where {' and '.join(where)}",
+                    tuple(params),
+                ).fetchone()[0]
+            )
+            rows = connection.execute(
+                f"""
+                select summary_json, completed_at, terminal_at from task_index
+                where {' and '.join(where)}
+                order by activity_at desc, created_at desc, task_id desc
+                limit ? offset ?
+                """,
+                (*params, safe_limit, safe_offset),
+            ).fetchall()
+        tasks = []
+        for row in rows:
+            try:
+                summary = json.loads(str(row["summary_json"]))
+            except json.JSONDecodeError:
+                continue
+            if not isinstance(summary, dict):
+                continue
+            if not summary.get("completed_at") and row["completed_at"]:
+                summary["completed_at"] = str(row["completed_at"])
+            if not summary.get("terminal_at") and row["terminal_at"]:
+                summary["terminal_at"] = str(row["terminal_at"])
+            summary["reference_file_count"] = _nonnegative_int(summary.get("reference_file_count"))
+            tasks.append(summary)
+        return {
+            "key": key,
+            "count": count,
+            "tasks": tasks,
+            "offset": safe_offset,
+            "next_offset": safe_offset + len(tasks),
+            "has_more": safe_offset + len(tasks) < count,
+        }
+
+    def generation_sidebar_group_task_ids(
+        self,
+        key: str,
+        *,
+        now: datetime | None = None,
+        status: str = "",
+        prompt_mode: str = "",
+        ratio: str = "",
+        orientation: str = "",
+        resolution: str = "",
+        limit: int = 5000,
+    ) -> dict[str, Any]:
+        safe_limit = min(5000, max(1, int(limit or 5000)))
+        where, params = self._generation_sidebar_group_query(
+            key,
+            now=now,
+            status=status,
+            prompt_mode=prompt_mode,
+            ratio=ratio,
+            orientation=orientation,
+            resolution=resolution,
+        )
+        with closing(self._connect()) as connection:
+            count = int(
+                connection.execute(
+                    f"select count(*) from task_index where {' and '.join(where)}",
+                    tuple(params),
+                ).fetchone()[0]
+            )
+            rows = connection.execute(
+                f"""
+                select task_id from task_index
+                where {' and '.join(where)}
+                order by activity_at desc, created_at desc, task_id desc
+                limit ?
+                """,
+                (*params, safe_limit),
+            ).fetchall()
+        return {
+            "key": key,
+            "count": count,
+            "task_ids": [str(row["task_id"]) for row in rows],
+            "truncated": count > safe_limit,
+        }
+
+    def _generation_sidebar_group_query(
+        self,
+        key: str,
+        *,
+        now: datetime | None,
+        status: str,
+        prompt_mode: str,
+        ratio: str,
+        orientation: str,
+        resolution: str,
+    ) -> tuple[list[str], list[Any]]:
+        local_start, local_end = _generation_sidebar_group_range(key, now)
+        where = [
+            "archived_at = ''",
+            "status not in ('submitting', 'queued', 'running')",
+            "activity_at >= ?",
+            "activity_at < ?",
+        ]
+        params: list[Any] = [
+            _normalized_utc_timestamp(local_start),
+            _normalized_utc_timestamp(local_end),
+        ]
+        for column, value in (
+            ("status", status),
+            ("prompt_mode", prompt_mode),
+            ("ratio", ratio),
+            ("orientation", orientation),
+            ("resolution", resolution),
+        ):
+            clean_value = str(value or "").strip()
+            if clean_value:
+                where.append(f"{column} = ?")
+                params.append(clean_value)
+        return where, params
 
     def stale_completed_task_ids(self, *, limit: int = 500) -> list[str]:
         safe_limit = min(1000, max(1, int(limit or 500)))
@@ -480,7 +664,7 @@ class SQLiteTaskIndex:
                 params.extend([search_like, search_like])
                 search_param_count = 2
         sql = (
-            "select task_id, created_at, updated_at, completed_at, status, mode, size, quality, prompt_mode, ratio, orientation, "
+            "select task_id, created_at, updated_at, completed_at, terminal_at, status, mode, size, quality, prompt_mode, ratio, orientation, "
             "backend, provider, archived_at, generated_count, failed_count, total_count, thumbnail_url, prompt_preview "
             "from task_index"
         )
@@ -648,8 +832,13 @@ def _history_fields_for_metadata(metadata: dict[str, Any]) -> dict[str, Any]:
     total_count = _nonnegative_int(metadata.get("total_count"))
     if total_count == 0:
         total_count = _nonnegative_int(params.get("n")) or generated_count + failed_count
+    terminal_at = _terminal_timestamp_for_metadata(metadata)
     return {
         "completed_at": str(metadata.get("completed_at") or ""),
+        "terminal_at": terminal_at,
+        "activity_at": _normalized_utc_timestamp(
+            terminal_at or metadata.get("updated_at") or metadata.get("created_at")
+        ),
         "month_key": created_at[:7] if len(created_at) >= 7 else "",
         "mode": str(metadata.get("mode") or ""),
         "size": size,
@@ -657,6 +846,7 @@ def _history_fields_for_metadata(metadata: dict[str, Any]) -> dict[str, Any]:
         "prompt_mode": str(params.get("prompt_fidelity") or metadata.get("prompt_fidelity") or ""),
         "ratio": ratio,
         "orientation": _history_orientation(params, size, ratio),
+        "resolution": _history_resolution(metadata, params),
         "backend": backend,
         "provider": provider,
         "archived_at": str(metadata.get("archived_at") or ""),
@@ -667,6 +857,55 @@ def _history_fields_for_metadata(metadata: dict[str, Any]) -> dict[str, Any]:
         "prompt_preview": _truncate(prompt, 240),
         "search_text": "\n".join(value for value in [task_id, prompt, prompt_for_model] if value),
     }
+
+
+def _terminal_timestamp_for_metadata(metadata: dict[str, Any]) -> str:
+    explicit = str(metadata.get("terminal_at") or metadata.get("completed_at") or "")
+    if explicit:
+        return explicit
+    if str(metadata.get("status") or "") in TERMINAL_TASK_STATUSES:
+        return str(metadata.get("created_at") or metadata.get("updated_at") or "")
+    return ""
+
+
+def _history_resolution(metadata: dict[str, Any], params: dict[str, Any]) -> str:
+    generation_snapshot = project_task_generation_snapshot(metadata.get("generation_snapshot"))
+    requested = generation_snapshot.get("requested_parameters") if isinstance(generation_snapshot, dict) else {}
+    value = (
+        (requested.get("canvas.resolution") if isinstance(requested, dict) else "")
+        or params.get("resolution")
+        or ""
+    )
+    normalized = str(value).strip().lower()
+    return {"1k": "standard", "standard": "standard", "2k": "2k", "4k": "4k"}.get(normalized, normalized)
+
+
+def _generation_sidebar_group_range(key: str, now: datetime | None) -> tuple[datetime, datetime]:
+    local_now = now or datetime.now().astimezone()
+    if local_now.tzinfo is None:
+        local_now = local_now.replace(tzinfo=UTC).astimezone()
+    today_start = local_now.replace(hour=0, minute=0, second=0, microsecond=0)
+    ranges = {
+        "today": (today_start, today_start + timedelta(days=1)),
+        "yesterday": (today_start - timedelta(days=1), today_start),
+        "last7": (today_start - timedelta(days=6), today_start - timedelta(days=1)),
+    }
+    if key not in ranges:
+        raise ValueError("Invalid sidebar task group")
+    return ranges[key]
+
+
+def _normalized_utc_timestamp(value: object) -> str:
+    raw = str(value or "").strip()
+    if not raw:
+        return ""
+    try:
+        parsed = datetime.fromisoformat(raw.replace("Z", "+00:00"))
+    except ValueError:
+        return raw
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=UTC)
+    return parsed.astimezone(UTC).isoformat(timespec="microseconds")
 
 
 def _history_ratio(params: dict[str, Any], size: str) -> str:
@@ -888,6 +1127,7 @@ def _history_row_response(row: sqlite3.Row) -> dict[str, Any]:
         "created_at": str(row["created_at"]),
         "updated_at": str(row["updated_at"]),
         "completed_at": str(row["completed_at"]),
+        "terminal_at": str(row["terminal_at"]),
         "status": str(row["status"]),
         "mode": str(row["mode"]),
         "size": str(row["size"]),

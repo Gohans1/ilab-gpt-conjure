@@ -20,7 +20,7 @@ from codex_image.providers.contracts import (
     ProviderConnection,
     ProviderModelBinding,
 )
-from codex_image.providers.registry import ProviderRegistry
+from codex_image.providers.registry import ProviderRegistry, default_registry
 
 
 class RecordingCodec:
@@ -141,6 +141,32 @@ def resolver_fixture(
 
 
 class ProviderRegistryTests(unittest.TestCase):
+    def test_codex_images_and_responses_receive_the_attempt_transport(self) -> None:
+        transport = object()
+        registry = default_registry(transport=transport)
+
+        self.assertIs(registry.protocol("codex_images")._transport, transport)
+        self.assertIs(registry.protocol("codex_responses")._transport, transport)
+
+    def test_openai_images_and_responses_receive_the_attempt_transport(self) -> None:
+        transport = object()
+        registry = default_registry(transport=transport)
+
+        self.assertIs(registry.protocol("openai_images")._transport, transport)
+        self.assertIs(registry.protocol("openai_responses")._transport, transport)
+
+    def test_gemini_t8_and_openrouter_adapters_receive_the_attempt_transport(self) -> None:
+        transport = object()
+        registry = default_registry(transport=transport)
+
+        self.assertIs(registry.protocol("gemini_generate_content")._transport, transport)
+        self.assertIs(
+            registry.protocol("gemini_change2pro_generate_content")._transport,
+            transport,
+        )
+        self.assertIs(registry.protocol("t8_images")._transport, transport)
+        self.assertIs(registry.protocol("openrouter_images")._transport, transport)
+
     def test_provider_can_bind_multiple_model_families(self) -> None:
         provider = provider_fixture(
             bindings=(

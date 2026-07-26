@@ -72,12 +72,65 @@ def register_queue_routes(app: FastAPI, ctx: WebUIContext) -> None:
             raise HTTPException(status_code=409, detail=str(exc)) from exc
         return queue_snapshot(ctx)
 
+    @app.post("/api/queue/cancel-batch")
+    async def cancel_queue_tasks(payload: dict[str, Any] = Body(...)) -> dict[str, Any]:
+        task_ids = list(dict.fromkeys(str(item).strip() for item in payload.get("task_ids", []) if str(item).strip()))
+        if not task_ids:
+            raise HTTPException(status_code=400, detail="At least one task id is required")
+
+        state = ctx.queue_storage.read_state()
+        waiting_ids = set(state["waiting"])
+        running_channels = {
+            str(item.get("task_id") or ""): str(channel_id)
+            for channel_id, item in state["running"].items()
+            if isinstance(item, dict) and item.get("task_id")
+        }
+        results: list[dict[str, str]] = []
+        cancelled_workers: list[asyncio.Task[Any]] = []
+
+        for task_id in task_ids:
+            previous_state = "waiting" if task_id in waiting_ids else "running" if task_id in running_channels else None
+            if previous_state is None:
+                results.append({"task_id": task_id, "result": "skipped", "reason": "not_active"})
+                continue
+            try:
+                h["mark_task_cancelled"](task_id)
+                if previous_state == "waiting":
+                    ctx.queue_storage.remove_waiting(task_id)
+                else:
+                    ctx.queue_storage.clear_running(running_channels[task_id])
+                    ctx.active_task_ids.discard(task_id)
+                    worker_task = ctx.running_worker_tasks.get(task_id)
+                    if worker_task is not None and not worker_task.done():
+                        worker_task.cancel()
+                        cancelled_workers.append(worker_task)
+            except FileNotFoundError:
+                results.append({"task_id": task_id, "result": "skipped", "reason": "not_found"})
+                continue
+            except OSError as exc:
+                results.append({"task_id": task_id, "result": "failed", "reason": str(exc)})
+                continue
+            results.append({"task_id": task_id, "result": "cancelled", "previous_state": previous_state})
+
+        if cancelled_workers:
+            await asyncio.sleep(0)
+
+        return {
+            "ok": not any(item["result"] == "failed" for item in results),
+            "summary": {
+                "cancelled": sum(item["result"] == "cancelled" for item in results),
+                "skipped": sum(item["result"] == "skipped" for item in results),
+                "failed": sum(item["result"] == "failed" for item in results),
+            },
+            "results": results,
+        }
+
     @app.delete("/api/queue/{task_id}")
     async def delete_queue_task(task_id: str) -> dict[str, Any]:
         state = ctx.queue_storage.read_state()
         if task_id in state["waiting"]:
-            ctx.queue_storage.remove_waiting(task_id)
             ctx.storage.delete_task(task_id)
+            ctx.queue_storage.remove_waiting(task_id)
             return {"ok": True, "task_id": task_id, "cancelled": False}
         running_channel_id = h["running_channel_for_task"](task_id)
         if running_channel_id is None:

@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 import re
 from typing import Any
+import uuid
 from urllib.parse import quote, unquote, urlsplit
 
 from fastapi import HTTPException
@@ -11,7 +12,12 @@ from codex_image.client import ImageResult
 
 from .storage import TaskStorage, utc_now
 from .task_enrichment import _input_sources, _input_urls
-from .thumbnails import create_image_thumbnail, thumbnail_needs_refresh
+from .thumbnails import (
+    SIDEBAR_THUMBNAIL_MAX_EDGE,
+    create_image_thumbnail,
+    create_sidebar_thumbnail,
+    thumbnail_needs_refresh,
+)
 
 
 def _normalize_api_images_concurrency_for_metadata(value: Any) -> int:
@@ -293,14 +299,31 @@ def _output_url(storage: TaskStorage, path: Path) -> str:
 
 def _output_thumbnail_fields(storage: TaskStorage, task_id: str, output_index: int, output_path: Path) -> dict[str, str]:
     thumbnail_path = storage.output_thumbnail_path(task_id, output_index)
+    sidebar_thumbnail_path = storage.output_sidebar_thumbnail_path(task_id, output_index)
     if thumbnail_needs_refresh(output_path, thumbnail_path):
         create_image_thumbnail(output_path, thumbnail_path)
-    if not thumbnail_path.exists():
-        return {}
-    return {
-        "thumbnail_file": storage.output_file(thumbnail_path),
-        "thumbnail_url": _output_url(storage, thumbnail_path),
-    }
+    if thumbnail_needs_refresh(
+        output_path,
+        sidebar_thumbnail_path,
+        max_edge=SIDEBAR_THUMBNAIL_MAX_EDGE,
+    ):
+        create_sidebar_thumbnail(output_path, sidebar_thumbnail_path)
+    fields: dict[str, str] = {}
+    if thumbnail_path.exists():
+        fields.update(
+            {
+                "thumbnail_file": storage.output_file(thumbnail_path),
+                "thumbnail_url": _output_url(storage, thumbnail_path),
+            }
+        )
+    if sidebar_thumbnail_path.exists():
+        fields.update(
+            {
+                "sidebar_thumbnail_file": storage.output_file(sidebar_thumbnail_path),
+                "sidebar_thumbnail_url": _output_url(storage, sidebar_thumbnail_path),
+            }
+        )
+    return fields
 
 
 def _output_file_from_url(url: str) -> str:
@@ -449,18 +472,70 @@ def _safe_output_path(storage: TaskStorage, task_id: str, filename: str) -> Path
     return path
 
 
-def _delete_output_thumbnail_files(storage: TaskStorage, task_id: str, output_index: int, record: dict[str, Any]) -> None:
-    candidates: set[Path] = {storage.output_thumbnail_path(task_id, output_index)}
-    thumbnail_file = str(record.get("thumbnail_file") or "").strip()
-    thumbnail_path = _safe_output_path(storage, task_id, thumbnail_file)
-    if thumbnail_path is not None:
-        candidates.add(thumbnail_path)
-    for path in candidates:
+def _task_output_image_paths(storage: TaskStorage, task_id: str) -> list[Path]:
+    if not storage.output_root.exists():
+        return []
+    thumbnail_root = (storage.output_root / "thumbnails").resolve(strict=False)
+    source_data_root = storage.source_data_root.resolve(strict=False)
+    paths: list[Path] = []
+    for path in storage.output_root.rglob(f"{task_id}-image-*"):
+        if not path.is_file():
+            continue
+        resolved = path.resolve(strict=False)
+        if resolved.is_relative_to(thumbnail_root) or resolved.is_relative_to(source_data_root):
+            continue
+        paths.append(path)
+    return paths
+
+
+def _task_output_thumbnail_paths(storage: TaskStorage, task_id: str) -> list[Path]:
+    thumbnail_root = storage.output_root / "thumbnails"
+    if not thumbnail_root.exists():
+        return []
+    return [
+        *thumbnail_root.rglob(f"{task_id}-image-*-thumb.*"),
+        *thumbnail_root.rglob(f"{task_id}-image-*-sidebar.*"),
+    ]
+
+
+def _stage_file_deletions(paths: list[Path]) -> list[tuple[Path, Path]]:
+    token = uuid.uuid4().hex
+    staged: list[tuple[Path, Path]] = []
+    try:
+        for path in dict.fromkeys(paths):
+            if not path.exists() and not path.is_symlink():
+                continue
+            staged_path = path.with_name(f"{path.name}.deleting-{token}")
+            path.replace(staged_path)
+            staged.append((path, staged_path))
+    except OSError:
+        _restore_staged_files(staged)
+        raise
+    return staged
+
+
+def _restore_staged_files(staged: list[tuple[Path, Path]]) -> None:
+    rollback_error: OSError | None = None
+    for original_path, staged_path in reversed(staged):
+        if not staged_path.exists() and not staged_path.is_symlink():
+            continue
         try:
-            path.unlink()
+            staged_path.replace(original_path)
+        except OSError as exc:
+            rollback_error = rollback_error or exc
+    if rollback_error is not None:
+        raise rollback_error
+
+
+def _discard_staged_files(storage: TaskStorage, staged: list[tuple[Path, Path]]) -> None:
+    for _, staged_path in staged:
+        try:
+            staged_path.unlink()
         except FileNotFoundError:
             pass
-        storage._prune_empty_output_dir(path.parent)
+        except OSError:
+            continue
+        storage._prune_empty_output_dir(staged_path.parent)
 
 
 def _downloadable_output_paths(storage: TaskStorage, metadata: dict[str, Any], *, selected_only: bool = False) -> list[Path]:
@@ -522,21 +597,58 @@ def _delete_unselected_task_outputs(storage: TaskStorage, task_id: str, metadata
     if not removed_records:
         raise ValueError("No unselected outputs to delete")
 
-    for record in records:
-        old_index = _positive_int(record.get("index"))
-        if old_index is not None:
-            _delete_output_thumbnail_files(storage, task_id, old_index, record)
-
-    for record in removed_records:
-        path = _safe_output_path(storage, task_id, _output_record_filename(record))
-        if path is None:
-            continue
+    kept_paths = {
+        path.resolve(strict=False)
+        for record in kept_records
+        if (path := _safe_output_path(storage, task_id, _output_record_filename(record))) is not None
+    }
+    removed_paths = [
+        path
+        for path in _task_output_image_paths(storage, task_id)
+        if path.resolve(strict=False) not in kept_paths
+    ]
+    staged_files = _stage_file_deletions([
+        *_task_output_thumbnail_paths(storage, task_id),
+        *removed_paths,
+    ])
+    created_thumbnail_paths: list[Path] = []
+    try:
+        updated_metadata = _pruned_task_metadata(
+            storage,
+            task_id,
+            metadata,
+            records=records,
+            kept_records=kept_records,
+            removed_records=removed_records,
+            created_thumbnail_paths=created_thumbnail_paths,
+        )
+        storage.write_metadata(task_id, updated_metadata)
+    except Exception:
+        for path in created_thumbnail_paths:
+            try:
+                path.unlink()
+            except FileNotFoundError:
+                pass
         try:
-            path.unlink()
-        except FileNotFoundError:
-            pass
-        storage._prune_empty_output_dir(path.parent)
+            _restore_staged_files(staged_files)
+        except OSError as rollback_error:
+            raise RuntimeError("Failed to restore task outputs after an incomplete deletion") from rollback_error
+        raise
 
+    _discard_staged_files(storage, staged_files)
+    return updated_metadata
+
+
+def _pruned_task_metadata(
+    storage: TaskStorage,
+    task_id: str,
+    metadata: dict[str, Any],
+    *,
+    records: list[dict[str, Any]],
+    kept_records: list[dict[str, Any]],
+    removed_records: list[dict[str, Any]],
+    created_thumbnail_paths: list[Path],
+) -> dict[str, Any]:
     accepted_outputs: list[dict[str, Any]] = []
     for new_index, record in enumerate(kept_records, start=1):
         accepted_record = dict(record)
@@ -546,9 +658,16 @@ def _delete_unselected_task_outputs(storage: TaskStorage, task_id: str, metadata
         accepted_record.pop("error", None)
         accepted_record.pop("thumbnail_file", None)
         accepted_record.pop("thumbnail_url", None)
+        accepted_record.pop("sidebar_thumbnail_file", None)
+        accepted_record.pop("sidebar_thumbnail_url", None)
         output_path = _safe_output_path(storage, task_id, _output_record_filename(record))
         if output_path is not None and output_path.is_file():
-            accepted_record.update(_output_thumbnail_fields(storage, task_id, new_index, output_path))
+            thumbnail_fields = _output_thumbnail_fields(storage, task_id, new_index, output_path)
+            accepted_record.update(thumbnail_fields)
+            for field in ("thumbnail_file", "sidebar_thumbnail_file"):
+                thumbnail_file = str(thumbnail_fields.get(field) or "")
+                if thumbnail_file:
+                    created_thumbnail_paths.append(storage.output_path(thumbnail_file))
         accepted_outputs.append(accepted_record)
 
     output_files = [str(record.get("file")) for record in accepted_outputs if record.get("file")]
@@ -559,7 +678,8 @@ def _delete_unselected_task_outputs(storage: TaskStorage, task_id: str, metadata
         or len(records)
     )
     now = utc_now()
-    metadata.update(
+    updated_metadata = dict(metadata)
+    updated_metadata.update(
         {
             "status": "completed",
             "updated_at": now,
@@ -577,13 +697,13 @@ def _delete_unselected_task_outputs(storage: TaskStorage, task_id: str, metadata
         }
     )
     if output_files:
-        metadata["output_file"] = output_files[0]
+        updated_metadata["output_file"] = output_files[0]
     else:
-        metadata.pop("output_file", None)
+        updated_metadata.pop("output_file", None)
     if output_urls:
-        metadata["output_url"] = output_urls[0]
+        updated_metadata["output_url"] = output_urls[0]
     else:
-        metadata.pop("output_url", None)
+        updated_metadata.pop("output_url", None)
 
     list_sources = {
         "output_sizes": "size",
@@ -606,20 +726,19 @@ def _delete_unselected_task_outputs(storage: TaskStorage, task_id: str, metadata
     for list_key, record_key in list_sources.items():
         values = [record[record_key] for record in accepted_outputs if record.get(record_key) is not None]
         if values:
-            metadata[list_key] = values
+            updated_metadata[list_key] = values
         else:
-            metadata.pop(list_key, None)
+            updated_metadata.pop(list_key, None)
     for scalar_key, list_key in scalar_sources.items():
-        values = metadata.get(list_key)
+        values = updated_metadata.get(list_key)
         if isinstance(values, list) and values:
-            metadata[scalar_key] = values[0]
+            updated_metadata[scalar_key] = values[0]
         else:
-            metadata.pop(scalar_key, None)
+            updated_metadata.pop(scalar_key, None)
 
     for key in ("error", "last_error", "retrying_failed_slots", "retry_failed_slots", "retry_requested_at"):
-        metadata.pop(key, None)
-    storage.write_metadata(task_id, metadata)
-    return metadata
+        updated_metadata.pop(key, None)
+    return updated_metadata
 
 
 def _write_running_metadata(

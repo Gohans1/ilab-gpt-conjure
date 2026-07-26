@@ -208,7 +208,7 @@ class WebUITaskTests(unittest.TestCase):
         self.assertEqual(task["task_id"], task_id)
         self.assertEqual(task["prompt"], "sidebar card prompt")
         self.assertEqual(task["output_size"], "1152x2048")
-        self.assertEqual(task["thumbnail_urls"], [f"/api/tasks/{task_id}/outputs/1/thumbnail"])
+        self.assertEqual(task["thumbnail_urls"], [f"/api/tasks/{task_id}/outputs/1/sidebar-thumbnail"])
         self.assertEqual(task["input_thumbnail_urls"], ["/api/reference-assets/asset-1/image"])
         self.assertEqual(task["generated_count"], 2)
         self.assertEqual(task["generation_snapshot"], {
@@ -314,7 +314,7 @@ class WebUITaskTests(unittest.TestCase):
     def test_task_outputs_zip_downloads_multiple_outputs(self) -> None:
         from codex_image.webui.app import create_app
 
-        task_id = "20260505010203-abcdef01"
+        task_id = "20260726010203-abcdef01"
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             first = root / output_name(task_id, 1)
@@ -352,7 +352,7 @@ class WebUITaskTests(unittest.TestCase):
     def test_task_reveal_output_endpoint_opens_output_directory(self) -> None:
         from codex_image.webui.app import create_app
 
-        task_id = "20260505010203-abcdef01"
+        task_id = "20260726010203-abcdef01"
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             output_path = root / output_name(task_id, 1)
@@ -486,6 +486,124 @@ class WebUITaskTests(unittest.TestCase):
             self.assertTrue((root / "thumbnails" / "2026-05-05" / f"{task_id}-image-2-thumb.jpg").is_file())
             self.assertFalse((root / "thumbnails" / "2026-05-05" / f"{task_id}-image-3-thumb.jpg").exists())
 
+    def test_delete_unselected_outputs_removes_unreferenced_task_images_and_thumbnails(self) -> None:
+        from codex_image.webui.app import create_app
+
+        task_id = "20260505010203-abcdef01"
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            output_files = [output_name(task_id, index) for index in (1, 2)]
+            for filename in output_files:
+                path = root / filename
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_bytes(self._png_bytes())
+            orphan_output = root / output_name(task_id, 99)
+            orphan_output.write_bytes(self._png_bytes())
+            orphan_thumbnail = root / "thumbnails" / "2026-05-05" / f"{task_id}-image-99-thumb.jpg"
+            orphan_thumbnail.parent.mkdir(parents=True, exist_ok=True)
+            orphan_thumbnail.write_bytes(b"orphan-thumb")
+
+            task_metadata = metadata_path(root, task_id)
+            task_metadata.parent.mkdir(parents=True, exist_ok=True)
+            task_metadata.write_text(
+                json.dumps(
+                    {
+                        "task_id": task_id,
+                        "status": "completed",
+                        "generated_count": 2,
+                        "total_count": 2,
+                        "output_files": output_files,
+                        "output_urls": [output_url(task_id, index) for index in (1, 2)],
+                        "outputs": [
+                            {
+                                "index": index,
+                                "status": "completed",
+                                "file": output_files[index - 1],
+                                "url": output_url(task_id, index),
+                            }
+                            for index in (1, 2)
+                        ],
+                    }
+                ),
+                encoding="utf-8",
+            )
+            task_request = request_path(root, task_id)
+            task_request.write_text("{}", encoding="utf-8")
+
+            app = create_app(output_root=root, auth_checker=lambda: True, auto_start_queue=False)
+            client = TestClient(app)
+            selected = client.patch(f"/api/tasks/{task_id}/outputs/1/selected", json={"selected": True})
+            pruned = client.post(f"/api/tasks/{task_id}/outputs/delete-unselected")
+
+            self.assertEqual(selected.status_code, 200)
+            self.assertEqual(pruned.status_code, 200)
+            self.assertTrue((root / output_files[0]).is_file())
+            self.assertFalse((root / output_files[1]).exists())
+            self.assertFalse(orphan_output.exists())
+            self.assertFalse(orphan_thumbnail.exists())
+            self.assertTrue(task_metadata.is_file())
+            self.assertTrue(task_request.is_file())
+
+    def test_delete_unselected_outputs_restores_files_when_metadata_update_fails(self) -> None:
+        from codex_image.webui.app import create_app
+
+        task_id = "20260505010203-abcdef01"
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            output_files = [output_name(task_id, index) for index in (1, 2)]
+            output_paths = [root / filename for filename in output_files]
+            thumbnail_paths = [
+                root / "thumbnails" / "2026-05-05" / f"{task_id}-image-{index}-thumb.jpg"
+                for index in (1, 2)
+            ]
+            for path in output_paths:
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_bytes(self._png_bytes())
+            for index, path in enumerate(thumbnail_paths, start=1):
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_bytes(f"original-thumb-{index}".encode("utf-8"))
+            task_metadata = metadata_path(root, task_id)
+            task_metadata.parent.mkdir(parents=True, exist_ok=True)
+            task_metadata.write_text(
+                json.dumps(
+                    {
+                        "task_id": task_id,
+                        "status": "completed",
+                        "generated_count": 2,
+                        "total_count": 2,
+                        "output_files": output_files,
+                        "output_urls": [output_url(task_id, index) for index in (1, 2)],
+                        "outputs": [
+                            {
+                                "index": index,
+                                "status": "completed",
+                                "file": output_files[index - 1],
+                                "url": output_url(task_id, index),
+                            }
+                            for index in (1, 2)
+                        ],
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            app = create_app(output_root=root, auth_checker=lambda: True, auto_start_queue=False)
+            client = TestClient(app, raise_server_exceptions=False)
+            selected = client.patch(f"/api/tasks/{task_id}/outputs/1/selected", json={"selected": True})
+            with patch.object(app.state.storage, "write_metadata", side_effect=OSError("simulated metadata failure")):
+                pruned = client.post(f"/api/tasks/{task_id}/outputs/delete-unselected")
+
+            stored_metadata = json.loads(task_metadata.read_text(encoding="utf-8"))
+            output_exists = [path.is_file() for path in output_paths]
+            thumbnail_bytes = [path.read_bytes() if path.is_file() else None for path in thumbnail_paths]
+
+        self.assertEqual(selected.status_code, 200)
+        self.assertEqual(pruned.status_code, 500)
+        self.assertEqual(output_exists, [True, True])
+        self.assertEqual(thumbnail_bytes, [b"original-thumb-1", b"original-thumb-2"])
+        self.assertEqual(stored_metadata["output_files"], output_files)
+        self.assertEqual(stored_metadata["selected_output_indexes"], [1])
+
     def test_task_thumbnail_route_backfills_legacy_output_thumbnail(self) -> None:
         from codex_image.webui.app import create_app
 
@@ -527,6 +645,127 @@ class WebUITaskTests(unittest.TestCase):
         self.assertEqual(thumbnail_response.headers["content-type"], "image/jpeg")
         self.assertLess(len(thumbnail_response.content), original_size)
         self.assertTrue(thumbnail_file_exists)
+
+    def test_sidebar_thumbnail_route_uses_cached_256px_webp(self) -> None:
+        from codex_image.webui.app import create_app
+
+        task_id = "20260726010203-abcdef01"
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            output_file = output_name(task_id, 1)
+            output_path = root / output_file
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+            output_path.write_bytes(self._png_bytes((900, 1440)))
+            metadata_path(root, task_id).parent.mkdir(parents=True, exist_ok=True)
+            metadata_path(root, task_id).write_text(
+                json.dumps(
+                    {
+                        "task_id": task_id,
+                        "created_at": "2026-07-26T01:02:03+08:00",
+                        "updated_at": "2026-07-26T01:03:03+08:00",
+                        "status": "completed",
+                        "generated_count": 1,
+                        "total_count": 1,
+                        "output_file": output_file,
+                        "output_files": [output_file],
+                        "output_url": output_url(task_id, 1),
+                        "output_urls": [output_url(task_id, 1)],
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            app = create_app(output_root=root, auth_checker=lambda: True, auto_start_queue=False)
+            client = TestClient(app)
+            sidebar = client.get("/api/tasks/sidebar", params={"limit": 50}).json()
+            thumbnail_url = sidebar["tasks"][0]["thumbnail_urls"][0]
+            thumbnail_response = client.get(thumbnail_url)
+            thumbnail_path = root / "thumbnails" / "2026-07-26" / f"{task_id}-image-1-sidebar.webp"
+            with Image.open(thumbnail_path) as thumbnail:
+                thumbnail_size = thumbnail.size
+                thumbnail_format = thumbnail.format
+            thumbnail_exists = thumbnail_path.is_file()
+
+        self.assertEqual(thumbnail_url, f"/api/tasks/{task_id}/outputs/1/sidebar-thumbnail")
+        self.assertEqual(thumbnail_response.status_code, 200)
+        self.assertEqual(thumbnail_response.headers["content-type"], "image/webp")
+        self.assertEqual(max(thumbnail_size), 256)
+        self.assertEqual(thumbnail_format, "WEBP")
+        self.assertTrue(thumbnail_exists)
+
+    def test_sidebar_group_api_and_selection_cover_unloaded_matching_tasks(self) -> None:
+        from codex_image.webui.app import create_app
+        from codex_image.webui.storage import TaskStorage
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            app = create_app(output_root=root, auth_checker=lambda: True, auto_start_queue=False)
+            storage = TaskStorage(root, input_root=root / "inputs", source_data_root=root / "source-data")
+            for number in range(75):
+                task_id = f"2026072608{number // 60:02d}{number % 60:02d}-{number:08d}"
+                timestamp = f"2026-07-26T08:{number // 60:02d}:{number % 60:02d}+08:00"
+                storage.write_metadata(
+                    task_id,
+                    {
+                        "task_id": task_id,
+                        "created_at": timestamp,
+                        "updated_at": timestamp,
+                        "terminal_at": timestamp,
+                        "status": "failed" if number % 2 else "completed",
+                        "params": {"ratio": "1:1", "orientation": "square"},
+                    },
+                )
+
+            client = TestClient(app)
+            page = client.get(
+                "/api/tasks/sidebar/groups/today",
+                params={"offset": 50, "limit": 50},
+            )
+            selection = client.get(
+                "/api/tasks/sidebar/groups/today/selection",
+                params={"status": "failed", "ratio": "1:1"},
+            )
+
+        self.assertEqual(page.status_code, 200)
+        self.assertEqual(len(page.json()["tasks"]), 25)
+        self.assertFalse(page.json()["has_more"])
+        self.assertEqual(selection.status_code, 200)
+        self.assertEqual(selection.json()["count"], 37)
+        self.assertEqual(len(selection.json()["task_ids"]), 37)
+
+    def test_batch_delete_route_deletes_explicit_terminal_tasks_and_skips_running(self) -> None:
+        from codex_image.webui.app import create_app
+        from codex_image.webui.storage import TaskStorage
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            app = create_app(output_root=root, auth_checker=lambda: True, auto_start_queue=False)
+            storage = TaskStorage(root, input_root=root / "inputs", source_data_root=root / "source-data")
+            terminal_ids = ["20260726080100-aaaaaaaa", "20260726080200-bbbbbbbb"]
+            running_id = "20260726080300-cccccccc"
+            for task_id, status in [*(zip(terminal_ids, ["completed", "failed"])), (running_id, "running")]:
+                storage.write_metadata(
+                    task_id,
+                    {
+                        "task_id": task_id,
+                        "created_at": "2026-07-26T08:00:00+08:00",
+                        "updated_at": "2026-07-26T08:01:00+08:00",
+                        "status": status,
+                    },
+                )
+            app.state.active_task_ids.add(running_id)
+
+            response = TestClient(app).post(
+                "/api/tasks/delete-batch",
+                json={"task_ids": [*terminal_ids, running_id]},
+            )
+            remaining = [storage.metadata_path(task_id).exists() for task_id in [*terminal_ids, running_id]]
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["deleted"], terminal_ids)
+        self.assertEqual(response.json()["skipped"], [running_id])
+        self.assertEqual(response.json()["failed"], [])
+        self.assertEqual(remaining, [False, False, True])
 
     def test_task_thumbnail_route_refreshes_small_cached_thumbnail(self) -> None:
         from codex_image.webui.app import create_app
@@ -854,6 +1093,42 @@ class WebUITaskTests(unittest.TestCase):
         self.assertEqual(deleted.status_code, 200)
         self.assertEqual([task["task_id"] for task in queue["waiting"]], [second])
         self.assertEqual(reordered.status_code, 200)
+
+    def test_waiting_task_stays_queued_when_physical_delete_fails(self) -> None:
+        from codex_image.webui.app import create_app
+
+        for endpoint in ("/api/tasks/{task_id}", "/api/queue/{task_id}"):
+            with self.subTest(endpoint=endpoint), tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                app = create_app(
+                    output_root=root,
+                    client_factory=lambda: FakeImageClient(),
+                    auth_checker=lambda: True,
+                    auto_start_queue=False,
+                )
+                client = TestClient(app, raise_server_exceptions=False)
+                created = client.post("/api/generate", data={"prompt": "keep queued on failure", "size": "1024x1024"})
+                task_id = created.json()["task"]["task_id"]
+                output_path = root / output_name(task_id)
+                output_path.parent.mkdir(parents=True, exist_ok=True)
+                output_path.write_bytes(b"image")
+                original_unlink = Path.unlink
+
+                def fail_output_unlink(path: Path, *args: object, **kwargs: object) -> None:
+                    if path == output_path:
+                        raise OSError("simulated output cleanup failure")
+                    original_unlink(path, *args, **kwargs)
+
+                with patch.object(Path, "unlink", new=fail_output_unlink):
+                    response = client.delete(endpoint.format(task_id=task_id))
+
+                queue_state = app.state.queue_storage.read_state()
+                task_metadata_exists = app.state.storage.metadata_path(task_id).is_file()
+
+            self.assertEqual(response.status_code, 500)
+            self.assertIn(task_id, queue_state["waiting"])
+            self.assertTrue(task_metadata_exists)
+
     def test_delete_task_route_rejects_queue_running_task(self) -> None:
         from codex_image.webui.app import create_app
 
@@ -907,6 +1182,77 @@ class WebUITaskTests(unittest.TestCase):
         self.assertEqual(task["error"], "Task cancelled by user.")
         self.assertTrue(task["cancel_requested"])
         self.assertEqual(queue["running"], [])
+
+    def test_queue_batch_cancel_keeps_waiting_and_running_history_and_skips_inactive_tasks(self) -> None:
+        from codex_image.webui.app import create_app
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            app = create_app(
+                output_root=root,
+                client_factory=lambda: FakeImageClient(),
+                auth_checker=lambda: True,
+                auto_start_queue=False,
+            )
+            client = TestClient(app)
+            running_id = client.post(
+                "/api/generate",
+                data={"prompt": "running batch cancel", "size": "1024x1024"},
+            ).json()["task"]["task_id"]
+            waiting_id = client.post(
+                "/api/generate",
+                data={"prompt": "waiting batch cancel", "size": "1024x1024"},
+            ).json()["task"]["task_id"]
+            completed_id = client.post(
+                "/api/generate",
+                data={"prompt": "already completed", "size": "1024x1024"},
+            ).json()["task"]["task_id"]
+            app.state.queue_storage.remove_waiting(running_id)
+            app.state.queue_storage.set_running("codex:local", running_id, auth_source="codex")
+            app.state.queue_storage.remove_waiting(completed_id)
+            completed = app.state.storage.read_metadata(completed_id)
+            completed["status"] = "completed"
+            app.state.storage.write_metadata(completed_id, completed)
+
+            response = client.post(
+                "/api/queue/cancel-batch",
+                json={"task_ids": [waiting_id, running_id, completed_id, "missing-task", waiting_id]},
+            )
+            queue = client.get("/api/queue").json()
+            waiting_task = client.get(f"/api/tasks/{waiting_id}").json()["task"]
+            running_task = client.get(f"/api/tasks/{running_id}").json()["task"]
+            completed_task = client.get(f"/api/tasks/{completed_id}").json()["task"]
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual(payload["summary"], {"cancelled": 2, "skipped": 2, "failed": 0})
+        self.assertEqual(
+            payload["results"],
+            [
+                {"task_id": waiting_id, "result": "cancelled", "previous_state": "waiting"},
+                {"task_id": running_id, "result": "cancelled", "previous_state": "running"},
+                {"task_id": completed_id, "result": "skipped", "reason": "not_active"},
+                {"task_id": "missing-task", "result": "skipped", "reason": "not_active"},
+            ],
+        )
+        self.assertEqual(queue["waiting"], [])
+        self.assertEqual(queue["running"], [])
+        for task in (waiting_task, running_task):
+            self.assertEqual(task["status"], "failed")
+            self.assertEqual(task["error"], "Task cancelled by user.")
+            self.assertTrue(task["cancel_requested"])
+            self.assertTrue(task["cancelled_at"])
+        self.assertEqual(completed_task["status"], "completed")
+
+    def test_queue_batch_cancel_requires_at_least_one_task_id(self) -> None:
+        from codex_image.webui.app import create_app
+
+        with tempfile.TemporaryDirectory() as tmp:
+            app = create_app(output_root=Path(tmp), auth_checker=lambda: True, auto_start_queue=False)
+            response = TestClient(app).post("/api/queue/cancel-batch", json={"task_ids": []})
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()["detail"], "At least one task id is required")
     def test_accept_partial_task_successes_marks_completed_and_reindexes_outputs(self) -> None:
         from codex_image.webui.app import create_app
 
@@ -940,6 +1286,8 @@ class WebUITaskTests(unittest.TestCase):
         self.assertEqual(accepted["original_total_count"], 4)
         self.assertEqual(accepted["cleared_failed_count"], 2)
         self.assertIn("partial_failure_cleared_at", accepted)
+        self.assertEqual(accepted["terminal_at"], partial["terminal_at"])
+        self.assertNotEqual(accepted["terminal_at"], accepted["updated_at"])
         self.assertEqual(accepted["viewed_at"], accepted["updated_at"])
         self.assertEqual(accepted["partial_failure_cleared_at"], accepted["updated_at"])
         self.assertNotIn("error", accepted)
@@ -955,6 +1303,7 @@ class WebUITaskTests(unittest.TestCase):
         )
         self.assertEqual(stored["status"], "completed")
         self.assertEqual(stored["total_count"], 2)
+        self.assertEqual(stored["terminal_at"], partial["terminal_at"])
         self.assertEqual(stored["viewed_at"], stored["updated_at"])
         self.assertEqual(output_files_exist, [True, False, False, True])
     def test_accept_failed_task_successes_after_interruption(self) -> None:
@@ -1528,6 +1877,60 @@ class WebUITaskTests(unittest.TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertFalse(task_exists)
+
+    def test_delete_task_removes_duplicate_legacy_directory_and_prevents_restart_recovery(self) -> None:
+        from codex_image.webui.app import create_app
+
+        task_id = "20260726010203-abcdef01"
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            modern_metadata = metadata_path(root, task_id)
+            modern_metadata.parent.mkdir(parents=True, exist_ok=True)
+            modern_metadata.write_text(
+                json.dumps(
+                    {
+                        "task_id": task_id,
+                        "created_at": "2026-07-26T01:02:03+00:00",
+                        "updated_at": "2026-07-26T01:03:03+00:00",
+                        "status": "completed",
+                        "output_files": [output_name(task_id)],
+                        "output_urls": [output_url(task_id)],
+                    }
+                ),
+                encoding="utf-8",
+            )
+            modern_output = root / output_name(task_id)
+            modern_output.parent.mkdir(parents=True, exist_ok=True)
+            modern_output.write_bytes(b"modern")
+
+            legacy_dir = root / task_id
+            legacy_dir.mkdir()
+            (legacy_dir / "metadata.json").write_text(
+                json.dumps(
+                    {
+                        "task_id": task_id,
+                        "created_at": "2026-07-26T01:02:03+00:00",
+                        "status": "completed",
+                        "output_files": ["legacy-image.png"],
+                    }
+                ),
+                encoding="utf-8",
+            )
+            (legacy_dir / "request.json").write_text("{}", encoding="utf-8")
+            (legacy_dir / "legacy-image.png").write_bytes(b"legacy")
+
+            first_app = create_app(output_root=root, auth_checker=lambda: True, auto_start_queue=False)
+            deleted = TestClient(first_app).delete(f"/api/tasks/{task_id}")
+            legacy_dir_exists_after_delete = legacy_dir.exists()
+
+            restarted_app = create_app(output_root=root, auth_checker=lambda: True, auto_start_queue=False)
+            restored = TestClient(restarted_app).get(f"/api/tasks/{task_id}")
+
+        self.assertEqual(deleted.status_code, 200)
+        self.assertFalse(modern_output.exists())
+        self.assertFalse(legacy_dir_exists_after_delete)
+        self.assertEqual(restored.status_code, 404)
+
     def test_delete_running_task_is_rejected(self) -> None:
         from codex_image.webui.app import create_app
 

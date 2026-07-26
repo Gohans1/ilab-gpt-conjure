@@ -81,6 +81,35 @@ class CapturingApiImageClient(FakeImageClient):
         self.instances.append(self)
 
 
+class TransientFailingApiImageClient(CapturingApiImageClient):
+    instances: list["TransientFailingApiImageClient"] = []
+    failure: BaseException | None = None
+    failures_remaining = 0
+
+    @classmethod
+    def reset(cls, failure: BaseException, *, failures: int = 1) -> None:
+        cls.instances = []
+        cls.failure = failure
+        cls.failures_remaining = max(0, failures)
+
+    def generate_image(self, **kwargs: Any):
+        from codex_image.client import ImageResult
+
+        self.generate_calls.append(kwargs)
+        if type(self).failures_remaining > 0 and type(self).failure is not None:
+            type(self).failures_remaining -= 1
+            raise type(self).failure
+        return ImageResult(
+            b"api-transient-recovered",
+            "api transient recovered",
+            "png",
+            kwargs["size"],
+            "auto",
+            kwargs["quality"],
+            {"attempts": len(self.generate_calls)},
+        )
+
+
 class ConcurrentApiImageClient(CapturingApiImageClient):
     instances: list["ConcurrentApiImageClient"] = []
     release_after_active_requests: int | None = None

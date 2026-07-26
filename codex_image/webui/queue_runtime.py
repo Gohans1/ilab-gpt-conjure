@@ -18,7 +18,7 @@ from codex_image.generation.errors import (
 from codex_image.generation.snapshot import execution_plan_from_snapshot
 from codex_image.generation.types import GenerationCommand, ImageInput
 from codex_image.prompt_guard import build_original_prompt_instructions, build_prompt_guard_instructions
-from codex_image.providers.registry import default_registry
+from codex_image.providers.registry import ProviderRegistry, default_registry
 
 from .auth_routing import (
     DEFAULT_API_PROVIDER_ID,
@@ -208,7 +208,12 @@ def _configured_provider_exact(ctx: WebUIContext, provider_id: str) -> dict[str,
     return None
 
 
-def _validated_snapshot_plan(ctx: WebUIContext, metadata: dict[str, Any]):
+def _validated_snapshot_plan(
+    ctx: WebUIContext,
+    metadata: dict[str, Any],
+    *,
+    registry: ProviderRegistry,
+):
     snapshot = metadata.get("generation_snapshot")
     if not isinstance(snapshot, dict):
         return None
@@ -302,7 +307,7 @@ def _validated_snapshot_plan(ctx: WebUIContext, metadata: dict[str, Any]):
         snapshot=snapshot,
         command=command,
         api_key=api_key,
-        registry=default_registry(),
+        registry=registry,
     )
 
 
@@ -313,9 +318,32 @@ def _queue_execution_contract(
     *,
     client_factory_overridden: bool = False,
 ) -> QueueExecutionContract:
+    network_snapshot = ctx.network_egress_manager.snapshot()
+    transport = ctx.network_egress_manager.transport(network_snapshot)
+    if isinstance(metadata, dict):
+        metadata["network_egress"] = network_snapshot.task_metadata()
     params = metadata.get("params") if isinstance(metadata, dict) and isinstance(metadata.get("params"), dict) else {}
     main_model = effective_reference_file_main_model(params.get("main_model"))
-    snapshot_plan = _validated_snapshot_plan(ctx, metadata or {})
+    generation_snapshot = (
+        metadata.get("generation_snapshot")
+        if isinstance(metadata, dict) and isinstance(metadata.get("generation_snapshot"), dict)
+        else {}
+    )
+    snapshot_auth_state = (
+        load_auth_state()
+        if str(generation_snapshot.get("provider_id") or "") == "codex"
+        and not client_factory_overridden
+        else None
+    )
+    registry = default_registry(
+        codex_auth_state=snapshot_auth_state,
+        transport=transport,
+    )
+    snapshot_plan = _validated_snapshot_plan(
+        ctx,
+        metadata or {},
+        registry=registry,
+    )
     if snapshot_plan is not None:
         if snapshot_plan.provider.id == "codex":
             channel_matches = channel.auth_source == "codex"
@@ -342,7 +370,7 @@ def _queue_execution_contract(
                 client = ctx.client_factory()
             else:
                 client_class = CodexImageClient if codex_mode == "responses" else CodexImagesImageClient
-                client = client_class(load_auth_state())
+                client = client_class(snapshot_auth_state or load_auth_state(), transport=transport)
             base_url = ""
         else:
             api_mode = "responses" if profile == "openai_responses" else "images"
@@ -352,10 +380,22 @@ def _queue_execution_contract(
                 "image_model": snapshot_plan.binding.remote_model_id,
                 "api_mode": api_mode,
             }
-            client = ctx.client_factory() if client_factory_overridden else _api_client_from_settings(frozen, api_mode=api_mode)
+            client = (
+                ctx.client_factory()
+                if client_factory_overridden
+                else _api_client_from_settings(
+                    frozen,
+                    api_mode=api_mode,
+                    transport=transport,
+                )
+            )
             base_url = snapshot_plan.provider.base_url
         return QueueExecutionContract(
-            client=ExecutionPlanImageClient(snapshot_plan, client),
+            client=ExecutionPlanImageClient(
+                snapshot_plan,
+                client,
+                registry=None if client_factory_overridden else registry,
+            ),
             backend=backend,
             reference_file_capability_key=reference_file_capability_key_for_resolved_backend(
                 requested_backend=backend,
@@ -372,7 +412,15 @@ def _queue_execution_contract(
         )
         api_mode = _normalize_api_mode(params.get("api_mode") or provider_settings.get("api_mode"))
         backend = _backend_for_api_mode(api_mode)
-        client = ctx.client_factory() if client_factory_overridden else _api_client_from_settings(provider_settings, api_mode=api_mode)
+        client = (
+            ctx.client_factory()
+            if client_factory_overridden
+            else _api_client_from_settings(
+                provider_settings,
+                api_mode=api_mode,
+                transport=transport,
+            )
+        )
         return QueueExecutionContract(
             client=client,
             backend=backend,
@@ -389,7 +437,7 @@ def _queue_execution_contract(
         client = ctx.client_factory()
     else:
         client_class = CodexImageClient if codex_mode == "responses" else CodexImagesImageClient
-        client = client_class(load_auth_state())
+        client = client_class(load_auth_state(), transport=transport)
     return QueueExecutionContract(
         client=client,
         backend=backend,

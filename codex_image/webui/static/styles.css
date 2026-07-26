@@ -623,6 +623,13 @@ button, input, select, textarea {
   white-space: nowrap;
 }
 
+.task-history-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
 .sidebar-content {
   flex: 1;
   min-height: 0;
@@ -664,6 +671,94 @@ button, input, select, textarea {
   padding-bottom: 4px;
 }
 
+.task-latest-button {
+  position: sticky;
+  top: 40px;
+  z-index: 9;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  margin: 0 auto -34px;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--primary) 34%, var(--panel-border));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  box-shadow:
+    0 6px 18px color-mix(in srgb, var(--shadow-color, #000) 20%, transparent),
+    0 0 0 1px color-mix(in srgb, var(--surface) 70%, transparent);
+  color: var(--primary-strong);
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  animation: task-latest-enter 160ms ease-out;
+  transition:
+    color var(--motion-fast),
+    background var(--motion-fast),
+    border-color var(--motion-fast),
+    box-shadow var(--motion-fast),
+    transform var(--motion-fast);
+}
+
+.task-latest-button.hidden,
+.task-latest-button[hidden] {
+  display: none;
+}
+
+.task-latest-button:hover {
+  border-color: color-mix(in srgb, var(--primary) 58%, var(--panel-border));
+  background: color-mix(in srgb, var(--primary-light) 72%, var(--surface));
+  transform: translateY(-1px);
+}
+
+.task-latest-button:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--primary) 68%, transparent);
+  outline-offset: 2px;
+}
+
+.task-latest-button.has-newer {
+  color: var(--primary);
+}
+
+.task-latest-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.task-latest-badge {
+  position: absolute;
+  top: -5px;
+  right: -7px;
+  display: grid;
+  place-items: center;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  border: 2px solid var(--surface);
+  border-radius: 999px;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.task-latest-badge[hidden] {
+  display: none;
+}
+
+@keyframes task-latest-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 .task-active-list {
   flex: 0 1 auto;
   display: flex;
@@ -672,10 +767,21 @@ button, input, select, textarea {
   max-height: min(52dvh, 520px);
   overflow-y: auto;
   scrollbar-gutter: stable;
+  padding-bottom: 8px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--panel-border);
 }
 
 .task-active-list.hidden {
   display: none;
+}
+
+.task-active-list > .task-group-expanded > .task-active-group-header {
+  position: sticky;
+  top: 0;
+  z-index: 7;
+  background: var(--surface);
+  box-shadow: 0 6px 12px color-mix(in srgb, var(--surface) 92%, transparent);
 }
 
 .task-history-anchor-row,
@@ -852,6 +958,18 @@ button, input, select, textarea {
   opacity: 1;
 }
 
+.task-group-load-more {
+  justify-self: stretch;
+  min-height: 34px;
+  margin-top: 2px;
+  color: var(--primary-strong);
+}
+
+.task-group-load-more[aria-busy="true"] {
+  opacity: 0.68;
+  cursor: wait;
+}
+
 .task-group-active .task-group-items-expanded {
   gap: 4px;
 }
@@ -964,8 +1082,17 @@ button, input, select, textarea {
   .task-history-anchor-label,
   .task-group-label-button,
   .task-history-anchor-arrow,
-  .task-group-arrow-button {
+  .task-group-arrow-button,
+  .task-latest-button {
     transition: none;
+  }
+
+  .task-latest-button {
+    animation: none;
+  }
+
+  .task-card.task-card-removing {
+    animation: none !important;
   }
 }
 
@@ -995,17 +1122,35 @@ button, input, select, textarea {
   position: relative;
   height: 66px;
   padding: 6px 7px;
-  padding-right: 30px;
   border-radius: var(--radius);
   cursor: pointer;
   border: 1px solid color-mix(in srgb, var(--line) 34%, transparent);
   background: color-mix(in srgb, var(--surface) 72%, transparent);
+  user-select: none;
+  -webkit-user-select: none;
   transition:
     background var(--motion-base),
     border-color var(--motion-base),
     box-shadow var(--motion-base),
     color var(--motion-base);
   overflow: hidden; /* For text truncation */
+}
+
+.task-card.task-card-removing {
+  pointer-events: none;
+  animation: task-card-remove 180ms cubic-bezier(0.4, 0, 1, 1) both;
+}
+
+@keyframes task-card-remove {
+  from {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateX(-10px) scale(0.985);
+  }
 }
 
 .task-card:focus-visible {
@@ -1421,6 +1566,15 @@ button, input, select, textarea {
   animation: none;
 }
 
+.task-cancelled-thumb {
+  background: var(--surface-soft);
+}
+
+.task-cancelled-thumb span {
+  border-color: var(--line);
+  color: var(--muted);
+}
+
 .task-info {
   flex: 1;
   min-width: 0;
@@ -1431,17 +1585,24 @@ button, input, select, textarea {
 
 .task-card-actions {
   position: absolute;
-  right: 8px;
-  top: 50%;
+  right: 6px;
+  top: 6px;
   display: inline-flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  gap: 6px;
-  transform: translateY(-50%);
+  gap: 3px;
+  padding: 2px;
+  border: 1px solid color-mix(in srgb, var(--line) 78%, var(--surface));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface) 96%, transparent);
+  box-shadow: 0 4px 12px rgba(16, 35, 28, 0.12);
+  transform: translateX(4px);
   opacity: 0;
   pointer-events: none;
   z-index: 2;
-  transition: opacity var(--motion-base);
+  transition:
+    opacity var(--motion-base),
+    transform var(--motion-base);
 }
 
 .task-archive-button,
@@ -1516,6 +1677,7 @@ button, input, select, textarea {
 .task-card-actions:focus-within {
   opacity: 1;
   pointer-events: auto;
+  transform: translateX(0);
 }
 
 .task-queue-actions {
@@ -2011,7 +2173,7 @@ button, input, select, textarea {
 
 .batch-toolbar-actions {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: 1fr 1fr;
   gap: 6px;
 }
 
@@ -9482,7 +9644,7 @@ body.lightbox-open {
   z-index: 2;
   flex: 0 0 auto;
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 4px;
   width: 100%;
   margin: 0 0 18px;
@@ -9908,6 +10070,91 @@ body.lightbox-open {
 .settings-path-grid {
   display: grid;
   gap: 12px;
+}
+
+.network-egress-panel {
+  display: grid;
+  gap: 14px;
+  width: 100%;
+  max-width: 640px;
+}
+
+.network-egress-mode-selector {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-soft);
+}
+
+.network-egress-mode-button {
+  min-width: 0;
+  min-height: 38px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.network-egress-mode-button:hover,
+.network-egress-mode-button:focus-visible {
+  border-color: color-mix(in srgb, var(--primary) 42%, var(--line));
+  color: var(--text);
+  outline: none;
+}
+
+.network-egress-mode-button.active {
+  border-color: color-mix(in srgb, var(--primary) 52%, var(--line));
+  background: var(--primary-light);
+  color: var(--primary-strong);
+}
+
+.network-egress-mode-button:active {
+  transform: translateY(1px);
+}
+
+#networkEgressCustomProxyField[hidden] {
+  display: none;
+}
+
+.network-egress-current-route {
+  min-height: 38px;
+  margin: 0;
+  padding: 9px 11px;
+  border-left: 3px solid color-mix(in srgb, var(--primary) 72%, var(--line));
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--primary-light) 54%, var(--surface-soft));
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.network-egress-feedback.ok {
+  color: var(--primary-strong);
+}
+
+.network-egress-feedback.error {
+  color: var(--danger);
+}
+
+.network-egress-feedback.running {
+  color: var(--text-secondary);
+}
+
+.network-egress-actions {
+  gap: 10px;
+}
+
+.network-egress-actions .ghost-button {
+  flex: 0 0 auto;
+  min-width: 108px;
+  height: 40px;
 }
 
 .notification-options-panel {

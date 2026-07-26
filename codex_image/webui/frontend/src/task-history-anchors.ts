@@ -1,12 +1,16 @@
 import { getLegacyBridge } from "./state";
 import { TASK_HISTORY_EXPANDED_GROUP_STORAGE_KEY } from "./state-defaults";
 import { prefersReducedMotion } from "./webui-utils";
-import { formatTranslation } from "./i18n";
+import { formatTranslation, LOCALE_CHANGE_EVENT, translate } from "./i18n";
 
 const bridge = getLegacyBridge();
 const state = bridge.state;
 const els = bridge.els;
 let taskHistoryAnchorInsetObserver: ResizeObserver | null = null;
+let latestTaskNavigationFrameId = 0;
+let latestTaskNavigationPinToken = 0;
+let latestTaskNavigationInitialized = false;
+let latestTaskNavigationPreRenderAtLatest: boolean | null = null;
 const TASK_HISTORY_LAYOUT_EASING = "ease";
 const TASK_HISTORY_LAYOUT_DURATION_MS = 180;
 
@@ -22,9 +26,107 @@ function legacyMethod(name: string, ...args: any[]): any {
 }
 
 function escapeHtml(...args: any[]) { return legacyMethod("escapeHtml", ...args); }
+function taskGroupCount(...args: any[]) { return legacyMethod("taskGroupCount", ...args); }
 
 function element(node: any): HTMLElement | null {
   return node instanceof HTMLElement ? node : null;
+}
+
+function latestTaskNavigationTargetGroupKey(visibleGroupKeys: any[]) {
+  const groupOrder = ["today", "yesterday", "last7"];
+  const keys = new Set((visibleGroupKeys || []).map((key) => String(key || "")));
+  return groupOrder.find((key) => keys.has(key)) || null;
+}
+
+function latestTaskNavigationViewModel(input: any) {
+  const latestGroupKey = latestTaskNavigationTargetGroupKey(input?.visibleGroupKeys || []);
+  const hasOverflow = Number(input?.scrollHeight || 0) > Number(input?.clientHeight || 0) + 1;
+  const scrollTopThreshold = 8;
+  const atLatestPosition = input?.renderInProgress && typeof input?.preRenderAtLatest === "boolean"
+    ? input.preRenderAtLatest
+    : Number(input?.scrollTop || 0) <= scrollTopThreshold;
+  const atLatest = Boolean(
+    latestGroupKey
+    && String(input?.currentGroupKey || "") === latestGroupKey
+    && atLatestPosition,
+  );
+  const noticeCount = Math.max(0, Number(input?.noticeCount || 0));
+  return {
+    visible: Boolean(
+      hasOverflow
+      && latestGroupKey
+      && !atLatest
+      && !input?.searchActive
+      && !input?.batchMode
+    ),
+    atLatest,
+    latestGroupKey,
+    badgeText: noticeCount > 9 ? "9+" : (noticeCount > 0 ? String(noticeCount) : ""),
+    shouldClearNotice: Boolean(atLatest && !input?.renderInProgress),
+  };
+}
+
+function latestTaskNavigationNextNoticeCount(currentCount: number, atLatest: boolean) {
+  if (atLatest) return 0;
+  return Math.min(99, Math.max(0, Number(currentCount || 0)) + 1);
+}
+
+function latestTaskNavigationPinnedScrollAnchor(anchor: any, keepAtTop: boolean) {
+  if (!anchor || !keepAtTop) return anchor;
+  const pinnedAnchor = {
+    ...anchor,
+    scrollTop: 0,
+    retryMissingTask: false,
+  };
+  delete pinnedAnchor.taskId;
+  delete pinnedAnchor.offsetTop;
+  return pinnedAnchor;
+}
+
+function consumeLatestTaskNavigationScrollAnchor(anchor: any) {
+  const keepAtTop = Boolean(
+    state.latestTaskKeepAtTop === true
+    && Number(state.latestTaskKeepAtTopExpiresAt || 0) >= Date.now()
+  );
+  if (!keepAtTop) {
+    state.latestTaskKeepAtTop = false;
+    state.latestTaskKeepAtTopExpiresAt = 0;
+  }
+  return latestTaskNavigationPinnedScrollAnchor(anchor, keepAtTop);
+}
+
+function settleLatestTaskNavigationAtTop() {
+  const token = ++latestTaskNavigationPinToken;
+  let remainingFrames = 4;
+  const pinToTop = () => {
+    if (token !== latestTaskNavigationPinToken || state.latestTaskKeepAtTop !== true) return;
+    const sidebarContent = element(els.sidebarContent);
+    if (sidebarContent) sidebarContent.scrollTop = 0;
+    remainingFrames -= 1;
+    if (remainingFrames > 0) {
+      requestAnimationFrame(pinToTop);
+      return;
+    }
+    state.latestTaskKeepAtTop = false;
+    state.latestTaskKeepAtTopExpiresAt = 0;
+    scheduleLatestTaskNavigationRefresh();
+  };
+  requestAnimationFrame(pinToTop);
+}
+
+function cancelLatestTaskNavigationTopPin() {
+  if (state.latestTaskKeepAtTop !== true) return;
+  state.latestTaskKeepAtTop = false;
+  state.latestTaskKeepAtTopExpiresAt = 0;
+  latestTaskNavigationPinToken += 1;
+}
+
+function handleLatestTaskNavigationKeydown(event: KeyboardEvent) {
+  const sidebarContent = element(els.sidebarContent);
+  if (!sidebarContent || !(document.activeElement instanceof Node)) return;
+  if (!sidebarContent.contains(document.activeElement)) return;
+  if (!["ArrowUp", "ArrowDown", "PageUp", "PageDown", "Home", "End", " "].includes(event.key)) return;
+  cancelLatestTaskNavigationTopPin();
 }
 
 function isAllCollapsedExpandedTaskGroupKey(groupKey: string | null) {
@@ -82,7 +184,7 @@ function nearestVisibleGroupKey(groups: any[], currentKey: string | null) {
 }
 
 function ensureExpandedTaskGroupKey(groups: any[]) {
-  const visible = groups.filter((group) => Array.isArray(group?.tasks) && group.tasks.length);
+  const visible = groups.filter((group) => taskGroupCount(group) > 0);
   if (!visible.length) {
     state.expandedTaskGroupKey = null;
     persistExpandedTaskGroupKey();
@@ -131,6 +233,127 @@ function scrollExpandedTaskGroupToTop(behavior: ScrollBehavior = "smooth") {
   sidebarContent.scrollTo({ top: 0, behavior: prefersReducedMotion() ? "auto" : behavior });
 }
 
+function visibleTaskHistoryGroupKeys() {
+  const keys = new Set<string>();
+  document.querySelectorAll<HTMLElement>("[data-task-group-anchor-key], #taskList [data-task-group]").forEach((node) => {
+    const key = String(node.dataset.taskGroupAnchorKey || node.dataset.taskGroup || "");
+    if (key) keys.add(key);
+  });
+  return Array.from(keys);
+}
+
+function currentTaskHistoryGroupKey() {
+  const group = els.taskList?.querySelector?.("[data-task-group]");
+  return String(group?.dataset?.taskGroup || state.expandedTaskGroupKey || "");
+}
+
+function taskHistoryRenderInProgress() {
+  const expandedItems = els.taskList?.querySelector?.(".task-group-items-expanded");
+  return Boolean(
+    expandedItems
+    && expandedItems instanceof HTMLElement
+    && expandedItems.dataset.renderComplete !== "true"
+  );
+}
+
+function latestTaskNavigationCurrentViewModel() {
+  const sidebarContent = element(els.sidebarContent);
+  const renderInProgress = taskHistoryRenderInProgress();
+  return latestTaskNavigationViewModel({
+    scrollTop: sidebarContent?.scrollTop || 0,
+    scrollHeight: sidebarContent?.scrollHeight || 0,
+    clientHeight: sidebarContent?.clientHeight || 0,
+    currentGroupKey: currentTaskHistoryGroupKey(),
+    visibleGroupKeys: visibleTaskHistoryGroupKeys(),
+    searchActive: Boolean(String(els.taskSearch?.value || "").trim()),
+    batchMode: Boolean(state.batchMode),
+    noticeCount: state.latestTaskNoticeCount,
+    renderInProgress,
+    preRenderAtLatest: renderInProgress ? latestTaskNavigationPreRenderAtLatest : null,
+  });
+}
+
+function rememberLatestTaskNavigationBeforeRender() {
+  if (taskHistoryRenderInProgress()) return;
+  latestTaskNavigationPreRenderAtLatest = latestTaskNavigationCurrentViewModel().atLatest;
+}
+
+function focusExpandedTaskGroupHeader() {
+  const header = els.taskList?.querySelector?.(".task-group-header-split");
+  if (header instanceof HTMLElement) header.focus({ preventScroll: true });
+}
+
+function refreshLatestTaskNavigation() {
+  const button = element(els.taskLatestButton);
+  const badge = element(els.taskLatestBadge);
+  if (!button) return;
+  const viewModel = latestTaskNavigationCurrentViewModel();
+  if (viewModel.shouldClearNotice && state.latestTaskNoticeCount) {
+    state.latestTaskNoticeCount = 0;
+  }
+  const noticeCount = Math.max(0, Number(state.latestTaskNoticeCount || 0));
+  const badgeText = noticeCount > 9 ? "9+" : (noticeCount > 0 ? String(noticeCount) : "");
+  const shouldHide = !viewModel.visible;
+  if (shouldHide && document.activeElement === button) {
+    focusExpandedTaskGroupHeader();
+  }
+  button.hidden = shouldHide;
+  button.classList.toggle("hidden", shouldHide);
+  button.classList.toggle("has-newer", noticeCount > 0);
+  if (badge) {
+    badge.textContent = badgeText;
+    badge.hidden = !badgeText;
+  }
+  const label = noticeCount > 0
+    ? formatTranslation("taskList.backToLatestWithCount", { count: noticeCount })
+    : translate("taskList.backToLatest");
+  button.setAttribute("aria-label", label);
+  button.title = label;
+}
+
+function scheduleLatestTaskNavigationRefresh() {
+  if (latestTaskNavigationFrameId) return;
+  latestTaskNavigationFrameId = requestAnimationFrame(() => {
+    latestTaskNavigationFrameId = 0;
+    refreshLatestTaskNavigation();
+  });
+}
+
+function notifyLatestTaskAvailable(task: any) {
+  const incomingGroupKey = String(legacyMethod("taskDateBucket", task) || "");
+  const viewModel = latestTaskNavigationCurrentViewModel();
+  const atIncomingTask = Boolean(
+    incomingGroupKey
+    && viewModel.latestGroupKey === incomingGroupKey
+    && viewModel.atLatest
+  );
+  if (atIncomingTask) {
+    state.latestTaskKeepAtTop = true;
+    state.latestTaskKeepAtTopExpiresAt = Date.now() + 500;
+    settleLatestTaskNavigationAtTop();
+  }
+  state.latestTaskNoticeCount = latestTaskNavigationNextNoticeCount(
+    state.latestTaskNoticeCount,
+    atIncomingTask,
+  );
+  scheduleLatestTaskNavigationRefresh();
+}
+
+function returnToLatestTask() {
+  const viewModel = latestTaskNavigationCurrentViewModel();
+  if (!viewModel.latestGroupKey) return;
+  state.latestTaskNoticeCount = 0;
+  const changed = setExpandedTaskGroupKey(viewModel.latestGroupKey, { immediate: true });
+  if (changed) {
+    legacyMethod("renderTasks");
+  }
+  requestAnimationFrame(() => {
+    focusExpandedTaskGroupHeader();
+    scrollExpandedTaskGroupToTop("smooth");
+    scheduleLatestTaskNavigationRefresh();
+  });
+}
+
 function anchorRowHtml(group: any) {
   const key = escapeHtml(group.key);
   return `
@@ -146,7 +369,7 @@ function anchorRowHtml(group: any) {
         <span class="task-group-title">
           <span class="task-group-label">${escapeHtml(group.label)}</span>
           <span class="task-group-count-separator" aria-hidden="true"> · </span>
-          <span class="task-group-count">${group.tasks.length}</span>
+          <span class="task-group-count">${taskGroupCount(group)}</span>
         </span>
       </span>
       <span
@@ -267,11 +490,6 @@ function animateTaskHistoryLayout(previousLayout: Record<string, { kind: "anchor
 }
 
 export function initTaskHistoryAnchorsFeature() {
-  if (typeof ResizeObserver === "function" && !taskHistoryAnchorInsetObserver && element(els.sidebarContent)) {
-    taskHistoryAnchorInsetObserver = new ResizeObserver(() => syncTaskHistoryAnchorInset());
-    taskHistoryAnchorInsetObserver.observe(element(els.sidebarContent) as Element);
-  }
-  syncTaskHistoryAnchorInset();
   Object.assign(getLegacyBridge().methods, {
     restoreExpandedTaskGroupKey,
     ensureExpandedTaskGroupKey,
@@ -280,5 +498,28 @@ export function initTaskHistoryAnchorsFeature() {
     renderTaskHistoryAnchors,
     captureTaskHistoryLayout,
     animateTaskHistoryLayout,
+    scheduleLatestTaskNavigationRefresh,
+    notifyLatestTaskAvailable,
+    consumeLatestTaskNavigationScrollAnchor,
+    rememberLatestTaskNavigationBeforeRender,
   });
+  if (typeof ResizeObserver === "function" && !taskHistoryAnchorInsetObserver && element(els.sidebarContent)) {
+    taskHistoryAnchorInsetObserver = new ResizeObserver(() => {
+      syncTaskHistoryAnchorInset();
+      scheduleLatestTaskNavigationRefresh();
+    });
+    taskHistoryAnchorInsetObserver.observe(element(els.sidebarContent) as Element);
+  }
+  if (!latestTaskNavigationInitialized) {
+    latestTaskNavigationInitialized = true;
+    els.sidebarContent?.addEventListener("scroll", scheduleLatestTaskNavigationRefresh, { passive: true });
+    els.sidebarContent?.addEventListener("wheel", cancelLatestTaskNavigationTopPin, { passive: true });
+    els.sidebarContent?.addEventListener("pointerdown", cancelLatestTaskNavigationTopPin, { passive: true });
+    els.taskLatestButton?.addEventListener("click", returnToLatestTask);
+    window.addEventListener("resize", scheduleLatestTaskNavigationRefresh);
+    document.addEventListener(LOCALE_CHANGE_EVENT, scheduleLatestTaskNavigationRefresh);
+    document.addEventListener("keydown", handleLatestTaskNavigationKeydown);
+  }
+  syncTaskHistoryAnchorInset();
+  scheduleLatestTaskNavigationRefresh();
 }
