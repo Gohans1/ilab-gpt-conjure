@@ -250,6 +250,7 @@ class WebUIStaticPromptTests(WebUIStaticTestCase):
             "function closePromptSnippetPopover",
         ]:
             self.assertIn(marker, source)
+        self.assertIn('candidate.length === 1 && PROMPT_SNIPPET_TRIGGER_CHARS.includes(candidate)', source)
         for function_name in [
             "normalizePromptSnippet",
             "refreshPromptSnippets",
@@ -1210,8 +1211,8 @@ console.log(cases.map((color) => readableTextColor(color)).join("\\n"));
         self.assertIn('id="mainModelToggle"', html)
         self.assertIn('id="mainModelOptions"', html)
         self.assertIn('role="listbox"', html)
-        self.assertIn('/static/app.js?v=runtime-640', html)
-        self.assertIn('/static/styles.css?v=runtime-640', html)
+        self.assertIn('/static/app.js?v=runtime-641', html)
+        self.assertIn('/static/styles.css?v=runtime-641', html)
         self.assertIn("mainModel: document.querySelector", script)
         self.assertIn("mainModelCombobox: document.querySelector", script)
         self.assertIn("mainModelToggle: document.querySelector", script)
