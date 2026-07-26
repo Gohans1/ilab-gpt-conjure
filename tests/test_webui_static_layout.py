@@ -33,6 +33,10 @@ class WebUIStaticLayoutTests(WebUIStaticTestCase):
         )
         self.assertIn('fetch("/api/network-egress")', source)
         self.assertIn('fetch("/api/network-egress/test"', source)
+        self.assertIn("networkEgressPayloadIsValid", source)
+        self.assertIn('url.protocol === "http:" || url.protocol === "https:"', source)
+        self.assertIn("!url.username", source)
+        self.assertIn("!url.password", source)
 
     def test_sidebar_brand_keeps_product_name_stable_and_model_selector_on_its_own_row(self) -> None:
         html = Path("codex_image/webui/static/index.html").read_text(encoding="utf-8")
@@ -2295,6 +2299,10 @@ class WebUIStaticLayoutTests(WebUIStaticTestCase):
         self.assertRegex(styles, r"\.system-settings-section\s*\{[^}]*padding-right:\s*0")
         self.assertNotIn(".system-settings-section-heading", styles)
         self.assertRegex(styles, r"\.system-settings-tabs\s*\{[^}]*grid-template-columns:\s*repeat\(4,\s*minmax\(0,\s*1fr\)\)")
+        self.assertRegex(
+            styles,
+            r"@media \(max-width:\s*520px\)\s*\{[\s\S]*?\.system-settings-tabs\s*\{[^}]*grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\)",
+        )
         self.assertRegex(styles, r"\.system-settings-tabs\s*\{[^}]*--segmented-indicator-radius:\s*999px")
         self.assertRegex(styles, r"\.system-settings-tab\.active\s*\{[^}]*color:\s*var\(--primary-foreground\)")
         self.assertRegex(styles, r"\.system-settings-tabs\s+\.segmented-indicator\s*\{[^}]*border-radius:\s*999px")

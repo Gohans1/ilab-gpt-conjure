@@ -35416,6 +35416,15 @@ ${hint}` : hint;
       custom_proxy_url: String(els43.networkEgressCustomProxy?.value || "").trim()
     };
   }
+  function networkEgressPayloadIsValid(payload2) {
+    if (payload2.mode !== "custom") return true;
+    try {
+      const url = new URL(payload2.custom_proxy_url);
+      return (url.protocol === "http:" || url.protocol === "https:") && Boolean(url.hostname) && !url.username && !url.password && (url.pathname === "" || url.pathname === "/") && !url.search && !url.hash;
+    } catch {
+      return false;
+    }
+  }
   async function refreshNetworkEgress() {
     try {
       const response = await fetch("/api/network-egress");
@@ -35433,12 +35442,17 @@ ${hint}` : hint;
   async function saveNetworkEgress() {
     const { els: els43 } = getLegacyBridge();
     if (!els43.saveNetworkEgressButton) return;
+    const payload2 = networkEgressFormPayload();
+    if (!networkEgressPayloadIsValid(payload2)) {
+      setNetworkEgressFeedback(translate("networkEgress.saveFailed"), "error");
+      return;
+    }
     els43.saveNetworkEgressButton.disabled = true;
     try {
       const response = await fetch("/api/network-egress", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(networkEgressFormPayload())
+        body: JSON.stringify(payload2)
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.detail || translate("networkEgress.saveFailed"));
@@ -35456,13 +35470,18 @@ ${hint}` : hint;
   async function testNetworkEgress() {
     const { els: els43 } = getLegacyBridge();
     if (!els43.testNetworkEgressButton) return;
+    const payload2 = networkEgressFormPayload();
+    if (!networkEgressPayloadIsValid(payload2)) {
+      setNetworkEgressFeedback(translate("networkEgress.testFailed"), "error");
+      return;
+    }
     els43.testNetworkEgressButton.disabled = true;
     setNetworkEgressFeedback(translate("networkEgress.test"), "running");
     try {
       const response = await fetch("/api/network-egress/test", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(networkEgressFormPayload())
+        body: JSON.stringify(payload2)
       });
       const data = await response.json();
       if (!response.ok || !data.ok) {

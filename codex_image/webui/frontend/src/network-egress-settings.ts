@@ -84,6 +84,26 @@ function networkEgressFormPayload(): {
   };
 }
 
+function networkEgressPayloadIsValid(
+  payload: ReturnType<typeof networkEgressFormPayload>,
+): boolean {
+  if (payload.mode !== "custom") return true;
+  try {
+    const url = new URL(payload.custom_proxy_url);
+    return (
+      (url.protocol === "http:" || url.protocol === "https:")
+      && Boolean(url.hostname)
+      && !url.username
+      && !url.password
+      && (url.pathname === "" || url.pathname === "/")
+      && !url.search
+      && !url.hash
+    );
+  } catch {
+    return false;
+  }
+}
+
 async function refreshNetworkEgress(): Promise<void> {
   try {
     const response = await fetch("/api/network-egress");
@@ -102,12 +122,17 @@ async function refreshNetworkEgress(): Promise<void> {
 async function saveNetworkEgress(): Promise<void> {
   const { els } = getLegacyBridge();
   if (!els.saveNetworkEgressButton) return;
+  const payload = networkEgressFormPayload();
+  if (!networkEgressPayloadIsValid(payload)) {
+    setNetworkEgressFeedback(translate("networkEgress.saveFailed"), "error");
+    return;
+  }
   els.saveNetworkEgressButton.disabled = true;
   try {
     const response = await fetch("/api/network-egress", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(networkEgressFormPayload()),
+      body: JSON.stringify(payload),
     });
     const data = await response.json();
     if (!response.ok) throw new Error(data.detail || translate("networkEgress.saveFailed"));
@@ -126,13 +151,18 @@ async function saveNetworkEgress(): Promise<void> {
 async function testNetworkEgress(): Promise<void> {
   const { els } = getLegacyBridge();
   if (!els.testNetworkEgressButton) return;
+  const payload = networkEgressFormPayload();
+  if (!networkEgressPayloadIsValid(payload)) {
+    setNetworkEgressFeedback(translate("networkEgress.testFailed"), "error");
+    return;
+  }
   els.testNetworkEgressButton.disabled = true;
   setNetworkEgressFeedback(translate("networkEgress.test"), "running");
   try {
     const response = await fetch("/api/network-egress/test", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(networkEgressFormPayload()),
+      body: JSON.stringify(payload),
     });
     const data = await response.json();
     if (!response.ok || !data.ok) {

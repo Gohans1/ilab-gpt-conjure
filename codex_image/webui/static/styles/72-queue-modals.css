@@ -500,6 +500,13 @@
   outline-offset: 2px;
 }
 
+@media (max-width: 520px) {
+  .system-settings-tabs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    border-radius: 18px;
+  }
+}
+
 .system-settings-section[hidden] {
   display: none;
 }
