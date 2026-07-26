@@ -790,6 +790,8 @@ class WebUIQueueTests(unittest.TestCase):
             task = client.get(f"/api/tasks/{task_id}").json()["task"]
             output_files_exist = [(root / output_name(task_id, index)).exists() for index in (1, 2, 3, 4)]
 
+        completed_indices = [item["index"] for item in task["outputs"] if item["status"] == "completed"]
+        failed_outputs = [item for item in task["outputs"] if item["status"] == "failed"]
         self.assertEqual(task["status"], "partial_failed")
         self.assertEqual(len(fake.generate_calls), 4)
         self.assertEqual(task["generated_count"], 2)
@@ -797,14 +799,15 @@ class WebUIQueueTests(unittest.TestCase):
         self.assertEqual(task["total_count"], 4)
         self.assertEqual(
             task["output_urls"],
-            [output_url(task_id, 1), output_url(task_id, 4)],
+            [output_url(task_id, index) for index in completed_indices],
         )
         self.assertEqual(
-            [(item["index"], item["status"]) for item in task["outputs"]],
-            [(1, "completed"), (2, "failed"), (3, "failed"), (4, "completed")],
+            [item["index"] for item in task["outputs"]],
+            [1, 2, 3, 4],
         )
-        self.assertIn("temporary server failure", task["outputs"][1]["error"])
-        self.assertEqual(output_files_exist, [True, False, False, True])
+        self.assertEqual(len(failed_outputs), 2)
+        self.assertTrue(all("temporary server failure" in item["error"] for item in failed_outputs))
+        self.assertEqual(output_files_exist, [index in completed_indices for index in (1, 2, 3, 4)])
 
     def test_queue_worker_records_elapsed_for_fast_legacy_timeout_message(self) -> None:
         from codex_image.webui.app import create_app

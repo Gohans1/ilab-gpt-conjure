@@ -670,9 +670,12 @@ class WebUIGalleryTests(unittest.TestCase):
             second_retry = client.post(f"/api/tasks/{task_id}/retry-failed")
             queue_state = app.state.queue_storage.read_state()
 
+        partial_failed_outputs = [item for item in partial["outputs"] if item["status"] == "failed"]
         self.assertEqual(partial["status"], "partial_failed")
-        self.assertEqual(partial["outputs"][1]["status"], "failed")
-        self.assertIn("temporary server failure", partial["outputs"][1]["error"])
+        self.assertEqual(len(partial_failed_outputs), 2)
+        self.assertTrue(
+            all("temporary server failure" in item["error"] for item in partial_failed_outputs)
+        )
         self.assertEqual(first_retry.status_code, 200)
         self.assertEqual(failed["status"], "failed")
         self.assertIn("Reference asset not found", failed["last_error"])

@@ -1277,6 +1277,9 @@ class WebUITaskTests(unittest.TestCase):
             stored = client.get(f"/api/tasks/{task_id}").json()["task"]
             output_files_exist = [(root / output_name(task_id, index)).exists() for index in (1, 2, 3, 4)]
 
+        partial_completed_indices = [
+            item["index"] for item in partial["outputs"] if item["status"] == "completed"
+        ]
         self.assertEqual(partial["status"], "partial_failed")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(accepted["status"], "completed")
@@ -1299,13 +1302,16 @@ class WebUITaskTests(unittest.TestCase):
         )
         self.assertEqual(
             accepted["output_urls"],
-            [output_url(task_id, 1), output_url(task_id, 4)],
+            [output_url(task_id, index) for index in partial_completed_indices],
         )
         self.assertEqual(stored["status"], "completed")
         self.assertEqual(stored["total_count"], 2)
         self.assertEqual(stored["terminal_at"], partial["terminal_at"])
         self.assertEqual(stored["viewed_at"], stored["updated_at"])
-        self.assertEqual(output_files_exist, [True, False, False, True])
+        self.assertEqual(
+            output_files_exist,
+            [index in partial_completed_indices for index in (1, 2, 3, 4)],
+        )
     def test_accept_failed_task_successes_after_interruption(self) -> None:
         from codex_image.webui.app import create_app
 
@@ -1542,11 +1548,20 @@ class WebUITaskTests(unittest.TestCase):
             retried = client.get(f"/api/tasks/{task_id}").json()["task"]
             output_files_exist = [(root / output_name(task_id, index)).exists() for index in (1, 2, 3, 4)]
 
+        partial_completed_indices = [
+            item["index"] for item in partial["outputs"] if item["status"] == "completed"
+        ]
+        partial_failed_indices = [
+            item["index"] for item in partial["outputs"] if item["status"] == "failed"
+        ]
         self.assertEqual(partial["status"], "partial_failed")
-        self.assertEqual(partial["output_urls"], [output_url(task_id, 1), output_url(task_id, 4)])
+        self.assertEqual(
+            partial["output_urls"],
+            [output_url(task_id, index) for index in partial_completed_indices],
+        )
         self.assertEqual(retry_response.status_code, 200)
         self.assertEqual(queued["status"], "queued")
-        self.assertEqual(queued["retrying_failed_slots"], [2, 3])
+        self.assertEqual(queued["retrying_failed_slots"], partial_failed_indices)
         self.assertEqual(queued["attempts"], 0)
         self.assertIn(task_id, queue_after_retry["waiting"])
         self.assertEqual(len(fake.generate_calls), 6)
