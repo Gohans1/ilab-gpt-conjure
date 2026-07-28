@@ -37,27 +37,10 @@ function handleRunTaskShortcut(event: KeyboardEvent, els: WebUIElements, methods
 
 let systemSettingsBackdropPointerDown = false;
 
-export function bindWebUIEvents(state: WebUIState, els: WebUIElements, methods: LegacyMethods): void {
-  call(methods, "bindShellUiEvents");
-  call(methods, "bindFormControlEvents");
-
-  els.clearPromptButton.addEventListener("click", () => {
-    call(methods, "setPromptText", "");
-    call(methods, "syncGalleryInputsFromPrompt");
-    call(methods, "updatePromptCount");
-    call(methods, "updateRequestPreview");
-  });
-  els.quickGalleryRail?.addEventListener("mouseover", (event: Event) => call(methods, "handleQuickGalleryCategoryEvent", event));
-  els.quickGalleryRail?.addEventListener("focusin", (event: Event) => call(methods, "handleQuickGalleryCategoryEvent", event));
-  els.quickGalleryRail?.addEventListener("click", (event: Event) => call(methods, "handleQuickGalleryCategoryEvent", event));
-  els.quickGalleryList?.addEventListener("scroll", () => call(methods, "scheduleQuickGalleryFocusUpdate"));
-  els.quickGalleryList?.addEventListener("wheel", (event: Event) => call(methods, "handleQuickGalleryBoundaryWheel", event), { passive: false });
-  els.addGalleryCategoryButton?.addEventListener("click", () => call(methods, "createGalleryCategory"));
-  els.addToGalleryClose?.addEventListener("click", () => call(methods, "closeAddToGallery"));
-  els.addToGalleryModal?.addEventListener("click", (event: Event) => {
-    if (event.target === els.addToGalleryModal) call(methods, "closeAddToGallery");
-  });
-  els.saveToGalleryButton?.addEventListener("click", () => call(methods, "saveUploadToGallery"));
+export function bindSharedTopNavSettingsEvents(
+  els: WebUIElements,
+  methods: LegacyMethods,
+): void {
   els.systemSettingsModalClose?.addEventListener("click", () => call(methods, "closeSystemSettingsModal"));
   els.systemSettingsModal?.addEventListener("pointerdown", (event: Event) => {
     systemSettingsBackdropPointerDown = event.target === els.systemSettingsModal;
@@ -121,6 +104,30 @@ export function bindWebUIEvents(state: WebUIState, els: WebUIElements, methods: 
   els.apiKey?.addEventListener("input", () => call(methods, "updateApiKeyRevealButton"));
   els.apiBaseUrl?.addEventListener("input", () => call(methods, "updateApiRequestEndpointPreview"));
   call(methods, "bindOverlayPopoverEvents");
+}
+
+export function bindWebUIEvents(state: WebUIState, els: WebUIElements, methods: LegacyMethods): void {
+  call(methods, "bindShellUiEvents");
+  call(methods, "bindFormControlEvents");
+
+  els.clearPromptButton.addEventListener("click", () => {
+    call(methods, "setPromptText", "");
+    call(methods, "syncGalleryInputsFromPrompt");
+    call(methods, "updatePromptCount");
+    call(methods, "updateRequestPreview");
+  });
+  els.quickGalleryRail?.addEventListener("mouseover", (event: Event) => call(methods, "handleQuickGalleryCategoryEvent", event));
+  els.quickGalleryRail?.addEventListener("focusin", (event: Event) => call(methods, "handleQuickGalleryCategoryEvent", event));
+  els.quickGalleryRail?.addEventListener("click", (event: Event) => call(methods, "handleQuickGalleryCategoryEvent", event));
+  els.quickGalleryList?.addEventListener("scroll", () => call(methods, "scheduleQuickGalleryFocusUpdate"));
+  els.quickGalleryList?.addEventListener("wheel", (event: Event) => call(methods, "handleQuickGalleryBoundaryWheel", event), { passive: false });
+  els.addGalleryCategoryButton?.addEventListener("click", () => call(methods, "createGalleryCategory"));
+  els.addToGalleryClose?.addEventListener("click", () => call(methods, "closeAddToGallery"));
+  els.addToGalleryModal?.addEventListener("click", (event: Event) => {
+    if (event.target === els.addToGalleryModal) call(methods, "closeAddToGallery");
+  });
+  els.saveToGalleryButton?.addEventListener("click", () => call(methods, "saveUploadToGallery"));
+  bindSharedTopNavSettingsEvents(els, methods);
   els.runButton.addEventListener("click", () => call(methods, "runTask"));
   document.addEventListener("keydown", (event) => handleRunTaskShortcut(event, els, methods));
   els.refreshButton.addEventListener("click", () => {

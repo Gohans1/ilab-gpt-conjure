@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import re
 import shutil
+import threading
 import uuid
 from datetime import UTC, datetime
 from pathlib import Path
@@ -38,6 +39,8 @@ from .reference_files import (
     ReferenceFileStorage,
 )
 from .queue_storage import QueueStorage, SQLiteQueueStorage
+from .history_organizer import HistoryOrganization, HistoryOrganizer
+from .history_query import HistoryQueryService
 from .task_index import TERMINAL_TASK_STATUSES, SQLiteTaskIndex, project_task_generation_snapshot
 from .storage_utils import (
     _guess_mime_type,
@@ -60,6 +63,33 @@ TASK_SOURCE_DATA_SUFFIXES = ("metadata.json", "request.json", "debug-sse.jsonl")
 DIMENSION_SIZE_RE = re.compile(r"^\s*(\d{1,5})\s*[xX×]\s*(\d{1,5})\s*$")
 
 
+class HistoryTaskNotFoundError(ValueError):
+    def __init__(self, task_ids: list[str]) -> None:
+        self.task_ids = tuple(task_ids)
+        super().__init__("Task not found: " + ", ".join(self.task_ids))
+
+
+def _normalized_history_task_ids(
+    task_ids: list[str],
+    *,
+    maximum: int = 300,
+) -> list[str]:
+    normalized = list(
+        dict.fromkeys(
+            task_id
+            for value in task_ids
+            if (task_id := str(value or "").strip())
+        )
+    )
+    if not normalized:
+        raise ValueError("At least one task id is required")
+    if len(normalized) > maximum:
+        raise ValueError(
+            f"At most {maximum} tasks can be organized at once"
+        )
+    return normalized
+
+
 class TaskStorage:
     def __init__(
         self,
@@ -77,6 +107,14 @@ class TaskStorage:
         # paths are migrated to the explicit roots above.
         self.root = self.output_root
         self.task_index = SQLiteTaskIndex(self.source_data_root / "webui-task-index.db")
+        self.history_organizer = HistoryOrganizer(
+            self.source_data_root / "webui-history-organizer.db"
+        )
+        self.history_query = HistoryQueryService(
+            self.task_index,
+            self.history_organizer,
+        )
+        self._history_organization_lock = threading.RLock()
 
     def create_task(self, mode: str) -> CreatedTask:
         task_id = datetime.now(UTC).strftime("%Y%m%d%H%M%S") + "-" + uuid.uuid4().hex[:8]
@@ -130,6 +168,11 @@ class TaskStorage:
         return path
 
     def delete_task(self, task_id: str) -> None:
+        with self._history_organization_lock:
+            self._delete_task_unlocked(task_id)
+            self.history_organizer.delete_task_state(task_id)
+
+    def _delete_task_unlocked(self, task_id: str) -> None:
         self._validate_task_id(task_id)
         thumbnail_root = self.output_root / "thumbnails"
         output_paths: list[Path] = []
@@ -196,6 +239,37 @@ class TaskStorage:
             self._prune_empty_output_dir(path)
         for path in source_data_dirs:
             self._prune_empty_source_data_dir(path)
+
+    def organize_history_tasks(
+        self,
+        task_ids: list[str],
+        *,
+        favorite: bool | None,
+        add_tag_ids: list[str],
+        remove_tag_ids: list[str],
+    ) -> dict[str, HistoryOrganization]:
+        normalized = _normalized_history_task_ids(task_ids)
+        with self._history_organization_lock:
+            existing = self.task_index.existing_task_ids(normalized)
+            missing = [
+                task_id
+                for task_id in normalized
+                if task_id not in existing
+            ]
+            if missing:
+                raise HistoryTaskNotFoundError(missing)
+            return self.history_organizer.organize(
+                normalized,
+                favorite=favorite,
+                add_tag_ids=add_tag_ids,
+                remove_tag_ids=remove_tag_ids,
+            )
+
+    def history_organizations(
+        self,
+        task_ids: list[str],
+    ) -> dict[str, HistoryOrganization]:
+        return self.history_organizer.organizations_for_tasks(task_ids)
 
     def list_tasks(self) -> list[dict[str, Any]]:
         indexed_tasks = self.task_index.list_summaries()
@@ -289,7 +363,7 @@ class TaskStorage:
 
     def task_history_summary(self) -> dict[str, Any]:
         self.refresh_stale_task_index()
-        return self.task_index.history_summary()
+        return self.history_query.summary()
 
     def query_task_history(
         self,
@@ -308,11 +382,14 @@ class TaskStorage:
         backend: str = "",
         provider: str = "",
         archived: bool | None = None,
+        favorite: bool | None = None,
+        tag_ids: list[str] | None = None,
+        untagged: bool = False,
         sort: str = "newest",
         direction: str = "next",
     ) -> dict[str, Any]:
         self.refresh_stale_task_index()
-        return self.task_index.query_history(
+        return self.history_query.query(
             limit=limit,
             cursor=cursor,
             q=q,
@@ -327,6 +404,9 @@ class TaskStorage:
             backend=backend,
             provider=provider,
             archived=archived,
+            favorite=favorite,
+            tag_ids=tag_ids,
+            untagged=untagged,
             sort=sort,
             direction=direction,
         )

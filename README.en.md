@@ -73,6 +73,13 @@ Download standard app packages and portable transition packages from
   accidental setting changes while generating or browsing historical tasks.
 - Independent `/history` page with SQLite-backed pagination, search, filters,
   grid/list views, and lazy detail loading.
+- Favorite historical tasks, assign multiple tags, filter by favorites, tags,
+  or untagged tasks, and organize up to 300 selected tasks at once.
+- Export one or multiple historical tasks into one ZIP as images only or
+  images with per-image prompts; optimized prompts fall back to the original
+  task prompt when unavailable.
+- Shared generator/history top navigation, rabbit logo, return entry, and
+  system/light/dark theme preference.
 - Optional web search for Codex Responses and API Responses image generation,
   plus prompt and task ID search across recent and historical tasks.
 - Shared gallery references, recent reference images, color chips, prompt
@@ -81,8 +88,8 @@ Download standard app packages and portable transition packages from
   composition, default ratio-locked transform, Shift free transform, local
   erasing, and real layer thumbnails.
 - System Settings language dropdown for Simplified Chinese, Traditional
-  Chinese, Japanese, Korean, English, Spanish, Portuguese, French, German,
-  Russian, Italian, and Hindi, with first-launch browser detection and a
+  Chinese, Japanese, Korean, English, Vietnamese, Spanish, Portuguese, French,
+  German, Russian, Italian, and Hindi, with first-launch browser detection and a
   browser-local language preference.
 - Centered System Settings with API Settings, Network, Language, and Storage &
   Notifications tabs; Codex Image and Codex Responses are chosen in the
@@ -178,15 +185,15 @@ http://127.0.0.1:8787/
 ## App packages
 
 Download the current packages from [Downloads / Releases](RELEASES.md), or open
-[GitHub Release v0.7.1](https://github.com/kadevin/ilab-conjure/releases/tag/v0.7.1)
+[GitHub Release v0.7.2](https://github.com/kadevin/ilab-conjure/releases/tag/v0.7.2)
 directly.
 
 New users should choose the standard packages:
 
-1. macOS: download `iLab-GPT-CONJURE-macos-arm64-0.7.1.dmg`
-   for Apple Silicon or `iLab-GPT-CONJURE-macos-x64-0.7.1.dmg`
+1. macOS: download `iLab-GPT-CONJURE-macos-arm64-0.7.2.dmg`
+   for Apple Silicon or `iLab-GPT-CONJURE-macos-x64-0.7.2.dmg`
    for Intel, then drag `iLab GPT CONJURE.app` to Applications.
-2. Windows: download `iLab-GPT-CONJURE-windows-x64_0.7.1.zip`,
+2. Windows: download `iLab-GPT-CONJURE-windows-x64_0.7.2.zip`,
    extract it into a normal user directory, and run `iLab GPT CONJURE.exe`.
 
 Standard packages store user data in `~/Library/Application Support/iLab GPT

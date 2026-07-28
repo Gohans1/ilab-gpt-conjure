@@ -24,6 +24,858 @@ def _typescript_function_body(source: str, name: str) -> str:
 
 
 class WebUIStaticHistoryTests(unittest.TestCase):
+    def test_history_shell_uses_shared_top_nav_and_compact_sidebar(self) -> None:
+        html = Path(
+            "codex_image/webui/static/history.html"
+        ).read_text(encoding="utf-8")
+        source = Path(
+            "codex_image/webui/frontend/src/history.ts"
+        ).read_text(encoding="utf-8")
+        shell_source = Path(
+            "codex_image/webui/frontend/src/history-shell.ts"
+        ).read_text(encoding="utf-8")
+        styles = Path(
+            "codex_image/webui/static/styles/90-history.css"
+        ).read_text(encoding="utf-8")
+
+        stylesheet_index = html.index(
+            '<link rel="stylesheet"'
+        )
+        theme_script_index = html.index(
+            '"codex-image-theme-preference"'
+        )
+        self.assertLess(theme_script_index, stylesheet_index)
+        bootstrap = html[:stylesheet_index]
+        for marker in (
+            '"system"',
+            '"light"',
+            '"dark"',
+            "localStorage.getItem",
+            "window.matchMedia?.",
+            "dataset.theme",
+            "dataset.themePreference",
+        ):
+            self.assertIn(marker, bootstrap)
+        self.assertIn(
+            'class="history-program-brand"',
+            html,
+        )
+        self.assertIn(
+            'data-i18n-attr="aria-label:history.homeAria"',
+            html,
+        )
+        self.assertIn('class="brand-rabbit-logo"', html)
+        self.assertIn('d="M18.9 5.2v2.4M17.7 6.4h2.4"', html)
+        self.assertNotIn('class="history-program-name"', html)
+        self.assertIn('class="history-back-link"', html)
+        self.assertIn('data-i18n="history.backToGenerator"', html)
+        self.assertIn('data-i18n="history.title"', html)
+        self.assertIn('id="historyTotal"', html)
+        for marker in (
+            'class="top-nav history-top-nav"',
+            'id="queueButton"',
+            'id="taskNotificationButton"',
+            'id="taskNotificationCenter"',
+            'id="themeSwitcher"',
+            'id="githubLink"',
+            'id="generationProviderSelect"',
+            'id="generationProviderSettingsButton"',
+            'id="systemSettingsModal"',
+            'id="systemSettingsApiTab"',
+            'id="systemSettingsNetworkTab"',
+            'id="systemSettingsLanguageTab"',
+            'id="systemSettingsStorageTab"',
+        ):
+            self.assertIn(marker, html)
+        self.assertNotIn('id="historyThemeSwitcher"', html)
+        for value in ("system", "light", "dark"):
+            self.assertIn(
+                f'data-theme-option="{value}"',
+                html,
+            )
+        self.assertEqual(
+            html.count('data-theme-option="'),
+            3,
+        )
+        toolbar = html[
+            html.index('<header class="history-toolbar">'):
+            html.index("</header>", html.index('<header class="history-toolbar">'))
+        ]
+        self.assertNotIn("themeSwitcher", toolbar)
+        self.assertNotIn("historyThemeSwitcher", toolbar)
+        self.assertIn('class="history-search-field"', html)
+        self.assertIn(
+            'id="historySearchClear" class="history-search-clear hidden"',
+            html,
+        )
+        self.assertIn('class="history-favorite-filter"', html)
+        self.assertNotIn(
+            'data-history-filter-section="favorite"',
+            html,
+        )
+
+        for marker in (
+            'from "./history-shell"',
+            "initializeHistoryShell({",
+            "selectHistoryTask: loadTaskDetail",
+        ):
+            self.assertIn(marker, source)
+        for marker in (
+            'import "../legacy-app.js";',
+            "initTaskNotificationsFeature",
+            "initializeQueueFeature",
+            "initProviderSelectionFeature",
+            "initSystemSettingsFeature",
+            "syncReferenceFileAvailability: () => {}",
+            "handlePromptDocumentClick: noOp",
+            "handleGalleryDocumentClick: noOp",
+            "handleImageEditorHistoryShortcut: () => false",
+            "closePromptTemplateDrawer: noOp",
+            "selectHistoryTask",
+            "startRealtimeUpdates",
+        ):
+            self.assertIn(marker, shell_source)
+        self.assertRegex(
+            styles,
+            r"\.history-program-brand\s*\{[^}]*display:\s*flex",
+        )
+        self.assertRegex(
+            styles,
+            r"\.history-program-brand \.brand-mark\s*\{[^}]*width:\s*38px[^}]*height:\s*38px",
+        )
+        self.assertRegex(
+            styles,
+            r"\.history-toolbar-actions\s*\{[^}]*--history-toolbar-control-height:\s*36px",
+        )
+        self.assertNotIn(".history-theme-switcher", styles)
+
+        language_paths = [
+            path
+            for path in Path(
+                "codex_image/webui/frontend/src/i18n"
+            ).glob("*.ts")
+            if path.name
+            not in {"dictionaries.ts", "types.ts"}
+        ]
+        self.assertEqual(len(language_paths), 14)
+        for path in language_paths:
+            self.assertIn(
+                '"history.homeAria"',
+                path.read_text(encoding="utf-8"),
+                f"{path.name} misses history.homeAria",
+            )
+            self.assertIn(
+                '"history.backToGenerator"',
+                path.read_text(encoding="utf-8"),
+                f"{path.name} misses history.backToGenerator",
+            )
+
+    def test_history_export_module_uses_server_download_without_blob(
+        self,
+    ) -> None:
+        node = shutil.which("node")
+        if node is None:
+            self.skipTest(
+                "node is required for frontend behavior checks"
+            )
+        module_path = Path(
+            "codex_image/webui/frontend/src/history-export.ts"
+        )
+        self.assertTrue(module_path.is_file())
+        source = module_path.read_text(encoding="utf-8")
+        self.assertNotIn(".blob()", source)
+        self.assertNotIn("URL.createObjectURL", source)
+        harness = textwrap.dedent(
+            f"""
+            const fs = require("fs");
+            const ts = require("typescript");
+            const vm = require("vm");
+            const source = fs.readFileSync(
+              {str(module_path)!r},
+              "utf8",
+            );
+            const code = ts.transpileModule(source, {{
+              compilerOptions: {{
+                module: ts.ModuleKind.CommonJS,
+                target: ts.ScriptTarget.ES2020,
+              }},
+            }}).outputText;
+            let fetchCount = 0;
+            let requestBody = null;
+            const anchor = {{
+              href: "",
+              download: "",
+              hidden: false,
+              clicked: false,
+              removed: false,
+              click() {{ this.clicked = true; }},
+              remove() {{ this.removed = true; }},
+            }};
+            const document = {{
+              createElement(name) {{
+                if (name !== "a") throw new Error("not an anchor");
+                return anchor;
+              }},
+              body: {{ append(node) {{
+                if (node !== anchor) throw new Error("wrong node");
+              }} }},
+            }};
+            const fetch = async (_url, init) => {{
+              fetchCount += 1;
+              requestBody = JSON.parse(init.body);
+              return {{
+                ok: true,
+                status: 200,
+                async json() {{
+                  return {{
+                    download_url: "/download/once",
+                    filename: "export.zip",
+                    task_count: 2,
+                    image_count: 3,
+                  }};
+                }},
+              }};
+            }};
+            const module = {{ exports: {{}} }};
+            vm.runInNewContext(code, {{
+              module,
+              exports: module.exports,
+              fetch,
+              document,
+              JSON,
+              String,
+              Error,
+              Promise,
+            }});
+            (async () => {{
+              const result = await module.exports.createHistoryExport(
+                ["a", "b"],
+                "images_with_prompts",
+              );
+              module.exports.triggerHistoryExportDownload(result);
+              if (fetchCount !== 1) throw new Error("wrong request count");
+              if (
+                requestBody.mode !== "images_with_prompts"
+                || requestBody.task_ids.join(",") !== "a,b"
+              ) throw new Error("wrong request payload");
+              if (
+                anchor.href !== "/download/once"
+                || anchor.download !== "export.zip"
+                || !anchor.clicked
+                || !anchor.removed
+              ) throw new Error("ordinary download was not triggered");
+            }})().catch((error) => {{
+              process.stderr.write(String(error.stack || error));
+              process.exitCode = 1;
+            }});
+            """
+        )
+        result = subprocess.run(
+            [node, "-e", harness],
+            cwd=Path.cwd(),
+            check=False,
+            text=True,
+            capture_output=True,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_history_export_picker_and_i18n_contract(self) -> None:
+        html = Path(
+            "codex_image/webui/static/history.html"
+        ).read_text(encoding="utf-8")
+        source = Path(
+            "codex_image/webui/frontend/src/history.ts"
+        ).read_text(encoding="utf-8")
+        styles = Path(
+            "codex_image/webui/static/styles/90-history.css"
+        ).read_text(encoding="utf-8")
+        module = Path(
+            "codex_image/webui/frontend/src/history-export.ts"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn('id="historyBulkExportButton"', html)
+        for marker in (
+            'from "./history-export"',
+            'data-history-open-export',
+            'data-history-export-mode="images_only"',
+            'data-history-export-mode="images_with_prompts"',
+            "historyExportPending",
+            "createHistoryExport(",
+            "triggerHistoryExportDownload(",
+            "historyExportTrigger?.focus()",
+            "historyState.selectedTaskIds",
+            "historyState.detailTask",
+            "outputs.zip",
+        ):
+            self.assertIn(marker, source)
+        self.assertEqual(
+            _typescript_function_body(
+                source,
+                "runHistoryExport",
+            ).count("createHistoryExport("),
+            1,
+        )
+        self.assertNotIn(".blob()", module)
+        self.assertNotIn("URL.createObjectURL", module)
+        self.assertRegex(
+            styles,
+            r"\.history-export-picker\s*\{[^}]*position:\s*fixed",
+        )
+
+        export_keys = (
+            "history.export",
+            "history.exportImagesOnly",
+            "history.exportImagesWithPrompts",
+            "history.exportPreparing",
+            "history.exportStarted",
+            "history.exportSummary",
+            "history.exportFailed",
+            "history.closeExport",
+        )
+        language_paths = [
+            path
+            for path in Path(
+                "codex_image/webui/frontend/src/i18n"
+            ).glob("*.ts")
+            if path.name
+            not in {"dictionaries.ts", "types.ts"}
+        ]
+        self.assertEqual(len(language_paths), 14)
+        for path in language_paths:
+            dictionary = path.read_text(encoding="utf-8")
+            for key in export_keys:
+                self.assertIn(
+                    f'"{key}"',
+                    dictionary,
+                    f"{path.name} misses {key}",
+                )
+
+    def test_history_organization_controls_and_local_update_contract(
+        self,
+    ) -> None:
+        html = Path(
+            "codex_image/webui/static/history.html"
+        ).read_text(encoding="utf-8")
+        source = Path(
+            "codex_image/webui/frontend/src/history.ts"
+        ).read_text(encoding="utf-8")
+        organization_source = Path(
+            "codex_image/webui/frontend/src/history-organization.ts"
+        ).read_text(encoding="utf-8")
+        styles = Path(
+            "codex_image/webui/static/styles/90-history.css"
+        ).read_text(encoding="utf-8")
+
+        self.assertLess(
+            html.index("historySearch"),
+            html.index("historyFavoriteList"),
+        )
+        self.assertLess(
+            html.index("historyFavoriteList"),
+            html.index('data-history-filter-section="mode"'),
+        )
+        for marker in (
+            'id="historyTagFilterList"',
+            'id="historyTagManageToggle"',
+            'id="historyTagManager"',
+            'id="historyTagManagerStatus"',
+            'id="historyBulkFavoriteButton"',
+            'id="historyBulkUnfavoriteButton"',
+            'id="historyBulkAddTagButton"',
+            'id="historyBulkRemoveTagButton"',
+            'class="history-bulk-actions"',
+        ):
+            self.assertIn(marker, html)
+        self.assertNotIn("history-tag-manager-modal", html)
+
+        for marker in (
+            'from "./history-organization"',
+            "readHistoryOrganizationFilters",
+            "writeHistoryOrganizationFilters",
+            "appendHistoryOrganizationQuery",
+            "taskMatchesHistoryOrganizationFilters",
+            "historyFavoriteButtonHtml",
+            "historyCardTagsHtml",
+            "organizeHistoryTasks",
+            "function applyHistoryOrganizations",
+            "function removeHistoryTaskCardPreservingAnchor",
+            'data-history-favorite-task',
+            'data-history-open-tag-picker',
+            "historyTagMutationErrorMessage",
+            "historyOrganizationSummarySupported",
+            "historyTaskRowsSupportOrganization",
+            "historyTagPickerCreateHtml",
+            "createHistoryTagForTasks",
+            "data-history-tag-create-inline",
+            "history.backendRestartRequired",
+        ):
+            self.assertIn(marker, source)
+        self.assertIn(
+            "class HistoryOrganizationRequestError",
+            organization_source,
+        )
+        self.assertIn(
+            "error.status === 409",
+            _typescript_function_body(
+                source,
+                "historyTagMutationErrorMessage",
+            ),
+        )
+        card_body = _typescript_function_body(
+            source,
+            "taskCardHtml",
+        )
+        self.assertIn("historyFavoriteButtonHtml", card_body)
+        self.assertIn("historyCardTagsHtml", card_body)
+        self.assertLess(
+            card_body.index("historyFavoriteButtonHtml"),
+            card_body.index(
+                '<button class="history-task-open"'
+            ),
+        )
+        organize_body = _typescript_function_body(
+            source,
+            "organizeHistoryTaskIds",
+        )
+        self.assertEqual(
+            organize_body.count("organizeHistoryTasks("),
+            1,
+        )
+        self.assertIn(
+            "taskMatchesHistoryOrganizationFilters",
+            _typescript_function_body(
+                source,
+                "applyHistoryOrganizations",
+            ),
+        )
+        self.assertIn("event.key !== \"Escape\"", source)
+        self.assertIn("historyTagPickerTrigger?.focus()", source)
+        self.assertRegex(
+            styles,
+            r"\.history-tag-picker\s*\{[^}]*position:\s*fixed",
+        )
+        self.assertIn(".history-tag-picker-create-form", styles)
+        self.assertIn(".history-tag-manager-status", styles)
+        self.assertRegex(
+            styles,
+            r"\.history-card-tags\s*\{[^}]*overflow:\s*hidden",
+        )
+        self.assertNotRegex(
+            styles,
+            r"\.history-card-tags\s*\{[^}]*position:\s*absolute",
+        )
+
+    def test_history_organization_i18n_keys_exist_in_all_languages(
+        self,
+    ) -> None:
+        keys = (
+            "history.favorites",
+            "history.onlyFavorites",
+            "history.favoriteTask",
+            "history.unfavoriteTask",
+            "history.tags",
+            "history.untagged",
+            "history.manageTags",
+            "history.createTag",
+            "history.renameTag",
+            "history.deleteTag",
+            "history.deleteTagAffected",
+            "history.addTag",
+            "history.removeTag",
+            "history.favoriteSelected",
+            "history.unfavoriteSelected",
+            "history.organizationFailed",
+            "history.tagNameConflict",
+            "history.noTags",
+            "history.backendRestartRequired",
+        )
+        paths = sorted(
+            Path(
+                "codex_image/webui/frontend/src/i18n"
+            ).glob("*.ts")
+        )
+        language_paths = [
+            path
+            for path in paths
+            if path.name
+            not in {"dictionaries.ts", "types.ts"}
+        ]
+        self.assertEqual(len(language_paths), 14)
+        for path in language_paths:
+            source = path.read_text(encoding="utf-8")
+            for key in keys:
+                self.assertIn(
+                    f'"{key}"',
+                    source,
+                    f"{path.name} misses {key}",
+                )
+
+    def test_history_search_and_tag_manager_keep_actions_compact(
+        self,
+    ) -> None:
+        html = Path(
+            "codex_image/webui/static/history.html"
+        ).read_text(encoding="utf-8")
+        source = Path(
+            "codex_image/webui/frontend/src/history.ts"
+        ).read_text(encoding="utf-8")
+        styles = Path(
+            "codex_image/webui/static/styles/90-history.css"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn(
+            ".history-search-field input[type=\"search\"]::-webkit-search-cancel-button",
+            styles,
+        )
+        self.assertIn(
+            'id="historySearchClear"',
+            html,
+        )
+        self.assertIn(
+            'data-i18n="action.add">添加</button>',
+            html,
+        )
+        self.assertIn(
+            'class="history-tag-manager-row-field"',
+            source,
+        )
+        self.assertIn(
+            'class="history-tag-manager-row-actions"',
+            source,
+        )
+        self.assertIn(
+            'translate("history.confirmDelete")',
+            source,
+        )
+        self.assertIn(
+            'aria-label="${escapeHtml(deleteAriaLabel)}"',
+            source,
+        )
+        self.assertIn(
+            ".history-tag-manager-row-actions",
+            styles,
+        )
+        self.assertNotIn(
+            ".history-tag-manager-row > .control",
+            styles,
+        )
+
+    def test_history_organization_filter_runtime_contract(self) -> None:
+        node = shutil.which("node")
+        if node is None:
+            self.skipTest(
+                "node is required for frontend behavior checks"
+            )
+        module_path = Path(
+            "codex_image/webui/frontend/src/"
+            "history-organization.ts"
+        )
+        self.assertTrue(module_path.is_file())
+        harness = textwrap.dedent(
+            f"""
+            const fs = require("fs");
+            const ts = require("typescript");
+            const vm = require("vm");
+            const source = fs.readFileSync(
+              {str(module_path)!r},
+              "utf8",
+            );
+            const code = ts.transpileModule(source, {{
+              compilerOptions: {{
+                module: ts.ModuleKind.CommonJS,
+                target: ts.ScriptTarget.ES2020,
+              }},
+            }}).outputText;
+            const module = {{ exports: {{}} }};
+            vm.runInNewContext(code, {{
+              module,
+              exports: module.exports,
+              URLSearchParams,
+              fetch: () => {{
+                throw new Error("unexpected fetch");
+              }},
+              Set,
+              Array,
+              Object,
+              String,
+              Promise,
+            }});
+            const m = module.exports;
+            const check = (condition, message) => {{
+              if (!condition) throw new Error(message);
+            }};
+            const restored = m.readHistoryOrganizationFilters(
+              new URLSearchParams(
+                "q=red&favorite=true&tag=a&tag=a&tag=b"
+              ),
+            );
+            check(restored.favorite === true, "favorite lost");
+            check(
+              JSON.stringify(restored.tagIds)
+                === JSON.stringify(["a", "b"]),
+              "repeated tags were not restored and deduplicated",
+            );
+            const params = new URLSearchParams(
+              "q=red&sort=oldest&tag=old&untagged=true"
+            );
+            m.writeHistoryOrganizationFilters(params, restored);
+            check(params.get("q") === "red", "search changed");
+            check(params.get("sort") === "oldest", "sort changed");
+            check(
+              JSON.stringify(params.getAll("tag"))
+                === JSON.stringify(["a", "b"]),
+              "tags were not written as repeated parameters",
+            );
+            check(!params.has("untagged"), "untagged was retained");
+            const untagged = m.withHistoryUntaggedFilter(
+              restored,
+              true,
+            );
+            check(
+              untagged.untagged && untagged.tagIds.length === 0,
+              "untagged did not clear tags",
+            );
+            const tagged = m.withHistoryTagFilter(
+              untagged,
+              "a",
+              true,
+            );
+            check(
+              !tagged.untagged
+                && JSON.stringify(tagged.tagIds)
+                  === JSON.stringify(["a"]),
+              "tag did not clear untagged",
+            );
+            check(
+              m.taskMatchesHistoryOrganizationFilters(
+                {{ favorite: true, tags: [
+                  {{ tag_id: "a", name: "A" }},
+                  {{ tag_id: "b", name: "B" }},
+                ] }},
+                restored,
+              ),
+              "AND match rejected a complete task",
+            );
+            check(
+              !m.taskMatchesHistoryOrganizationFilters(
+                {{ favorite: true, tags: [
+                  {{ tag_id: "a", name: "A" }},
+                ] }},
+                restored,
+              ),
+              "AND match accepted a missing tag",
+            );
+            check(
+              !m.taskMatchesHistoryOrganizationFilters(
+                {{ favorite: false, tags: [] }},
+                {{ favorite: true, tagIds: [], untagged: false }},
+              ),
+              "favorite filter accepted an unstarred task",
+            );
+            check(
+              !m.historyOrganizationSummarySupported({{
+                total: 10,
+              }}),
+              "legacy summary was accepted",
+            );
+            check(
+              m.historyOrganizationSummarySupported({{
+                favorite_total: 0,
+                untagged_total: 10,
+                tags: [],
+              }}),
+              "current summary was rejected",
+            );
+            check(
+              !m.historyTaskRowsSupportOrganization([
+                {{ task_id: "old-task" }},
+              ]),
+              "legacy task rows were accepted",
+            );
+            check(
+              m.historyTaskRowsSupportOrganization([
+                {{
+                  task_id: "current-task",
+                  favorite: false,
+                  tags: [],
+                }},
+              ]),
+              "current task rows were rejected",
+            );
+            const escaped = (value) => String(value)
+              .replaceAll("<", "&lt;")
+              .replaceAll('"', "&quot;");
+            const createHtml = m.historyTagPickerCreateHtml(
+              escaped,
+              {{
+                placeholder: '名称"<',
+                submitLabel: '创建"<',
+              }},
+            );
+            check(
+              createHtml.includes("data-history-tag-create-inline"),
+              "picker create form is missing",
+            );
+            check(
+              createHtml.includes("data-history-tag-create-status"),
+              "picker create status is missing",
+            );
+            check(
+              !createHtml.includes('名称"<')
+                && !createHtml.includes('创建"<'),
+              "picker create labels were not escaped",
+            );
+            const html = m.historyCardTagsHtml(
+              [
+                {{ tag_id: 'id"<', name: 'name"<'}}
+              ],
+              escaped,
+            );
+            check(!html.includes('name"<'), "text was not escaped");
+            check(!html.includes('id"<'), "attribute was not escaped");
+            """
+        )
+        result = subprocess.run(
+            [node, "-e", harness],
+            cwd=Path.cwd(),
+            check=False,
+            text=True,
+            capture_output=True,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_history_tag_picker_creates_and_assigns_tag_to_tasks(
+        self,
+    ) -> None:
+        node = shutil.which("node")
+        if node is None:
+            self.skipTest(
+                "node is required for frontend behavior checks"
+            )
+        module_path = Path(
+            "codex_image/webui/frontend/src/"
+            "history-organization.ts"
+        )
+        harness = textwrap.dedent(
+            f"""
+            const fs = require("fs");
+            const ts = require("typescript");
+            const vm = require("vm");
+            const source = fs.readFileSync(
+              {str(module_path)!r},
+              "utf8",
+            );
+            const code = ts.transpileModule(source, {{
+              compilerOptions: {{
+                module: ts.ModuleKind.CommonJS,
+                target: ts.ScriptTarget.ES2020,
+              }},
+            }}).outputText;
+            const requests = [];
+            const responses = [
+              {{
+                tag: {{
+                  tag_id: "tag-new",
+                  name: "人像",
+                  count: 0,
+                }},
+              }},
+              {{
+                organizations: {{
+                  "task-a": {{
+                    favorite: false,
+                    tags: [{{
+                      tag_id: "tag-new",
+                      name: "人像",
+                    }}],
+                  }},
+                  "task-b": {{
+                    favorite: true,
+                    tags: [{{
+                      tag_id: "tag-new",
+                      name: "人像",
+                    }}],
+                  }},
+                }},
+              }},
+            ];
+            const fetch = async (url, init = {{}}) => {{
+              requests.push({{ url, init }});
+              const payload = responses.shift();
+              return {{
+                ok: true,
+                status: 200,
+                async json() {{ return payload; }},
+              }};
+            }};
+            const module = {{ exports: {{}} }};
+            vm.runInNewContext(code, {{
+              module,
+              exports: module.exports,
+              fetch,
+              URLSearchParams,
+              Set,
+              Array,
+              Object,
+              String,
+              Promise,
+              JSON,
+            }});
+            const check = (condition, message) => {{
+              if (!condition) throw new Error(message);
+            }};
+            (async () => {{
+              const result =
+                await module.exports.createHistoryTagForTasks(
+                  "人像",
+                  ["task-a", "task-a", "task-b"],
+                );
+              check(
+                result.tag.tag_id === "tag-new",
+                "created tag was not returned",
+              );
+              check(
+                result.organizations["task-a"].tags[0].tag_id
+                  === "tag-new",
+                "created tag was not assigned",
+              );
+              check(requests.length === 2, "wrong request count");
+              check(
+                requests[0].url === "/api/task-history/tags",
+                "wrong create endpoint",
+              );
+              check(
+                requests[1].url === "/api/task-history/organize",
+                "wrong organize endpoint",
+              );
+              const organizeBody = JSON.parse(
+                requests[1].init.body,
+              );
+              check(
+                JSON.stringify(organizeBody.task_ids)
+                  === JSON.stringify(["task-a", "task-b"]),
+                "task ids were not deduplicated",
+              );
+              check(
+                JSON.stringify(organizeBody.add_tag_ids)
+                  === JSON.stringify(["tag-new"]),
+                "new tag was not sent for assignment",
+              );
+            }})().catch((error) => {{
+              console.error(error);
+              process.exitCode = 1;
+            }});
+            """
+        )
+        result = subprocess.run(
+            [node, "-e", harness],
+            cwd=Path.cwd(),
+            check=False,
+            text=True,
+            capture_output=True,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+
     def test_history_lightbox_uses_non_looping_three_slot_peek_carousel(self) -> None:
         source = Path("codex_image/webui/frontend/src/history-lightbox.ts").read_text(encoding="utf-8")
         styles = Path("codex_image/webui/static/styles/90-history.css").read_text(encoding="utf-8")
@@ -221,7 +1073,7 @@ class WebUIStaticHistoryTests(unittest.TestCase):
     def test_history_type_filter_is_translated_for_every_locale(self) -> None:
         locale_paths = sorted(Path("codex_image/webui/frontend/src/i18n").glob("*.ts"))
         dictionary_paths = [path for path in locale_paths if path.name not in {"dictionaries.ts", "types.ts"}]
-        self.assertEqual(len(dictionary_paths), 13)
+        self.assertEqual(len(dictionary_paths), 14)
         for path in dictionary_paths:
             source = path.read_text(encoding="utf-8")
             with self.subTest(locale=path.stem):
@@ -244,11 +1096,14 @@ class WebUIStaticHistoryTests(unittest.TestCase):
         self.assertIn('class="history-filter-heading-icon"', html)
         self.assertIn('data-i18n-attr="aria-label:history.resizeFilters"', html)
         self.assertIn('data-i18n-attr="aria-label:history.resizeDetail"', html)
-        self.assertIn('/static/styles.css?v=runtime-653', html)
+        self.assertIn('/static/styles.css?v=runtime-658', html)
         self.assertRegex(styles, r"\.history-page\s*\{[^}]*height:\s*100dvh")
         self.assertRegex(styles, r"\.history-page\s*\{[^}]*overflow:\s*hidden")
         self.assertRegex(styles, r"\.history-page\s*\{[^}]*--history-sidebar-width:\s*280px")
         self.assertRegex(styles, r"\.history-page\s*\{[^}]*--history-detail-width:\s*380px")
+        self.assertRegex(styles, r"\.history-page\s*\{[^}]*grid-template-rows:\s*var\(--header-height\)\s+minmax\(0,\s*1fr\)")
+        self.assertRegex(styles, r"\.history-top-nav\s*\{[^}]*grid-column:\s*2\s*/\s*-1")
+        self.assertRegex(styles, r"\.history-top-nav\s*\{[^}]*grid-row:\s*1")
         self.assertNotIn("--history-resizer-width", styles)
         self.assertNotIn("resizerWidth", source)
         self.assertNotIn(".history-resizer", styles)
@@ -330,7 +1185,7 @@ class WebUIStaticHistoryTests(unittest.TestCase):
         self.assertRegex(styles, r"\.history-filter-summary::after\s*\{[^}]*transform:\s*rotate\(-45deg\)")
         self.assertRegex(styles, r"\.history-filter-block\[open\] > \.history-filter-summary::after\s*\{[^}]*transform:\s*rotate\(45deg\)")
         self.assertRegex(styles, r"\.history-filter-block:not\(\[open\]\) > \.history-filter-list\s*\{[^}]*display:\s*none")
-        self.assertRegex(styles, r"\.history-filter-button\s*\{[^}]*min-height:\s*40px")
+        self.assertRegex(styles, r"\.history-filter-button\s*\{[^}]*min-height:\s*36px")
         self.assertRegex(styles, r"\.history-filter-button \.history-filter-count\s*\{[^}]*font-size:\s*10px")
         self.assertRegex(styles, r"\.history-filter-button \.history-filter-count\s*\{[^}]*background:\s*color-mix")
         self.assertRegex(styles, r"\.history-filter-heading-icon,\s*\.history-filter-icon\s*\{[^}]*stroke:\s*currentColor")
@@ -481,7 +1336,7 @@ class WebUIStaticHistoryTests(unittest.TestCase):
             'from "./history-lightbox"',
             'type HistoryLightboxTaskDirection',
             'type HistoryLightboxTaskNavigationContext',
-            'import { initSegmentedIndicatorFeature } from "./segmented-indicator"',
+            "initializeHistoryShell({",
             "historyDetailImagesLayoutClass",
             "startHistoryResize",
             "updateHistoryResize",
@@ -596,7 +1451,7 @@ class WebUIStaticHistoryTests(unittest.TestCase):
         self.assertNotIn("applyHistoryLayoutWidths", update_resize_body)
         self.assertIn("maxCombinedWidth: historyLayoutMaxCombinedWidth()", start_resize_body)
         self.assertIn("resize.maxCombinedWidth", apply_pending_resize_body)
-        self.assertIn("layoutJustifiedHistoryGrid();", apply_pending_resize_body)
+        self.assertIn("layoutJustifiedHistoryGrid({", apply_pending_resize_body)
         self.assertNotIn("persist: true", update_resize_body)
         self.assertIn("localStorage.setItem(HISTORY_LAYOUT_STORAGE_KEY", end_resize_body)
         self.assertIn("applyPendingHistoryResize();", end_resize_body)
@@ -738,6 +1593,54 @@ class WebUIStaticHistoryTests(unittest.TestCase):
         self.assertNotIn("sizeList", source)
         self.assertIn("sort", source)
 
+    def test_history_resize_reuses_initial_grid_measurement(self) -> None:
+        source = Path(
+            "codex_image/webui/frontend/src/history.ts"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn(
+            "function captureHistoryGridLayoutSnapshot",
+            source,
+        )
+        capture_body = _typescript_function_body(
+            source,
+            "captureHistoryGridLayoutSnapshot",
+        )
+        start_body = _typescript_function_body(
+            source,
+            "startHistoryResize",
+        )
+        apply_body = _typescript_function_body(
+            source,
+            "applyPendingHistoryResize",
+        )
+        layout_body = _typescript_function_body(
+            source,
+            "layoutJustifiedHistoryGrid",
+        )
+
+        self.assertIn("root.clientWidth", capture_body)
+        self.assertIn("window.getComputedStyle(root)", capture_body)
+        self.assertIn(
+            "gridLayoutSnapshot: captureHistoryGridLayoutSnapshot()",
+            start_body,
+        )
+        self.assertIn("resize.gridLayoutSnapshot", apply_body)
+        self.assertIn(
+            "resize.startLeft + resize.startRight",
+            apply_body,
+        )
+        self.assertNotIn("root.clientWidth", apply_body)
+        self.assertNotIn("window.getComputedStyle", apply_body)
+        self.assertIn(
+            "options.snapshot === undefined",
+            layout_body,
+        )
+        self.assertIn(
+            ": options.snapshot",
+            layout_body,
+        )
+
     def test_history_reference_handoff_is_consumed_by_main_page(self) -> None:
         history_source = Path("codex_image/webui/frontend/src/history.ts").read_text(encoding="utf-8")
         input_source = Path("codex_image/webui/frontend/src/input-sources.ts").read_text(encoding="utf-8")
@@ -841,7 +1744,9 @@ class WebUIStaticHistoryTests(unittest.TestCase):
         )
 
         for marker in [
-            'data-i18n="history.back"',
+            'class="history-program-brand"',
+            'data-i18n-attr="aria-label:history.homeAria"',
+            'data-i18n="history.backToGenerator"',
             'data-i18n="history.title"',
             'data-i18n-attr="placeholder:history.searchPlaceholder"',
             'data-i18n="history.promptMode"',
@@ -861,9 +1766,9 @@ class WebUIStaticHistoryTests(unittest.TestCase):
         self.assertNotIn("⌘", html)
 
         for marker in [
-            'import { LOCALE_CHANGE_EVENT, formatTranslation, restoreLocalePreference, translate } from "./i18n";',
-            'const HISTORY_THEME_STORAGE_KEY = "codex-image-theme-preference"',
-            'restoreHistoryThemePreference()',
+            'import { LOCALE_CHANGE_EVENT, formatTranslation, translate } from "./i18n";',
+            'from "./history-shell";',
+            "initializeHistoryShell({",
             'document.addEventListener(LOCALE_CHANGE_EVENT',
             'HISTORY_TASK_REUSE_HANDOFF_KEY',
             'data-history-reuse-task',
@@ -924,8 +1829,8 @@ class WebUIStaticHistoryTests(unittest.TestCase):
         self.assertIn('document.execCommand("copy")', write_clipboard_body)
 
         for marker in [
-            '"history.back": "返回生成页"',
-            '"history.back": "Back to generator"',
+            '"history.homeAria": "返回 iLab CONJURE 生成页"',
+            '"history.homeAria": "Back to iLab CONJURE generator"',
             '"history.searchPlaceholder": "搜索提示词或任务 ID"',
             '"history.searchPlaceholder": "Search prompts or task ID"',
             '"history.copyPrompt": "复制提示词"',
@@ -975,18 +1880,16 @@ class WebUIStaticHistoryTests(unittest.TestCase):
         self.assertRegex(styles, r"\.history-task-list\.history-view-grid \.history-task-card\.active \.history-task-title,\s*\.history-task-list\.history-view-grid \.history-task-card\.selected \.history-task-title")
         self.assertNotIn(".history-task-active-badge", styles)
         self.assertNotIn(".history-task-image-count", styles)
-        self.assertRegex(styles, r"\.history-back-link\s*\{[^}]*display:\s*inline-flex")
-        self.assertRegex(styles, r"\.history-back-link\s*\{[^}]*border:\s*1px solid")
-        self.assertRegex(styles, r"\.history-back-link\s*\{[^}]*background:\s*color-mix")
-        self.assertRegex(styles, r"\.history-back-link::before\s*\{[^}]*clip-path:")
-        self.assertRegex(styles, r"\.history-back-link:hover,\s*\.history-back-link:focus-visible\s*\{[^}]*background:\s*var\(--primary\)")
+        self.assertRegex(styles, r"\.history-program-brand\s*\{[^}]*display:\s*flex")
+        self.assertRegex(styles, r"\.history-program-brand \.brand-mark\s*\{[^}]*width:")
+        self.assertNotIn(".history-program-name", styles)
         self.assertRegex(styles, r"\.history-task-card\.selected\s*\{[^}]*box-shadow:")
         self.assertRegex(styles, r"\.history-task-card\.selected::after\s*\{[^}]*border:")
         self.assertRegex(styles, r"\.history-task-card\.selected \.history-task-copy\s*\{[^}]*background:")
         self.assertRegex(styles, r"\.history-task-list\.history-view-grid \.history-task-copy\s*\{[^}]*min-height:\s*74px")
         self.assertRegex(styles, r"\.history-task-list\.history-view-grid \.history-task-open\s*\{[^}]*gap:\s*0")
         self.assertRegex(styles, r"\.history-task-list\.history-view-grid \.history-task-select\s*\{[^}]*opacity:\s*0")
-        self.assertRegex(styles, r"\.history-task-list\.history-view-grid \.history-task-select\s*\{[^}]*pointer-events:\s*none")
+        self.assertRegex(styles, r"\.history-task-list\.history-view-grid \.history-task-select\s*\{[^}]*pointer-events:\s*auto")
         self.assertRegex(styles, r"\.history-task-select input\s*\{[^}]*appearance:\s*none")
         self.assertRegex(styles, r"\.history-task-select input:checked\s*\{[^}]*background:\s*var\(--primary\)")
         self.assertRegex(styles, r"\.history-task-select input:checked::before\s*\{[^}]*transform:\s*scale\(1\)")
@@ -1057,18 +1960,18 @@ class WebUIStaticHistoryTests(unittest.TestCase):
         self.assertNotRegex(styles, r"\.history-results\s*\{[^}]*env\(safe-area-inset-bottom")
         self.assertRegex(styles, r"\.history-task-list\s*\{[^}]*env\(safe-area-inset-bottom")
         self.assertRegex(styles, r"\.history-task-list\.history-view-grid\s*\{[^}]*padding:\s*6px\s+15px\s+calc\(6px\s+\+\s+env\(safe-area-inset-bottom,\s*0px\)\)\s+4px")
-        self.assertRegex(styles, r"\.history-toolbar-actions\s*\{[^}]*--history-toolbar-control-height:\s*44px")
+        self.assertRegex(styles, r"\.history-toolbar-actions\s*\{[^}]*--history-toolbar-control-height:\s*36px")
         self.assertRegex(styles, r"\.history-view-toggle,\s*\.history-sort-toggle\s*\{[^}]*box-sizing:\s*border-box")
         self.assertRegex(styles, r"\.history-view-toggle,\s*\.history-sort-toggle\s*\{[^}]*height:\s*var\(--history-toolbar-control-height\)")
         self.assertRegex(styles, r"\.history-view-toggle,\s*\.history-sort-toggle\s*\{[^}]*--segmented-indicator-radius:\s*999px")
         self.assertRegex(styles, r"\.history-view-toggle,\s*\.history-sort-toggle\s*\{[^}]*border-radius:\s*999px")
-        self.assertRegex(styles, r"\.history-view-button,\s*\.history-sort-button\s*\{[^}]*font-size:\s*14px")
+        self.assertRegex(styles, r"\.history-view-button,\s*\.history-sort-button\s*\{[^}]*font-size:\s*13px")
         self.assertRegex(styles, r"\.history-view-button,\s*\.history-sort-button\s*\{[^}]*border-radius:\s*999px")
         self.assertRegex(styles, r"\.history-view-toggle \.segmented-indicator,\s*\.history-sort-toggle \.segmented-indicator\s*\{[^}]*border-radius:\s*999px")
         self.assertRegex(styles, r"\.history-sort-toggle\.segmented-indicator-host\s+\.history-sort-button\.active\s*\{[^}]*background:\s*transparent")
         self.assertNotIn(".history-sort-label", styles)
         self.assertRegex(styles, r"\.history-toolbar-actions \.control,\s*\.history-toolbar-actions \.ghost-button\.text-sm\s*\{[^}]*min-height:\s*var\(--history-toolbar-control-height\)")
-        self.assertRegex(styles, r"\.history-toolbar-actions \.control,\s*\.history-toolbar-actions \.ghost-button\.text-sm\s*\{[^}]*font-size:\s*14px")
+        self.assertRegex(styles, r"\.history-toolbar-actions \.control,\s*\.history-toolbar-actions \.ghost-button\.text-sm\s*\{[^}]*font-size:\s*13px")
         self.assertRegex(styles, r"\.history-toolbar-actions \.control,\s*\.history-toolbar-actions \.ghost-button\.text-sm\s*\{[^}]*font-weight:\s*600")
         self.assertRegex(styles, r"\.history-load-sentinel\s*\{[^}]*position:\s*absolute")
         self.assertRegex(styles, r"\.history-load-sentinel\s*\{[^}]*bottom:\s*calc\(8px \+ env\(safe-area-inset-bottom")

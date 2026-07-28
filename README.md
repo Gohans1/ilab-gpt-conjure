@@ -58,12 +58,15 @@ Images API 或 Responses API 形态。
 - 生成页按需加载最近任务和媒体，隐藏图库与模板仅在打开后渲染；响应式工作区由 CSS Grid 与容器查询驱动，刷新和调整窗口尺寸更流畅。
 - 输出参数支持一键锁定并以只读摘要展示，避免连续生成或浏览历史任务时误改设置；切换任务不会覆盖当前锁定参数。
 - 独立 `/history` 页面支持 SQLite 分页、搜索、筛选、网格/列表视图和懒加载详情。
+- 历史任务可收藏并添加多个标签，也可按收藏、标签或无标签筛选；最多可一次整理 300 个已选任务。
+- 单个或多个历史任务可导出成一个 ZIP，支持仅图片或图片＋提示词；每张图优先附带自己的优化后提示词，没有时回退到任务原提示词。
+- 生成页与历史库共用顶部工具栏、小兔子 Logo、返回入口和跟随系统／浅色／深色主题偏好。
 - Codex Responses 和 API Responses 生图可选启用联网搜索；生成页和历史库搜索支持提示词与任务 ID，并可命中历史任务。
 - 单任务多图输出、部分失败处理和失败重试。
 - 公用图库、最近参考图、颜色 chip、提示词片段 chip 和提示词模板。
 - 图像编辑器支持插入输入框里的其他图片、多图层组合、默认锁定比例变换、
   Shift 自由变换、局部擦除和真实图层缩略图。
-- 系统设置提供语言下拉菜单，支持简体中文、正體中文、繁体中文、日语、韩语、English、西班牙语、葡萄牙语、法语、德语、俄语、意大利语和印地语；首次启动自动跟随浏览器语言，手动选择后偏好保存在当前浏览器。
+- 系统设置提供语言下拉菜单，支持简体中文、正體中文、繁体中文、日语、韩语、English、越南语、西班牙语、葡萄牙语、法语、德语、俄语、意大利语和印地语；首次启动自动跟随浏览器语言，手动选择后偏好保存在当前浏览器。
 - 系统设置整合 API 设置、网络、语言 / Language、存储与通知四个 Tab；Codex Image / Codex Responses 直接在生成页供应商菜单中选择。
 - 网络设置明确提供系统、直连和自定义 HTTP(S) 代理三种出口，保存在应用数据目录，并从后续生成尝试开始生效，无需重启。
 - API 供应商以卡片快速选择，默认只读详情，支持显式编辑、复制、删除确认和多供应商排序；自定义供应商可选一个 emoji 标识以便快速识别。
@@ -138,14 +141,14 @@ http://127.0.0.1:8787/
 ## 应用包下载
 
 当前可用的标准包和一键包见 [下载 / Releases](RELEASES.md)，也可以直接打开
-[GitHub Release v0.7.1](https://github.com/kadevin/ilab-conjure/releases/tag/v0.7.1)。
+[GitHub Release v0.7.2](https://github.com/kadevin/ilab-conjure/releases/tag/v0.7.2)。
 
 新用户建议优先下载标准包：
 
-1. macOS：Apple Silicon 下载 `iLab-GPT-CONJURE-macos-arm64-0.7.1.dmg`，
-   Intel 下载 `iLab-GPT-CONJURE-macos-x64-0.7.1.dmg`，然后把
+1. macOS：Apple Silicon 下载 `iLab-GPT-CONJURE-macos-arm64-0.7.2.dmg`，
+   Intel 下载 `iLab-GPT-CONJURE-macos-x64-0.7.2.dmg`，然后把
    `iLab GPT CONJURE.app` 拖到 Applications。
-2. Windows：下载 `iLab-GPT-CONJURE-windows-x64_0.7.1.zip`，
+2. Windows：下载 `iLab-GPT-CONJURE-windows-x64_0.7.2.zip`，
    解压到普通用户目录，双击 `iLab GPT CONJURE.exe`。
 
 标准包的用户数据会写入 macOS 的

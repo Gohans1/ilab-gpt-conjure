@@ -10,6 +10,7 @@ export const LOCALE_CHANGE_EVENT = "codex-image-locale-change";
 
 let currentLocale: Locale = DEFAULT_LOCALE;
 let i18nInitialized = false;
+let localePreferenceRevision = 0;
 
 function canUseLocale(value: unknown): value is Locale {
   return LOCALES.includes(value as Locale);
@@ -41,6 +42,7 @@ export function localeFromLanguageTag(value: unknown): Locale | null {
   if (language.startsWith("ja")) return "ja";
   if (language.startsWith("ko")) return "ko";
   if (language.startsWith("en")) return "en";
+  if (language.startsWith("vi")) return "vi";
   if (language.startsWith("es")) return "es";
   if (language.startsWith("pt")) return "pt";
   if (language.startsWith("fr")) return "fr";
@@ -122,6 +124,7 @@ export function applyLocaleToDocument(): void {
 }
 
 export function setLocale(locale: Locale, options: { persist?: boolean } = {}): void {
+  localePreferenceRevision += 1;
   currentLocale = normalizeLocale(locale);
   if (options.persist !== false) {
     persistLocalePreference();
@@ -170,11 +173,14 @@ function persistLocalePreference(): void {
 export function restoreLocalePreference(): void {
   const fallback = readLocalLocalePreference() || detectPreferredLocale();
   setLocale(fallback, { persist: false });
+  const restoreRevision = localePreferenceRevision;
   void readStoredLocalePreference()
     .then((storedLocale) => {
+      if (localePreferenceRevision !== restoreRevision) return;
       setLocale(storedLocale || fallback);
     })
     .catch(() => {
+      if (localePreferenceRevision !== restoreRevision) return;
       persistLocalePreference();
     });
 }

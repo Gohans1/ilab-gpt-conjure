@@ -26,6 +26,7 @@ from codex_image.webui.task_metadata import (
     _with_file_urls,
 )
 from codex_image.webui.thumbnails import create_image_thumbnail, thumbnail_needs_refresh
+from .history import organization_payload
 
 
 def register_task_routes(app: FastAPI, ctx: WebUIContext) -> None:
@@ -147,48 +148,6 @@ def register_task_routes(app: FastAPI, ctx: WebUIContext) -> None:
                 failed.append(task_id)
         return {"deleted": deleted, "skipped": skipped, "failed": failed}
 
-    @app.get("/api/task-history/summary")
-    def task_history_summary() -> dict[str, Any]:
-        return ctx.storage.task_history_summary()
-
-    @app.get("/api/task-history/tasks")
-    def task_history_tasks(
-        limit: int = Query(50, ge=1, le=100),
-        cursor: str | None = Query(None),
-        q: str = Query(""),
-        month: str = Query(""),
-        mode: str = Query(""),
-        status: str = Query(""),
-        prompt_mode: str = Query(""),
-        size: str = Query(""),
-        quality: str = Query(""),
-        ratio: str = Query(""),
-        orientation: str = Query(""),
-        backend: str = Query(""),
-        provider: str = Query(""),
-        archived: bool | None = Query(None),
-        sort: str = Query("newest"),
-        direction: str = Query("next"),
-    ) -> dict[str, Any]:
-        return ctx.storage.query_task_history(
-            limit=limit,
-            cursor=cursor,
-            q=q,
-            month=month,
-            mode=mode,
-            status=status,
-            prompt_mode=prompt_mode,
-            size=size,
-            quality=quality,
-            ratio=ratio,
-            orientation=orientation,
-            backend=backend,
-            provider=provider,
-            archived=archived,
-            sort=sort,
-            direction=direction,
-        )
-
     @app.get("/api/tasks/{task_id}")
     def get_task(task_id: str) -> dict[str, Any]:
         try:
@@ -200,7 +159,12 @@ def register_task_routes(app: FastAPI, ctx: WebUIContext) -> None:
                     ctx.gallery_storage,
                     ctx.reference_asset_storage,
                     ctx.reference_file_storage,
-                )
+                ),
+                "organization": organization_payload(
+                    ctx.storage.history_organizations([task_id])[
+                        task_id
+                    ]
+                ),
             }
         except FileNotFoundError as exc:
             raise HTTPException(status_code=404, detail="Task not found") from exc

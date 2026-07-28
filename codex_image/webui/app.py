@@ -120,6 +120,7 @@ from .settings_store import (
 )
 from .context import WebUIContext
 from .events import event_key, event_snapshot, queue_snapshot, queued_or_running_task_ids, sse_message, task_event
+from .history_export import HistoryExportService
 from .routes import register_webui_routes
 from .executor import (
     _call_image_client,
@@ -208,6 +209,7 @@ def create_app(
     prompt_templates_path: Path | str = DEFAULT_WEBUI_PROMPT_TEMPLATES_PATH,
     webui_settings_path: Path | str = DEFAULT_WEBUI_SETTINGS_PATH,
     queue_path: Path | str | None = None,
+    history_export_temp_root: Path | str | None = None,
     auto_start_queue: bool = True,
     auto_retry: bool = False,
 ) -> FastAPI:
@@ -251,6 +253,10 @@ def create_app(
     color_settings = ColorPaletteSettings(Path(color_settings_path))
     prompt_snippet_settings = PromptSnippetSettings(Path(prompt_snippets_path))
     prompt_template_settings = PromptTemplateSettings(Path(prompt_templates_path))
+    history_export_service = HistoryExportService(
+        storage,
+        temp_root=history_export_temp_root,
+    )
     static_path = Path(static_dir) if static_dir is not None else Path(__file__).parent / "static"
     make_client = client_factory or (lambda: _client_for_auth_source(auth_settings.read_source(), api_settings=api_settings))
     check_auth = auth_checker or (lambda: bool(_auth_status(auth_settings.read_source(), api_settings=api_settings)["auth_available"]))
@@ -271,6 +277,7 @@ def create_app(
         color_settings=color_settings,
         prompt_snippet_settings=prompt_snippet_settings,
         prompt_template_settings=prompt_template_settings,
+        history_export_service=history_export_service,
         client_factory=make_client,
         auth_checker=check_auth,
         input_root=input_path,

@@ -8,13 +8,14 @@ import { PT_DICTIONARY } from "./pt";
 import { RU_DICTIONARY } from "./ru";
 import { IT_DICTIONARY } from "./it";
 import { HI_DICTIONARY } from "./hi";
+import { VI_DICTIONARY } from "./vi";
 import type { Locale, ModelSelectionTranslationKey, TranslationDictionary } from "./types";
 import { ZH_CN_DICTIONARY } from "./zh-cn";
 import { ZH_HK_DICTIONARY } from "./zh-hk";
 import { ZH_TW_DICTIONARY } from "./zh-tw";
 
 export const DEFAULT_LOCALE: Locale = "zh-CN";
-export const LOCALES: readonly Locale[] = ["zh-CN", "zh-TW", "zh-HK", "ja", "ko", "en", "es", "pt", "fr", "de", "ru", "it", "hi"];
+export const LOCALES: readonly Locale[] = ["zh-CN", "zh-TW", "zh-HK", "ja", "ko", "en", "vi", "es", "pt", "fr", "de", "ru", "it", "hi"];
 export const MODEL_SELECTION_TRANSLATION_KEYS: readonly ModelSelectionTranslationKey[] = [
   "modelSelection.family",
   "modelSelection.concreteModel",
@@ -32,6 +33,7 @@ export const DICTIONARIES: Record<Locale, TranslationDictionary> = {
   "ja": JA_DICTIONARY,
   "ko": KO_DICTIONARY,
   "en": EN_DICTIONARY,
+  "vi": VI_DICTIONARY,
   "es": ES_DICTIONARY,
   "pt": PT_DICTIONARY,
   "fr": FR_DICTIONARY,

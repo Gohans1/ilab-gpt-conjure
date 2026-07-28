@@ -6,6 +6,7 @@ from typing import Any, Callable
 
 from fastapi import FastAPI
 
+from .history_export import HistoryExportService
 from .network_egress import NetworkEgressManager, NetworkEgressSettings
 from .provider_settings import ProviderSettings
 from .queue import QueueManager
@@ -33,6 +34,7 @@ class WebUIContext:
     color_settings: ColorPaletteSettings
     prompt_snippet_settings: PromptSnippetSettings
     prompt_template_settings: PromptTemplateSettings
+    history_export_service: HistoryExportService
     client_factory: ClientFactory
     auth_checker: AuthChecker
     input_root: Path
@@ -70,6 +72,7 @@ class WebUIContext:
         self.app.state.network_egress_settings = self.network_egress_settings
         self.app.state.network_egress_manager = self.network_egress_manager
         self.app.state.prompt_template_settings = self.prompt_template_settings
+        self.app.state.history_export_service = self.history_export_service
         self.app.state.client_factory = self.client_factory
         self.app.state.auth_checker = self.auth_checker
         self.app.state.active_task_ids = self.active_task_ids

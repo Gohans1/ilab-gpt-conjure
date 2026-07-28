@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+from datetime import datetime, timedelta
 import json
 import os
 import struct
@@ -701,9 +702,11 @@ class WebUITaskTests(unittest.TestCase):
             root = Path(tmp)
             app = create_app(output_root=root, auth_checker=lambda: True, auto_start_queue=False)
             storage = TaskStorage(root, input_root=root / "inputs", source_data_root=root / "source-data")
+            base_time = datetime.now().astimezone().replace(hour=8, minute=0, second=0, microsecond=0)
             for number in range(75):
-                task_id = f"2026072608{number // 60:02d}{number % 60:02d}-{number:08d}"
-                timestamp = f"2026-07-26T08:{number // 60:02d}:{number % 60:02d}+08:00"
+                task_time = base_time + timedelta(seconds=number)
+                task_id = f"{task_time:%Y%m%d%H%M%S}-{number:08d}"
+                timestamp = task_time.isoformat()
                 storage.write_metadata(
                     task_id,
                     {

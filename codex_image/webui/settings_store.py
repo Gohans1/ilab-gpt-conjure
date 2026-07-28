@@ -87,7 +87,7 @@ from .schemas import (
 )
 from .startup_auth import AUTH_SOURCES, detect_startup_auth_source
 
-SUPPORTED_LOCALES = ("zh-CN", "zh-TW", "zh-HK", "ja", "ko", "en", "es", "pt", "fr", "de", "ru", "it", "hi")
+SUPPORTED_LOCALES = ("zh-CN", "zh-TW", "zh-HK", "ja", "ko", "en", "vi", "es", "pt", "fr", "de", "ru", "it", "hi")
 _SUPPORTED_LOCALE_BY_LOWER = {locale.lower(): locale for locale in SUPPORTED_LOCALES}
 
 
@@ -178,7 +178,7 @@ def _settings_locale(value: Any, *, allow_empty: bool = False) -> str | None:
         return "zh-TW"
     if normalized.startswith(("zh-cn", "zh-sg", "zh-hans")) or normalized == "zh":
         return "zh-CN"
-    for locale in ("ja", "ko", "en", "es", "pt", "fr", "de", "ru", "it", "hi"):
+    for locale in ("ja", "ko", "en", "vi", "es", "pt", "fr", "de", "ru", "it", "hi"):
         if normalized.startswith(locale):
             return locale
     if allow_empty:

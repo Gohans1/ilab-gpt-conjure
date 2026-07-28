@@ -4,12 +4,218 @@ import json
 import re
 import shutil
 import subprocess
+import textwrap
 from pathlib import Path
 
 from tests.webui_helpers import WebUIStaticTestCase
 
 
 class WebUIStaticLayoutTests(WebUIStaticTestCase):
+    def test_shared_theme_preference_runtime_and_shell_bridge(
+        self,
+    ) -> None:
+        node = shutil.which("node")
+        if node is None:
+            self.skipTest(
+                "node is required for frontend behavior checks"
+            )
+        module_path = Path(
+            "codex_image/webui/frontend/src/theme-preference.ts"
+        )
+        self.assertTrue(module_path.is_file())
+        shell_source = Path(
+            "codex_image/webui/frontend/src/shell-ui.ts"
+        ).read_text(encoding="utf-8")
+        self.assertIn('from "./theme-preference"', shell_source)
+        self.assertNotIn(
+            'const THEME_STORAGE_KEY = "codex-image-theme-preference"',
+            shell_source,
+        )
+        for name in (
+            "normalizeThemePreference",
+            "resolveEffectiveTheme",
+            "updateThemeSwitcher",
+            "applyThemePreference",
+            "restoreThemePreference",
+            "handleThemeSystemChange",
+        ):
+            self.assertIn(name, shell_source)
+
+        harness = textwrap.dedent(
+            f"""
+            const fs = require("fs");
+            const ts = require("typescript");
+            const vm = require("vm");
+            const source = fs.readFileSync(
+              {str(module_path)!r},
+              "utf8",
+            );
+            const code = ts.transpileModule(source, {{
+              compilerOptions: {{
+                module: ts.ModuleKind.CommonJS,
+                target: ts.ScriptTarget.ES2020,
+              }},
+            }}).outputText;
+            let mediaHandler = null;
+            let removedMediaHandler = null;
+            const media = {{
+              matches: true,
+              addEventListener(_name, handler) {{
+                mediaHandler = handler;
+              }},
+              removeEventListener(_name, handler) {{
+                removedMediaHandler = handler;
+              }},
+            }};
+            const window = {{
+              matchMedia() {{ return media; }},
+              requestAnimationFrame(callback) {{
+                callback();
+                return 1;
+              }},
+              cancelAnimationFrame() {{}},
+            }};
+            const module = {{ exports: {{}} }};
+            vm.runInNewContext(code, {{
+              module,
+              exports: module.exports,
+              window,
+              requestAnimationFrame: window.requestAnimationFrame,
+              cancelAnimationFrame: window.cancelAnimationFrame,
+              localStorage: {{
+                getItem() {{ return "system"; }},
+                setItem() {{}},
+              }},
+              document: {{
+                documentElement: {{
+                  dataset: {{}},
+                  classList: {{ add() {{}}, remove() {{}} }},
+                }},
+              }},
+              Set,
+              String,
+            }});
+            const m = module.exports;
+            const check = (condition, message) => {{
+              if (!condition) throw new Error(message);
+            }};
+            check(
+              m.normalizeThemePreference("unknown") === "system",
+              "invalid preference was accepted",
+            );
+            check(
+              m.resolveEffectiveTheme("light", true) === "light"
+                && m.resolveEffectiveTheme("dark", false) === "dark",
+              "explicit themes followed system",
+            );
+            check(
+              m.resolveEffectiveTheme("system", true) === "dark"
+                && m.resolveEffectiveTheme("system", false) === "light",
+              "system theme did not resolve",
+            );
+            check(
+              m.readThemePreference({{
+                getItem() {{ throw new Error("blocked"); }},
+              }}) === "system",
+              "blocked storage did not fall back",
+            );
+            m.persistThemePreference("dark", {{
+              setItem() {{ throw new Error("blocked"); }},
+            }});
+            const classes = new Set();
+            const root = {{
+              dataset: {{}},
+              classList: {{
+                add(value) {{ classes.add(value); }},
+                remove(value) {{ classes.delete(value); }},
+              }},
+            }};
+            m.applyDocumentTheme("system", root, true);
+            check(
+              root.dataset.theme === "dark"
+                && root.dataset.themePreference === "system",
+              "document datasets were not applied",
+            );
+            const buttons = ["system", "light", "dark"].map(
+              (value) => ({{
+                dataset: {{ themeOption: value }},
+                active: false,
+                pressed: "",
+                classList: {{
+                  toggle(_name, active) {{
+                    this.owner.active = active;
+                  }},
+                  owner: null,
+                }},
+                setAttribute(_name, value) {{
+                  this.pressed = value;
+                }},
+              }}),
+            );
+            for (const button of buttons) {{
+              button.classList.owner = button;
+            }}
+            let clickHandler = null;
+            let removedClickHandler = null;
+            const switcher = {{
+              querySelectorAll() {{ return buttons; }},
+              contains() {{ return true; }},
+              addEventListener(_name, handler) {{
+                clickHandler = handler;
+              }},
+              removeEventListener(_name, handler) {{
+                removedClickHandler = handler;
+              }},
+            }};
+            m.syncThemeSwitcher(switcher, "dark");
+            check(
+              buttons[2].active
+                && buttons[2].pressed === "true"
+                && buttons[0].pressed === "false",
+              "switcher state was not synchronized",
+            );
+            const selected = [];
+            const unbind = m.bindThemeSwitcher(
+              switcher,
+              (value) => selected.push(value),
+            );
+            clickHandler({{
+              target: {{
+                closest() {{ return buttons[1]; }},
+              }},
+            }});
+            clickHandler({{
+              target: {{
+                closest() {{
+                  return {{
+                    dataset: {{ themeOption: "invalid" }},
+                  }};
+                }},
+              }},
+            }});
+            unbind();
+            check(
+              selected.join(",") === "light"
+                && removedClickHandler === clickHandler,
+              "switcher binding accepted invalid input or did not unbind",
+            );
+            const stopSystem = m.bindSystemThemePreference(() => {{}});
+            stopSystem();
+            check(
+              mediaHandler && removedMediaHandler === mediaHandler,
+              "system listener did not unbind",
+            );
+            """
+        )
+        result = subprocess.run(
+            [node, "-e", harness],
+            cwd=Path.cwd(),
+            check=False,
+            text=True,
+            capture_output=True,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+
     def test_system_settings_has_four_tabs_and_network_controls(self) -> None:
         html = Path("codex_image/webui/static/index.html").read_text(encoding="utf-8")
         styles = Path("codex_image/webui/static/styles.css").read_text(encoding="utf-8")
@@ -356,8 +562,8 @@ class WebUIStaticLayoutTests(WebUIStaticTestCase):
         script = self._frontend_script_source()
         styles = Path("codex_image/webui/static/styles.css").read_text(encoding="utf-8")
 
-        self.assertIn('/static/app.js?v=runtime-653', html)
-        self.assertIn('/static/styles.css?v=runtime-653', html)
+        self.assertIn('/static/app.js?v=runtime-658', html)
+        self.assertIn('/static/styles.css?v=runtime-658', html)
         self.assertIn('id="recentAssetDock"', html)
         self.assertRegex(html, r'class="image-input-footer"[\s\S]*id="recentAssetDock"[\s\S]*id="recentAssetList"')
         self.assertRegex(html, r'id="recentAssetDock"[\s\S]*id="quickGalleryDock"[\s\S]*id="galleryManagePanel"')
@@ -3269,8 +3475,8 @@ class WebUIStaticLayoutTests(WebUIStaticTestCase):
         script = self._frontend_script_source()
         styles = Path("codex_image/webui/static/styles.css").read_text(encoding="utf-8")
 
-        self.assertIn('/static/app.js?v=runtime-653', html)
-        self.assertIn('/static/styles.css?v=runtime-653', html)
+        self.assertIn('/static/app.js?v=runtime-658', html)
+        self.assertIn('/static/styles.css?v=runtime-658', html)
         self.assertIn('id="pasteClipboardButton"', html)
         self.assertIn('id="statusText"', html)
         self.assertRegex(
@@ -3713,24 +3919,34 @@ class WebUIStaticLayoutTests(WebUIStaticTestCase):
     def test_theme_mode_javascript_and_styles_exist(self) -> None:
         html = Path("codex_image/webui/static/index.html").read_text(encoding="utf-8")
         script = self._frontend_script_source()
+        theme_source = Path(
+            "codex_image/webui/frontend/src/theme-preference.ts"
+        ).read_text(encoding="utf-8")
+        shell_source = Path(
+            "codex_image/webui/frontend/src/shell-ui.ts"
+        ).read_text(encoding="utf-8")
         styles = Path("codex_image/webui/static/styles.css").read_text(encoding="utf-8")
 
-        self.assertIn("/static/app.js?v=runtime-653", html)
-        self.assertIn("/static/styles.css?v=runtime-653", html)
-        self.assertIn('const THEME_STORAGE_KEY = "codex-image-theme-preference";', script)
+        self.assertIn("/static/app.js?v=runtime-658", html)
+        self.assertIn("/static/styles.css?v=runtime-658", html)
+        self.assertIn('"codex-image-theme-preference"', theme_source)
         self.assertIn('themePreference: "system"', script)
         self.assertIn('call(methods, "restoreThemePreference")', script)
-        self.assertIn("function resolveEffectiveTheme", script)
-        self.assertIn("function applyThemePreference", script)
-        self.assertIn("let themeTransitionLockFrameId", script)
-        self.assertIn("function lockThemeTransitions", script)
-        self.assertIn('document.documentElement.classList.add("theme-transition-lock")', script)
-        self.assertIn('document.documentElement.classList.remove("theme-transition-lock")', script)
-        self.assertRegex(script, r"function applyThemePreference\(preference,[\s\S]*lockThemeTransitions\(\)")
-        self.assertIn("function updateThemeSwitcher", script)
-        self.assertIn("function handleThemeSystemChange", script)
-        self.assertIn('localStorage.getItem(THEME_STORAGE_KEY)', script)
-        self.assertIn('localStorage.setItem(THEME_STORAGE_KEY', script)
+        self.assertIn('from "./theme-preference";', shell_source)
+        self.assertIn("function resolveEffectiveTheme", shell_source)
+        self.assertIn("function applyThemePreference", shell_source)
+        self.assertIn("function updateThemeSwitcher", shell_source)
+        self.assertIn("function handleThemeSystemChange", shell_source)
+        self.assertIn("let themeTransitionFrame", theme_source)
+        self.assertIn("function lockThemeTransitions", theme_source)
+        self.assertIn('root.classList.add("theme-transition-lock")', theme_source)
+        self.assertIn('root.classList.remove("theme-transition-lock")', theme_source)
+        self.assertRegex(
+            theme_source,
+            r"function applyDocumentTheme\([\s\S]*lockThemeTransitions\(root\)",
+        )
+        self.assertIn("storage.getItem(THEME_STORAGE_KEY)", theme_source)
+        self.assertIn("storage.setItem(THEME_STORAGE_KEY", theme_source)
         self.assertRegex(styles, r":root\[data-theme=\"dark\"\]\s*\{[\s\S]*--bg:")
         self.assertIn("--success-soft:", styles)
         self.assertIn("--danger-soft:", styles)

@@ -27,9 +27,14 @@
     <script>
       (() => {
         const LOCALE_STORAGE_KEY = "codex-image-locale-preference";
-        const valid = new Set(["zh-CN", "zh-TW", "zh-HK", "ja", "ko", "en", "es", "pt", "fr", "de", "ru", "it", "hi"]);
+        const LOCALE_CHANGE_EVENT = "codex-image-locale-change";
+        const valid = new Set(["zh-CN", "zh-TW", "zh-HK", "ja", "ko", "en", "vi", "es", "pt", "fr", "de", "ru", "it", "hi"]);
         const defaultLocale = "zh-CN";
         let currentLocale = defaultLocale;
+        let localePreferenceRevision = 0;
+        document.addEventListener(LOCALE_CHANGE_EVENT, () => {
+          localePreferenceRevision += 1;
+        });
         function normalizeLocale(value) {
           if (valid.has(value)) return value;
           const language = String(value || "").trim().toLowerCase();
@@ -43,6 +48,7 @@
           if (language.startsWith("ja")) return "ja";
           if (language.startsWith("ko")) return "ko";
           if (language.startsWith("en")) return "en";
+          if (language.startsWith("vi")) return "vi";
           if (language.startsWith("es")) return "es";
           if (language.startsWith("pt")) return "pt";
           if (language.startsWith("fr")) return "fr";
@@ -107,13 +113,15 @@
           locale = detectPreferredLocale();
         }
         applyLocale(locale);
+        const restoreRevision = localePreferenceRevision;
         void readStoredLocalePreference().then((storedLocale) => {
+          if (localePreferenceRevision !== restoreRevision) return;
           applyLocale(storedLocale || locale);
           persistLocalePreference();
         });
       })();
     </script>
-    <link rel="stylesheet" href="/static/styles.css?v=runtime-653" />
+    <link rel="stylesheet" href="/static/styles.css?v=runtime-658" />
   </head>
   <body>
     <div class="layout-container">
@@ -1158,6 +1166,7 @@
                 <option value="ja">日本語</option>
                 <option value="ko">한국어</option>
                 <option value="en">English</option>
+                <option value="vi">Tiếng Việt</option>
                 <option value="es">Español</option>
                 <option value="pt">Português</option>
                 <option value="fr">Français</option>
@@ -1463,7 +1472,7 @@
     </div>
 
     <div id="taskNotificationToastRegion" class="task-notification-toast-region" aria-live="polite"></div>
-  <script src="/static/app.js?v=runtime-653"></script>
+  <script src="/static/app.js?v=runtime-658"></script>
     <script>
       (() => {
         document.querySelectorAll(".radio-group").forEach((group) => {

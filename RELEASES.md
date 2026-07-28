@@ -1,48 +1,51 @@
 # 下载 / Releases
 
-当前正式版本：[v0.7.1](https://github.com/kadevin/ilab-conjure/releases/tag/v0.7.1)
+当前正式版本：[v0.7.2](https://github.com/kadevin/ilab-conjure/releases/tag/v0.7.2)
 
 ## 版本说明
 
-当前版本：`v0.7.1`。本版集中修复任务数据清理、历史列表可用性和瞬时网络故障，并新增显式网络出口设置。建议使用大量历史任务、多任务队列或代理网络的用户更新。
+当前版本：`v0.7.2`。本版重点升级历史库，新增收藏、标签和任务导出，统一历史库与生成页的顶部工具栏及主题体验，并新增越南语界面。建议需要整理、筛选或批量导出大量历史任务的用户更新。
 
-本版重点：0.7.1 让删除、排序、分页、缩略图和任务完成提醒保持一致，补齐批量取消与瞬时网络错误重试；同时增加系统、直连和自定义 HTTP(S) 代理三种明确出口，并在标准包与 portable 包中安全保存。
+本版重点：0.7.2 让历史任务可以收藏、添加多个标签并批量整理，也可以按“仅图片”或“图片＋提示词”导出；历史库同时获得与生成页一致的顶部工具栏、主题偏好和更流畅的三栏调整体验。
 
 本版详情：
 
 ### 升级必读
 
-- 默认网络出口仍是“系统”，升级不会自动启用代理、直连、测速或自动选路。自定义出口只接受不含账号密码的 HTTP(S) 代理 origin，不支持 SOCKS。
-- 网络出口设置保存在应用数据目录；标准包和 portable 包更新程序时都不会覆盖。已经运行中的生成尝试保持其启动时的出口，保存新设置只影响随后开始的尝试。
+- 已有任务、图片、供应商、网络设置和主题偏好都会保留。升级会自动创建独立的收藏与标签记录，不改写原任务和图片；已有任务默认处于未收藏、无标签状态。
 - `v0.6.1` 及更早的 macOS 标准 App 尚未包含更新助手，需要先手动下载并覆盖安装较新版本一次；`v0.6.2` 及之后的 macOS 标准 App 可继续使用已有更新助手安装本版。
 - Windows 标准 ZIP 仍需下载后手动替换；portable 包继续使用现有的用户确认式自动更新。
 - `v0.5.4` 及更早 portable 用户首次升级到 `0.5.5` 或更新版本时，建议手动下载完整标准包或完整 portable 包；旧 updater 只保证升级 WebUI/依赖，不保证安装新的小兔子启动器、标准 `.app` / `.exe` 入口和迁移助手。
 - 新用户建议优先下载标准包。标准包把用户数据写入系统应用数据目录；portable 包继续把数据写在同级 `data/`，用于老用户过渡、调试和临时工作流。
-- 已有任务、图片和供应商设置会继续保留；只有用户明确删除任务或清理未精选/失败结果时，相关本地文件与源信息才按对应操作清理。
 - macOS 一键更新只会在用户主动确认后执行，不会后台静默下载或安装；用户数据保存在应用包外，不参与程序替换。
 - macOS 标准 DMG 和 portable zip 都暂未签名、未 notarize，首次启动可能需要右键或 Control-click 选择 Open。
 
-### 任务数据与历史列表
+### 收藏与标签
 
-- 删除整个任务现在会同步清理对应输出图片、缩略图和源信息文件；清理未精选图片或失败项只删除对应结果，并维护任务索引与历史库的一致性。
-- 任务首次进入终态时固定原始终止时间，后续清理失败项、精选或查看只更新维护时间，不再把旧任务误排到最新位置。
-- 生成页的今天、昨天和最近 7 天按组独立分页，首屏保持轻量，加载更多不会让一个大组挤掉其他日期；删除后自动重新加载并补齐当前组。
-- 缩略图继续使用侧栏专用小尺寸按需加载；历史库保留完整分页入口，任务多时不再依赖一次性加载全部记录。
-- 运行中与历史任务的边界更清楚；活动任务达到两项时可批量取消，任务删除使用收起动效，卡片文字不再意外被选中。
-- 用户停留在较早任务且列表已滚动时，新完成任务会累计到“回到最新”按钮；点击后回到最新组顶部，避免漏看刚完成的结果。
+- 历史任务可以单独收藏，也可以同时添加多个标签；收藏是独立状态，不占用标签名称。
+- 支持按收藏、单个或多个标签以及“无标签”筛选。选择多个标签时，只显示同时拥有这些标签的任务。
+- 历史库侧栏可以创建、改名和删除标签；任务详情和批量工具栏都可以直接添加或移除标签，添加时也能新建标签。
+- 可对最多 300 个已选任务统一收藏、取消收藏、添加标签或移除标签，失败时保留当前选择，方便修正后重试。
 
-### 生成与网络稳定性
+### 任务导出
 
-- `502` 且类型为 `upstream_error` 现在会作为瞬时上游故障自动重试；SSL EOF、连接重置和远端断开等明确瞬时网络错误也进入同一有限重试策略。
-- 修复提示词末尾输入 `~`、`～` 等片段触发符时可能卡住页面的问题。感谢 [RobinZhiBin](https://github.com/RobinZhiBin) 通过 [PR #10](https://github.com/kadevin/ilab-conjure/pull/10) 贡献修复。
-- 系统设置新增独立“网络”Tab，可明确选择系统环境代理、完全直连或自定义 HTTP(S) 代理；该选择不改变供应商、模型和协议配置。
-- 自定义代理拒绝凭据、路径、查询参数和 SOCKS 地址。连接检测只在用户点击时运行，目标固定为当前 Codex/API 供应商 origin，且不发送 API Key。
-- 每次生成尝试开始时冻结网络出口，同一尝试内的请求与重试保持一致；修改设置只影响后续尝试，任务元数据只记录模式和实际路由类型，不记录代理地址。
+- 单个任务或多个任务可以统一导出为一个 ZIP，多任务按任务分目录保存。
+- 提供“仅图片”和“图片＋提示词”两种方式。“图片＋提示词”会为每张图片附上对应文本：优先使用该图的优化后提示词，不存在时回退到任务原提示词。
+- “仅图片”不会加入提示词、任务资料、输入图、参考文件或其他本地信息。
+- 单次最多导出 300 个任务；导出包在本机临时生成，通过一次性下载地址领取，完成或过期后自动清理。
 
-### 安装包与发布工作流
+### 历史库页面与语言
+
+- 历史库顶部复用生成页的供应商、队列、任务通知、主题、GitHub 和系统设置入口；小兔子 Logo 与独立“返回生成页”入口都可以回到生成页。
+- 主题切换只保留在顶部工具栏，生成页与历史库共用“跟随系统、浅色、深色”偏好。
+- 收藏、标签、搜索、视图、排序和批量操作重新整理为更清楚的层级；调整三栏宽度时会合并缩略图重排，减少连续拖动时的卡顿。
+- 新增越南语，界面语言增加到 14 种；页面启动期间连续切换语言时，稍后返回的旧设置不会覆盖最终选择。
+- 感谢 [dpcthien](https://github.com/dpcthien) 通过 [PR #12](https://github.com/kadevin/ilab-conjure/pull/12) 贡献越南语翻译基础。
+
+### 安装包与更新
 
 - 继续提供 Windows x64、macOS Apple Silicon、macOS Intel 三种 portable zip，以及 macOS 双架构 DMG 和 Windows 标准 App ZIP。
-- 标准包将网络出口配置保存在系统应用数据目录，portable 包保存在同级 `data/`；程序更新不会预填或覆盖代理设置。
+- 标准包继续把用户数据保存在系统应用数据目录，portable 包保存在同级 `data/`；程序更新不会覆盖任务、图片、收藏、标签或设置。
 - Release workflow 同时构建并上传 macOS Apple Silicon DMG、macOS Intel DMG、Windows 标准 App ZIP、Windows x64 portable、macOS Apple Silicon portable、macOS Intel portable、所有 `.sha256.txt` 和 signed `latest.json`。
 - `latest.json` 同时服务 portable 自动更新与 macOS 标准 App 一键更新；两类更新都需要用户主动确认，并校验签名和下载文件完整性。
 - 包含更新助手的 macOS 标准 App 可在用户确认后校验 DMG、带回滚保护地覆盖并重新启动；Windows 标准 ZIP 继续下载后手动替换。
@@ -51,9 +54,9 @@
 
 | 平台 | 推荐给 | 下载 | SHA256 |
 | --- | --- | --- | --- |
-| macOS Apple Silicon | 新用户，M1/M2/M3/M4 | [iLab-GPT-CONJURE-macos-arm64-0.7.1.dmg](https://github.com/kadevin/ilab-conjure/releases/download/v0.7.1/iLab-GPT-CONJURE-macos-arm64-0.7.1.dmg) | [sha256](https://github.com/kadevin/ilab-conjure/releases/download/v0.7.1/iLab-GPT-CONJURE-macos-arm64-0.7.1.dmg.sha256.txt) |
-| macOS Intel | 新用户，Intel x64 | [iLab-GPT-CONJURE-macos-x64-0.7.1.dmg](https://github.com/kadevin/ilab-conjure/releases/download/v0.7.1/iLab-GPT-CONJURE-macos-x64-0.7.1.dmg) | [sha256](https://github.com/kadevin/ilab-conjure/releases/download/v0.7.1/iLab-GPT-CONJURE-macos-x64-0.7.1.dmg.sha256.txt) |
-| Windows x64 | 新用户，Windows 10/11 x64 | [iLab-GPT-CONJURE-windows-x64_0.7.1.zip](https://github.com/kadevin/ilab-conjure/releases/download/v0.7.1/iLab-GPT-CONJURE-windows-x64_0.7.1.zip) | [sha256](https://github.com/kadevin/ilab-conjure/releases/download/v0.7.1/iLab-GPT-CONJURE-windows-x64_0.7.1.zip.sha256.txt) |
+| macOS Apple Silicon | 新用户，M1/M2/M3/M4 | [iLab-GPT-CONJURE-macos-arm64-0.7.2.dmg](https://github.com/kadevin/ilab-conjure/releases/download/v0.7.2/iLab-GPT-CONJURE-macos-arm64-0.7.2.dmg) | [sha256](https://github.com/kadevin/ilab-conjure/releases/download/v0.7.2/iLab-GPT-CONJURE-macos-arm64-0.7.2.dmg.sha256.txt) |
+| macOS Intel | 新用户，Intel x64 | [iLab-GPT-CONJURE-macos-x64-0.7.2.dmg](https://github.com/kadevin/ilab-conjure/releases/download/v0.7.2/iLab-GPT-CONJURE-macos-x64-0.7.2.dmg) | [sha256](https://github.com/kadevin/ilab-conjure/releases/download/v0.7.2/iLab-GPT-CONJURE-macos-x64-0.7.2.dmg.sha256.txt) |
+| Windows x64 | 新用户，Windows 10/11 x64 | [iLab-GPT-CONJURE-windows-x64_0.7.2.zip](https://github.com/kadevin/ilab-conjure/releases/download/v0.7.2/iLab-GPT-CONJURE-windows-x64_0.7.2.zip) | [sha256](https://github.com/kadevin/ilab-conjure/releases/download/v0.7.2/iLab-GPT-CONJURE-windows-x64_0.7.2.zip.sha256.txt) |
 
 标准包数据目录：
 
@@ -66,13 +69,13 @@
 
 | 平台 | 适用设备 | 下载 | SHA256 |
 | --- | --- | --- | --- |
-| Windows x64 | Windows 10/11 x64 | [ilab-gpt-conjure_windows_portable_x64_0.7.1.zip](https://github.com/kadevin/ilab-conjure/releases/download/v0.7.1/ilab-gpt-conjure_windows_portable_x64_0.7.1.zip) | [sha256](https://github.com/kadevin/ilab-conjure/releases/download/v0.7.1/ilab-gpt-conjure_windows_portable_x64_0.7.1.zip.sha256.txt) |
-| macOS Apple Silicon | M1/M2/M3/M4 | [ilab-gpt-conjure_macos_portable_arm64_0.7.1.zip](https://github.com/kadevin/ilab-conjure/releases/download/v0.7.1/ilab-gpt-conjure_macos_portable_arm64_0.7.1.zip) | [sha256](https://github.com/kadevin/ilab-conjure/releases/download/v0.7.1/ilab-gpt-conjure_macos_portable_arm64_0.7.1.zip.sha256.txt) |
-| macOS Intel | Intel x64 | [ilab-gpt-conjure_macos_portable_x64_0.7.1.zip](https://github.com/kadevin/ilab-conjure/releases/download/v0.7.1/ilab-gpt-conjure_macos_portable_x64_0.7.1.zip) | [sha256](https://github.com/kadevin/ilab-conjure/releases/download/v0.7.1/ilab-gpt-conjure_macos_portable_x64_0.7.1.zip.sha256.txt) |
+| Windows x64 | Windows 10/11 x64 | [ilab-gpt-conjure_windows_portable_x64_0.7.2.zip](https://github.com/kadevin/ilab-conjure/releases/download/v0.7.2/ilab-gpt-conjure_windows_portable_x64_0.7.2.zip) | [sha256](https://github.com/kadevin/ilab-conjure/releases/download/v0.7.2/ilab-gpt-conjure_windows_portable_x64_0.7.2.zip.sha256.txt) |
+| macOS Apple Silicon | M1/M2/M3/M4 | [ilab-gpt-conjure_macos_portable_arm64_0.7.2.zip](https://github.com/kadevin/ilab-conjure/releases/download/v0.7.2/ilab-gpt-conjure_macos_portable_arm64_0.7.2.zip) | [sha256](https://github.com/kadevin/ilab-conjure/releases/download/v0.7.2/ilab-gpt-conjure_macos_portable_arm64_0.7.2.zip.sha256.txt) |
+| macOS Intel | Intel x64 | [ilab-gpt-conjure_macos_portable_x64_0.7.2.zip](https://github.com/kadevin/ilab-conjure/releases/download/v0.7.2/ilab-gpt-conjure_macos_portable_x64_0.7.2.zip) | [sha256](https://github.com/kadevin/ilab-conjure/releases/download/v0.7.2/ilab-gpt-conjure_macos_portable_x64_0.7.2.zip.sha256.txt) |
 
 portable 自动更新 manifest：
 
-- [latest.json](https://github.com/kadevin/ilab-conjure/releases/download/v0.7.1/latest.json)
+- [latest.json](https://github.com/kadevin/ilab-conjure/releases/download/v0.7.2/latest.json)
 
 使用方式：
 

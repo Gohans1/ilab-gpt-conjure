@@ -1,4 +1,8 @@
 (() => {
+  var __defProp = Object.defineProperty;
+  var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+  var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
+
   // codex_image/webui/frontend/src/i18n/en.ts
   var EN_DICTIONARY = {
     "app.newTask": "New",
@@ -137,12 +141,41 @@
     "historyLibrary.openFull": "Open full history library",
     "history.documentTitle": "History - iLab CONJURE",
     "history.back": "Back to generator",
+    "history.homeAria": "Back to iLab CONJURE generator",
+    "history.backToGenerator": "Back to generator",
     "history.title": "History",
     "history.loading": "Loading",
     "history.total": "{total} tasks \xB7 {archived} archived",
     "history.search": "Search",
     "history.searchPlaceholder": "Search prompts or task ID",
     "history.clear": "Clear",
+    "history.favorites": "Favorites",
+    "history.onlyFavorites": "Favorites only",
+    "history.favoriteTask": "Add to favorites",
+    "history.unfavoriteTask": "Remove from favorites",
+    "history.tags": "Tags",
+    "history.untagged": "Untagged",
+    "history.manageTags": "Manage tags",
+    "history.createTag": "Create tag",
+    "history.renameTag": "Rename",
+    "history.deleteTag": "Delete",
+    "history.deleteTagAffected": "Delete ({count} tasks)",
+    "history.addTag": "Add tag",
+    "history.removeTag": "Remove tag",
+    "history.favoriteSelected": "Favorite",
+    "history.unfavoriteSelected": "Unfavorite",
+    "history.organizationFailed": "Could not update favorites or tags",
+    "history.tagNameConflict": "This tag name already exists",
+    "history.noTags": "No tags yet",
+    "history.backendRestartRequired": "History features were updated. Restart the app and try again.",
+    "history.export": "Export",
+    "history.exportImagesOnly": "Images only",
+    "history.exportImagesWithPrompts": "Images + prompts",
+    "history.exportPreparing": "Preparing export\u2026",
+    "history.exportStarted": "Download started",
+    "history.exportSummary": "{taskCount} tasks \xB7 {imageCount} images",
+    "history.exportFailed": "Export failed",
+    "history.closeExport": "Close export choices",
     "history.type": "Type",
     "history.allTypes": "All types",
     "history.type.textToImage": "Text to image",
@@ -323,6 +356,7 @@
     "language.ru": "\u0420\u0443\u0441\u0441\u043A\u0438\u0439",
     "language.it": "Italiano",
     "language.hi": "\u0939\u093F\u0928\u094D\u0926\u0940",
+    "language.vi": "Ti\u1EBFng Vi\u1EC7t",
     "auth.label": "Auth source",
     "auth.checking": "Checking auth",
     "auth.missingCodexSession": "No Codex session detected",
@@ -1196,12 +1230,41 @@
     "historyLibrary.openFull": "\xD6ffnen Sie die vollst\xE4ndige Geschichtsbibliothek",
     "history.documentTitle": "Geschichte \u2013 iLab CONJURE",
     "history.back": "Zur\xFCck zum Generator",
+    "history.homeAria": "Zur\xFCck zum iLab CONJURE Generator",
+    "history.backToGenerator": "Zur\xFCck zum Generator",
     "history.title": "Geschichte",
     "history.loading": "Laden",
     "history.total": "{total} Aufgaben \xB7 {archived} archiviert",
     "history.search": "Suchen",
     "history.searchPlaceholder": "Suchaufforderungen oder Aufgabe ID",
     "history.clear": "Klar",
+    "history.favorites": "Favoriten",
+    "history.onlyFavorites": "Nur Favoriten",
+    "history.favoriteTask": "Zu Favoriten hinzuf\xFCgen",
+    "history.unfavoriteTask": "Aus Favoriten entfernen",
+    "history.tags": "Tags",
+    "history.untagged": "Ohne Tag",
+    "history.manageTags": "Tags verwalten",
+    "history.createTag": "Tag erstellen",
+    "history.renameTag": "Umbenennen",
+    "history.deleteTag": "L\xF6schen",
+    "history.deleteTagAffected": "L\xF6schen ({count} Aufgaben)",
+    "history.addTag": "Tag hinzuf\xFCgen",
+    "history.removeTag": "Tag entfernen",
+    "history.favoriteSelected": "Favorisieren",
+    "history.unfavoriteSelected": "Favorit entfernen",
+    "history.organizationFailed": "Favoriten oder Tags konnten nicht aktualisiert werden",
+    "history.tagNameConflict": "Dieser Tag-Name ist bereits vorhanden",
+    "history.noTags": "Noch keine Tags",
+    "history.backendRestartRequired": "Die Verlaufsfunktionen wurden aktualisiert. Starte die App neu und versuche es erneut.",
+    "history.export": "Exportieren",
+    "history.exportImagesOnly": "Nur Bilder",
+    "history.exportImagesWithPrompts": "Bilder + Prompts",
+    "history.exportPreparing": "Export wird vorbereitet\u2026",
+    "history.exportStarted": "Download gestartet",
+    "history.exportSummary": "{taskCount} Aufgaben \xB7 {imageCount} Bilder",
+    "history.exportFailed": "Export fehlgeschlagen",
+    "history.closeExport": "Exportauswahl schlie\xDFen",
     "history.type": "Typ",
     "history.allTypes": "Alle Typen",
     "history.type.textToImage": "Text zu Bild",
@@ -1372,6 +1435,7 @@
     "language.ru": "\u0420\u0443\u0441\u0441\u043A\u0438\u0439",
     "language.it": "Italiano",
     "language.hi": "\u0939\u093F\u0928\u094D\u0926\u0940",
+    "language.vi": "Ti\u1EBFng Vi\u1EC7t",
     "auth.label": "Authentifizierungsquelle",
     "auth.checking": "Authentifizierung pr\xFCfen",
     "auth.missingCodexSession": "Keine Codex-Sitzung erkannt",
@@ -2245,12 +2309,41 @@
     "historyLibrary.openFull": "Abrir biblioteca de historia completa",
     "history.documentTitle": "Historia - iLab CONJURE",
     "history.back": "Volver al generador",
+    "history.homeAria": "Volver al generador iLab CONJURE",
+    "history.backToGenerator": "Volver al generador",
     "history.title": "Historia",
     "history.loading": "Cargando",
     "history.total": "{total} tareas \xB7 {archived} archivado",
     "history.search": "Buscar",
     "history.searchPlaceholder": "Mensajes de b\xFAsqueda o tarea ID",
     "history.clear": "Borrar",
+    "history.favorites": "Favoritos",
+    "history.onlyFavorites": "Solo favoritos",
+    "history.favoriteTask": "A\xF1adir a favoritos",
+    "history.unfavoriteTask": "Quitar de favoritos",
+    "history.tags": "Etiquetas",
+    "history.untagged": "Sin etiqueta",
+    "history.manageTags": "Gestionar etiquetas",
+    "history.createTag": "Crear etiqueta",
+    "history.renameTag": "Renombrar",
+    "history.deleteTag": "Eliminar",
+    "history.deleteTagAffected": "Eliminar ({count} tareas)",
+    "history.addTag": "A\xF1adir etiqueta",
+    "history.removeTag": "Quitar etiqueta",
+    "history.favoriteSelected": "Marcar favorito",
+    "history.unfavoriteSelected": "Quitar favorito",
+    "history.organizationFailed": "No se pudieron actualizar favoritos o etiquetas",
+    "history.tagNameConflict": "Este nombre de etiqueta ya existe",
+    "history.noTags": "A\xFAn no hay etiquetas",
+    "history.backendRestartRequired": "Las funciones del historial se actualizaron. Reinicia la aplicaci\xF3n e int\xE9ntalo de nuevo.",
+    "history.export": "Exportar",
+    "history.exportImagesOnly": "Solo im\xE1genes",
+    "history.exportImagesWithPrompts": "Im\xE1genes + prompts",
+    "history.exportPreparing": "Preparando exportaci\xF3n\u2026",
+    "history.exportStarted": "Descarga iniciada",
+    "history.exportSummary": "{taskCount} tareas \xB7 {imageCount} im\xE1genes",
+    "history.exportFailed": "Error al exportar",
+    "history.closeExport": "Cerrar opciones de exportaci\xF3n",
     "history.type": "Tipo",
     "history.allTypes": "Todos los tipos",
     "history.type.textToImage": "Texto a imagen",
@@ -2421,6 +2514,7 @@
     "language.ru": "\u0420\u0443\u0441\u0441\u043A\u0438\u0439",
     "language.it": "Italiano",
     "language.hi": "\u0939\u093F\u0928\u094D\u0926\u0940",
+    "language.vi": "Ti\u1EBFng Vi\u1EC7t",
     "auth.label": "Fuente de autenticaci\xF3n",
     "auth.checking": "Comprobando autenticaci\xF3n",
     "auth.missingCodexSession": "No se detect\xF3 ninguna sesi\xF3n Codex",
@@ -3294,12 +3388,41 @@
     "historyLibrary.openFull": "Ouvrir la biblioth\xE8que d'historique compl\xE8te",
     "history.documentTitle": "Histoire - iLab CONJURE",
     "history.back": "Retour au g\xE9n\xE9rateur",
+    "history.homeAria": "Retour au g\xE9n\xE9rateur iLab CONJURE",
+    "history.backToGenerator": "Retour au g\xE9n\xE9rateur",
     "history.title": "Histoire",
     "history.loading": "Chargement",
     "history.total": "{total} t\xE2ches \xB7 {archived} archiv\xE9",
     "history.search": "Rechercher",
     "history.searchPlaceholder": "Rechercher des invites ou une t\xE2che ID",
     "history.clear": "Effacer",
+    "history.favorites": "Favoris",
+    "history.onlyFavorites": "Favoris uniquement",
+    "history.favoriteTask": "Ajouter aux favoris",
+    "history.unfavoriteTask": "Retirer des favoris",
+    "history.tags": "\xC9tiquettes",
+    "history.untagged": "Sans \xE9tiquette",
+    "history.manageTags": "G\xE9rer les \xE9tiquettes",
+    "history.createTag": "Cr\xE9er une \xE9tiquette",
+    "history.renameTag": "Renommer",
+    "history.deleteTag": "Supprimer",
+    "history.deleteTagAffected": "Supprimer ({count} t\xE2ches)",
+    "history.addTag": "Ajouter une \xE9tiquette",
+    "history.removeTag": "Retirer l\u2019\xE9tiquette",
+    "history.favoriteSelected": "Ajouter aux favoris",
+    "history.unfavoriteSelected": "Retirer des favoris",
+    "history.organizationFailed": "Impossible de mettre \xE0 jour les favoris ou les \xE9tiquettes",
+    "history.tagNameConflict": "Ce nom d\u2019\xE9tiquette existe d\xE9j\xE0",
+    "history.noTags": "Aucune \xE9tiquette",
+    "history.backendRestartRequired": "Les fonctions d\u2019historique ont \xE9t\xE9 mises \xE0 jour. Red\xE9marrez l\u2019application puis r\xE9essayez.",
+    "history.export": "Exporter",
+    "history.exportImagesOnly": "Images uniquement",
+    "history.exportImagesWithPrompts": "Images + prompts",
+    "history.exportPreparing": "Pr\xE9paration de l\u2019export\u2026",
+    "history.exportStarted": "T\xE9l\xE9chargement lanc\xE9",
+    "history.exportSummary": "{taskCount} t\xE2ches \xB7 {imageCount} images",
+    "history.exportFailed": "\xC9chec de l\u2019export",
+    "history.closeExport": "Fermer les choix d\u2019export",
     "history.type": "Type",
     "history.allTypes": "Tous les types",
     "history.type.textToImage": "Texte vers image",
@@ -3470,6 +3593,7 @@
     "language.ru": "\u0420\u0443\u0441\u0441\u043A\u0438\u0439",
     "language.it": "Italiano",
     "language.hi": "\u0939\u093F\u0928\u094D\u0926\u0940",
+    "language.vi": "Ti\u1EBFng Vi\u1EC7t",
     "auth.label": "Source d'authentification",
     "auth.checking": "V\xE9rification de l'authentification",
     "auth.missingCodexSession": "Aucune session Codex d\xE9tect\xE9e",
@@ -4343,12 +4467,41 @@
     "historyLibrary.openFull": "\u5C65\u6B74\u30E9\u30A4\u30D6\u30E9\u30EA\u5168\u4F53\u3092\u958B\u304F",
     "history.documentTitle": "\u5C65\u6B74 - iLab CONJURE",
     "history.back": "\u30B8\u30A7\u30CD\u30EC\u30FC\u30BF\u30FC\u306B\u623B\u308B",
+    "history.homeAria": "iLab CONJURE \u30B8\u30A7\u30CD\u30EC\u30FC\u30BF\u30FC\u306B\u623B\u308B",
+    "history.backToGenerator": "\u751F\u6210\u753B\u9762\u306B\u623B\u308B",
     "history.title": "\u5C65\u6B74",
     "history.loading": "\u8AAD\u307F\u8FBC\u307F\u4E2D",
     "history.total": "{total}\u30BF\u30B9\u30AF \xB7{archived}\u304C\u30A2\u30FC\u30AB\u30A4\u30D6\u3055\u308C\u307E\u3057\u305F",
     "history.search": "\u691C\u7D22",
     "history.searchPlaceholder": "\u30D7\u30ED\u30F3\u30D7\u30C8\u307E\u305F\u306F\u30BF\u30B9\u30AF ID \u3092\u691C\u7D22",
     "history.clear": "\u30AF\u30EA\u30A2",
+    "history.favorites": "\u304A\u6C17\u306B\u5165\u308A",
+    "history.onlyFavorites": "\u304A\u6C17\u306B\u5165\u308A\u306E\u307F",
+    "history.favoriteTask": "\u304A\u6C17\u306B\u5165\u308A\u306B\u8FFD\u52A0",
+    "history.unfavoriteTask": "\u304A\u6C17\u306B\u5165\u308A\u304B\u3089\u524A\u9664",
+    "history.tags": "\u30BF\u30B0",
+    "history.untagged": "\u30BF\u30B0\u306A\u3057",
+    "history.manageTags": "\u30BF\u30B0\u3092\u7BA1\u7406",
+    "history.createTag": "\u30BF\u30B0\u3092\u4F5C\u6210",
+    "history.renameTag": "\u540D\u524D\u3092\u5909\u66F4",
+    "history.deleteTag": "\u524A\u9664",
+    "history.deleteTagAffected": "\u524A\u9664\uFF08{count}\u4EF6\uFF09",
+    "history.addTag": "\u30BF\u30B0\u3092\u8FFD\u52A0",
+    "history.removeTag": "\u30BF\u30B0\u3092\u524A\u9664",
+    "history.favoriteSelected": "\u304A\u6C17\u306B\u5165\u308A",
+    "history.unfavoriteSelected": "\u304A\u6C17\u306B\u5165\u308A\u89E3\u9664",
+    "history.organizationFailed": "\u304A\u6C17\u306B\u5165\u308A\u307E\u305F\u306F\u30BF\u30B0\u3092\u66F4\u65B0\u3067\u304D\u307E\u305B\u3093\u3067\u3057\u305F",
+    "history.tagNameConflict": "\u540C\u3058\u30BF\u30B0\u540D\u304C\u3059\u3067\u306B\u3042\u308A\u307E\u3059",
+    "history.noTags": "\u30BF\u30B0\u306F\u307E\u3060\u3042\u308A\u307E\u305B\u3093",
+    "history.backendRestartRequired": "\u5C65\u6B74\u6A5F\u80FD\u304C\u66F4\u65B0\u3055\u308C\u307E\u3057\u305F\u3002\u30A2\u30D7\u30EA\u3092\u518D\u8D77\u52D5\u3057\u3066\u3001\u3082\u3046\u4E00\u5EA6\u304A\u8A66\u3057\u304F\u3060\u3055\u3044\u3002",
+    "history.export": "\u66F8\u304D\u51FA\u3057",
+    "history.exportImagesOnly": "\u753B\u50CF\u306E\u307F",
+    "history.exportImagesWithPrompts": "\u753B\u50CF\uFF0B\u30D7\u30ED\u30F3\u30D7\u30C8",
+    "history.exportPreparing": "\u66F8\u304D\u51FA\u3057\u3092\u6E96\u5099\u4E2D\u2026",
+    "history.exportStarted": "\u30C0\u30A6\u30F3\u30ED\u30FC\u30C9\u3092\u958B\u59CB\u3057\u307E\u3057\u305F",
+    "history.exportSummary": "{taskCount}\u4EF6\u306E\u30BF\u30B9\u30AF \xB7 {imageCount}\u679A\u306E\u753B\u50CF",
+    "history.exportFailed": "\u66F8\u304D\u51FA\u3057\u306B\u5931\u6557\u3057\u307E\u3057\u305F",
+    "history.closeExport": "\u66F8\u304D\u51FA\u3057\u9078\u629E\u3092\u9589\u3058\u308B",
     "history.type": "\u7A2E\u985E",
     "history.allTypes": "\u3059\u3079\u3066\u306E\u7A2E\u985E",
     "history.type.textToImage": "\u30C6\u30AD\u30B9\u30C8\u304B\u3089\u753B\u50CF",
@@ -4519,6 +4672,7 @@
     "language.ru": "\u0420\u0443\u0441\u0441\u043A\u0438\u0439",
     "language.it": "Italiano",
     "language.hi": "\u0939\u093F\u0928\u094D\u0926\u0940",
+    "language.vi": "Ti\u1EBFng Vi\u1EC7t",
     "auth.label": "\u8A8D\u8A3C\u5143",
     "auth.checking": "\u8A8D\u8A3C\u3092\u78BA\u8A8D\u3057\u3066\u3044\u307E\u3059",
     "auth.missingCodexSession": "Codex \u30BB\u30C3\u30B7\u30E7\u30F3\u304C\u691C\u51FA\u3055\u308C\u307E\u305B\u3093\u3067\u3057\u305F",
@@ -5392,12 +5546,41 @@
     "historyLibrary.openFull": "\uC804\uCCB4 \uAE30\uB85D \uB77C\uC774\uBE0C\uB7EC\uB9AC \uC5F4\uAE30",
     "history.documentTitle": "\uAE30\uB85D - iLab CONJURE",
     "history.back": "\uC0DD\uC131\uAE30\uB85C \uB3CC\uC544\uAC00\uAE30",
+    "history.homeAria": "iLab CONJURE \uC0DD\uC131\uAE30\uB85C \uB3CC\uC544\uAC00\uAE30",
+    "history.backToGenerator": "\uC0DD\uC131 \uD654\uBA74\uC73C\uB85C \uB3CC\uC544\uAC00\uAE30",
     "history.title": "\uAE30\uB85D",
     "history.loading": "\uB85C\uB4DC \uC911",
     "history.total": "{total}\uAC1C \uC791\uC5C5 \xB7 {archived}\uAC1C \uBCF4\uAD00\uB428",
     "history.search": "\uAC80\uC0C9",
     "history.searchPlaceholder": "\uD504\uB86C\uD504\uD2B8 \uB610\uB294 \uC791\uC5C5 ID \uAC80\uC0C9",
     "history.clear": "\uC9C0\uC6B0\uAE30",
+    "history.favorites": "\uC990\uACA8\uCC3E\uAE30",
+    "history.onlyFavorites": "\uC990\uACA8\uCC3E\uAE30\uB9CC",
+    "history.favoriteTask": "\uC990\uACA8\uCC3E\uAE30\uC5D0 \uCD94\uAC00",
+    "history.unfavoriteTask": "\uC990\uACA8\uCC3E\uAE30\uC5D0\uC11C \uC81C\uAC70",
+    "history.tags": "\uD0DC\uADF8",
+    "history.untagged": "\uD0DC\uADF8 \uC5C6\uC74C",
+    "history.manageTags": "\uD0DC\uADF8 \uAD00\uB9AC",
+    "history.createTag": "\uD0DC\uADF8 \uB9CC\uB4E4\uAE30",
+    "history.renameTag": "\uC774\uB984 \uBCC0\uACBD",
+    "history.deleteTag": "\uC0AD\uC81C",
+    "history.deleteTagAffected": "\uC0AD\uC81C ({count}\uAC1C \uC791\uC5C5)",
+    "history.addTag": "\uD0DC\uADF8 \uCD94\uAC00",
+    "history.removeTag": "\uD0DC\uADF8 \uC81C\uAC70",
+    "history.favoriteSelected": "\uC990\uACA8\uCC3E\uAE30",
+    "history.unfavoriteSelected": "\uC990\uACA8\uCC3E\uAE30 \uD574\uC81C",
+    "history.organizationFailed": "\uC990\uACA8\uCC3E\uAE30 \uB610\uB294 \uD0DC\uADF8\uB97C \uC5C5\uB370\uC774\uD2B8\uD558\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4",
+    "history.tagNameConflict": "\uAC19\uC740 \uD0DC\uADF8 \uC774\uB984\uC774 \uC774\uBBF8 \uC788\uC2B5\uB2C8\uB2E4",
+    "history.noTags": "\uC544\uC9C1 \uD0DC\uADF8\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4",
+    "history.backendRestartRequired": "\uAE30\uB85D \uAE30\uB2A5\uC774 \uC5C5\uB370\uC774\uD2B8\uB418\uC5C8\uC2B5\uB2C8\uB2E4. \uC571\uC744 \uB2E4\uC2DC \uC2DC\uC791\uD55C \uD6C4 \uB2E4\uC2DC \uC2DC\uB3C4\uD558\uC138\uC694.",
+    "history.export": "\uB0B4\uBCF4\uB0B4\uAE30",
+    "history.exportImagesOnly": "\uC774\uBBF8\uC9C0\uB9CC",
+    "history.exportImagesWithPrompts": "\uC774\uBBF8\uC9C0 + \uD504\uB86C\uD504\uD2B8",
+    "history.exportPreparing": "\uB0B4\uBCF4\uB0B4\uAE30 \uC900\uBE44 \uC911\u2026",
+    "history.exportStarted": "\uB2E4\uC6B4\uB85C\uB4DC \uC2DC\uC791\uB428",
+    "history.exportSummary": "\uC791\uC5C5 {taskCount}\uAC1C \xB7 \uC774\uBBF8\uC9C0 {imageCount}\uAC1C",
+    "history.exportFailed": "\uB0B4\uBCF4\uB0B4\uAE30 \uC2E4\uD328",
+    "history.closeExport": "\uB0B4\uBCF4\uB0B4\uAE30 \uC120\uD0DD \uB2EB\uAE30",
     "history.type": "\uC720\uD615",
     "history.allTypes": "\uBAA8\uB4E0 \uC720\uD615",
     "history.type.textToImage": "\uD14D\uC2A4\uD2B8\u2192\uC774\uBBF8\uC9C0",
@@ -5568,6 +5751,7 @@
     "language.ru": "\u0420\u0443\u0441\u0441\u043A\u0438\u0439",
     "language.it": "Italiano",
     "language.hi": "\u0939\u093F\u0928\u094D\u0926\u0940",
+    "language.vi": "Ti\u1EBFng Vi\u1EC7t",
     "auth.label": "\uC778\uC99D \uC18C\uC2A4",
     "auth.checking": "\uC778\uC99D \uD655\uC778 \uC911",
     "auth.missingCodexSession": "Codex \uC138\uC158\uC774 \uAC10\uC9C0\uB418\uC9C0 \uC54A\uC558\uC2B5\uB2C8\uB2E4.",
@@ -6441,12 +6625,41 @@
     "historyLibrary.openFull": "Abra a biblioteca de hist\xF3rico completa",
     "history.documentTitle": "Hist\xF3ria - iLab CONJURE",
     "history.back": "Voltar ao gerador",
+    "history.homeAria": "Voltar ao gerador iLab CONJURE",
+    "history.backToGenerator": "Voltar ao gerador",
     "history.title": "Hist\xF3ria",
     "history.loading": "Carregando",
     "history.total": "Tarefas {total} \xB7 {archived} arquivadas",
     "history.search": "Pesquisar",
     "history.searchPlaceholder": "Solicita\xE7\xF5es de pesquisa ou tarefa ID",
     "history.clear": "Limpar",
+    "history.favorites": "Favoritos",
+    "history.onlyFavorites": "Somente favoritos",
+    "history.favoriteTask": "Adicionar aos favoritos",
+    "history.unfavoriteTask": "Remover dos favoritos",
+    "history.tags": "Etiquetas",
+    "history.untagged": "Sem etiqueta",
+    "history.manageTags": "Gerenciar etiquetas",
+    "history.createTag": "Criar etiqueta",
+    "history.renameTag": "Renomear",
+    "history.deleteTag": "Excluir",
+    "history.deleteTagAffected": "Excluir ({count} tarefas)",
+    "history.addTag": "Adicionar etiqueta",
+    "history.removeTag": "Remover etiqueta",
+    "history.favoriteSelected": "Favoritar",
+    "history.unfavoriteSelected": "Desfavoritar",
+    "history.organizationFailed": "N\xE3o foi poss\xEDvel atualizar favoritos ou etiquetas",
+    "history.tagNameConflict": "Este nome de etiqueta j\xE1 existe",
+    "history.noTags": "Ainda n\xE3o h\xE1 etiquetas",
+    "history.backendRestartRequired": "Os recursos do hist\xF3rico foram atualizados. Reinicie o app e tente novamente.",
+    "history.export": "Exportar",
+    "history.exportImagesOnly": "Somente imagens",
+    "history.exportImagesWithPrompts": "Imagens + prompts",
+    "history.exportPreparing": "Preparando exporta\xE7\xE3o\u2026",
+    "history.exportStarted": "Download iniciado",
+    "history.exportSummary": "{taskCount} tarefas \xB7 {imageCount} imagens",
+    "history.exportFailed": "Falha na exporta\xE7\xE3o",
+    "history.closeExport": "Fechar op\xE7\xF5es de exporta\xE7\xE3o",
     "history.type": "Tipo",
     "history.allTypes": "Todos os tipos",
     "history.type.textToImage": "Texto para imagem",
@@ -6617,6 +6830,7 @@
     "language.ru": "\u0420\u0443\u0441\u0441\u043A\u0438\u0439",
     "language.it": "Italiano",
     "language.hi": "\u0939\u093F\u0928\u094D\u0926\u0940",
+    "language.vi": "Ti\u1EBFng Vi\u1EC7t",
     "auth.label": "Fonte de autentica\xE7\xE3o",
     "auth.checking": "Verificando autentica\xE7\xE3o",
     "auth.missingCodexSession": "Nenhuma sess\xE3o Codex detectada",
@@ -7490,12 +7704,41 @@
     "historyLibrary.openFull": "\u041E\u0442\u043A\u0440\u044B\u0442\u044C \u043F\u043E\u043B\u043D\u0443\u044E \u0431\u0438\u0431\u043B\u0438\u043E\u0442\u0435\u043A\u0443 \u0438\u0441\u0442\u043E\u0440\u0438\u0438",
     "history.documentTitle": "\u0418\u0441\u0442\u043E\u0440\u0438\u044F - iLab CONJURE",
     "history.back": "\u0412\u0435\u0440\u043D\u0443\u0442\u044C\u0441\u044F \u043A \u0433\u0435\u043D\u0435\u0440\u0430\u0442\u043E\u0440\u0443",
+    "history.homeAria": "\u0412\u0435\u0440\u043D\u0443\u0442\u044C\u0441\u044F \u043A \u0433\u0435\u043D\u0435\u0440\u0430\u0442\u043E\u0440\u0443 iLab CONJURE",
+    "history.backToGenerator": "\u0412\u0435\u0440\u043D\u0443\u0442\u044C\u0441\u044F \u043A \u0433\u0435\u043D\u0435\u0440\u0430\u0442\u043E\u0440\u0443",
     "history.title": "\u0418\u0441\u0442\u043E\u0440\u0438\u044F",
     "history.loading": "\u0417\u0430\u0433\u0440\u0443\u0437\u043A\u0430",
     "history.total": "{total} \u0437\u0430\u0434\u0430\u0447 \xB7 {archived} \u0432 \u0430\u0440\u0445\u0438\u0432\u0435",
     "history.search": "\u041F\u043E\u0438\u0441\u043A",
     "history.searchPlaceholder": "\u041F\u043E\u0438\u0441\u043A\u043E\u0432\u044B\u0435 \u0437\u0430\u043F\u0440\u043E\u0441\u044B \u0438\u043B\u0438 \u0437\u0430\u0434\u0430\u0447\u0430 ID",
     "history.clear": "\u041E\u0447\u0438\u0441\u0442\u0438\u0442\u044C",
+    "history.favorites": "\u0418\u0437\u0431\u0440\u0430\u043D\u043D\u043E\u0435",
+    "history.onlyFavorites": "\u0422\u043E\u043B\u044C\u043A\u043E \u0438\u0437\u0431\u0440\u0430\u043D\u043D\u043E\u0435",
+    "history.favoriteTask": "\u0414\u043E\u0431\u0430\u0432\u0438\u0442\u044C \u0432 \u0438\u0437\u0431\u0440\u0430\u043D\u043D\u043E\u0435",
+    "history.unfavoriteTask": "\u0423\u0431\u0440\u0430\u0442\u044C \u0438\u0437 \u0438\u0437\u0431\u0440\u0430\u043D\u043D\u043E\u0433\u043E",
+    "history.tags": "\u0422\u0435\u0433\u0438",
+    "history.untagged": "\u0411\u0435\u0437 \u0442\u0435\u0433\u043E\u0432",
+    "history.manageTags": "\u0423\u043F\u0440\u0430\u0432\u043B\u0435\u043D\u0438\u0435 \u0442\u0435\u0433\u0430\u043C\u0438",
+    "history.createTag": "\u0421\u043E\u0437\u0434\u0430\u0442\u044C \u0442\u0435\u0433",
+    "history.renameTag": "\u041F\u0435\u0440\u0435\u0438\u043C\u0435\u043D\u043E\u0432\u0430\u0442\u044C",
+    "history.deleteTag": "\u0423\u0434\u0430\u043B\u0438\u0442\u044C",
+    "history.deleteTagAffected": "\u0423\u0434\u0430\u043B\u0438\u0442\u044C ({count} \u0437\u0430\u0434\u0430\u0447)",
+    "history.addTag": "\u0414\u043E\u0431\u0430\u0432\u0438\u0442\u044C \u0442\u0435\u0433",
+    "history.removeTag": "\u0423\u0434\u0430\u043B\u0438\u0442\u044C \u0442\u0435\u0433",
+    "history.favoriteSelected": "\u0412 \u0438\u0437\u0431\u0440\u0430\u043D\u043D\u043E\u0435",
+    "history.unfavoriteSelected": "\u0423\u0431\u0440\u0430\u0442\u044C \u0438\u0437 \u0438\u0437\u0431\u0440\u0430\u043D\u043D\u043E\u0433\u043E",
+    "history.organizationFailed": "\u041D\u0435 \u0443\u0434\u0430\u043B\u043E\u0441\u044C \u043E\u0431\u043D\u043E\u0432\u0438\u0442\u044C \u0438\u0437\u0431\u0440\u0430\u043D\u043D\u043E\u0435 \u0438\u043B\u0438 \u0442\u0435\u0433\u0438",
+    "history.tagNameConflict": "\u0422\u0430\u043A\u043E\u0435 \u0438\u043C\u044F \u0442\u0435\u0433\u0430 \u0443\u0436\u0435 \u0441\u0443\u0449\u0435\u0441\u0442\u0432\u0443\u0435\u0442",
+    "history.noTags": "\u0422\u0435\u0433\u043E\u0432 \u043F\u043E\u043A\u0430 \u043D\u0435\u0442",
+    "history.backendRestartRequired": "\u0424\u0443\u043D\u043A\u0446\u0438\u0438 \u0438\u0441\u0442\u043E\u0440\u0438\u0438 \u043E\u0431\u043D\u043E\u0432\u043B\u0435\u043D\u044B. \u041F\u0435\u0440\u0435\u0437\u0430\u043F\u0443\u0441\u0442\u0438\u0442\u0435 \u043F\u0440\u0438\u043B\u043E\u0436\u0435\u043D\u0438\u0435 \u0438 \u043F\u043E\u043F\u0440\u043E\u0431\u0443\u0439\u0442\u0435 \u0441\u043D\u043E\u0432\u0430.",
+    "history.export": "\u042D\u043A\u0441\u043F\u043E\u0440\u0442",
+    "history.exportImagesOnly": "\u0422\u043E\u043B\u044C\u043A\u043E \u0438\u0437\u043E\u0431\u0440\u0430\u0436\u0435\u043D\u0438\u044F",
+    "history.exportImagesWithPrompts": "\u0418\u0437\u043E\u0431\u0440\u0430\u0436\u0435\u043D\u0438\u044F + \u043F\u0440\u043E\u043C\u043F\u0442\u044B",
+    "history.exportPreparing": "\u041F\u043E\u0434\u0433\u043E\u0442\u043E\u0432\u043A\u0430 \u044D\u043A\u0441\u043F\u043E\u0440\u0442\u0430\u2026",
+    "history.exportStarted": "\u0417\u0430\u0433\u0440\u0443\u0437\u043A\u0430 \u043D\u0430\u0447\u0430\u043B\u0430\u0441\u044C",
+    "history.exportSummary": "{taskCount} \u0437\u0430\u0434\u0430\u0447 \xB7 {imageCount} \u0438\u0437\u043E\u0431\u0440\u0430\u0436\u0435\u043D\u0438\u0439",
+    "history.exportFailed": "\u041D\u0435 \u0443\u0434\u0430\u043B\u043E\u0441\u044C \u044D\u043A\u0441\u043F\u043E\u0440\u0442\u0438\u0440\u043E\u0432\u0430\u0442\u044C",
+    "history.closeExport": "\u0417\u0430\u043A\u0440\u044B\u0442\u044C \u0432\u044B\u0431\u043E\u0440 \u044D\u043A\u0441\u043F\u043E\u0440\u0442\u0430",
     "history.type": "\u0422\u0438\u043F",
     "history.allTypes": "\u0412\u0441\u0435 \u0442\u0438\u043F\u044B",
     "history.type.textToImage": "\u0422\u0435\u043A\u0441\u0442 \u0432 \u0438\u0437\u043E\u0431\u0440\u0430\u0436\u0435\u043D\u0438\u0435",
@@ -7666,6 +7909,7 @@
     "language.ru": "\u0420\u0443\u0441\u0441\u043A\u0438\u0439",
     "language.it": "Italiano",
     "language.hi": "\u0939\u093F\u0928\u094D\u0926\u0940",
+    "language.vi": "Ti\u1EBFng Vi\u1EC7t",
     "auth.label": "\u0418\u0441\u0442\u043E\u0447\u043D\u0438\u043A \u0430\u0443\u0442\u0435\u043D\u0442\u0438\u0444\u0438\u043A\u0430\u0446\u0438\u0438",
     "auth.checking": "\u041F\u0440\u043E\u0432\u0435\u0440\u043A\u0430 \u0430\u0432\u0442\u043E\u0440\u0438\u0437\u0430\u0446\u0438\u0438",
     "auth.missingCodexSession": "\u0421\u0435\u0430\u043D\u0441 Codex \u043D\u0435 \u043E\u0431\u043D\u0430\u0440\u0443\u0436\u0435\u043D",
@@ -8539,12 +8783,41 @@
     "historyLibrary.openFull": "Apri la libreria della cronologia completa",
     "history.documentTitle": "Storia - iLab CONJURE",
     "history.back": "Torniamo al generatore",
+    "history.homeAria": "Torna al generatore iLab CONJURE",
+    "history.backToGenerator": "Torna al generatore",
     "history.title": "Storia",
     "history.loading": "Caricamento in corso",
     "history.total": "{total} attivit\xE0 \xB7 {archived} archiviate",
     "history.search": "Cerca",
     "history.searchPlaceholder": "Richieste di ricerca o attivit\xE0 ID",
     "history.clear": "Chiaro",
+    "history.favorites": "Preferiti",
+    "history.onlyFavorites": "Solo preferiti",
+    "history.favoriteTask": "Aggiungi ai preferiti",
+    "history.unfavoriteTask": "Rimuovi dai preferiti",
+    "history.tags": "Tag",
+    "history.untagged": "Senza tag",
+    "history.manageTags": "Gestisci tag",
+    "history.createTag": "Crea tag",
+    "history.renameTag": "Rinomina",
+    "history.deleteTag": "Elimina",
+    "history.deleteTagAffected": "Elimina ({count} attivit\xE0)",
+    "history.addTag": "Aggiungi tag",
+    "history.removeTag": "Rimuovi tag",
+    "history.favoriteSelected": "Aggiungi ai preferiti",
+    "history.unfavoriteSelected": "Rimuovi dai preferiti",
+    "history.organizationFailed": "Impossibile aggiornare preferiti o tag",
+    "history.tagNameConflict": "Questo nome di tag esiste gi\xE0",
+    "history.noTags": "Nessun tag",
+    "history.backendRestartRequired": "Le funzioni della cronologia sono state aggiornate. Riavvia l\u2019app e riprova.",
+    "history.export": "Esporta",
+    "history.exportImagesOnly": "Solo immagini",
+    "history.exportImagesWithPrompts": "Immagini + prompt",
+    "history.exportPreparing": "Preparazione esportazione\u2026",
+    "history.exportStarted": "Download avviato",
+    "history.exportSummary": "{taskCount} attivit\xE0 \xB7 {imageCount} immagini",
+    "history.exportFailed": "Esportazione non riuscita",
+    "history.closeExport": "Chiudi opzioni di esportazione",
     "history.type": "Tipo",
     "history.allTypes": "Tutti i tipi",
     "history.type.textToImage": "Testo in immagine",
@@ -8715,6 +8988,7 @@
     "language.ru": "\u0420\u0443\u0441\u0441\u043A\u0438\u0439",
     "language.it": "Italiano",
     "language.hi": "\u0939\u093F\u0928\u094D\u0926\u0940",
+    "language.vi": "Ti\u1EBFng Vi\u1EC7t",
     "auth.label": "Origine autenticazione",
     "auth.checking": "Verifica autenticazione",
     "auth.missingCodexSession": "Nessuna sessione Codex rilevata",
@@ -9588,12 +9862,41 @@
     "historyLibrary.openFull": "\u092A\u0942\u0930\u094D\u0923 \u0907\u0924\u093F\u0939\u093E\u0938 \u092A\u0941\u0938\u094D\u0924\u0915\u093E\u0932\u092F \u0916\u094B\u0932\u0947\u0902",
     "history.documentTitle": "\u0907\u0924\u093F\u0939\u093E\u0938 - iLab CONJURE",
     "history.back": "\u091C\u0947\u0928\u0930\u0947\u091F\u0930 \u0915\u094B \u0932\u094C\u091F\u0947\u0902",
+    "history.homeAria": "iLab CONJURE \u091C\u0947\u0928\u0930\u0947\u091F\u0930 \u092A\u0930 \u0932\u094C\u091F\u0947\u0902",
+    "history.backToGenerator": "\u091C\u0947\u0928\u0930\u0947\u091F\u0930 \u092A\u0930 \u0932\u094C\u091F\u0947\u0902",
     "history.title": "\u0907\u0924\u093F\u0939\u093E\u0938",
     "history.loading": "\u0932\u094B\u0921 \u0939\u094B \u0930\u0939\u093E \u0939\u0948",
     "history.total": "{total} \u0915\u093E\u0930\u094D\u092F \xB7 {archived} \u0938\u0902\u0917\u094D\u0930\u0939\u0940\u0924",
     "history.search": "\u0916\u094B\u091C\u0947\u0902",
     "history.searchPlaceholder": "\u092A\u094D\u0930\u0949\u092E\u094D\u092A\u094D\u091F \u092F\u093E \u0915\u093E\u0930\u094D\u092F ID \u0916\u094B\u091C\u0947\u0902",
     "history.clear": "\u0938\u093E\u092B\u093C \u0915\u0930\u0947\u0902",
+    "history.favorites": "\u092A\u0938\u0902\u0926\u0940\u0926\u093E",
+    "history.onlyFavorites": "\u0915\u0947\u0935\u0932 \u092A\u0938\u0902\u0926\u0940\u0926\u093E",
+    "history.favoriteTask": "\u092A\u0938\u0902\u0926\u0940\u0926\u093E \u092E\u0947\u0902 \u091C\u094B\u0921\u093C\u0947\u0902",
+    "history.unfavoriteTask": "\u092A\u0938\u0902\u0926\u0940\u0926\u093E \u0938\u0947 \u0939\u091F\u093E\u090F\u0901",
+    "history.tags": "\u091F\u0948\u0917",
+    "history.untagged": "\u092C\u093F\u0928\u093E \u091F\u0948\u0917",
+    "history.manageTags": "\u091F\u0948\u0917 \u092A\u094D\u0930\u092C\u0902\u0927\u093F\u0924 \u0915\u0930\u0947\u0902",
+    "history.createTag": "\u091F\u0948\u0917 \u092C\u0928\u093E\u090F\u0901",
+    "history.renameTag": "\u0928\u093E\u092E \u092C\u0926\u0932\u0947\u0902",
+    "history.deleteTag": "\u0939\u091F\u093E\u090F\u0901",
+    "history.deleteTagAffected": "\u0939\u091F\u093E\u090F\u0901 ({count} \u0915\u093E\u0930\u094D\u092F)",
+    "history.addTag": "\u091F\u0948\u0917 \u091C\u094B\u0921\u093C\u0947\u0902",
+    "history.removeTag": "\u091F\u0948\u0917 \u0939\u091F\u093E\u090F\u0901",
+    "history.favoriteSelected": "\u092A\u0938\u0902\u0926\u0940\u0926\u093E \u092C\u0928\u093E\u090F\u0901",
+    "history.unfavoriteSelected": "\u092A\u0938\u0902\u0926\u0940\u0926\u093E \u0939\u091F\u093E\u090F\u0901",
+    "history.organizationFailed": "\u092A\u0938\u0902\u0926\u0940\u0926\u093E \u092F\u093E \u091F\u0948\u0917 \u0905\u092A\u0921\u0947\u091F \u0928\u0939\u0940\u0902 \u0939\u094B \u0938\u0915\u0947",
+    "history.tagNameConflict": "\u092F\u0939 \u091F\u0948\u0917 \u0928\u093E\u092E \u092A\u0939\u0932\u0947 \u0938\u0947 \u092E\u094C\u091C\u0942\u0926 \u0939\u0948",
+    "history.noTags": "\u0905\u092D\u0940 \u0915\u094B\u0908 \u091F\u0948\u0917 \u0928\u0939\u0940\u0902",
+    "history.backendRestartRequired": "\u0907\u0924\u093F\u0939\u093E\u0938 \u0938\u0941\u0935\u093F\u0927\u093E\u090F\u0901 \u0905\u092A\u0921\u0947\u091F \u0939\u0941\u0908 \u0939\u0948\u0902\u0964 \u0910\u092A \u0915\u094B \u092B\u093F\u0930 \u0938\u0947 \u0936\u0941\u0930\u0942 \u0915\u0930\u0915\u0947 \u0926\u094B\u092C\u093E\u0930\u093E \u0915\u094B\u0936\u093F\u0936 \u0915\u0930\u0947\u0902\u0964",
+    "history.export": "\u0928\u093F\u0930\u094D\u092F\u093E\u0924",
+    "history.exportImagesOnly": "\u0915\u0947\u0935\u0932 \u091A\u093F\u0924\u094D\u0930",
+    "history.exportImagesWithPrompts": "\u091A\u093F\u0924\u094D\u0930 + \u092A\u094D\u0930\u0949\u092E\u094D\u092A\u094D\u091F",
+    "history.exportPreparing": "\u0928\u093F\u0930\u094D\u092F\u093E\u0924 \u0924\u0948\u092F\u093E\u0930 \u0939\u094B \u0930\u0939\u093E \u0939\u0948\u2026",
+    "history.exportStarted": "\u0921\u093E\u0909\u0928\u0932\u094B\u0921 \u0936\u0941\u0930\u0942 \u0939\u0941\u0906",
+    "history.exportSummary": "{taskCount} \u0915\u093E\u0930\u094D\u092F \xB7 {imageCount} \u091A\u093F\u0924\u094D\u0930",
+    "history.exportFailed": "\u0928\u093F\u0930\u094D\u092F\u093E\u0924 \u0935\u093F\u092B\u0932",
+    "history.closeExport": "\u0928\u093F\u0930\u094D\u092F\u093E\u0924 \u0935\u093F\u0915\u0932\u094D\u092A \u092C\u0902\u0926 \u0915\u0930\u0947\u0902",
     "history.type": "\u092A\u094D\u0930\u0915\u093E\u0930",
     "history.allTypes": "\u0938\u092D\u0940 \u092A\u094D\u0930\u0915\u093E\u0930",
     "history.type.textToImage": "\u091F\u0947\u0915\u094D\u0938\u094D\u091F \u0938\u0947 \u0907\u092E\u0947\u091C",
@@ -9764,6 +10067,7 @@
     "language.ru": "\u0420\u0443\u0441\u0441\u043A\u0438\u0439",
     "language.it": "Italiano",
     "language.hi": "\u0939\u093F\u0928\u094D\u0926\u0940",
+    "language.vi": "Ti\u1EBFng Vi\u1EC7t",
     "auth.label": "\u092A\u094D\u0930\u092E\u093E\u0923\u0940\u0915\u0930\u0923 \u0938\u094D\u0930\u094B\u0924",
     "auth.checking": "\u092A\u094D\u0930\u092E\u093E\u0923\u0940\u0915\u0930\u0923 \u0915\u0940 \u091C\u093E\u0901\u091A \u0915\u0940 \u091C\u093E \u0930\u0939\u0940 \u0939\u0948",
     "auth.missingCodexSession": "\u0915\u094B\u0908 Codex \u0938\u0924\u094D\u0930 \u0928\u0939\u0940\u0902 \u092E\u093F\u0932\u093E",
@@ -10499,6 +10803,1095 @@
     "modelParameters.legacyTask": "\u092A\u0941\u0930\u093E\u0928\u093E \u0915\u093E\u0930\u094D\u092F"
   };
 
+  // codex_image/webui/frontend/src/i18n/vi.ts
+  var VI_DICTIONARY = {
+    "app.newTask": "M\u1EDBi",
+    "app.newTaskAria": "Tr\xF2 chuy\u1EC7n m\u1EDBi",
+    "sidebar.searchPlaceholder": "T\xECm ki\u1EBFm l\u1EDDi nh\u1EAFc ho\u1EB7c Task ID",
+    "sidebar.filters": "B\u1ED9 l\u1ECDc t\xE1c v\u1EE5",
+    "sidebar.allRatios": "T\u1EA5t c\u1EA3 t\u1EF7 l\u1EC7",
+    "sidebar.allOrientations": "T\u1EA5t c\u1EA3 h\u01B0\u1EDBng",
+    "sidebar.allModes": "T\u1EA5t c\u1EA3 ch\u1EBF \u0111\u1ED9",
+    "sidebar.allResolutions": "T\u1EA5t c\u1EA3 \u0111\u1ED9 ph\xE2n gi\u1EA3i",
+    "sidebar.allStatuses": "T\u1EA5t c\u1EA3 tr\u1EA1ng th\xE1i",
+    "sidebar.activeTasks": "T\xE1c v\u1EE5 \u0111ang ch\u1EA1y",
+    "sidebar.topAnchors": "\u0110i\u1EC1u h\u01B0\u1EDBng th\u1EDDi gian ph\xEDa tr\xEAn",
+    "sidebar.bottomAnchors": "\u0110i\u1EC1u h\u01B0\u1EDBng th\u1EDDi gian ph\xEDa d\u01B0\u1EDBi",
+    "sidebar.resize": "Thay \u0111\u1ED5i k\xEDch th\u01B0\u1EDBc thanh b\xEAn",
+    "batch.selected": "0 \u0111\xE3 ch\u1ECDn",
+    "batch.selectedCount": "{count} \u0111\xE3 ch\u1ECDn",
+    "batch.selectCurrentGroup": "Ch\u1ECDn t\u1EA5t c\u1EA3 trong nh\xF3m",
+    "batch.archivedCount": "\u0110\xE3 l\u01B0u tr\u1EEF {count} cu\u1ED9c tr\xF2 chuy\u1EC7n",
+    "batch.archiveFailed": "L\u01B0u tr\u1EEF h\xE0ng lo\u1EA1t kh\xF4ng th\xE0nh c\xF4ng",
+    "batch.runningCannotDeleteSelected": "C\xE1c t\xE1c v\u1EE5 \u0111\xE3 ch\u1ECDn \u0111ang ch\u1EA1y v\xE0 kh\xF4ng th\u1EC3 x\xF3a",
+    "batch.deleteTitle": "X\xF3a cu\u1ED9c tr\xF2 chuy\u1EC7n {count}?",
+    "batch.deleteMessage": "Thao t\xE1c n\xE0y c\u0169ng s\u1EBD x\xF3a c\xE1c file \u1EA3nh c\u1EE5c b\u1ED9.",
+    "batch.deleteSkippedDetail": "{count} t\xE1c v\u1EE5 \u0111ang ch\u1EA1y s\u1EBD \u0111\u01B0\u1EE3c gi\u1EEF l\u1EA1i",
+    "batch.deleteSkippedSuffix": ", {count} t\xE1c v\u1EE5 \u0111ang ch\u1EA1y kh\xF4ng b\u1ECB x\xF3a",
+    "batch.deletedCount": "\u0110\xE3 x\xF3a {count} cu\u1ED9c tr\xF2 chuy\u1EC7n{skipped}",
+    "batch.deleteFailed": "X\xF3a h\xE0ng lo\u1EA1t kh\xF4ng th\xE0nh c\xF4ng",
+    "batch.cancelTasksShortcut": "H\u1EE7y t\xE1c v\u1EE5",
+    "batch.cancelSelected": "H\u1EE7y t\xE1c v\u1EE5",
+    "batch.noActiveSelected": "C\xE1c t\xE1c v\u1EE5 \u0111\xE3 ch\u1ECDn kh\xF4ng c\xF2n ch\u1EA1y ho\u1EB7c ch\u1EDD",
+    "batch.cancelTitle": "H\u1EE7y {count} t\xE1c v\u1EE5?",
+    "batch.cancelMessage": "T\xE1c v\u1EE5 \u0111ang ch\u1EA1y s\u1EBD d\u1EEBng v\xE0 t\xE1c v\u1EE5 \u0111ang ch\u1EDD s\u1EBD r\u1EDDi h\xE0ng \u0111\u1EE3i. L\u1ECBch s\u1EED v\u1EABn \u0111\u01B0\u1EE3c gi\u1EEF l\u1EA1i.",
+    "batch.cancelDetail": "\u0110ang ch\u1EA1y {running} \xB7 \u0111ang ch\u1EDD {waiting}",
+    "batch.cancelConfirm": "H\u1EE7y t\xE1c v\u1EE5",
+    "batch.cancelResult": "\u0110\xE3 h\u1EE7y {cancelled}, b\u1ECF qua {skipped}, th\u1EA5t b\u1EA1i {failed}",
+    "batch.cancelFailed": "H\u1EE7y h\xE0ng lo\u1EA1t th\u1EA5t b\u1EA1i",
+    "action.archive": "L\u01B0u tr\u1EEF",
+    "action.delete": "X\xF3a",
+    "action.cancel": "H\u1EE7y",
+    "action.edit": "Ch\u1EC9nh s\u1EEDa",
+    "action.clear": "X\xF3a",
+    "action.paste": "D\xE1n",
+    "action.find": "T\xECm",
+    "action.replace": "Thay th\u1EBF",
+    "action.close": "\u0110\xF3ng",
+    "action.confirm": "X\xE1c nh\u1EADn",
+    "action.confirmQuestion": "X\xE1c nh\u1EADn h\xE0nh \u0111\u1ED9ng?",
+    "action.refresh": "L\xE0m m\u1EDBi",
+    "action.save": "L\u01B0u",
+    "action.add": "Th\xEAm",
+    "action.new": "M\u1EDBi",
+    "action.import": "Nh\u1EADp",
+    "action.export": "Xu\u1EA5t",
+    "queue.empty": "Kh\xF4ng c\xF3 h\xE0ng \u0111\u1EE3i",
+    "queue.emptyAria": "Tr\u1EA1ng th\xE1i h\xE0ng \u0111\u1EE3i: kh\xF4ng c\xF3 t\xE1c v\u1EE5 \u0111ang ch\u1EDD",
+    "queue.jumpTitle": "Chuy\u1EC3n \u0111\u1EBFn t\xE1c v\u1EE5 \u0111ang ch\u1EA1y",
+    "queue.emptyTitle": "Kh\xF4ng c\xF3 t\xE1c v\u1EE5 \u0111ang ch\u1EDD",
+    "queue.channel": "K\xEAnh {count}",
+    "queue.availableChannels": "C\xE1c k\xEAnh c\xF3 s\u1EB5n {usable}/{total}",
+    "queue.dispatching": "\u0110ang l\xEAn l\u1ECBch \xB7 ch\u1EDD \u0111\u1EE3i {waiting}",
+    "queue.runningWaiting": "\u0110ang ch\u1EA1y {running} \xB7 ch\u1EDD {waiting}",
+    "queue.statusLabel": "Tr\u1EA1ng th\xE1i h\xE0ng \u0111\u1EE3i: {text} \xB7 {channelText}. B\u1EA5m \u0111\u1EC3 chuy\u1EC3n \u0111\u1EBFn t\xE1c v\u1EE5 \u0111ang ch\u1EA1y",
+    "queue.runningActions": "H\xE0nh \u0111\u1ED9ng cho t\xE1c v\u1EE5 \u0111ang ch\u1EA1y",
+    "queue.waitingActions": "H\xE0nh \u0111\u1ED9ng cho t\xE1c v\u1EE5 \u0111ang ch\u1EDD",
+    "queue.cancelRunning": "H\u1EE7y",
+    "queue.cancelRunningTitle": "H\u1EE7y t\xE1c v\u1EE5 \u0111ang ch\u1EA1y",
+    "queue.dragWaiting": "K\xE9o \u0111\u1EC3 s\u1EAFp x\u1EBFp l\u1EA1i t\xE1c v\u1EE5 \u0111ang ch\u1EDD",
+    "queue.dragSort": "K\xE9o \u0111\u1EC3 s\u1EAFp x\u1EBFp",
+    "queue.moveUp": "L\xEAn",
+    "queue.moveUpTitle": "Di chuy\u1EC3n t\xE1c v\u1EE5 \u0111ang ch\u1EDD l\xEAn",
+    "queue.moveDown": "Xu\u1ED1ng",
+    "queue.moveDownTitle": "Di chuy\u1EC3n t\xE1c v\u1EE5 \u0111ang ch\u1EDD xu\u1ED1ng",
+    "queue.promote": "L\xEAn \u0111\u1EA7u",
+    "queue.promoteTitle": "\u0110\u01B0a t\xE1c v\u1EE5 \u0111ang ch\u1EDD l\xEAn \u0111\u1EA7u",
+    "queue.promoteFailed": "Di chuy\u1EC3n l\xEAn \u0111\u1EA7u kh\xF4ng th\xE0nh c\xF4ng",
+    "queue.deleteWaitingShort": "Del",
+    "queue.deleteWaitingTitle": "X\xF3a t\xE1c v\u1EE5 \u0111ang ch\u1EDD",
+    "queue.deleteWaitingTitleConfirm": "X\xF3a t\xE1c v\u1EE5 \u0111ang ch\u1EDD?",
+    "queue.deleteWaitingMessage": "\u0110i\u1EC1u n\xE0y lo\u1EA1i b\u1ECF n\xF3 kh\u1ECFi danh s\xE1ch h\xE0ng \u0111\u1EE3i v\xE0 l\u1ECBch s\u1EED.",
+    "queue.deleteQueuedFailed": "Kh\xF4ng th\u1EC3 x\xF3a t\xE1c v\u1EE5 \u0111\xE3 x\u1EBFp h\xE0ng \u0111\u1EE3i",
+    "queue.queuedDeleted": "\u0110\xE3 x\xF3a t\xE1c v\u1EE5 x\u1EBFp h\xE0ng \u0111\u1EE3i",
+    "queue.cancelRunningConfirm": "H\u1EE7y t\xE1c v\u1EE5",
+    "queue.cancelRunningTitleConfirm": "H\u1EE7y t\xE1c v\u1EE5 \u0111ang ch\u1EA1y?",
+    "queue.cancelRunningMessage": "T\xE1c v\u1EE5 hi\u1EC7n t\u1EA1i s\u1EBD d\u1EEBng. L\u1ECBch s\u1EED s\u1EBD \u0111\u01B0\u1EE3c gi\u1EEF l\u1EA1i.",
+    "queue.cancelRunningFailed": "Kh\xF4ng h\u1EE7y \u0111\u01B0\u1EE3c t\xE1c v\u1EE5",
+    "queue.runningCancelled": "T\xE1c v\u1EE5 \u0111\xE3 b\u1ECB h\u1EE7y",
+    "queue.reorderFailed": "Kh\xF4ng th\u1EC3 s\u1EAFp x\u1EBFp l\u1EA1i h\xE0ng \u0111\u1EE3i",
+    "queue.realtimeUpdateFailed": "Kh\xF4ng c\u1EADp nh\u1EADt \u0111\u01B0\u1EE3c tr\u1EA1ng th\xE1i tr\u1EF1c ti\u1EBFp",
+    "queue.realtimeDisconnected": "K\u1EBFt n\u1ED1i tr\u1EA1ng th\xE1i tr\u1EF1c ti\u1EBFp b\u1ECB m\u1EA5t. L\xE0m m\u1EDBi trang \u0111\u1EC3 ph\u1EE5c h\u1ED3i.",
+    "queue.readFailed": "Kh\xF4ng th\u1EC3 t\u1EA3i h\xE0ng \u0111\u1EE3i",
+    "status.waiting": "\u0110ang ch\u1EDD",
+    "status.shownActiveTasks": "Hi\u1EC3n th\u1ECB c\xE1c t\xE1c v\u1EE5 \u0111ang ch\u1EA1y",
+    "status.jsonCopied": "\u0110\xE3 sao ch\xE9p JSON",
+    "taskStatus.submitting": "\u0110ang g\u1EEDi",
+    "taskStatus.running": "\u0110ang t\u1EA1o",
+    "taskStatus.runningWithElapsed": "\u0110ang t\u1EA1o \xB7 {elapsed}",
+    "taskStatus.completed": "\u0110\xE3 ho\xE0n th\xE0nh",
+    "taskStatus.partialFailed": "Th\u1EA5t b\u1EA1i m\u1ED9t ph\u1EA7n",
+    "taskStatus.failed": "Th\u1EA5t b\u1EA1i",
+    "taskStatus.queued": "\u0110\xE3 x\u1EBFp h\xE0ng",
+    "taskStatus.unknown": "Tr\u1EA1ng th\xE1i kh\xF4ng x\xE1c \u0111\u1ECBnh",
+    "taskStatus.task": "T\xE1c v\u1EE5",
+    "taskStatus.connectionInterrupted": "K\u1EBFt n\u1ED1i b\u1ECB gi\xE1n \u0111o\u1EA1n",
+    "taskStatus.lastFailed": "Th\u1EA5t b\u1EA1i l\u1EA7n cu\u1ED1i",
+    "taskStatus.waitingRetry": "{reason}, ch\u1EDD th\u1EED l\u1EA1i (l\u1EA7n {attempt}/{max})",
+    "taskStatus.retrying": "{reason}, \u0111ang th\u1EED l\u1EA1i (l\u1EA7n {attempt}/{max})",
+    "taskStatus.nonRetryableAttempt": "\u0110\xE3 th\u1EED {attempt}/{max}, kh\xF4ng th\u1EC3 th\u1EED l\u1EA1i \u0111\u01B0\u1EE3c",
+    "taskStatus.manualRetryAvailable": "\u0110\xE3 d\u1EEBng; b\u1EA1n c\xF3 th\u1EC3 th\u1EED l\u1EA1i th\u1EE7 c\xF4ng c\xE1c \u1EA3nh b\u1ECB l\u1ED7i",
+    "taskStatus.waitingRetryShort": "\u0110ang ch\u1EDD th\u1EED l\u1EA1i",
+    "taskStatus.retryingShort": "\u0110ang th\u1EED l\u1EA1i",
+    "taskStatus.nonRetryableShort": "Kh\xF4ng th\u1EC3 th\u1EED l\u1EA1i",
+    "taskStatus.manualRetryShort": "Th\u1EED l\u1EA1i th\u1EE7 c\xF4ng",
+    "taskStatus.stoppedShort": "\u0110\xE3 d\u1EEBng",
+    "taskStatus.runtime": "Th\u1EDDi l\u01B0\u1EE3ng {duration}",
+    "taskStatus.runtimeCompleted": "Th\u1EDDi l\u01B0\u1EE3ng {duration} \xB7 \u0111\xE3 ho\xE0n th\xE0nh {time}",
+    "taskStatus.completedAt": "\u0110\xE3 ho\xE0n th\xE0nh {time}",
+    "taskCard.count": "{count} h\xECnh \u1EA3nh",
+    "taskCard.successCount": "{count} th\xE0nh c\xF4ng",
+    "taskCard.failedCount": "th\u1EA5t b\u1EA1i {count}",
+    "taskCard.runningCount": "\u0111ang t\u1EA1o {count}",
+    "taskCard.waitingCount": "\u0111ang ch\u1EDD {count}",
+    "taskCard.textToImageThumb": "H\xECnh thu nh\u1ECF t\xE1c v\u1EE5 chuy\u1EC3n v\u0103n b\u1EA3n th\xE0nh h\xECnh \u1EA3nh",
+    "taskCard.imageToImageThumb": "H\xECnh thu nh\u1ECF t\xE1c v\u1EE5 chuy\u1EC3n h\xECnh \u1EA3nh th\xE0nh h\xECnh \u1EA3nh",
+    "taskCard.failedThumb": "T\xE1c v\u1EE5 th\u1EA5t b\u1EA1i",
+    "taskCard.textBadge": "T",
+    "taskMode.edit": "Ch\u1EC9nh s\u1EEDa",
+    "taskMode.generate": "T\u1EA1o",
+    "document.generatingQueue": "\u0110ang t\u1EA1o \xB7 h\xE0ng \u0111\u1EE3i {total}",
+    "document.queuedWaiting": "\u0110ang x\u1EBFp h\xE0ng \xB7 \u0111ang ch\u1EDD {count}",
+    "runFeedback.editing": "Ch\u1EC9nh s\u1EEDa",
+    "runFeedback.generating": "\u0110ang t\u1EA1o",
+    "runFeedback.status": "{action}, \u0111\xE3 tr\xF4i qua {elapsed}",
+    "footer.archive": "L\u01B0u tr\u1EEF",
+    "footer.archiveCount": "L\u01B0u tr\u1EEF {count}",
+    "footer.historyLibrary": "L\u1ECBch s\u1EED",
+    "historyLibrary.openFull": "M\u1EDF th\u01B0 vi\u1EC7n l\u1ECBch s\u1EED \u0111\u1EA7y \u0111\u1EE7",
+    "history.documentTitle": "L\u1ECBch s\u1EED - iLab CONJURE",
+    "history.back": "Quay l\u1EA1i tr\xECnh t\u1EA1o",
+    "history.homeAria": "Quay l\u1EA1i trang t\u1EA1o \u1EA3nh iLab CONJURE",
+    "history.backToGenerator": "Quay l\u1EA1i trang t\u1EA1o \u1EA3nh",
+    "history.title": "L\u1ECBch s\u1EED",
+    "history.loading": "\u0110ang t\u1EA3i",
+    "history.total": "{total} t\xE1c v\u1EE5 \xB7 {archived} \u0111\xE3 l\u01B0u tr\u1EEF",
+    "history.search": "T\xECm ki\u1EBFm",
+    "history.searchPlaceholder": "T\xECm ki\u1EBFm l\u1EDDi nh\u1EAFc ho\u1EB7c Task ID",
+    "history.clear": "X\xF3a",
+    "history.favorites": "Y\xEAu th\xEDch",
+    "history.onlyFavorites": "Ch\u1EC9 xem m\u1EE5c y\xEAu th\xEDch",
+    "history.favoriteTask": "Th\xEAm v\xE0o y\xEAu th\xEDch",
+    "history.unfavoriteTask": "B\u1ECF kh\u1ECFi y\xEAu th\xEDch",
+    "history.tags": "Nh\xE3n",
+    "history.untagged": "Ch\u01B0a g\u1EAFn nh\xE3n",
+    "history.manageTags": "Qu\u1EA3n l\xFD nh\xE3n",
+    "history.createTag": "T\u1EA1o nh\xE3n",
+    "history.renameTag": "\u0110\u1ED5i t\xEAn",
+    "history.deleteTag": "X\xF3a",
+    "history.deleteTagAffected": "X\xF3a (\u1EA3nh h\u01B0\u1EDFng {count} t\xE1c v\u1EE5)",
+    "history.addTag": "Th\xEAm nh\xE3n",
+    "history.removeTag": "G\u1EE1 nh\xE3n",
+    "history.favoriteSelected": "Y\xEAu th\xEDch",
+    "history.unfavoriteSelected": "B\u1ECF y\xEAu th\xEDch",
+    "history.organizationFailed": "Kh\xF4ng th\u1EC3 c\u1EADp nh\u1EADt m\u1EE5c y\xEAu th\xEDch ho\u1EB7c nh\xE3n",
+    "history.tagNameConflict": "T\xEAn nh\xE3n n\xE0y \u0111\xE3 t\u1ED3n t\u1EA1i",
+    "history.noTags": "Ch\u01B0a c\xF3 nh\xE3n",
+    "history.backendRestartRequired": "T\xEDnh n\u0103ng th\u01B0 vi\u1EC7n l\u1ECBch s\u1EED \u0111\xE3 \u0111\u01B0\u1EE3c c\u1EADp nh\u1EADt. H\xE3y kh\u1EDFi \u0111\u1ED9ng l\u1EA1i \u1EE9ng d\u1EE5ng r\u1ED3i th\u1EED l\u1EA1i.",
+    "history.export": "Xu\u1EA5t",
+    "history.exportImagesOnly": "Ch\u1EC9 h\xECnh \u1EA3nh",
+    "history.exportImagesWithPrompts": "H\xECnh \u1EA3nh + c\xE2u l\u1EC7nh",
+    "history.exportPreparing": "\u0110ang chu\u1EA9n b\u1ECB b\u1EA3n xu\u1EA5t\u2026",
+    "history.exportStarted": "\u0110\xE3 b\u1EAFt \u0111\u1EA7u t\u1EA3i xu\u1ED1ng",
+    "history.exportSummary": "{taskCount} t\xE1c v\u1EE5 \xB7 {imageCount} h\xECnh \u1EA3nh",
+    "history.exportFailed": "Xu\u1EA5t th\u1EA5t b\u1EA1i",
+    "history.closeExport": "\u0110\xF3ng l\u1EF1a ch\u1ECDn xu\u1EA5t",
+    "history.type": "Lo\u1EA1i",
+    "history.allTypes": "T\u1EA5t c\u1EA3 lo\u1EA1i",
+    "history.type.textToImage": "V\u0103n b\u1EA3n th\xE0nh \u1EA3nh",
+    "history.type.imageToImage": "\u1EA2nh th\xE0nh \u1EA3nh",
+    "history.month": "Th\xE1ng",
+    "history.status": "Tr\u1EA1ng th\xE1i",
+    "history.promptMode": "Ch\u1EBF \u0111\u1ED9 l\u1EDDi nh\u1EAFc",
+    "history.size": "K\xEDch th\u01B0\u1EDBc",
+    "history.quality": "Ch\u1EA5t l\u01B0\u1EE3ng",
+    "history.ratio": "T\u1EF7 l\u1EC7",
+    "history.orientation": "H\u01B0\u1EDBng",
+    "history.backend": "Backend",
+    "history.provider": "Provider",
+    "history.archived": "\u0110\xE3 l\u01B0u tr\u1EEF",
+    "history.all": "T\u1EA5t c\u1EA3",
+    "history.allMonths": "T\u1EA5t c\u1EA3 c\xE1c th\xE1ng",
+    "history.allStatuses": "T\u1EA5t c\u1EA3 tr\u1EA1ng th\xE1i",
+    "history.allPromptModes": "T\u1EA5t c\u1EA3 c\xE1c ch\u1EBF \u0111\u1ED9",
+    "history.allSizes": "T\u1EA5t c\u1EA3 c\xE1c k\xEDch c\u1EE1",
+    "history.allQualities": "T\u1EA5t c\u1EA3 ch\u1EA5t l\u01B0\u1EE3ng",
+    "history.allRatios": "T\u1EA5t c\u1EA3 c\xE1c t\u1EF7 l\u1EC7",
+    "history.ratioOther": "Kh\xE1c",
+    "history.allOrientations": "T\u1EA5t c\u1EA3 h\u01B0\u1EDBng",
+    "history.allBackends": "T\u1EA5t c\u1EA3 backend",
+    "history.allProviders": "T\u1EA5t c\u1EA3 provider",
+    "history.unarchived": "Ch\u01B0a l\u01B0u tr\u1EEF",
+    "history.archivedOnly": "\u0110\xE3 l\u01B0u tr\u1EEF",
+    "history.tasksAria": "T\xE1c v\u1EE5 l\u1ECBch s\u1EED",
+    "history.taskListTitle": "T\xE1c v\u1EE5 l\u1ECBch s\u1EED",
+    "history.browseNewest": "Duy\u1EC7t m\u1EDBi nh\u1EA5t tr\u01B0\u1EDBc",
+    "history.view": "Xem",
+    "history.grid": "L\u01B0\u1EDBi",
+    "history.list": "Danh s\xE1ch",
+    "history.sort": "S\u1EAFp x\u1EBFp",
+    "history.newest": "M\u1EDBi nh\u1EA5t \u0111\u1EA7u ti\xEAn",
+    "history.oldest": "C\u0169 nh\u1EA5t \u0111\u1EA7u ti\xEAn",
+    "history.refresh": "L\xE0m m\u1EDBi",
+    "history.selectedCount": "{count} t\xE1c v\u1EE5 \u0111\xE3 ch\u1ECDn",
+    "history.confirmDelete": "X\xE1c nh\u1EADn x\xF3a",
+    "history.detail": "Chi ti\u1EBFt t\xE1c v\u1EE5",
+    "history.detailTitle": "T\xE1c v\u1EE5 l\u1ECBch s\u1EED",
+    "history.closeDetail": "\u0110\xF3ng chi ti\u1EBFt t\xE1c v\u1EE5",
+    "history.resizeFilters": "Thay \u0111\u1ED5i k\xEDch th\u01B0\u1EDBc thanh b\xEAn b\u1ED9 l\u1ECDc",
+    "history.resizeDetail": "Thay \u0111\u1ED5i k\xEDch th\u01B0\u1EDBc ng\u0103n chi ti\u1EBFt",
+    "history.detailEmpty": "Ch\u1ECDn m\u1ED9t t\xE1c v\u1EE5 l\u1ECBch s\u1EED \u0111\u1EC3 xem chi ti\u1EBFt",
+    "history.loadingDetail": "\u0110ang t\u1EA3i chi ti\u1EBFt...",
+    "history.loadMore": "T\u1EA3i th\xEAm",
+    "history.loadingMore": "\u0110ang t\u1EA3i...",
+    "history.noMore": "Kh\xF4ng c\xF2n t\xE1c v\u1EE5 n\xE0o n\u1EEFa",
+    "history.loadFailed": "T\u1EA3i kh\xF4ng th\xE0nh c\xF4ng. L\xE0m m\u1EDBi ho\u1EB7c ti\u1EBFp t\u1EE5c cu\u1ED9n \u0111\u1EC3 th\u1EED l\u1EA1i",
+    "history.summaryFailed": "Kh\xF4ng t\u1EA3i \u0111\u01B0\u1EE3c b\u1EA3n t\xF3m t\u1EAFt",
+    "history.tasksFailed": "Kh\xF4ng t\u1EA3i \u0111\u01B0\u1EE3c t\xE1c v\u1EE5",
+    "history.detailFailed": "Kh\xF4ng th\u1EC3 t\u1EA3i chi ti\u1EBFt",
+    "history.noMatches": "Kh\xF4ng c\xF3 t\xE1c v\u1EE5 ph\xF9 h\u1EE3p",
+    "history.loadedCount": "{count} \u0111\xE3 t\u1EA3i",
+    "history.windowNotice": "Danh s\xE1ch hi\u1EC3n th\u1ECB gi\u1EDBi h\u1EA1n \u1EDF {count} t\xE1c v\u1EE5; cu\u1ED9n l\xEAn ho\u1EB7c xu\u1ED1ng \u0111\u1EC3 t\u1EA3i l\u1EA1i c\xE1c t\xE1c v\u1EE5 li\u1EC1n k\u1EC1 khi c\u1EA7n.",
+    "history.selectTask": "Ch\u1ECDn t\xE1c v\u1EE5",
+    "history.viewing": "\u0110ang xem",
+    "history.noPreview": "Kh\xF4ng c\xF3 h\xECnh \u1EA3nh xem tr\u01B0\u1EDBc",
+    "history.downloadAll": "T\u1EA3i xu\u1ED1ng ZIP",
+    "history.downloadImage": "T\u1EA3i xu\u1ED1ng h\xECnh \u1EA3nh",
+    "history.downloadSelected": "T\u1EA3i xu\u1ED1ng m\u1EE5c \u0111\xE3 ch\u1ECDn",
+    "history.deleteUnselected": "X\xF3a m\u1EE5c ch\u01B0a ch\u1ECDn",
+    "history.confirmDeleteUnselected": "X\xE1c nh\u1EADn x\xF3a b\u1ECF ch\u1ECDn",
+    "history.selected": "\u0110\xE3 ch\u1ECDn",
+    "history.select": "ch\u1ECDn",
+    "history.downloadIndex": "T\u1EA3i xu\u1ED1ng {index}",
+    "history.addReference": "Th\xEAm \u1EA3nh tham kh\u1EA3o",
+    "history.outputActions": "H\xE0nh \u0111\u1ED9ng h\xECnh \u1EA3nh k\u1EBFt qu\u1EA3",
+    "history.inputReferences": "Tham chi\u1EBFu \u0111\u1EA7u v\xE0o",
+    "history.inputReferenceIndex": "Tham chi\u1EBFu \u0111\u1EA7u v\xE0o {index}",
+    "history.copyPrompt": "Sao ch\xE9p l\u1EDDi nh\u1EAFc",
+    "history.copyPrompts": "Sao ch\xE9p l\u1EDDi nh\u1EAFc",
+    "history.copyPromptShort": "Sao ch\xE9p",
+    "history.copyPromptPanel": "Sao ch\xE9p {title}",
+    "history.copyOutputPromptPanel": "Sao ch\xE9p l\u1EDDi nh\u1EAFc \u0111\xE3 ch\u1EC9nh c\u1EE7a \u1EA3nh {index}",
+    "history.copyTaskIds": "Sao ch\xE9p Task ID",
+    "history.reuseTask": "Xem trong tr\xECnh t\u1EA1o",
+    "history.downloadTask": "T\u1EA3i xu\u1ED1ng",
+    "history.downloadSelectedTasks": "T\u1EA3i xu\u1ED1ng h\xE0ng lo\u1EA1t",
+    "history.contextMenuLabel": "Menu ng\u1EEF c\u1EA3nh t\xE1c v\u1EE5 l\u1ECBch s\u1EED",
+    "history.promptCopied": "\u0110\xE3 sao ch\xE9p l\u1EDDi nh\u1EAFc",
+    "history.promptsCopied": "Sao ch\xE9p l\u1EDDi nh\u1EAFc t\u1EEB t\xE1c v\u1EE5 {count}",
+    "history.taskIdsCopied": "\u0110\xE3 sao ch\xE9p Task ID {count}",
+    "history.promptCopiedShort": "\u0110\xE3 sao ch\xE9p",
+    "history.promptCopyFailed": "Kh\xF4ng sao ch\xE9p \u0111\u01B0\u1EE3c l\u1EDDi nh\u1EAFc",
+    "history.promptCopyFailedShort": "th\u1EA5t b\u1EA1i",
+    "history.noPrompt": "T\xE1c v\u1EE5 n\xE0y kh\xF4ng c\xF3 l\u1EDDi nh\u1EAFc \u0111\u1EC3 sao ch\xE9p",
+    "history.noPromptShort": "tr\u1ED1ng",
+    "history.downloadStarted": "\u0110\xE3 b\u1EAFt \u0111\u1EA7u t\u1EA3i xu\u1ED1ng",
+    "history.batchDownloadStarted": "\u0110\xE3 b\u1EAFt \u0111\u1EA7u t\u1EA3i xu\u1ED1ng c\xE1c t\xE1c v\u1EE5 {count}",
+    "history.noDownloadableOutputs": "Kh\xF4ng c\xF3 h\xECnh \u1EA3nh c\xF3 th\u1EC3 t\u1EA3i xu\u1ED1ng",
+    "history.confirmDeleteSelected": "X\xE1c nh\u1EADn \u0111\xE3 ch\u1ECDn x\xF3a",
+    "history.openPreview": "M\u1EDF b\u1EA3n xem tr\u01B0\u1EDBc",
+    "history.closePreview": "\u0110\xF3ng b\u1EA3n xem tr\u01B0\u1EDBc",
+    "history.untitled": "Kh\xF4ng c\xF3 ti\xEAu \u0111\u1EC1",
+    "history.promptCompare": "So s\xE1nh l\u1EDDi nh\u1EAFc",
+    "history.promptOriginal": "L\u1EDDi nh\u1EAFc ban \u0111\u1EA7u",
+    "history.promptSubmitted": "L\u1EDDi nh\u1EAFc \u0111\u01B0\u1EE3c t\u1ED1i \u01B0u h\xF3a",
+    "history.promptRevised": "K\u1EBFt qu\u1EA3 s\u1EEDa \u0111\u1ED5i",
+    "history.outputRevisedPromptTitle": "H\xECnh \u1EA3nh {index} \u0111\xE3 s\u1EEDa l\u1EA1i l\u1EDDi nh\u1EAFc",
+    "history.outputRevisedPromptNotice": "M\u1ED7i h\xECnh \u1EA3nh c\xF3 l\u1EDDi nh\u1EAFc s\u1EEDa \u0111\u1ED5i ri\xEAng b\xEAn d\u01B0\u1EDBi h\xECnh \u1EA3nh.",
+    "history.promptEmpty": "Kh\xF4ng c\xF3 n\u1ED9i dung",
+    "history.promptMode.strict": "Gi\u1EEF s\xE1t l\u1EDDi nh\u1EAFc",
+    "history.promptMode.original": "B\u1EA3n g\u1ED1c",
+    "history.promptMode.off": "S\xE1ng t\u1EA1o",
+    "history.quality.high": "Cao",
+    "history.quality.medium": "Trung b\xECnh",
+    "history.quality.low": "Th\u1EA5p",
+    "history.quality.auto": "T\u1EF1 \u0111\u1ED9ng",
+    "footer.batch": "L\xF4",
+    "footer.storage": "L\u01B0u tr\u1EEF",
+    "footer.apiStatus": "Tr\u1EA1ng th\xE1i API: OK",
+    "footer.version": "Phi\xEAn b\u1EA3n {version}",
+    "footer.versionInfo": "Th\xF4ng tin phi\xEAn b\u1EA3n",
+    "footer.versionLoading": "Phi\xEAn b\u1EA3n...",
+    "footer.updateBadge": "\u0110\xE3 c\xF3 phi\xEAn b\u1EA3n m\u1EDBi",
+    "footer.updateAvailable": "Phi\xEAn b\u1EA3n m\u1EDBi {version}",
+    "version.title": "Phi\xEAn b\u1EA3n & C\u1EADp nh\u1EADt",
+    "version.loading": "\u0110\u1ECDc tr\u1EA1ng th\xE1i phi\xEAn b\u1EA3n",
+    "version.current": "Phi\xEAn b\u1EA3n hi\u1EC7n t\u1EA1i",
+    "version.latest": "Phi\xEAn b\u1EA3n m\u1EDBi nh\u1EA5t",
+    "version.source": "Th\u1EDDi gian ch\u1EA1y",
+    "version.sourcePortable": "G\xF3i di \u0111\u1ED9ng",
+    "version.sourceStandard": "\u1EE8ng d\u1EE5ng ti\xEAu chu\u1EA9n",
+    "version.sourceSource": "Ki\u1EC3m tra ngu\u1ED3n",
+    "version.upToDate": "B\u1EA1n \u0111\xE3 \u1EDF phi\xEAn b\u1EA3n m\u1EDBi nh\u1EA5t",
+    "version.updateAvailable": "Phi\xEAn b\u1EA3n {version} c\xF3 s\u1EB5n. \u0110\xF3ng c\u1EEDa s\u1ED5 m\xE1y ch\u1EE7 WebUI, sau \u0111\xF3 ch\u1EA1y tr\xECnh c\u1EADp nh\u1EADt \u0111\u1EC3 n\xE2ng c\u1EA5p.",
+    "version.standardUpdateAvailable": "Phi\xEAn b\u1EA3n {version} c\xF3 s\u1EB5n. T\u1EA3i xu\u1ED1ng g\xF3i ti\xEAu chu\u1EA9n m\u1EDBi, sau \u0111\xF3 tho\xE1t kh\u1ECFi \u1EE9ng d\u1EE5ng n\xE0y v\xE0 c\xE0i \u0111\u1EB7t n\xF3 l\xEAn g\xF3i c\u0169.",
+    "version.standardManualInstall": "\u1EE8ng d\u1EE5ng ti\xEAu chu\u1EA9n t\u1EA3i xu\u1ED1ng g\xF3i c\xE0i \u0111\u1EB7t m\u1EDBi; t\u1EF1 \u0111\u1ED9ng thay th\u1EBF v\u1EABn c\xF2n h\u1EA1n ch\u1EBF \u1EDF c\xE1c g\xF3i di \u0111\u1ED9ng.",
+    "version.noUpdater": "Th\u1EDDi gian ch\u1EA1y n\xE0y kh\xF4ng ph\u1EA3i l\xE0 g\xF3i di \u0111\u1ED9ng n\xEAn tr\xECnh c\u1EADp nh\u1EADt kh\xF4ng th\u1EC3 t\u1EF1 \u0111\u1ED9ng kh\u1EDFi \u0111\u1ED9ng.",
+    "version.openUpdater": "B\u1EAFt \u0111\u1EA7u c\u1EADp nh\u1EADt",
+    "version.release": "Xem b\u1EA3n ph\xE1t h\xE0nh",
+    "version.updaterStarted": "Tr\xECnh c\u1EADp nh\u1EADt \u0111\xE3 b\u1EAFt \u0111\u1EA7u. \u0110\xF3ng c\u1EEDa s\u1ED5 m\xE1y ch\u1EE7 WebUI hi\u1EC7n t\u1EA1i, sau \u0111\xF3 l\xE0m theo l\u1EDDi nh\u1EAFc c\u1EE7a tr\xECnh c\u1EADp nh\u1EADt.",
+    "version.updaterFailed": "Kh\xF4ng th\u1EC3 kh\u1EDFi \u0111\u1ED9ng tr\xECnh c\u1EADp nh\u1EADt. Ch\u1EA1y t\u1EADp l\u1EC7nh c\u1EADp nh\u1EADt t\u1EEB g\xF3i theo c\xE1ch th\u1EE7 c\xF4ng.",
+    "version.onboardingTitle": "0.5.5 th\xEAm c\xE1c g\xF3i \u1EE9ng d\u1EE5ng ti\xEAu chu\u1EA9n",
+    "version.onboardingStatus": "B\u1EA1n \u0111\xE3 n\xE2ng c\u1EA5p l\xEAn {version}. B\u1EA1n c\xF3 th\u1EC3 ti\u1EBFp t\u1EE5c s\u1EED d\u1EE5ng g\xF3i di \u0111\u1ED9ng ho\u1EB7c chuy\u1EC3n sang g\xF3i \u1EE9ng d\u1EE5ng ti\xEAu chu\u1EA9n.",
+    "version.onboardingBody": "B\u1EA3n ph\xE1t h\xE0nh n\xE0y b\u1ED5 sung c\xE1c g\xF3i macOS DMG v\xE0 Windows App ZIP. Ng\u01B0\u1EDDi d\xF9ng m\u1EDBi n\xEAn s\u1EED d\u1EE5ng g\xF3i ti\xEAu chu\u1EA9n; g\xF3i di \u0111\u1ED9ng hi\u1EC7n t\u1EA1i v\u1EABn ho\u1EA1t \u0111\u1ED9ng.",
+    "version.onboardingDataPortable": "D\u1EEF li\u1EC7u hi\u1EC7n t\u1EA1i \u0111\u01B0\u1EE3c gi\u1EEF trong th\u01B0 m\u1EE5c data/ c\u1EE7a g\xF3i portable n\xE0y.",
+    "version.onboardingStandardData": "\u1EE8ng d\u1EE5ng ti\xEAu chu\u1EA9n l\u01B0u tr\u1EEF d\u1EEF li\u1EC7u trong th\u01B0 m\u1EE5c d\u1EEF li\u1EC7u \u1EE9ng d\u1EE5ng h\u1EC7 th\u1ED1ng: H\u1ED7 tr\u1EE3 \u1EE9ng d\u1EE5ng macOS / Windows %APPDATA%.",
+    "version.onboardingMigration": "Khi chuy\u1EC3n sang \u1EE9ng d\u1EE5ng ti\xEAu chu\u1EA9n, h\xE3y s\u1EED d\u1EE5ng tr\u1EE3 l\xFD di chuy\u1EC3n \u0111\u1EC3 sao ch\xE9p d\u1EEF li\u1EC7u c\u0169. N\xF3 s\u1EBD kh\xF4ng di chuy\u1EC3n ho\u1EB7c ghi \u0111\xE8 l\xEAn d\u1EEF li\u1EC7u g\u1ED1c.",
+    "version.standardDownload": "T\u1EA3i xu\u1ED1ng \u1EE9ng d\u1EE5ng ti\xEAu chu\u1EA9n",
+    "version.continuePortable": "Ti\u1EBFp t\u1EE5c d\xF9ng g\xF3i portable",
+    "version.dismissOnboarding": "Kh\xF4ng hi\u1EC3n th\u1ECB l\u1EA1i",
+    "version.dismissFailed": "Kh\xF4ng th\u1EC3 l\u01B0u tr\u1EA1ng th\xE1i th\xF4ng b\xE1o n\xE0y. H\xE3y th\u1EED l\u1EA1i sau.",
+    "notifications.title": "Th\xF4ng b\xE1o",
+    "notifications.unread": "Th\xF4ng b\xE1o, {count} ch\u01B0a \u0111\u1ECDc",
+    "notifications.unreadSummary": "{count} ch\u01B0a \u0111\u1ECDc",
+    "notifications.empty": "Kh\xF4ng c\xF3 th\xF4ng b\xE1o t\xE1c v\u1EE5",
+    "notifications.taskFailed": "T\xE1c v\u1EE5 th\u1EA5t b\u1EA1i",
+    "notifications.taskPartial": "T\xE1c v\u1EE5 \u0111\xE3 ho\xE0n th\xE0nh m\u1ED9t ph\u1EA7n",
+    "notifications.taskCompleted": "T\xE1c v\u1EE5 \u0111\xE3 ho\xE0n th\xE0nh",
+    "notifications.generationFailed": "T\u1EA1o \u1EA3nh th\u1EA5t b\u1EA1i",
+    "notifications.successCount": "{count} \u0111\xE3 th\xE0nh c\xF4ng",
+    "notifications.resultAvailable": "K\u1EBFt qu\u1EA3 c\xF3 s\u1EB5n",
+    "notifications.failedCount": "{count} th\u1EA5t b\u1EA1i",
+    "notifications.systemUnsupported": "Tr\xECnh duy\u1EC7t n\xE0y kh\xF4ng h\u1ED7 tr\u1EE3 th\xF4ng b\xE1o h\u1EC7 th\u1ED1ng",
+    "notifications.systemBlocked": "Th\xF4ng b\xE1o h\u1EC7 th\u1ED1ng b\u1ECB tr\xECnh duy\u1EC7t ch\u1EB7n. K\xEDch ho\u1EA1t ch\xFAng trong c\xE0i \u0111\u1EB7t tr\xECnh duy\u1EC7t.",
+    "notifications.systemDenied": "Th\xF4ng b\xE1o h\u1EC7 th\u1ED1ng ch\u01B0a \u0111\u01B0\u1EE3c b\u1EADt",
+    "notifications.systemEnabled": "\u0110\xE3 b\u1EADt th\xF4ng b\xE1o h\u1EC7 th\u1ED1ng",
+    "notifications.taskMissing": "T\xE1c v\u1EE5 kh\xF4ng t\u1ED3n t\u1EA1i ho\u1EB7c \u0111\xE3 b\u1ECB x\xF3a",
+    "theme.label": "Ch\u1EE7 \u0111\u1EC1",
+    "theme.system": "T\u1EF1 \u0111\u1ED9ng",
+    "theme.light": "S\xE1ng",
+    "theme.dark": "T\u1ED1i",
+    "language.label": "Ng\xF4n ng\u1EEF giao di\u1EC7n",
+    "language.zh": "\u4E2D",
+    "language.zhCN": "\u7B80\u4F53\u4E2D\u6587",
+    "language.zhTW": "\u6B63\u9AD4\u4E2D\u6587",
+    "language.zhHK": "\u7E41\u4F53\u4E2D\u6587",
+    "language.ja": "\u65E5\u672C\u8A9E",
+    "language.ko": "\uD55C\uAD6D\uC5B4",
+    "language.en": "English",
+    "language.es": "Espa\xF1ol",
+    "language.pt": "Portugu\xEAs",
+    "language.fr": "Fran\xE7ais",
+    "language.de": "Deutsch",
+    "language.ru": "\u0420\u0443\u0441\u0441\u043A\u0438\u0439",
+    "language.it": "Italiano",
+    "language.hi": "\u0939\u093F\u0928\u094D\u0926\u0940",
+    "language.vi": "Ti\u1EBFng Vi\u1EC7t",
+    "auth.label": "Ngu\u1ED3n x\xE1c th\u1EF1c",
+    "auth.checking": "Ki\u1EC3m tra x\xE1c th\u1EF1c",
+    "auth.missingCodexSession": "Kh\xF4ng ph\xE1t hi\u1EC7n th\u1EA5y phi\xEAn Codex n\xE0o",
+    "auth.switchFailed": "Kh\xF4ng th\u1EC3 chuy\u1EC3n \u0111\u1ED5i ngu\u1ED3n x\xE1c th\u1EF1c",
+    "auth.sourceUnavailable": "{source} kh\xF4ng kh\u1EA3 d\u1EE5ng",
+    "auth.notActive": "Kh\xF4ng ho\u1EA1t \u0111\u1ED9ng",
+    "api.settings": "C\xE0i \u0111\u1EB7t h\u1EC7 th\u1ED1ng",
+    "api.provider": "Provider API",
+    "imageInput.title": "H\xECnh \u1EA3nh",
+    "imageInput.uploadAria": "Nh\u1EA5p, th\u1EA3 ho\u1EB7c d\xE1n h\xECnh \u1EA3nh v\xE0 t\u1EC7p",
+    "imageInput.uploadFull": "Nh\u1EA5p, th\u1EA3 ho\u1EB7c d\xE1n h\xECnh \u1EA3nh v\xE0 t\u1EC7p",
+    "imageInput.uploadCompact": "Th\xEAm \u0111\u1EA7u v\xE0o",
+    "imageInput.uploadSubtitle": "H\u1ED7 tr\u1EE3 h\xECnh \u1EA3nh v\xE0 t\u1EC7p tham chi\u1EBFu Responses",
+    "imageInput.recent": "T\u1EA3i l\xEAn g\u1EA7n \u0111\xE2y",
+    "imageInput.recentBadge": "G\u1EA7n \u0111\xE2y",
+    "imageInput.uploadBadge": "T\u1EA3i l\xEAn",
+    "imageInput.addToGallery": "Th\xEAm v\xE0o th\u01B0 vi\u1EC7n",
+    "imageInput.addToGalleryShort": "Th\u01B0 vi\u1EC7n \u1EA3nh",
+    "imageInput.removeImage": "X\xF3a h\xECnh \u1EA3nh",
+    "imageInput.editedBadge": "\u0110\xE3 ch\u1EC9nh s\u1EEDa",
+    "imageInput.editImage": "Ch\u1EC9nh s\u1EEDa {name}",
+    "imageInput.deletedRecent": "\u0110\xE3 x\xF3a n\u1ED9i dung t\u1EA3i l\xEAn g\u1EA7n \u0111\xE2y",
+    "imageInput.deletedGallery": "\u0110\xE3 x\xF3a h\xECnh \u1EA3nh th\u01B0 vi\u1EC7n",
+    "recentAssets.defaultName": "T\u1EA3i l\xEAn g\u1EA7n \u0111\xE2y",
+    "recentAssets.use": "S\u1EED d\u1EE5ng {name}",
+    "recentAssets.delete": "X\xF3a {name}",
+    "recentAssets.deleteTitle": "X\xF3a n\u1ED9i dung t\u1EA3i l\xEAn g\u1EA7n \u0111\xE2y?",
+    "recentAssets.deleteMessage": "Thao t\xE1c n\xE0y s\u1EBD x\xF3a h\xECnh \u1EA3nh kh\u1ECFi c\xE1c \u1EA3nh t\u1EA3i l\xEAn g\u1EA7n \u0111\xE2y. N\u1EBFu n\xF3 hi\u1EC7n \u0111\u01B0\u1EE3c ch\u1ECDn l\xE0m \u0111\u1EA7u v\xE0o h\xECnh \u1EA3nh, n\xF3 s\u1EBD b\u1ECB x\xF3a kh\u1ECFi \u0111\u1EA7u v\xE0o hi\u1EC7n t\u1EA1i. C\xE1c t\xE1c v\u1EE5 tr\u01B0\u1EDBc \u0111\xE2y tham chi\u1EBFu \u0111\u1EBFn l\u1EA7n t\u1EA3i l\xEAn g\u1EA7n \u0111\xE2y n\xE0y s\u1EBD m\u1EA5t b\u1EA3n xem tr\u01B0\u1EDBc \u0111\u1EA7u v\xE0o \u0111\xF3. Ph\xF2ng tr\u01B0ng b\xE0y c\xF4ng c\u1ED9ng kh\xF4ng b\u1ECB \u1EA3nh h\u01B0\u1EDFng.",
+    "recentAssets.loadFailed": "Kh\xF4ng t\u1EA3i \u0111\u01B0\u1EE3c \u1EA3nh t\u1EA3i l\xEAn g\u1EA7n \u0111\xE2y",
+    "recentAssets.deleteFailed": "Kh\xF4ng x\xF3a \u0111\u01B0\u1EE3c n\u1ED9i dung t\u1EA3i l\xEAn g\u1EA7n \u0111\xE2y",
+    "recentAssets.deleted": "\u0110\xE3 x\xF3a n\u1ED9i dung t\u1EA3i l\xEAn g\u1EA7n \u0111\xE2y",
+    "inputSource.uploadFallback": "H\xECnh \u1EA3nh \u0111\xE3 t\u1EA3i l\xEAn",
+    "inputSource.galleryFallback": "H\xECnh \u1EA3nh th\u01B0 vi\u1EC7n",
+    "inputSource.focusPasteFallback": "{prefix}. \u0110\u1EA7u v\xE0o h\xECnh \u1EA3nh \u0111\u01B0\u1EE3c t\u1EADp trung; nh\u1EA5n {shortcut} \u0111\u1EC3 d\xE1n h\xECnh \u1EA3nh.",
+    "inputSource.pastedCount": "\u0110\xE3 d\xE1n h\xECnh \u1EA3nh b\u1EA3ng nh\u1EDB t\u1EA1m {count}",
+    "inputSource.droppedCount": "\u0110\xE3 th\xEAm {count} \u1EA3nh \u0111\u01B0\u1EE3c th\u1EA3",
+    "inputSource.dropImagesOnly": "Ch\u1EC9 th\u1EA3 t\u1EADp tin h\xECnh \u1EA3nh",
+    "inputSource.clipboardUnsupported": "Tr\xECnh duy\u1EC7t n\xE0y kh\xF4ng th\u1EC3 \u0111\u1ECDc clipboard tr\u1EF1c ti\u1EBFp",
+    "inputSource.clipboardEmpty": "Kh\xF4ng t\xECm th\u1EA5y h\xECnh \u1EA3nh clipboard",
+    "inputSource.clipboardDenied": "Tr\xECnh duy\u1EC7t \u0111\xE3 ch\u1EB7n truy c\u1EADp clipboard tr\u1EF1c ti\u1EBFp",
+    "inputSource.clipboardReadFailed": "Kh\xF4ng \u0111\u1ECDc \u0111\u01B0\u1EE3c b\u1EA3ng nh\u1EDB t\u1EA1m",
+    "status.missingGalleryReference": "M\u1ED9t h\xECnh \u1EA3nh tham kh\u1EA3o th\u01B0 vi\u1EC7n \u0111\xE3 b\u1ECB x\xF3a. Lo\u1EA1i b\u1ECF n\xF3 tr\u01B0\u1EDBc khi t\u1EA1o.",
+    "status.missingRecentReference": "H\xECnh \u1EA3nh tham chi\u1EBFu t\u1EA3i l\xEAn g\u1EA7n \u0111\xE2y \u0111\xE3 b\u1ECB x\xF3a. Lo\u1EA1i b\u1ECF n\xF3 tr\u01B0\u1EDBc khi t\u1EA1o.",
+    "status.emptyPrompt": "Nh\u1EADp l\u1EDDi nh\u1EAFc",
+    "status.editNeedsImage": "Ch\u1EBF \u0111\u1ED9 ch\u1EC9nh s\u1EEDa y\xEAu c\u1EA7u \xEDt nh\u1EA5t m\u1ED9t h\xECnh \u1EA3nh",
+    "status.loadedTask": "\u0110\xE3 t\u1EA3i t\xE1c v\u1EE5 {taskId}",
+    "status.reusedTask": "\u0110\xE3 m\u1EDF t\xE1c v\u1EE5 {taskId} trong tr\xECnh t\u1EA1o",
+    "status.loadingHistoryInputs": "\u0110ang t\u1EA3i h\xECnh \u1EA3nh \u0111\u1EA7u v\xE0o l\u1ECBch s\u1EED...",
+    "status.historyInputLoadFailed": "Kh\xF4ng t\u1EA3i \u0111\u01B0\u1EE3c h\xECnh \u1EA3nh \u0111\u1EA7u v\xE0o l\u1ECBch s\u1EED: {url}",
+    "referenceCollector.alreadyStaged": "\u0110\xE3 t\u1EA1m gi\u1EEF l\xE0m \u1EA3nh tham kh\u1EA3o",
+    "referenceCollector.staged": "\u0110\xE3 t\u1EA1m gi\u1EEF {count} \u1EA3nh tham kh\u1EA3o",
+    "referenceCollector.title": "Tham chi\u1EBFu \u0111ang ch\u1EDD \xB7 {count}",
+    "referenceCollector.addAll": "Th\xEAm t\u1EA5t c\u1EA3 \u1EA3nh tham kh\u1EA3o",
+    "referenceCollector.itemFallback": "\u0110ang ch\u1EDD tham chi\u1EBFu",
+    "referenceCollector.remove": "X\xF3a tham chi\u1EBFu \u0111ang ch\u1EDD x\u1EED l\xFD",
+    "referenceCollector.cleared": "\u0110\xE3 x\xF3a c\xE1c tham chi\u1EBFu \u0111ang ch\u1EDD x\u1EED l\xFD",
+    "referenceCollector.added": "\u0110\xE3 th\xEAm {count} \u1EA3nh tham kh\u1EA3o",
+    "referenceCollector.addFailed": "Kh\xF4ng th\u1EC3 th\xEAm tham chi\u1EBFu \u0111ang ch\u1EDD",
+    "referenceCollector.readFailed": "Kh\xF4ng \u0111\u1ECDc \u0111\u01B0\u1EE3c h\xECnh \u1EA3nh: {status}",
+    "gallery.quick": "Th\u01B0 vi\u1EC7n nhanh",
+    "gallery.current": "Th\u01B0 vi\u1EC7n danh m\u1EE5c hi\u1EC7n t\u1EA1i",
+    "gallery.categories": "Danh m\u1EE5c th\u01B0 vi\u1EC7n",
+    "gallery.categoryPortrait": "Ch\xE2n dung",
+    "gallery.categoryCharacter": "Nh\xE2n v\u1EADt",
+    "gallery.categoryProduct": "S\u1EA3n ph\u1EA9m",
+    "gallery.categoryPortraitRole": "Tham kh\u1EA3o ch\xE2n dung",
+    "gallery.categoryCharacterRole": "Tham kh\u1EA3o nh\xE2n v\u1EADt",
+    "gallery.categoryProductRole": "Tham kh\u1EA3o s\u1EA3n ph\u1EA9m",
+    "gallery.referenceRole": "H\xECnh \u1EA3nh tham kh\u1EA3o",
+    "gallery.manage": "Qu\u1EA3n l\xFD th\u01B0 vi\u1EC7n",
+    "gallery.loadFailed": "Kh\xF4ng t\u1EA3i \u0111\u01B0\u1EE3c th\u01B0 vi\u1EC7n",
+    "gallery.imageOrderUpdateFailed": "Kh\xF4ng th\u1EC3 c\u1EADp nh\u1EADt th\u1EE9 t\u1EF1 h\xECnh \u1EA3nh",
+    "gallery.imageOrderUpdated": "\u0110\xE3 c\u1EADp nh\u1EADt th\u1EE9 t\u1EF1 h\xECnh \u1EA3nh",
+    "gallery.categoryName": "T\xEAn danh m\u1EE5c",
+    "gallery.categoryPromptRole": "Vai tr\xF2 l\u1EDDi nh\u1EAFc",
+    "gallery.categorySave": "L\u01B0u",
+    "gallery.categoryDelete": "X\xF3a",
+    "gallery.categoryLoadFailed": "Kh\xF4ng th\u1EC3 t\u1EA3i danh m\u1EE5c",
+    "gallery.categoryNameRequired": "Nh\u1EADp t\xEAn danh m\u1EE5c",
+    "gallery.categoryCreateFailed": "Kh\xF4ng th\u1EC3 th\xEAm danh m\u1EE5c",
+    "gallery.categoryCreated": "\u0110\xE3 th\xEAm danh m\u1EE5c",
+    "gallery.categorySaveFailed": "Kh\xF4ng l\u01B0u \u0111\u01B0\u1EE3c danh m\u1EE5c",
+    "gallery.categorySaved": "\u0110\xE3 l\u01B0u danh m\u1EE5c",
+    "gallery.categoryDeleteTitle": "X\xF3a danh m\u1EE5c th\u01B0 vi\u1EC7n?",
+    "gallery.categoryDeleteMessage": "H\xECnh \u1EA3nh trong danh m\u1EE5c n\xE0y s\u1EBD chuy\u1EC3n sang danh m\u1EE5c kh\xE1c. H\xECnh \u1EA3nh th\u01B0 vi\u1EC7n s\u1EBD kh\xF4ng b\u1ECB x\xF3a.",
+    "gallery.categoryDeleteConfirm": "X\xF3a danh m\u1EE5c",
+    "gallery.categoryDeleteFailed": "Kh\xF4ng th\u1EC3 x\xF3a danh m\u1EE5c",
+    "gallery.categoryDeletedMigrated": 'Danh m\u1EE5c "{name}" \u0111\xE3 b\u1ECB x\xF3a v\xE0 h\xECnh \u1EA3nh \u0111\xE3 \u0111\u01B0\u1EE3c di chuy\u1EC3n',
+    "gallery.categoryOrderUpdateFailed": "Kh\xF4ng th\u1EC3 c\u1EADp nh\u1EADt th\u1EE9 t\u1EF1 danh m\u1EE5c",
+    "gallery.categoryOrderUpdated": "\u0110\xE3 c\u1EADp nh\u1EADt th\u1EE9 t\u1EF1 danh m\u1EE5c",
+    "gallery.categoryFallback": "danh m\u1EE5c th\u01B0 vi\u1EC7n",
+    "gallery.imageFallback": "H\xECnh \u1EA3nh th\u01B0 vi\u1EC7n",
+    "gallery.imageLoadFailed": "Kh\xF4ng th\u1EC3 t\u1EA3i h\xECnh \u1EA3nh n\xE0y",
+    "gallery.editImageLoadFailed": "Kh\xF4ng th\u1EC3 t\u1EA3i h\xECnh \u1EA3nh n\xE0y \u0111\u1EC3 ch\u1EC9nh s\u1EEDa",
+    "gallery.cannotAddImage": "Kh\xF4ng th\u1EC3 th\xEAm h\xECnh \u1EA3nh n\xE0y v\xE0o th\u01B0 vi\u1EC7n",
+    "gallery.nameRequired": "Nh\u1EADp t\xEAn th\u01B0 vi\u1EC7n",
+    "gallery.saveFailed": "Kh\xF4ng l\u01B0u \u0111\u01B0\u1EE3c h\xECnh \u1EA3nh th\u01B0 vi\u1EC7n",
+    "gallery.savedAsReference": "\u0110\xE3 th\xEAm v\xE0o th\u01B0 vi\u1EC7n v\xE0 chuy\u1EC3n sang tham chi\u1EBFu th\u01B0 vi\u1EC7n",
+    "gallery.renameImage": "\u0110\u1ED5i t\xEAn h\xECnh \u1EA3nh th\u01B0 vi\u1EC7n",
+    "gallery.moveToCategory": "Chuy\u1EC3n \u0111\u1EBFn danh m\u1EE5c",
+    "gallery.categoryRequired": "Ch\u1ECDn danh m\u1EE5c th\u01B0 vi\u1EC7n",
+    "gallery.promptNoteTitle": "Ghi ch\xFA tham kh\u1EA3o th\u01B0 vi\u1EC7n",
+    "gallery.updateFailed": "Kh\xF4ng c\u1EADp nh\u1EADt \u0111\u01B0\u1EE3c th\u01B0 vi\u1EC7n",
+    "gallery.selectImageFile": "Ch\u1ECDn m\u1ED9t t\u1EADp tin h\xECnh \u1EA3nh",
+    "gallery.replaceImageFailed": "Kh\xF4ng th\u1EC3 thay th\u1EBF h\xECnh \u1EA3nh th\u01B0 vi\u1EC7n",
+    "gallery.replacedImage": '\u0110\xE3 thay th\u1EBF h\xECnh \u1EA3nh ngu\u1ED3n cho "{name}"',
+    "gallery.deleteImageTitle": "X\xF3a h\xECnh \u1EA3nh th\u01B0 vi\u1EC7n?",
+    "gallery.deleteImageMessage": "C\xE1c tham chi\u1EBFu t\xE1c v\u1EE5 l\u1ECBch s\u1EED s\u1EBD hi\u1EC3n th\u1ECB l\xE0 \u0111\xE3 b\u1ECB x\xF3a.",
+    "gallery.deleteFailed": "Kh\xF4ng th\u1EC3 x\xF3a h\xECnh \u1EA3nh th\u01B0 vi\u1EC7n",
+    "gallery.deletedSuffix": "(\u0111\xE3 x\xF3a)",
+    "gallery.editImageLabel": "Ch\u1EC9nh s\u1EEDa h\xECnh \u1EA3nh th\u01B0 vi\u1EC7n",
+    "gallery.fieldCategory": "Danh m\u1EE5c",
+    "gallery.fieldPromptNote": "Ghi ch\xFA tham kh\u1EA3o",
+    "gallery.fieldName": "T\xEAn",
+    "quickGallery.empty": "Kh\xF4ng c\xF3 h\xECnh \u1EA3nh {category}",
+    "promptGallery.remove": "X\xF3a @{name}",
+    "prompt.title": "L\u1EDDi nh\u1EAFc",
+    "prompt.editorLabel": "L\u1EDDi nh\u1EAFc",
+    "prompt.placeholder": "M\xF4 t\u1EA3 h\xECnh \u1EA3nh b\u1EA1n mu\u1ED1n t\u1EA1o ho\u1EB7c ch\u1EC9nh s\u1EEDa. Nh\u1EADp @ \u0111\u1EC3 tham kh\u1EA3o th\u01B0 vi\u1EC7n, # cho m\xE3 m\xE0u v\xE0 ~ cho \u0111o\u1EA1n l\u1EDDi nh\u1EAFc.",
+    "prompt.run": "T\u1EA1o",
+    "prompt.runEdit": "B\u1EAFt \u0111\u1EA7u ch\u1EC9nh s\u1EEDa",
+    "prompt.runTitle": "T\u1EA1o (Cmd+Enter)",
+    "prompt.runEditTitle": "B\u1EAFt \u0111\u1EA7u ch\u1EC9nh s\u1EEDa (Cmd+Enter)",
+    "prompt.findPanel": "L\u1EDDi nh\u1EAFc t\xECm v\xE0 thay th\u1EBF",
+    "prompt.findText": "T\xECm v\u0103n b\u1EA3n",
+    "prompt.replaceWith": "Thay th\u1EBF b\u1EB1ng",
+    "prompt.findActions": "H\xE0nh \u0111\u1ED9ng t\xECm v\xE0 thay th\u1EBF",
+    "prompt.countZero": "0 k\u1EBFt qu\u1EA3",
+    "prompt.matchCount": "{count} k\u1EBFt qu\u1EA3",
+    "prompt.foundCount": "\u0110\xE3 t\xECm th\u1EA5y {count} k\u1EBFt qu\u1EA3 ph\xF9 h\u1EE3p",
+    "prompt.noMatch": "Kh\xF4ng c\xF3 v\u0103n b\u1EA3n ph\xF9 h\u1EE3p",
+    "prompt.replacedCount": "\u0110\xE3 thay th\u1EBF {count} k\u1EBFt qu\u1EA3",
+    "prompt.closeFind": "\u0110\xF3ng t\xECm v\xE0 thay th\u1EBF",
+    "prompt.recentTemplates": "M\u1EABu g\u1EA7n \u0111\xE2y",
+    "prompt.manageTemplates": "Qu\u1EA3n l\xFD m\u1EABu",
+    "promptModel.galleryHeader": "Ghi ch\xFA h\xECnh \u1EA3nh tham kh\u1EA3o:",
+    "promptModel.galleryInstruction": '- \u1EA2nh tham kh\u1EA3o {number}: th\u01B0 vi\u1EC7n "{name}", vai tr\xF2: {role}. @{name} trong l\u1EDDi nh\u1EAFc \u0111\u1EC1 c\u1EADp \u0111\u1EBFn h\xECnh \u1EA3nh n\xE0y.{note}',
+    "outputSettings.title": "\u0110\u1EA7u ra",
+    "output.lock.lock": "Kh\xF3a tham s\u1ED1",
+    "output.lock.unlock": "M\u1EDF kh\xF3a v\xE0 ch\u1EC9nh s\u1EEDa",
+    "output.lock.current": "Kh\xF3a hi\u1EC7n t\u1EA1i",
+    "output.lock.task": "Tham s\u1ED1 t\xE1c v\u1EE5 \u0111\xE3 ch\u1ECDn",
+    "output.lock.adoptTask": "D\xF9ng tham s\u1ED1 t\xE1c v\u1EE5 n\xE0y",
+    "output.lock.frame": "Khung h\xECnh",
+    "output.lock.outputCount": "S\u1ED1 \u1EA3nh \u0111\u1EA7u ra",
+    "output.lock.output": "\u0110\u1EA7u ra",
+    "output.lock.search": "T\xECm ki\u1EBFm",
+    "output.lock.call": "L\u1EC7nh g\u1ECDi",
+    "output.lock.sheets": "\u1EA3nh",
+    "output.lock.imageModel": "M\xF4 h\xECnh h\xECnh \u1EA3nh",
+    "output.lock.prompt": "L\u1EDDi nh\u1EAFc",
+    "output.lock.fileFormat": "\u0110\u1ECBnh d\u1EA1ng t\u1EC7p",
+    "output.lock.taskHint": "Ch\u1EC9 \u0111ang xem tham s\u1ED1 c\u1EE7a t\xE1c v\u1EE5 \u0111\xE3 ch\u1ECDn; tham s\u1ED1 \u0111ang kh\xF3a v\u1EABn gi\u1EEF nguy\xEAn. Vi\u1EC7c s\u1EED d\u1EE5ng ch\xFAng kh\xF4ng l\xE0m thay \u0111\u1ED5i k\xEAnh h\u1EC7 th\u1ED1ng.",
+    "output.lock.lockedHint": "Tham s\u1ED1 \u0111\xE3 \u0111\u01B0\u1EE3c c\u1ED1 \u0111\u1ECBnh. B\u1EA5m bi\u1EC3u t\u01B0\u1EE3ng kh\xF3a \u1EDF g\xF3c tr\xEAn b\xEAn ph\u1EA3i \u0111\u1EC3 ch\u1EC9nh s\u1EEDa.",
+    "output.lock.enabled": "B\u1EADt",
+    "output.lock.disabled": "T\u1EAFt",
+    "output.lock.custom": "T\xF9y ch\u1EC9nh",
+    "output.mainModel": "M\xF4 h\xECnh ch\xEDnh",
+    "output.selectMainModel": "Ch\u1ECDn m\xF4 h\xECnh ch\xEDnh",
+    "output.mainModelCustomForInput": "S\u1EED d\u1EE5ng m\xF4 h\xECnh t\xF9y ch\u1EC9nh cho \u0111\u1EA7u v\xE0o hi\u1EC7n t\u1EA1i",
+    "output.apiDirect": "API tr\u1EF1c ti\u1EBFp",
+    "output.apiToolModel": "S\u1EED d\u1EE5ng m\xF4 h\xECnh h\xECnh \u1EA3nh API",
+    "output.mainModelUnused": "M\xF4 h\xECnh ch\xEDnh kh\xF4ng \u0111\u01B0\u1EE3c s\u1EED d\u1EE5ng cho y\xEAu c\u1EA7u n\xE0y",
+    "output.webSearch": "T\xECm ki\u1EBFm tr\xEAn web",
+    "output.webSearchToggle": "B\u1EADt",
+    "output.webSearchTitle": "T\xECm ki\u1EBFm web tr\u01B0\u1EDBc, r\u1ED3i d\xF9ng k\u1EBFt qu\u1EA3 cho l\u1EA7n t\u1EA1o n\xE0y; ch\u1EC9 h\u1ED7 tr\u1EE3 Codex v\xE0 API Responses",
+    "output.promptMode": "Ch\u1EBF \u0111\u1ED9 l\u1EDDi nh\u1EAFc",
+    "output.modeOriginal": "B\u1EA3n g\u1ED1c",
+    "output.modeStrict": "Gi\u1EEF s\xE1t l\u1EDDi nh\u1EAFc",
+    "output.modeCreative": "S\xE1ng t\u1EA1o",
+    "output.promptHelp": "Xem gi\u1EA3i th\xEDch c\xE1ch x\u1EED l\xFD l\u1EDDi nh\u1EAFc",
+    "output.promptHelpTitle": "X\u1EED l\xFD l\u1EDDi nh\u1EAFc",
+    "output.promptHelp.responsesChannel": "Responses \xB7 c\xF3 m\xF4 h\xECnh ch\xEDnh tham gia",
+    "output.promptHelp.imagesChannel": "Images \xB7 t\u1EA1o tr\u1EF1c ti\u1EBFp",
+    "output.promptHelp.responses.original": "G\u1EEDi nguy\xEAn v\u0103n c\u1EE7a b\u1EA1n cho m\xF4 h\xECnh ch\xEDnh v\xE0 y\xEAu c\u1EA7u c\xF4ng c\u1EE5 h\xECnh \u1EA3nh gi\u1EEF nguy\xEAn t\u1EEBng ch\u1EEF; m\xF4 h\xECnh ch\xEDnh v\u1EABn c\xF3 th\u1EC3 t\u1EA1o ra l\u1EDDi nh\u1EAFc \u0111\xE3 s\u1EEDa \u0111\u1ED5i.",
+    "output.promptHelp.responses.strict": "Cho ph\xE9p m\xF4 h\xECnh ch\xEDnh s\u1EAFp x\u1EBFp ho\u1EB7c m\u1EDF r\u1ED9ng l\u1EDDi nh\u1EAFc, nh\u01B0ng v\u1EABn gi\u1EEF c\xE1c r\xE0ng bu\u1ED9c b\u1EAFt bu\u1ED9c nh\u01B0 \u0111\u1ED1i t\u01B0\u1EE3ng, v\u0103n b\u1EA3n, m\xE0u s\u1EAFc v\xE0 b\u1ED1 c\u1EE5c.",
+    "output.promptHelp.responses.automatic": "Kh\xF4ng th\xEAm r\xE0ng bu\u1ED9c n\xE0o, \u0111\u1EC3 m\xF4 h\xECnh ch\xEDnh t\u1EF1 hi\u1EC3u v\xE0 t\u1ED1i \u01B0u h\xF3a l\u1EDDi nh\u1EAFc tr\u01B0\u1EDBc khi g\u1ECDi c\xF4ng c\u1EE5 h\xECnh \u1EA3nh.",
+    "output.promptHelp.images.original": "\u1EE8ng d\u1EE5ng kh\xF4ng th\xEAm quy t\u1EAFc l\u1EDDi nh\u1EAFc n\xE0o v\xE0 g\u1EEDi th\u1EB3ng nguy\xEAn v\u0103n c\u1EE7a b\u1EA1n t\u1EDBi API h\xECnh \u1EA3nh.",
+    "output.promptHelp.images.strict": "\u1EE8ng d\u1EE5ng g\u1EEDi k\xE8m quy t\u1EAFc gi\u1EEF nguy\xEAn c\xF9ng v\u1EDBi l\u1EDDi nh\u1EAFc g\u1ED1c \u0111\u1EC3 nh\u1EA5n m\u1EA1nh m\u1ECDi r\xE0ng bu\u1ED9c b\u1EAFt bu\u1ED9c.",
+    "output.promptHelp.images.automatic": "D\xF9ng c\xE1ch x\u1EED l\xFD m\u1EB7c \u0111\u1ECBnh c\u1EE7a API h\xECnh \u1EA3nh; c\xE1c ghi ch\xFA tham chi\u1EBFu th\u01B0 vi\u1EC7n c\u1EA7n thi\u1EBFt v\u1EABn \u0111\u01B0\u1EE3c g\u1EEDi k\xE8m.",
+    "output.size": "K\xEDch th\u01B0\u1EDBc \u0111\u1EA7u ra",
+    "output.sizeMode": "Ch\u1EBF \u0111\u1ED9 k\xEDch th\u01B0\u1EDBc",
+    "output.sizePreset": "C\xF3 s\u1EB5n",
+    "output.sizeCustom": "T\xF9y ch\u1EC9nh",
+    "output.orientation": "H\u01B0\u1EDBng",
+    "output.square": "Vu\xF4ng",
+    "output.portrait": "D\u1ECDc",
+    "output.landscape": "Ngang",
+    "output.resolution": "\u0110\u1ED9 ph\xE2n gi\u1EA3i",
+    "output.pixelSize": "K\xEDch th\u01B0\u1EDBc pixel",
+    "output.width": "Chi\u1EC1u r\u1ED9ng",
+    "output.height": "Chi\u1EC1u cao",
+    "output.swapSize": "Ho\xE1n \u0111\u1ED5i chi\u1EC1u r\u1ED9ng v\xE0 chi\u1EC1u cao",
+    "output.customSizeHint": "\u0110\u01A1n v\u1ECB px \xB7 16-3840 \xB7 b\u1ED9i s\u1ED1 c\u1EE7a 16 \xB7 \u22643:1",
+    "output.imageSizeUnavailable": "Kh\xF4ng c\xF3 k\xEDch th\u01B0\u1EDBc \u1EA3nh",
+    "output.imageLoadFailed": "Kh\xF4ng t\u1EA3i \u0111\u01B0\u1EE3c h\xECnh \u1EA3nh",
+    "output.customSizeRequired": "Nh\u1EADp chi\u1EC1u r\u1ED9ng v\xE0 chi\u1EC1u cao",
+    "output.customSizeBounds": "Chi\u1EC1u r\u1ED9ng v\xE0 chi\u1EC1u cao ph\u1EA3i l\xE0 16-3840 px",
+    "output.customSizeMultiple": "Chi\u1EC1u r\u1ED9ng v\xE0 chi\u1EC1u cao ph\u1EA3i l\xE0 b\u1ED9i s\u1ED1 c\u1EE7a 16",
+    "output.customSizeRatio": "T\u1EF7 l\u1EC7 c\u1EA1nh d\xE0i v\xE0 ng\u1EAFn kh\xF4ng \u0111\u01B0\u1EE3c v\u01B0\u1EE3t qu\xE1 3:1",
+    "output.customSizePixels": "T\u1ED5ng s\u1ED1 pixel ph\u1EA3i l\xE0 655.360-8.294.400",
+    "output.ratioLock": "Kh\xF3a t\u1EF7 l\u1EC7 (t\xF9y ch\u1ECDn)",
+    "output.customRatio": "T\u1EF7 l\u1EC7 khung h\xECnh t\xF9y ch\u1EC9nh",
+    "output.ratioWidth": "R\u1ED9ng",
+    "output.ratioHeight": "Cao",
+    "output.firstImageRatio": "S\u1EED d\u1EE5ng t\u1EF7 l\u1EC7 khung h\xECnh c\u1EE7a h\xECnh \u1EA3nh tham chi\u1EBFu \u0111\u1EA7u ti\xEAn",
+    "output.useFirstImage": "Theo \u1EA3nh \u0111\u1EA7u",
+    "output.ratioHint": "\u0110\u1EC3 tr\u1ED1ng \u0111\u1ED1i v\u1EDBi k\xEDch th\u01B0\u1EDBc mi\u1EC5n ph\xED \xB7 \u0110i\u1EC1n c\u1EA3 hai \u0111\u1EC3 \u0111\u1ED3ng b\u1ED9 h\xF3a",
+    "output.ratio": "T\u1EF7 l\u1EC7",
+    "output.quality": "Ch\u1EA5t l\u01B0\u1EE3ng",
+    "output.qualityAuto": "T\u1EF1 \u0111\u1ED9ng",
+    "output.qualityLow": "Th\u1EA5p",
+    "output.qualityMedium": "Trung b\xECnh",
+    "output.qualityHigh": "Cao",
+    "output.quantity": "S\u1ED1 l\u01B0\u1EE3ng",
+    "output.pixelPreview": "Pixel \u0111\u1EA7u ra: 1024 x 1024 px",
+    "output.pixelPreviewValue": "Pixel \u0111\u1EA7u ra: {value}",
+    "output.pixelPreviewAuto": "Pixel \u0111\u1EA7u ra: t\u1EF1 \u0111\u1ED9ng (OpenAI ch\u1ECDn t\u1EF1 \u0111\u1ED9ng)",
+    "output.format": "\u0110\u1ECBnh d\u1EA1ng",
+    "output.compression": "N\xE9n",
+    "output.moderation": "Ki\u1EC3m duy\u1EC7t",
+    "preview.title": "Xem tr\u01B0\u1EDBc",
+    "preview.selectedZero": "0 \u0111\xE3 ch\u1ECDn",
+    "preview.selectedCount": "\u0110\xE3 ch\u1ECDn {selected}/{total}",
+    "preview.downloadSelected": "T\u1EA3i xu\u1ED1ng m\u1EE5c \u0111\xE3 ch\u1ECDn",
+    "preview.deleteUnselected": "X\xF3a m\u1EE5c ch\u01B0a ch\u1ECDn",
+    "preview.downloadAll": "T\u1EA3i xu\u1ED1ng ZIP",
+    "preview.empty": "Ch\u01B0a c\xF3 h\xECnh \u1EA3nh n\xE0o",
+    "preview.taskFailed": "T\xE1c v\u1EE5 th\u1EA5t b\u1EA1i",
+    "preview.partialFailed": "M\u1ED9t s\u1ED1 h\xECnh \u1EA3nh kh\xF4ng th\xE0nh c\xF4ng",
+    "preview.failedOutput": "H\xECnh \u1EA3nh {index} kh\xF4ng th\xE0nh c\xF4ng",
+    "preview.progressLine": "\u0110\xE3 ho\xE0n th\xE0nh {generated} / {total} \xB7 \u0111\xE3 tr\xF4i qua {elapsed}",
+    "preview.failureLine": "\u0110\xE3 ho\xE0n th\xE0nh {generated} / {total} \xB7 th\u1EA5t b\u1EA1i {failed}",
+    "preview.elapsedLine": "\u0110\xE3 tr\xF4i qua {elapsed}",
+    "preview.lastError": "L\u1ED7i cu\u1ED1i c\xF9ng: {error}",
+    "preview.continueGenerating": "\u0110ang ti\u1EBFp t\u1EE5c t\u1EA1o",
+    "preview.waitingContinue": "\u0110ang ch\u1EDD ti\u1EBFp t\u1EE5c",
+    "preview.retryFailed": "Th\u1EED l\u1EA1i h\xECnh \u1EA3nh kh\xF4ng th\xE0nh c\xF4ng",
+    "preview.acceptSuccesses": "Ch\u1EA5p nh\u1EADn k\u1EBFt qu\u1EA3 th\xE0nh c\xF4ng",
+    "preview.generateMode": "T\u1EA1o",
+    "preview.editMode": "Ch\u1EC9nh s\u1EEDa",
+    "preview.runningTitle": "{mode} \u0111ang ch\u1EA1y",
+    "preview.submittingTitle": "\u0110ang g\u1EEDi t\xE1c v\u1EE5",
+    "preview.queuedTitle": "T\xE1c v\u1EE5 \u0111\u01B0\u1EE3c x\u1EBFp h\xE0ng \u0111\u1EE3i",
+    "preview.submittingDetail": "\u0110ang l\u01B0u \u0111\u1EA7u v\xE0o v\xE0 th\xEAm t\xE1c v\u1EE5 v\xE0o h\xE0ng \u0111\u1EE3i. Qu\xE1 tr\xECnh t\u1EA1o s\u1EBD t\u1EF1 b\u1EAFt \u0111\u1EA7u.",
+    "preview.queuedDetail": "T\xE1c v\u1EE5 \u0111ang \u1EDF trong h\xE0ng \u0111\u1EE3i v\xE0 \u0111ang ch\u1EDD k\xEAnh kh\u1EA3 d\u1EE5ng.",
+    "preview.featured": "\u0110\xE3 ch\u1ECDn",
+    "preview.addFeatured": "Ch\u1ECDn k\u1EBFt qu\u1EA3",
+    "preview.selectedFeatured": "\u0110\xE3 ch\u1ECDn",
+    "preview.removeFeatured": "B\u1ECF ch\u1ECDn k\u1EBFt qu\u1EA3",
+    "preview.selectionAdded": "\u0110\xE3 ch\u1ECDn k\u1EBFt qu\u1EA3",
+    "preview.selectionRemoved": "\u0110\xE3 b\u1ECF ch\u1ECDn k\u1EBFt qu\u1EA3",
+    "preview.selectionUpdateFailed": "Kh\xF4ng th\u1EC3 c\u1EADp nh\u1EADt l\u1EF1a ch\u1ECDn",
+    "preview.noUnselectedOutputs": "Kh\xF4ng c\xF3 \u1EA3nh ch\u01B0a ch\u1ECDn \u0111\u1EC3 x\xF3a",
+    "preview.deleteUnselectedTitle": "X\xF3a h\xECnh \u1EA3nh kh\xF4ng \u0111\u01B0\u1EE3c ch\u1ECDn?",
+    "preview.deleteUnselectedMessage": "Thao t\xE1c n\xE0y s\u1EBD x\xF3a c\xE1c t\u1EC7p h\xECnh \u1EA3nh c\u1EE5c b\u1ED9 \u0111\u1ED1i v\u1EDBi c\xE1c k\u1EBFt qu\u1EA3 kh\xF4ng \u0111\u01B0\u1EE3c ch\u1ECDn trong t\xE1c v\u1EE5 n\xE0y.",
+    "preview.deleteUnselectedDetail": "Gi\u1EEF {selected}, x\xF3a {deleted}",
+    "preview.deleteUnselectedFailed": "Kh\xF4ng th\u1EC3 x\xF3a h\xECnh \u1EA3nh kh\xF4ng \u0111\u01B0\u1EE3c ch\u1ECDn",
+    "preview.deleteUnselectedDone": "\u0110\xE3 x\xF3a h\xECnh \u1EA3nh kh\xF4ng \u0111\u01B0\u1EE3c ch\u1ECDn",
+    "preview.addReference": "Th\xEAm \u1EA3nh tham kh\u1EA3o",
+    "preview.stage": "T\u1EA1m gi\u1EEF",
+    "preview.stageReference": "T\u1EA1m gi\u1EEF l\xE0m tham chi\u1EBFu \u0111ang ch\u1EDD",
+    "preview.prompt": "L\u1EDDi nh\u1EAFc",
+    "preview.download": "T\u1EA3i xu\u1ED1ng",
+    "preview.downloadImage": "T\u1EA3i xu\u1ED1ng h\xECnh \u1EA3nh n\xE0y",
+    "lightbox.label": "Xem tr\u01B0\u1EDBc h\xECnh \u1EA3nh",
+    "lightbox.close": "\u0110\xF3ng b\u1EA3n xem tr\u01B0\u1EDBc",
+    "lightbox.previous": "H\xECnh \u1EA3nh tr\u01B0\u1EDBc \u0111\xF3",
+    "lightbox.next": "H\xECnh \u1EA3nh ti\u1EBFp theo",
+    "promptPopover.title": "So s\xE1nh l\u1EDDi nh\u1EAFc",
+    "promptPopover.summary": "B\u1EA3n g\u1ED1c {original} \xB7 t\u1ED1i \u01B0u h\xF3a {optimized}",
+    "promptPopover.original": "L\u1EDDi nh\u1EAFc ban \u0111\u1EA7u",
+    "promptPopover.optimized": "L\u1EDDi nh\u1EAFc \u0111\u01B0\u1EE3c t\u1ED1i \u01B0u h\xF3a",
+    "promptPopover.charCount": "{count} k\xFD t\u1EF1",
+    "promptPopover.empty": "Kh\xF4ng c\xF3",
+    "promptPopover.notReturned": "Kh\xF4ng tr\u1EA3 v\u1EC1",
+    "promptPopover.noOptimized": "Kh\xF4ng c\xF3 l\u1EDDi nh\u1EAFc t\u1ED1i \u01B0u h\xF3a n\xE0o \u0111\u01B0\u1EE3c tr\u1EA3 v\u1EC1",
+    "promptPopover.submitted": "Xem l\u1EDDi nh\u1EAFc \u0111\xE3 g\u1EEDi",
+    "promptPopover.close": "\u0110\xF3ng so s\xE1nh l\u1EDDi nh\u1EAFc",
+    "promptPopover.copyOptimized": "Sao ch\xE9p l\u1EDDi nh\u1EAFc \u0111\u01B0\u1EE3c t\u1ED1i \u01B0u h\xF3a",
+    "promptPopover.copied": "\u0110\xE3 sao ch\xE9p",
+    "taskContext.menuLabel": "Menu ng\u1EEF c\u1EA3nh t\xE1c v\u1EE5",
+    "taskContext.view": "Xem t\xE1c v\u1EE5",
+    "taskContext.copyId": "Sao ch\xE9p Task ID",
+    "taskContext.copyPrompt": "Sao ch\xE9p l\u1EDDi nh\u1EAFc",
+    "taskContext.revealOutput": "M\u1EDF th\u01B0 m\u1EE5c \u0111\u1EA7u ra",
+    "taskContext.archive": "L\u01B0u tr\u1EEF t\xE1c v\u1EE5",
+    "taskContext.delete": "X\xF3a t\xE1c v\u1EE5",
+    "taskContext.idCopied": "\u0110\xE3 sao ch\xE9p Task ID",
+    "taskContext.promptCopied": "\u0110\xE3 sao ch\xE9p l\u1EDDi nh\u1EAFc",
+    "taskContext.noPrompt": "T\xE1c v\u1EE5 n\xE0y kh\xF4ng c\xF3 l\u1EDDi nh\u1EAFc \u0111\u1EC3 sao ch\xE9p",
+    "taskContext.revealFailed": "Kh\xF4ng th\u1EC3 m\u1EDF th\u01B0 m\u1EE5c \u0111\u1EA7u ra",
+    "taskContext.revealOpened": "\u0110\xE3 m\u1EDF th\u01B0 m\u1EE5c \u0111\u1EA7u ra",
+    "taskContext.actionFailed": "Thao t\xE1c t\xE1c v\u1EE5 th\u1EA5t b\u1EA1i",
+    "taskActions.group": "H\xE0nh \u0111\u1ED9ng t\xE1c v\u1EE5",
+    "taskActions.deleteTitle": "X\xF3a t\xE1c v\u1EE5?",
+    "taskActions.deleteMessage": "\u0110i\u1EC1u n\xE0y c\u0169ng s\u1EBD x\xF3a c\xE1c t\u1EADp tin h\xECnh \u1EA3nh c\u1EE5c b\u1ED9.",
+    "taskActions.runningCannotDelete": "Kh\xF4ng th\u1EC3 x\xF3a c\xE1c t\xE1c v\u1EE5 \u0111ang ch\u1EA1y",
+    "taskActions.updated": "\u0110\xE3 c\u1EADp nh\u1EADt tr\u1EA1ng th\xE1i t\xE1c v\u1EE5",
+    "taskActions.archived": "\u0110\xE3 l\u01B0u tr\u1EEF cu\u1ED9c tr\xF2 chuy\u1EC7n",
+    "taskActions.archiveFailed": "L\u01B0u tr\u1EEF kh\xF4ng th\xE0nh c\xF4ng",
+    "taskActions.deleted": "\u0110\xE3 x\xF3a t\xE1c v\u1EE5",
+    "taskActions.deleteFailed": "X\xF3a kh\xF4ng th\xE0nh c\xF4ng",
+    "taskActions.noRetryableFailedImages": "T\xE1c v\u1EE5 n\xE0y kh\xF4ng c\xF3 h\xECnh \u1EA3nh n\xE0o b\u1ECB l\u1ED7i \u0111\u1EC3 th\u1EED l\u1EA1i",
+    "taskActions.retryFailedOutputsFailed": "Kh\xF4ng th\u1EC3 th\u1EED l\u1EA1i c\xE1c h\xECnh \u1EA3nh b\u1ECB l\u1ED7i",
+    "taskActions.requeuedFailedImages": "\u0110\xE3 \u0111\u01B0a \u1EA3nh l\u1ED7i v\xE0o h\xE0ng \u0111\u1EE3i",
+    "taskActions.noAcceptableSuccessImages": "T\xE1c v\u1EE5 n\xE0y kh\xF4ng c\xF3 h\xECnh \u1EA3nh th\xE0nh c\xF4ng n\xE0o \u0111\u1EC3 ch\u1EA5p nh\u1EADn",
+    "taskActions.acceptSuccessesFailed": "Kh\xF4ng th\u1EC3 ch\u1EA5p nh\u1EADn k\u1EBFt qu\u1EA3 th\xE0nh c\xF4ng",
+    "taskActions.acceptedSuccesses": "\u0110\xE3 ch\u1EA5p nh\u1EADn k\u1EBFt qu\u1EA3 th\xE0nh c\xF4ng",
+    "taskActions.viewedUpdateFailed": "Kh\xF4ng c\u1EADp nh\u1EADt \u0111\u01B0\u1EE3c tr\u1EA1ng th\xE1i \u0111\u1ECDc",
+    "taskActions.failedFallback": "T\xE1c v\u1EE5 th\u1EA5t b\u1EA1i",
+    "taskList.empty": "Ch\u01B0a c\xF3 l\u1ECBch s\u1EED",
+    "taskList.selectSession": "Ch\u1ECDn tr\xF2 chuy\u1EC7n",
+    "taskList.unreadUpdate": "C\u1EADp nh\u1EADt ch\u01B0a \u0111\u1ECDc",
+    "taskList.viewing": "\u0110ang xem",
+    "taskList.backToLatest": "Quay l\u1EA1i t\xE1c v\u1EE5 m\u1EDBi nh\u1EA5t",
+    "taskList.backToLatestWithCount": "Quay l\u1EA1i t\xE1c v\u1EE5 m\u1EDBi nh\u1EA5t, c\xF3 {count} t\xE1c v\u1EE5 m\u1EDBi \u1EDF ph\xEDa tr\xEAn",
+    "taskDerived.usageLimited": "H\u1EA1n ch\u1EBF s\u1EED d\u1EE5ng",
+    "taskSubmit.requestFailed": "Y\xEAu c\u1EA7u kh\xF4ng th\xE0nh c\xF4ng",
+    "taskSubmit.queued": "T\xE1c v\u1EE5 \u0111\u01B0\u1EE3c th\xEAm v\xE0o h\xE0ng \u0111\u1EE3i",
+    "taskSubmit.timeout": "G\u1EEDi t\xE1c v\u1EE5 h\u1EBFt th\u1EDDi gian tr\u01B0\u1EDBc khi backend ph\u1EA3n h\u1ED3i. L\xE0m m\u1EDBi h\xE0ng \u0111\u1EE3i \u0111\u1EC3 x\xE1c nh\u1EADn t\xE1c v\u1EE5 \u0111\xE3 \u0111\u01B0\u1EE3c th\xEAm hay ch\u01B0a, r\u1ED3i quy\u1EBFt \u0111\u1ECBnh c\xF3 th\u1EED l\u1EA1i kh\xF4ng.",
+    "taskSubmit.failed": "G\u1EEDi t\xE1c v\u1EE5 kh\xF4ng th\xE0nh c\xF4ng",
+    "templates.title": "M\u1EABu l\u1EDDi nh\u1EAFc",
+    "templates.summary": "Th\u01B0 vi\u1EC7n m\u1EABu c\u1EE5c b\u1ED9",
+    "templates.availableCount": "{count} m\u1EABu kh\u1EA3 d\u1EE5ng",
+    "templates.noMatch": "Kh\xF4ng c\xF3 m\u1EABu ph\xF9 h\u1EE3p",
+    "templates.empty": "Kh\xF4ng c\xF3 m\u1EABu",
+    "templates.favoriteBadge": "Y\xEAu th\xEDch",
+    "templates.usageCount": "{count} l\u1EA7n d\xF9ng",
+    "templates.back": "Quay l\u1EA1i",
+    "templates.edit": "Ch\u1EC9nh s\u1EEDa",
+    "templates.copy": "Sao ch\xE9p",
+    "templates.insert": "Ch\xE8n",
+    "templates.formTitle": "Ti\xEAu \u0111\u1EC1",
+    "templates.formShortTitle": "Ti\xEAu \u0111\u1EC1 ng\u1EAFn",
+    "templates.formCategory": "Danh m\u1EE5c",
+    "templates.formTags": "Th\u1EBB",
+    "templates.formThumbnail": "H\xECnh thu nh\u1ECF",
+    "templates.formContent": "N\u1ED9i dung",
+    "templates.formNotes": "Ghi ch\xFA",
+    "templates.formFavorite": "Y\xEAu th\xEDch",
+    "templates.thumbnailClear": "X\xF3a",
+    "templates.thumbnailNone": "Ch\u01B0a ch\u1ECDn",
+    "templates.thumbnailEmpty": "Kh\xF4ng c\xF3 h\xECnh thu nh\u1ECF l\u1ECBch s\u1EED",
+    "templates.newCategory": "Danh m\u1EE5c m\u1EDBi",
+    "templates.search": "T\xECm ki\u1EBFm m\u1EABu, th\u1EBB ho\u1EB7c n\u1ED9i dung",
+    "templates.filter": "B\u1ED9 l\u1ECDc m\u1EABu",
+    "templates.all": "T\u1EA5t c\u1EA3",
+    "templates.categoryCommon": "Chung",
+    "templates.categoryPortrait": "Ch\xE2n dung",
+    "templates.categoryProduct": "S\u1EA3n ph\u1EA9m",
+    "templates.categoryRepair": "S\u1EEDa \u1EA3nh",
+    "templates.categoryPoster": "\xC1p ph\xEDch",
+    "templates.categoryEcommerce": "Th\u01B0\u01A1ng m\u1EA1i \u0111i\u1EC7n t\u1EED",
+    "templates.favorite": "Y\xEAu th\xEDch",
+    "templates.recent": "G\u1EA7n \u0111\xE2y",
+    "templates.category": "Danh m\u1EE5c",
+    "templates.loadFailed": "Kh\xF4ng t\u1EA3i \u0111\u01B0\u1EE3c m\u1EABu l\u1EDDi nh\u1EAFc",
+    "templates.useStateUpdateFailed": "Kh\xF4ng c\u1EADp nh\u1EADt \u0111\u01B0\u1EE3c tr\u1EA1ng th\xE1i s\u1EED d\u1EE5ng m\u1EABu l\u1EDDi nh\u1EAFc",
+    "templates.copied": "\u0110\xE3 sao ch\xE9p m\u1EABu l\u1EDDi nh\u1EAFc",
+    "templates.copyFailed": "Kh\xF4ng sao ch\xE9p \u0111\u01B0\u1EE3c m\u1EABu l\u1EDDi nh\u1EAFc",
+    "templates.history": "L\u1ECBch s\u1EED",
+    "templates.saveFailed": "Kh\xF4ng l\u01B0u \u0111\u01B0\u1EE3c m\u1EABu l\u1EDDi nh\u1EAFc",
+    "templates.saved": "\u0110\xE3 l\u01B0u m\u1EABu l\u1EDDi nh\u1EAFc",
+    "templates.deleteFailed": "Kh\xF4ng x\xF3a \u0111\u01B0\u1EE3c m\u1EABu l\u1EDDi nh\u1EAFc",
+    "templates.deleted": "\u0110\xE3 x\xF3a m\u1EABu l\u1EDDi nh\u1EAFc",
+    "templates.categoryAddFailed": "Kh\xF4ng th\u1EC3 th\xEAm danh m\u1EE5c m\u1EABu",
+    "templates.categoryAdded": "\u0110\xE3 th\xEAm danh m\u1EE5c m\u1EABu",
+    "templates.categorySaveFailed": "Kh\xF4ng l\u01B0u \u0111\u01B0\u1EE3c danh m\u1EE5c m\u1EABu",
+    "templates.categorySaved": "\u0110\xE3 l\u01B0u danh m\u1EE5c m\u1EABu",
+    "templates.categoryDeleteFailed": "Kh\xF4ng th\u1EC3 x\xF3a danh m\u1EE5c m\u1EABu",
+    "templates.categoryDeleted": "\u0110\xE3 x\xF3a danh m\u1EE5c m\u1EABu",
+    "templates.importFailed": "Kh\xF4ng th\u1EC3 nh\u1EADp g\xF3i m\u1EABu",
+    "templates.importedCount": "\u0110\xE3 nh\u1EADp {count} m\u1EABu",
+    "templates.exportFailed": "Kh\xF4ng xu\u1EA5t \u0111\u01B0\u1EE3c g\xF3i m\u1EABu",
+    "templates.exported": "\u0110\xE3 xu\u1EA5t g\xF3i m\u1EABu",
+    "snippets.suggestLabel": "B\u1ED9 ch\u1ECDn \u0111o\u1EA1n l\u1EDDi nh\u1EAFc",
+    "snippets.saveSelection": "L\u01B0u",
+    "snippets.saveSelectionLabel": "L\u01B0u v\u0103n b\u1EA3n \u0111\xE3 ch\u1ECDn d\u01B0\u1EDBi d\u1EA1ng \u0111o\u1EA1n nh\u1EAFc",
+    "snippets.popoverLabel": "\u0110o\u1EA1n l\u1EDDi nh\u1EAFc",
+    "snippets.defaultCategory": "Chung",
+    "snippets.loadFailed": "Kh\xF4ng t\u1EA3i \u0111\u01B0\u1EE3c \u0111o\u1EA1n l\u1EDDi nh\u1EAFc",
+    "snippets.remove": "X\xF3a ~{tag}",
+    "snippets.expand": "M\u1EDF r\u1ED9ng",
+    "snippets.edit": "Ch\u1EC9nh s\u1EEDa",
+    "snippets.close": "\u0110\xF3ng",
+    "snippets.editTitle": "Ch\u1EC9nh s\u1EEDa \u0111o\u1EA1n l\u1EDDi nh\u1EAFc",
+    "snippets.saveTitle": "L\u01B0u \u0111o\u1EA1n l\u1EDDi nh\u1EAFc",
+    "snippets.shortTag": "Th\u1EBB ng\u1EAFn",
+    "snippets.title": "Ti\xEAu \u0111\u1EC1",
+    "snippets.category": "Danh m\u1EE5c",
+    "snippets.content": "N\u1ED9i dung",
+    "snippets.titlePlaceholder": "S\u1EED d\u1EE5ng th\u1EBB ng\u1EAFn theo m\u1EB7c \u0111\u1ECBnh",
+    "snippets.cancel": "H\u1EE7y",
+    "snippets.save": "L\u01B0u",
+    "snippets.saveFailed": "Kh\xF4ng l\u01B0u \u0111\u01B0\u1EE3c \u0111o\u1EA1n l\u1EDDi nh\u1EAFc",
+    "snippets.saved": "\u0110\xE3 l\u01B0u \u0111o\u1EA1n l\u1EDDi nh\u1EAFc",
+    "snippets.defaultTag": "\u0110o\u1EA1n th\u01B0\u1EDDng d\xF9ng",
+    "colors.white": "Tr\u1EAFng",
+    "colors.black": "\u0110en",
+    "colors.warmBeige": "M\xE0u be \u1EA5m",
+    "colors.lightGreen": "Xanh nh\u1EA1t",
+    "colors.brandGreen": "Xanh th\u01B0\u01A1ng hi\u1EC7u",
+    "colors.peachOrange": "Cam \u0111\xE0o",
+    "colors.lightBlue": "M\xE0u xanh nh\u1EA1t",
+    "colors.lightPink": "H\u1ED3ng nh\u1EA1t",
+    "colors.loadFailed": "Kh\xF4ng t\u1EA3i \u0111\u01B0\u1EE3c c\xE0i \u0111\u1EB7t m\xE0u",
+    "colors.saveFailed": "Kh\xF4ng l\u01B0u \u0111\u01B0\u1EE3c c\xE0i \u0111\u1EB7t m\xE0u",
+    "colors.importFailed": "Kh\xF4ng th\u1EC3 nh\u1EADp c\xE0i \u0111\u1EB7t m\xE0u",
+    "colors.importedCount": "\u0110\xE3 nh\u1EADp m\xE0u {count}",
+    "colors.recentSaveFailed": "Kh\xF4ng l\u01B0u \u0111\u01B0\u1EE3c c\xE1c m\xE0u g\u1EA7n \u0111\xE2y",
+    "colors.favoriteSaveFailed": "Kh\xF4ng l\u01B0u \u0111\u01B0\u1EE3c m\xE0u y\xEAu th\xEDch",
+    "colors.favoriteDeleteFailed": "Kh\xF4ng x\xF3a \u0111\u01B0\u1EE3c m\xE0u y\xEAu th\xEDch",
+    "colors.update": "C\u1EADp nh\u1EADt",
+    "colors.insert": "Ch\xE8n",
+    "colors.pick": "Ch\u1ECDn m\xE0u",
+    "colors.pickShort": "Ch\u1ECDn",
+    "colors.hexValue": "Gi\xE1 tr\u1ECB m\xE0u",
+    "colors.pendingUpdate": "M\xE0u s\u1EAFc \u0111\xE3 thay \u0111\u1ED5i. Nh\u1EA5n v\xE0o C\u1EADp nh\u1EADt \u0111\u1EC3 \xE1p d\u1EE5ng.",
+    "colors.save": "L\u01B0u",
+    "colors.exportPs": "Xu\u1EA5t",
+    "colors.importPs": "Nh\u1EADp",
+    "colors.done": "Xong",
+    "colors.manage": "Qu\u1EA3n l\xFD",
+    "colors.favorites": "M\xE0u s\u1EAFc y\xEAu th\xEDch",
+    "colors.recent": "M\xE0u s\u1EAFc g\u1EA7n \u0111\xE2y",
+    "colors.recentLabel": "G\u1EA7n \u0111\xE2y",
+    "colors.deleteFavorite": "X\xF3a m\xE0u y\xEAu th\xEDch {name}",
+    "colors.modify": "Ch\u1EC9nh s\u1EEDa m\xE0u",
+    "colors.modifyValue": "Ch\u1EC9nh s\u1EEDa m\xE0u {value}",
+    "colors.removeValue": "X\xF3a m\xE0u {value}",
+    "taskGroup.today": "h\xF4m nay",
+    "taskGroup.yesterday": "H\xF4m qua",
+    "taskGroup.last7": "7 ng\xE0y qua",
+    "taskGroup.older": "C\u0169 h\u01A1n",
+    "taskGroup.searchResults": "K\u1EBFt qu\u1EA3 t\xECm ki\u1EBFm",
+    "taskGroup.active": "\u0110ang ch\u1EA1y",
+    "taskGroup.running": "\u0110ang ch\u1EA1y",
+    "taskGroup.waiting": "\u0110ang ch\u1EDD",
+    "taskGroup.dispatchPending": "\u0110ang ch\u1EC9 \u0111\u1ECBnh m\u1ED9t k\xEAnh kh\u1EA3 d\u1EE5ng...",
+    "taskGroup.expand": "M\u1EDF r\u1ED9ng {label}",
+    "taskGroup.collapse": "Thu g\u1ECDn {label}",
+    "taskGroup.buttonLabel": "{label}, {count} t\xE1c v\u1EE5",
+    "taskGroup.loadMore": "T\u1EA3i th\xEAm {count}",
+    "archive.title": "L\u01B0u tr\u1EEF",
+    "archive.empty": "Kh\xF4ng c\xF3 cu\u1ED9c tr\xF2 chuy\u1EC7n n\xE0o \u0111\u01B0\u1EE3c l\u01B0u tr\u1EEF",
+    "archive.count": "{count} c\xE1c cu\u1ED9c tr\xF2 chuy\u1EC7n \u0111\u01B0\u1EE3c l\u01B0u tr\u1EEF",
+    "archive.restore": "Kh\xF4i ph\u1EE5c",
+    "archive.archiveFailed": "L\u01B0u tr\u1EEF kh\xF4ng th\xE0nh c\xF4ng",
+    "archive.restoreFailed": "Kh\xF4i ph\u1EE5c kh\xF4ng th\xE0nh c\xF4ng",
+    "archive.restored": "\u0110\xE3 kh\xF4i ph\u1EE5c cu\u1ED9c tr\xF2 chuy\u1EC7n",
+    "archive.archiving": "\u0110ang l\u01B0u tr\u1EEF...",
+    "archive.restoring": "\u0110ang kh\xF4i ph\u1EE5c...",
+    "archive.deleting": "\u0110ang x\xF3a...",
+    "archive.restoredCount": "\u0110\xE3 kh\xF4i ph\u1EE5c c\xE1c t\xE1c v\u1EE5 {count}",
+    "settings.title": "L\u01B0u tr\u1EEF",
+    "settings.status": "Kh\u1EDFi \u0111\u1ED9ng l\u1EA1i WebUI sau khi l\u01B0u \u0111\u01B0\u1EDDng d\u1EABn l\u01B0u tr\u1EEF",
+    "settings.inputRoot": "Th\u01B0 m\u1EE5c \u0111\u1EA7u v\xE0o",
+    "settings.outputRoot": "Th\u01B0 m\u1EE5c \u0111\u1EA7u ra",
+    "settings.galleryRoot": "Th\u01B0 m\u1EE5c th\u01B0 vi\u1EC7n",
+    "settings.sourceDataRoot": "Th\u01B0 m\u1EE5c d\u1EEF li\u1EC7u ngu\u1ED3n",
+    "settings.language": "Ng\xF4n ng\u1EEF giao di\u1EC7n",
+    "settings.languageCopy": "L\u1EA7n \u0111\u1EA7u m\u1EDF app, giao di\u1EC7n s\u1EBD theo ng\xF4n ng\u1EEF tr\xECnh duy\u1EC7t. L\u1EF1a ch\u1ECDn th\u1EE7 c\xF4ng s\u1EBD \u0111\u01B0\u1EE3c ghi nh\u1EDB.",
+    "settings.notificationsCopy": "Th\xF4ng b\xE1o khi t\xE1c v\u1EE5 ho\xE0n t\u1EA5t ho\u1EB7c th\u1EA5t b\u1EA1i. B\u1EA1n c\u1EA7n b\u1EADt th\xF4ng b\xE1o h\u1EC7 th\u1ED1ng th\u1EE7 c\xF4ng.",
+    "settings.inAppNotification": "Th\xF4ng b\xE1o trong \u1EE9ng d\u1EE5ng",
+    "settings.systemNotification": "Th\xF4ng b\xE1o h\u1EC7 th\u1ED1ng",
+    "settings.save": "L\u01B0u c\xE0i \u0111\u1EB7t",
+    "settings.loadFailed": "Kh\xF4ng t\u1EA3i \u0111\u01B0\u1EE3c c\xE0i \u0111\u1EB7t",
+    "settings.saveFailed": "Kh\xF4ng l\u01B0u \u0111\u01B0\u1EE3c c\xE0i \u0111\u1EB7t",
+    "settings.savedRestart": "\u0110\xE3 l\u01B0u c\xE0i \u0111\u1EB7t l\u01B0u tr\u1EEF. Kh\u1EDFi \u0111\u1ED9ng l\u1EA1i WebUI \u0111\u1EC3 \xE1p d\u1EE5ng.",
+    "settings.saved": "\u0110\xE3 l\u01B0u",
+    "settings.savedRestartStatus": "\u0110\xE3 l\u01B0u c\xE0i \u0111\u1EB7t l\u01B0u tr\u1EEF. Kh\u1EDFi \u0111\u1ED9ng l\u1EA1i WebUI \u0111\u1EC3 \xE1p d\u1EE5ng.",
+    "systemSettings.title": "C\xE0i \u0111\u1EB7t h\u1EC7 th\u1ED1ng",
+    "systemSettings.tabsLabel": "Ph\u1EA7n c\xE0i \u0111\u1EB7t h\u1EC7 th\u1ED1ng",
+    "systemSettings.apiTab": "C\xE0i \u0111\u1EB7t API",
+    "systemSettings.codexTab": "K\xEAnh Codex",
+    "systemSettings.languageTab": "Ng\xF4n ng\u1EEF",
+    "systemSettings.storageTab": "L\u01B0u tr\u1EEF & Th\xF4ng b\xE1o",
+    "systemSettings.networkTab": "M\u1EA1ng",
+    "networkEgress.mode": "Tuy\u1EBFn m\u1EA1ng",
+    "networkEgress.system": "H\u1EC7 th\u1ED1ng",
+    "networkEgress.direct": "K\u1EBFt n\u1ED1i tr\u1EF1c ti\u1EBFp",
+    "networkEgress.custom": "T\xF9y ch\u1EC9nh",
+    "networkEgress.customProxy": "URL proxy t\xF9y ch\u1EC9nh",
+    "networkEgress.currentRoute": "Tuy\u1EBFn hi\u1EC7n t\u1EA1i: {route}",
+    "networkEgress.test": "Ki\u1EC3m tra k\u1EBFt n\u1ED1i",
+    "networkEgress.save": "L\u01B0u v\xE0 \xE1p d\u1EE5ng",
+    "networkEgress.saved": "\u0110\xE3 l\u01B0u tuy\u1EBFn m\u1EA1ng",
+    "networkEgress.testSucceeded": "K\u1EBFt n\u1ED1i th\xE0nh c\xF4ng: {target} ({elapsed} ms)",
+    "networkEgress.testFailed": "Ki\u1EC3m tra k\u1EBFt n\u1ED1i th\u1EA5t b\u1EA1i",
+    "networkEgress.loadFailed": "Kh\xF4ng th\u1EC3 t\u1EA3i c\xE0i \u0111\u1EB7t m\u1EA1ng",
+    "networkEgress.saveFailed": "Kh\xF4ng th\u1EC3 l\u01B0u c\xE0i \u0111\u1EB7t m\u1EA1ng",
+    "languageSettings.instantStatus": "Thay \u0111\u1ED5i ng\xF4n ng\u1EEF \xE1p d\u1EE5ng ngay l\u1EADp t\u1EE9c",
+    "apiSettings.title": "C\xE0i \u0111\u1EB7t API",
+    "apiSettings.status": "C\xE0i \u0111\u1EB7t \u0111\xE3 l\u01B0u \xE1p d\u1EE5ng ngay l\u1EADp t\u1EE9c \u1EDF ch\u1EBF \u0111\u1ED9 API",
+    "apiSettings.codexMode": "K\xEAnh Codex",
+    "apiSettings.codexImages": "Image",
+    "apiSettings.codexResponses": "Responses",
+    "apiSettings.providers": "Provider API",
+    "apiSettings.searchProviders": "T\xECm ki\u1EBFm t\xEAn provider",
+    "apiSettings.noProviderSearchResults": "Kh\xF4ng c\xF3 provider ph\xF9 h\u1EE3p",
+    "apiSettings.providerCount": "{count} provider",
+    "apiSettings.provider": "Provider",
+    "apiSettings.providerName": "T\xEAn provider",
+    "apiSettings.providerIcon": "Emoji",
+    "apiSettings.providerIconPlaceholder": "T\xF9y ch\u1ECDn, v\xED d\u1EE5 \u{1FA84}",
+    "apiSettings.connectionScope": "C\xE0i \u0111\u1EB7t k\u1EBFt n\u1ED1i",
+    "apiSettings.connectionPreview": "Xem tr\u01B0\u1EDBc k\u1EBFt n\u1ED1i",
+    "apiSettings.modelBindings": "Li\xEAn k\u1EBFt m\xF4 h\xECnh",
+    "apiSettings.modelBindingsHint": "M\u1ED9t provider c\xF3 th\u1EC3 li\xEAn k\u1EBFt \u0111\u1ED3ng th\u1EDDi nhi\u1EC1u m\xF4 h\xECnh v\xE0 giao th\u1EE9c.",
+    "apiSettings.addModelBinding": "Th\xEAm li\xEAn k\u1EBFt m\xF4 h\xECnh",
+    "apiSettings.appendRatioPrompt": "Th\xEAm t\u1EF7 l\u1EC7 v\xE0o l\u1EDDi nh\u1EAFc",
+    "apiSettings.defaultProviderForModel": "Provider m\u1EB7c \u0111\u1ECBnh",
+    "apiSettings.removeBinding": "X\xF3a li\xEAn k\u1EBFt",
+    "apiSettings.catalogRequiredForBinding": "Danh m\u1EE5c m\xF4 h\xECnh kh\xF4ng kh\u1EA3 d\u1EE5ng n\xEAn ch\u01B0a th\u1EC3 th\xEAm li\xEAn k\u1EBFt.",
+    "apiSettings.keepOneBinding": "M\u1ED7i provider ph\u1EA3i gi\u1EEF \xEDt nh\u1EA5t m\u1ED9t li\xEAn k\u1EBFt m\xF4 h\xECnh.",
+    "apiSettings.bindingRequiredFields": "V\u1EDBi m\u1ED7i li\xEAn k\u1EBFt, h\xE3y ch\u1ECDn m\xF4 h\xECnh, nh\u1EADp t\xEAn m\xF4 h\xECnh t\u1EEB xa v\xE0 ch\u1ECDn \xEDt nh\u1EA5t m\u1ED9t thao t\xE1c.",
+    "apiSettings.bindingOverlap": "Thao t\xE1c {operation} c\u1EE7a {model} b\u1ECB nhi\u1EC1u li\xEAn k\u1EBFt x\u1EED l\xFD tr\xF9ng nhau.",
+    "apiSettings.actualRequest": "Y\xEAu c\u1EA7u th\u1EF1c t\u1EBF",
+    "apiSettings.newProviderAction": "Provider m\u1EDBi",
+    "apiSettings.copyProvider": "Sao ch\xE9p",
+    "apiSettings.copyProviderName": "B\u1EA3n sao {name}",
+    "apiSettings.copyProviderStatus": "\u0110\xE3 sao ch\xE9p provider c\xF9ng key \u0111\xE3 l\u01B0u. Ch\u1EC9nh t\xEAn, m\xF4 h\xECnh ho\u1EB7c thay key tr\u01B0\u1EDBc khi l\u01B0u.",
+    "apiSettings.copyProviderWithoutKeyStatus": "\u0110\xE3 sao ch\xE9p provider. Ch\u1EC9nh t\xEAn, m\xF4 h\xECnh ho\u1EB7c th\xEAm API key tr\u01B0\u1EDBc khi l\u01B0u.",
+    "apiSettings.sortProviders": "S\u1EAFp x\u1EBFp",
+    "apiSettings.finishSortProviders": "Xong",
+    "apiSettings.sortProviderModeStatus": "S\u1EAFp x\u1EBFp provider",
+    "apiSettings.sortProviderStatus": "Th\u1EE9 t\u1EF1 provider \u0111\xE3 thay \u0111\u1ED5i. \u0110ang t\u1EF1 \u0111\u1ED9ng l\u01B0u...",
+    "apiSettings.moveProviderUp": "L\xEAn",
+    "apiSettings.moveProviderDown": "Xu\u1ED1ng",
+    "apiSettings.moveProviderUpAria": "Di chuy\u1EC3n {provider} l\xEAn",
+    "apiSettings.moveProviderDownAria": "Di chuy\u1EC3n {provider} xu\u1ED1ng",
+    "apiSettings.mode": "Ch\u1EBF \u0111\u1ED9 y\xEAu c\u1EA7u",
+    "apiSettings.images": "API h\xECnh \u1EA3nh tr\u1EF1c ti\u1EBFp",
+    "apiSettings.responses": "Responses API",
+    "apiSettings.modeImagesShort": "Tr\u1EF1c ti\u1EBFp",
+    "apiSettings.imageModel": "M\xF4 h\xECnh h\xECnh \u1EA3nh",
+    "apiSettings.concurrency": "Gi\u1EDBi h\u1EA1n \u0111\u1ED3ng th\u1EDDi c\u1EE7a provider",
+    "apiSettings.concurrencyShort": "\u0110\u1ED3ng th\u1EDDi",
+    "apiSettings.advancedSettings": "C\xE0i \u0111\u1EB7t n\xE2ng cao",
+    "apiSettings.concurrencyValue": "{concurrency} \u0111\u1ED3ng th\u1EDDi",
+    "apiSettings.keySaved": "\u0110\xE3 l\u01B0u kh\xF3a API",
+    "apiSettings.keyNotSet": "Kh\xF3a API ch\u01B0a \u0111\u01B0\u1EE3c \u0111\u1EB7t",
+    "apiSettings.showApiKey": "Hi\u1EC3n th\u1ECB kh\xF3a API",
+    "apiSettings.hideApiKey": "\u1EA8n kh\xF3a API",
+    "apiSettings.editProvider": "Ch\u1EC9nh s\u1EEDa provider",
+    "apiSettings.newProviderTitle": "Provider m\u1EDBi",
+    "apiSettings.editHint": "B\u1EA5m l\u01B0u provider \u0111\u1EC3 ghi thay \u0111\u1ED5i v\xE0o backend; h\u1EE7y s\u1EBD b\u1ECF thay \u0111\u1ED5i l\u1EA7n n\xE0y.",
+    "apiSettings.finishEditFirst": "L\u01B0u ho\u1EB7c h\u1EE7y ch\u1EC9nh s\u1EEDa provider hi\u1EC7n t\u1EA1i tr\u01B0\u1EDBc",
+    "apiSettings.newDraftStatus": "\u0110ang t\u1EA1o provider. L\u01B0u provider \u0111\u1EC3 \xE1p d\u1EE5ng.",
+    "apiSettings.editDraftStatus": "\u0110ang ch\u1EC9nh s\u1EEDa provider. L\u01B0u provider \u0111\u1EC3 \xE1p d\u1EE5ng.",
+    "apiSettings.cancelEdit": "H\u1EE7y ch\u1EC9nh s\u1EEDa",
+    "apiSettings.saveProvider": "L\u01B0u provider",
+    "apiSettings.saveSelection": "L\u01B0u l\u1EF1a ch\u1ECDn",
+    "apiSettings.deleteProviderTitle": "X\xF3a provider?",
+    "apiSettings.deleteProviderMessage": 'X\xF3a "{provider}"?',
+    "apiSettings.deleteProviderDetail": "Thao t\xE1c n\xE0y s\u1EBD x\xF3a provider kh\u1ECFi danh s\xE1ch hi\u1EC7n t\u1EA1i v\xE0 t\u1EF1 \u0111\u1ED9ng l\u01B0u v\xE0o backend.",
+    "apiSettings.deleteProviderStatus": "\u0110\xE3 x\xF3a provider. \u0110ang t\u1EF1 \u0111\u1ED9ng l\u01B0u...",
+    "apiSettings.save": "L\u01B0u c\xE0i \u0111\u1EB7t API",
+    "apiSettings.loadFailed": "Kh\xF4ng t\u1EA3i \u0111\u01B0\u1EE3c c\xE0i \u0111\u1EB7t API",
+    "apiSettings.savedKeyPlaceholder": "Backend \u0111\xE3 l\u01B0u API key. Nh\u1EADp key m\u1EDBi \u0111\u1EC3 thay th\u1EBF.",
+    "apiSettings.newProvider": "Provider m\u1EDBi",
+    "apiSettings.saving": "\u0110ang l\u01B0u...",
+    "apiSettings.savingStatus": "\u0110ang l\u01B0u c\xE0i \u0111\u1EB7t API...",
+    "apiSettings.autoSaving": "T\u1EF1 \u0111\u1ED9ng l\u01B0u...",
+    "apiSettings.autoSaved": "T\u1EF1 \u0111\u1ED9ng l\u01B0u",
+    "apiSettings.saveFailed": "Kh\xF4ng l\u01B0u \u0111\u01B0\u1EE3c c\xE0i \u0111\u1EB7t API",
+    "apiSettings.savedSummary": "\u0110\xE3 l\u01B0u \xB7 Codex {codex} \xB7 API {provider} \xB7 {mode} \xB7 {model} \xB7 \u0111\u1ED3ng th\u1EDDi {concurrency}",
+    "apiSettings.savedShort": "\u0110\xE3 l\u01B0u",
+    "apiSettings.savedStatus": "\u0110\xE3 l\u01B0u c\xE0i \u0111\u1EB7t API",
+    "apiSettings.saveFailedShort": "L\u01B0u kh\xF4ng th\xE0nh c\xF4ng",
+    "codexSettings.title": "K\xEAnh Codex",
+    "codexSettings.status": "Ch\u1ECDn k\xEAnh t\u1EA1o \u1EA3nh d\xF9ng \u0111\u0103ng nh\u1EADp Codex c\u1EE5c b\u1ED9",
+    "codexSettings.notesLabel": "Ghi ch\xFA k\xEAnh Codex",
+    "codexSettings.imagesTitle": "H\xECnh \u1EA3nh Codex",
+    "codexSettings.imagesCopy": "K\xEAnh m\u1EB7c \u0111\u1ECBnh \u0111\u1EC3 t\u1EA1o v\xE0 ch\u1EC9nh s\u1EEDa th\xF4ng th\u01B0\u1EDDng, v\u1EDBi c\xE1c tham s\u1ED1 k\xEDch th\u01B0\u1EDBc, ch\u1EA5t l\u01B0\u1EE3ng v\xE0 ch\u1EC9nh s\u1EEDa \u0111\u01B0\u1EE3c truy\u1EC1n tr\u1EF1c ti\u1EBFp.",
+    "codexSettings.responsesTitle": "Codex Responses",
+    "codexSettings.responsesCopy": "K\xEAnh t\u01B0\u01A1ng th\xEDch cho c\xE1c t\xE1c v\u1EE5 c\u1EA7n t\xECm ki\u1EBFm web ho\u1EB7c chu\u1ED7i c\xF4ng c\u1EE5 Responses.",
+    "codexSettings.current": "hi\u1EC7n t\u1EA1i",
+    "codexSettings.save": "L\u01B0u k\xEAnh Codex",
+    "codexSettings.saveMode": "L\u01B0u {mode}",
+    "imageEditor.title": "Ch\u1EC9nh s\u1EEDa h\xECnh \u1EA3nh \u0111\u1EA7u v\xE0o",
+    "imageEditor.promptHint": "C\xE1c m\u0169i t\xEAn v\xE0 d\u1EA5u v\u1EBD tay trong \u1EA3nh ch\u1EC9 l\xE0 h\u01B0\u1EDBng d\u1EABn. Kh\xF4ng gi\u1EEF ch\xFAng trong \u1EA3nh cu\u1ED1i c\xF9ng.",
+    "imageEditor.inputFallback": "H\xECnh \u1EA3nh \u0111\u1EA7u v\xE0o",
+    "imageEditor.openFailed": "Kh\xF4ng th\u1EC3 m\u1EDF h\xECnh \u1EA3nh n\xE0y \u0111\u1EC3 ch\u1EC9nh s\u1EEDa",
+    "imageEditor.loadForEditFailed": "Kh\xF4ng th\u1EC3 t\u1EA3i h\xECnh \u1EA3nh n\xE0y \u0111\u1EC3 ch\u1EC9nh s\u1EEDa",
+    "imageEditor.canvasCreateFailed": "Kh\xF4ng t\u1EA1o \u0111\u01B0\u1EE3c canvas ch\u1EC9nh s\u1EEDa h\xECnh \u1EA3nh",
+    "imageEditor.closedRegionRequired": "S\u1EED d\u1EE5ng c\u1ECD \u0111\u1EC3 v\u1EBD v\xF9ng k\xEDn tr\u01B0\u1EDBc",
+    "imageEditor.saveFailed": "Kh\xF4ng l\u01B0u \u0111\u01B0\u1EE3c ch\u1EC9nh s\u1EEDa h\xECnh \u1EA3nh",
+    "imageEditor.saved": "\u0110\xE3 l\u01B0u h\xECnh \u1EA3nh \u0111\u1EA7u v\xE0o \u0111\xE3 ch\u1EC9nh s\u1EEDa",
+    "imageEditor.uneditable": "H\xECnh \u1EA3nh n\xE0y kh\xF4ng th\u1EC3 \u0111\u01B0\u1EE3c ch\u1EC9nh s\u1EEDa",
+    "imageEditor.resetDone": "\u0110\u1EB7t l\u1EA1i v\u1EC1 \u1EA3nh g\u1ED1c",
+    "imageEditor.resetFailed": "Kh\xF4ng th\u1EC3 \u0111\u1EB7t l\u1EA1i \u1EA3nh g\u1ED1c",
+    "imageEditor.subtitle": "C\u1EAFt, v\u1EBD, \u0111i\u1EC1n ho\u1EB7c th\xEAm m\u0169i t\xEAn, sau \u0111\xF3 l\u01B0u l\xE0m h\xECnh \u1EA3nh \u0111\u1EA7u v\xE0o m\u1EDBi",
+    "imageEditor.toolbar": "Thanh c\xF4ng c\u1EE5 ch\u1EC9nh s\u1EEDa h\xECnh \u1EA3nh",
+    "imageEditor.tools": "C\xF4ng c\u1EE5",
+    "imageEditor.select": "Ch\u1ECDn",
+    "imageEditor.brush": "C\u1ECD",
+    "imageEditor.arrow": "M\u0169i t\xEAn",
+    "imageEditor.crop": "C\u1EAFt",
+    "imageEditor.fill": "T\xF4",
+    "imageEditor.fillLabel": "T\xF4 m\xE0u b\u1EB1ng th\xF9ng s\u01A1n",
+    "imageEditor.eraser": "T\u1EA9y",
+    "imageEditor.colors": "M\xE0u",
+    "imageEditor.red": "\u0110\u1ECF",
+    "imageEditor.blue": "Xanh d\u01B0\u01A1ng",
+    "imageEditor.green": "Xanh l\xE1",
+    "imageEditor.yellow": "V\xE0ng",
+    "imageEditor.white": "Tr\u1EAFng",
+    "imageEditor.black": "\u0110en",
+    "imageEditor.customColor": "M\xE0u t\xF9y ch\u1EC9nh",
+    "imageEditor.stroke": "N\xE9t",
+    "imageEditor.history": "L\u1ECBch s\u1EED",
+    "imageEditor.undo": "Ho\xE0n t\xE1c",
+    "imageEditor.redo": "L\xE0m l\u1EA1i",
+    "imageEditor.reset": "\u0110\u1EB7t l\u1EA1i h\xECnh \u1EA3nh",
+    "imageEditor.canvas": "Canvas ch\u1EC9nh s\u1EEDa h\xECnh \u1EA3nh",
+    "imageEditor.canvasScope": "Ph\u1EA1m vi canvas",
+    "imageEditor.canvasScopeBase": "H\xECnh \u1EA3nh c\u01A1 s\u1EDF",
+    "imageEditor.canvasScopeFit": "V\u1EEBa l\u1EDBp",
+    "imageEditor.canvasFitDone": "Canvas b\xE2y gi\u1EDD v\u1EEBa v\u1EDBi c\xE1c l\u1EDBp",
+    "imageEditor.canvasBaseDone": "Canvas \u0111\u01B0\u1EE3c kh\xF4i ph\u1EE5c v\u1EC1 h\xECnh \u1EA3nh c\u01A1 s\u1EDF",
+    "imageEditor.insertImages": "Ch\xE8n h\xECnh \u1EA3nh",
+    "imageEditor.layers": "L\u1EDBp",
+    "imageEditor.layerUp": "Di chuy\u1EC3n l\xEAn",
+    "imageEditor.layerDown": "Di chuy\u1EC3n xu\u1ED1ng",
+    "imageEditor.emptyInsertList": "Kh\xF4ng c\xF3 h\xECnh \u1EA3nh \u0111\u1EA7u v\xE0o kh\xE1c",
+    "imageEditor.selectLayerFirst": "Ch\u1ECDn m\u1ED9t l\u1EDBp tr\u01B0\u1EDBc",
+    "imageEditor.baseLayer": "H\xECnh \u1EA3nh c\u01A1 s\u1EDF",
+    "gallery.title": "Th\u01B0 vi\u1EC7n \u1EA3nh",
+    "gallery.subtitle": "Ch\u1ECDn h\xECnh \u1EA3nh tham kh\u1EA3o cho t\xE1c v\u1EE5 hi\u1EC7n t\u1EA1i",
+    "gallery.manageCategories": "Qu\u1EA3n l\xFD danh m\u1EE5c",
+    "gallery.categoryManager": "Qu\u1EA3n l\xFD danh m\u1EE5c th\u01B0 vi\u1EC7n",
+    "gallery.categoryManagement": "Qu\u1EA3n l\xFD danh m\u1EE5c",
+    "gallery.categoryCopy": "Danh m\u1EE5c \u0111\u01B0\u1EE3c l\u01B0u v\xE0o th\u01B0 vi\u1EC7n; vai tr\xF2 prompt m\xF4 t\u1EA3 c\xE1ch d\xF9ng \u1EA3nh tham kh\u1EA3o.",
+    "gallery.newCategoryName": "T\xEAn danh m\u1EE5c m\u1EDBi",
+    "gallery.newCategoryRole": "Vai tr\xF2 prompt, v\xED d\u1EE5: tham kh\u1EA3o phong c\xE1ch",
+    "gallery.addCategory": "Th\xEAm danh m\u1EE5c",
+    "gallery.drawerSubtitle": 'Danh m\u1EE5c hi\u1EC7n t\u1EA1i: {category}. B\u1EA5m "S\u1EED d\u1EE5ng" \u0111\u1EC3 th\xEAm v\xE0o \u1EA3nh \u0111\u1EA7u v\xE0o.',
+    "gallery.emptyCategory": "Ch\u01B0a c\xF3 h\xECnh \u1EA3nh n\xE0o trong danh m\u1EE5c n\xE0y",
+    "gallery.dragSort": "K\xE9o \u0111\u1EC3 s\u1EAFp x\u1EBFp",
+    "gallery.dragSortImage": "K\xE9o s\u1EAFp x\u1EBFp h\xECnh \u1EA3nh {name}",
+    "gallery.dragSortCategory": "K\xE9o \u0111\u1EC3 s\u1EAFp x\u1EBFp danh m\u1EE5c {name}",
+    "gallery.use": "S\u1EED d\u1EE5ng",
+    "gallery.replace": "Thay th\u1EBF",
+    "gallery.rename": "\u0110\u1ED5i t\xEAn",
+    "gallery.moveCategory": "Danh m\u1EE5c",
+    "gallery.note": "L\u01B0u \xFD",
+    "gallery.delete": "X\xF3a",
+    "gallery.uncategorized": "Ch\u01B0a \u0111\u01B0\u1EE3c ph\xE2n lo\u1EA1i",
+    "addGallery.title": "Th\xEAm v\xE0o th\u01B0 vi\u1EC7n",
+    "addGallery.copy": "T\xEAn l\xE0 duy nh\u1EA5t to\xE0n c\u1EE5c v\xE0 c\xF3 th\u1EC3 g\u1ECDi b\u1EB1ng @t\xEAn sau n\xE0y",
+    "addGallery.name": "T\xEAn",
+    "addGallery.namePlaceholder": "V\xED d\u1EE5: Mia",
+    "addGallery.category": "Danh m\u1EE5c",
+    "addGallery.note": "Ghi ch\xFA tham kh\u1EA3o",
+    "addGallery.notePlaceholder": "V\xED d\u1EE5: ch\u1EC9 tham chi\u1EBFu khu\xF4n m\u1EB7t v\xE0 t\xF3c, kh\xF4ng tham chi\u1EBFu qu\u1EA7n \xE1o hay h\xECnh n\u1EC1n",
+    "addGallery.save": "L\u01B0u v\xE0o th\u01B0 vi\u1EC7n",
+    "close.promptTemplates": "\u0110\xF3ng b\u1EA3ng m\u1EABu l\u1EDDi nh\u1EAFc",
+    "close.archive": "\u0110\xF3ng b\u1EA3ng l\u01B0u tr\u1EEF",
+    "close.settings": "\u0110\xF3ng b\u1EA3ng c\xE0i \u0111\u1EB7t b\u1ED9 nh\u1EDB",
+    "close.apiSettings": "\u0110\xF3ng b\u1EA3ng c\xE0i \u0111\u1EB7t API",
+    "close.systemSettings": "\u0110\xF3ng b\u1EA3ng c\xE0i \u0111\u1EB7t h\u1EC7 th\u1ED1ng",
+    "close.imageEditor": "\u0110\xF3ng b\u1EA3ng ch\u1EC9nh s\u1EEDa h\xECnh \u1EA3nh",
+    "close.gallery": "\u0110\xF3ng b\u1EA3ng th\u01B0 vi\u1EC7n",
+    "close.addGallery": "\u0110\xF3ng b\u1EA3ng th\xEAm v\xE0o th\u01B0 vi\u1EC7n",
+    "close.version": "\u0110\xF3ng b\u1EA3ng c\u1EADp nh\u1EADt phi\xEAn b\u1EA3n",
+    "imageInput.referenceTitle": "\u0110\u1EA7u v\xE0o tham chi\u1EBFu (t\xF9y ch\u1ECDn)",
+    "referenceFiles.add": "Th\xEAm t\u1EC7p",
+    "referenceFiles.selected": "T\u1EC7p tham chi\u1EBFu",
+    "referenceFiles.recent": "T\u1EC7p g\u1EA7n \u0111\xE2y",
+    "referenceFiles.familyPdf": "Trang + v\u0103n b\u1EA3n",
+    "referenceFiles.familySpreadsheet": "B\u1EA3ng t\xEDnh",
+    "referenceFiles.familyDocument": "T\xE0i li\u1EC7u",
+    "referenceFiles.familyText": "V\u0103n b\u1EA3n",
+    "referenceFiles.visualLimit": "T\u1EC7p kh\xF4ng ph\u1EA3i PDF s\u1EBD kh\xF4ng gi\u1EEF l\u1EA1i h\xECnh \u1EA3nh v\xE0 bi\u1EC3u \u0111\u1ED3 nh\xFAng. H\xE3y chuy\u1EC3n sang PDF khi c\u1EA7n tham chi\u1EBFu b\u1ED1 c\u1EE5c.",
+    "referenceFiles.remove": "X\xF3a t\u1EC7p {filename}",
+    "referenceFiles.switchTitle": "X\xF3a t\u1EC7p tham chi\u1EBFu?",
+    "referenceFiles.switchMessage": "T\u1EC7p tham chi\u1EBFu ch\u1EC9 ho\u1EA1t \u0111\u1ED9ng v\u1EDBi Responses. H\xE3y x\xF3a c\xE1c t\u1EC7p \u0111\xE3 ch\u1ECDn tr\u01B0\u1EDBc khi chuy\u1EC3n sang Images.",
+    "referenceFiles.removeAndSwitch": "X\xF3a t\u1EC7p v\xE0 chuy\u1EC3n",
+    "referenceFiles.requiresResponses": "T\u1EC7p tham chi\u1EBFu ch\u1EC9 h\u1ED7 tr\u1EE3 Responses",
+    "referenceFiles.switchToResponses": "Chuy\u1EC3n sang Responses",
+    "referenceFiles.openApiSettings": "M\u1EDF c\xE0i \u0111\u1EB7t API",
+    "referenceFiles.providerMissing": "Provider Responses c\u1EE7a t\xE1c v\u1EE5 g\u1ED1c kh\xF4ng kh\u1EA3 d\u1EE5ng. H\xE3y ch\u1ECDn provider trong c\xE0i \u0111\u1EB7t API.",
+    "referenceFiles.missing": "Kh\xF4ng t\xECm th\u1EA5y t\u1EC7p",
+    "referenceFiles.loadFailed": "Kh\xF4ng t\u1EA3i \u0111\u01B0\u1EE3c t\u1EC7p tham chi\u1EBFu",
+    "referenceFiles.errorEmpty": "T\u1EC7p tham chi\u1EBFu tr\u1ED1ng",
+    "referenceFiles.errorUnsupported": "Kh\xF4ng h\u1ED7 tr\u1EE3 \u0111\u1ECBnh d\u1EA1ng t\u1EC7p tham chi\u1EBFu n\xE0y",
+    "referenceFiles.errorMismatch": "N\u1ED9i dung t\u1EC7p kh\xF4ng kh\u1EDBp v\u1EDBi ph\u1EA7n m\u1EDF r\u1ED9ng",
+    "referenceFiles.errorInvalid": "T\u1EC7p tham chi\u1EBFu kh\xF4ng h\u1EE3p l\u1EC7",
+    "referenceFiles.errorTooLarge": "M\u1ED7i t\u1EC7p tham chi\u1EBFu ph\u1EA3i nh\u1ECF h\u01A1n 50 MB",
+    "referenceFiles.errorTotalTooLarge": "T\u1ED5ng dung l\u01B0\u1EE3ng t\u1EC7p tham chi\u1EBFu kh\xF4ng \u0111\u01B0\u1EE3c v\u01B0\u1EE3t qu\xE1 50 MB",
+    "referenceFiles.errorMissing": "M\u1ED9t t\u1EC7p tham chi\u1EBFu \u0111\xE3 ch\u1ECDn kh\xF4ng c\xF2n t\u1ED3n t\u1EA1i",
+    "referenceFiles.errorProviderUnsupported": "Responses c\u1EE7a provider hi\u1EC7n t\u1EA1i kh\xF4ng h\u1ED7 tr\u1EE3 t\u1EC7p tham chi\u1EBFu",
+    "referenceFiles.responsesEnabled": "\u0110\xE3 chuy\u1EC3n sang Responses",
+    "referenceFiles.historyPathMismatch": "C\xE1c t\u1EC7p tham chi\u1EBFu n\xE0y d\xF9ng nh\u1EEFng \u0111\u01B0\u1EDDng d\u1EABn Responses kh\xE1c nhau",
+    "history.referenceFiles": "T\u1EC7p tham chi\u1EBFu",
+    "history.downloadReferenceFile": "T\u1EA3i xu\u1ED1ng t\u1EC7p",
+    "history.readdReferenceFile": "Th\xEAm l\u1EA1i",
+    "modelSelection.family": "D\xF2ng m\xF4 h\xECnh",
+    "modelSelection.concreteModel": "M\xF4 h\xECnh",
+    "modelSelection.provider": "Provider",
+    "modelSelection.providerUnavailable": "Kh\xF4ng c\xF3 provider kh\u1EA3 d\u1EE5ng cho m\xF4 h\xECnh n\xE0y",
+    "modelSelection.openSettings": "M\u1EDF c\xE0i \u0111\u1EB7t provider",
+    "modelSelection.codexUnavailable": "\u0110\u0103ng nh\u1EADp Codex kh\xF4ng kh\u1EA3 d\u1EE5ng",
+    "modelSelection.catalogUnavailable": "Danh m\u1EE5c m\xF4 h\xECnh kh\xF4ng kh\u1EA3 d\u1EE5ng",
+    "output.background": "N\u1EC1n",
+    "canvas.aspectRatio": "T\u1EF7 l\u1EC7 khung h\xECnh",
+    "canvas.resolution": "\u0110\u1ED9 ph\xE2n gi\u1EA3i",
+    "gemini.googleSearch": "T\xECm ki\u1EBFm Google",
+    "gemini.googleImageSearch": "T\xECm ki\u1EBFm h\xECnh \u1EA3nh Google",
+    "output.modalities": "Ph\u01B0\u01A1ng th\u1EE9c \u0111\u1EA7u ra",
+    "gemini.safetySettings": "C\xE0i \u0111\u1EB7t an to\xE0n",
+    "gemini.safety.harassment": "Qu\u1EA5y r\u1ED1i",
+    "gemini.safety.hateSpeech": "Ng\xF4n t\u1EEB th\xF9 gh\xE9t",
+    "gemini.safety.sexuallyExplicit": "N\u1ED9i dung khi\xEAu d\xE2m",
+    "gemini.safety.dangerousContent": "N\u1ED9i dung nguy hi\u1EC3m",
+    "gemini.safety.threshold.unspecified": "M\u1EB7c \u0111\u1ECBnh",
+    "gemini.safety.threshold.off": "T\u1EAFt b\u1ED9 l\u1ECDc",
+    "gemini.safety.threshold.blockNone": "Kh\xF4ng ch\u1EB7n",
+    "gemini.safety.threshold.blockOnlyHigh": "Ch\u1EB7n m\u1EE9c cao",
+    "gemini.safety.threshold.blockMediumAndAbove": "Ch\u1EB7n m\u1EE9c trung b\xECnh+",
+    "gemini.safety.threshold.blockLowAndAbove": "Ch\u1EB7n t\u1EA5t c\u1EA3",
+    "grounding.title": "Ngu\u1ED3n t\xECm ki\u1EBFm Google",
+    "grounding.searchSuggestions": "G\u1EE3i \xFD t\xECm ki\u1EBFm Google",
+    "grounding.sourceCount": "{count} ngu\u1ED3n",
+    "grounding.source": "Ngu\u1ED3n {index}",
+    "modelParameters.invalidValue": "Gi\xE1 tr\u1ECB tham s\u1ED1 kh\xF4ng h\u1EE3p l\u1EC7",
+    "modelParameters.objectRequired": "Nh\u1EADp m\u1ED9t \u0111\u1ED1i t\u01B0\u1EE3ng JSON",
+    "modelParameters.invalidJson": "\u0110\u1ECBnh d\u1EA1ng JSON kh\xF4ng h\u1EE3p l\u1EC7",
+    "modelParameters.migrated": "\u0110\xE3 \u0111i\u1EC1u ch\u1EC9nh {count} tham s\u1ED1 c\u0169 cho ph\xF9 h\u1EE3p v\u1EDBi m\xF4 h\xECnh hi\u1EC7n t\u1EA1i",
+    "modelParameters.historyConfiguration": "C\u1EA5u h\xECnh l\u1ECBch s\u1EED",
+    "modelParameters.legacyTask": "T\xE1c v\u1EE5 phi\xEAn b\u1EA3n c\u0169"
+  };
+
   // codex_image/webui/frontend/src/i18n/zh-cn.ts
   var ZH_CN_DICTIONARY = {
     "app.newTask": "\u65B0\u5EFA",
@@ -10637,12 +12030,41 @@
     "historyLibrary.openFull": "\u6253\u5F00\u5B8C\u6574\u5386\u53F2\u5E93",
     "history.documentTitle": "\u5386\u53F2\u5E93 - iLab CONJURE",
     "history.back": "\u8FD4\u56DE\u751F\u6210\u9875",
+    "history.homeAria": "\u8FD4\u56DE iLab CONJURE \u751F\u6210\u9875",
+    "history.backToGenerator": "\u8FD4\u56DE\u751F\u6210\u9875",
     "history.title": "\u5386\u53F2\u5E93",
     "history.loading": "\u8F7D\u5165\u4E2D",
     "history.total": "{total} \u4E2A\u4EFB\u52A1 \xB7 {archived} \u5DF2\u5F52\u6863",
     "history.search": "\u641C\u7D22",
     "history.searchPlaceholder": "\u641C\u7D22\u63D0\u793A\u8BCD\u6216\u4EFB\u52A1 ID",
     "history.clear": "\u6E05\u7A7A",
+    "history.favorites": "\u6536\u85CF",
+    "history.onlyFavorites": "\u4EC5\u770B\u6536\u85CF",
+    "history.favoriteTask": "\u6536\u85CF\u4EFB\u52A1",
+    "history.unfavoriteTask": "\u53D6\u6D88\u6536\u85CF",
+    "history.tags": "\u6807\u7B7E",
+    "history.untagged": "\u65E0\u6807\u7B7E",
+    "history.manageTags": "\u7BA1\u7406\u6807\u7B7E",
+    "history.createTag": "\u521B\u5EFA\u6807\u7B7E",
+    "history.renameTag": "\u6539\u540D",
+    "history.deleteTag": "\u5220\u9664",
+    "history.deleteTagAffected": "\u5220\u9664\uFF08\u5F71\u54CD {count} \u4E2A\u4EFB\u52A1\uFF09",
+    "history.addTag": "\u6DFB\u52A0\u6807\u7B7E",
+    "history.removeTag": "\u79FB\u9664\u6807\u7B7E",
+    "history.favoriteSelected": "\u6536\u85CF",
+    "history.unfavoriteSelected": "\u53D6\u6D88\u6536\u85CF",
+    "history.organizationFailed": "\u6536\u85CF\u6216\u6807\u7B7E\u66F4\u65B0\u5931\u8D25",
+    "history.tagNameConflict": "\u8FD9\u4E2A\u6807\u7B7E\u540D\u79F0\u5DF2\u5B58\u5728",
+    "history.noTags": "\u8FD8\u6CA1\u6709\u6807\u7B7E",
+    "history.backendRestartRequired": "\u5386\u53F2\u5E93\u529F\u80FD\u5DF2\u66F4\u65B0\uFF0C\u8BF7\u91CD\u542F\u5E94\u7528\u540E\u518D\u8BD5",
+    "history.export": "\u5BFC\u51FA",
+    "history.exportImagesOnly": "\u4EC5\u56FE\u7247",
+    "history.exportImagesWithPrompts": "\u56FE\u7247\uFF0B\u63D0\u793A\u8BCD",
+    "history.exportPreparing": "\u6B63\u5728\u51C6\u5907\u5BFC\u51FA\u2026",
+    "history.exportStarted": "\u5DF2\u5F00\u59CB\u4E0B\u8F7D",
+    "history.exportSummary": "{taskCount} \u4E2A\u4EFB\u52A1 \xB7 {imageCount} \u5F20\u56FE\u7247",
+    "history.exportFailed": "\u5BFC\u51FA\u5931\u8D25",
+    "history.closeExport": "\u5173\u95ED\u5BFC\u51FA\u9009\u62E9",
     "history.type": "\u7C7B\u578B",
     "history.allTypes": "\u5168\u90E8\u7C7B\u578B",
     "history.type.textToImage": "\u6587\u751F\u56FE",
@@ -10823,6 +12245,7 @@
     "language.ru": "\u0420\u0443\u0441\u0441\u043A\u0438\u0439",
     "language.it": "Italiano",
     "language.hi": "\u0939\u093F\u0928\u094D\u0926\u0940",
+    "language.vi": "Ti\u1EBFng Vi\u1EC7t",
     "auth.label": "\u6388\u6743\u6765\u6E90",
     "auth.checking": "\u6388\u6743\u68C0\u67E5\u4E2D",
     "auth.missingCodexSession": "\u6CA1\u6709\u68C0\u6D4B\u5230 Codex \u767B\u5F55\u6001",
@@ -11696,12 +13119,41 @@
     "historyLibrary.openFull": "\u958B\u555F\u5B8C\u6574\u6B77\u53F2\u5EAB",
     "history.documentTitle": "\u6B77\u53F2\u5EAB - iLab CONJURE",
     "history.back": "\u8FD4\u56DE\u751F\u6210\u9801",
+    "history.homeAria": "\u8FD4\u56DE iLab CONJURE \u751F\u6210\u9801",
+    "history.backToGenerator": "\u8FD4\u56DE\u751F\u6210\u9801",
     "history.title": "\u6B77\u53F2\u5EAB",
     "history.loading": "\u8F09\u5165\u4E2D",
     "history.total": "{total}\u500B\u4EFB\u52D9 \xB7{archived}\u5DF2\u6B78\u6A94",
     "history.search": "\u641C\u5C0B",
     "history.searchPlaceholder": "\u641C\u5C0B\u63D0\u793A\u8A5E\u6216\u4EFB\u52D9ID",
     "history.clear": "\u6E05\u7A7A",
+    "history.favorites": "\u6536\u85CF",
+    "history.onlyFavorites": "\u53EA\u770B\u6536\u85CF",
+    "history.favoriteTask": "\u6536\u85CF\u4EFB\u52D9",
+    "history.unfavoriteTask": "\u53D6\u6D88\u6536\u85CF",
+    "history.tags": "\u6A19\u7C64",
+    "history.untagged": "\u7121\u6A19\u7C64",
+    "history.manageTags": "\u7BA1\u7406\u6A19\u7C64",
+    "history.createTag": "\u5EFA\u7ACB\u6A19\u7C64",
+    "history.renameTag": "\u91CD\u65B0\u547D\u540D",
+    "history.deleteTag": "\u522A\u9664",
+    "history.deleteTagAffected": "\u522A\u9664\uFF08\u5F71\u97FF {count} \u500B\u4EFB\u52D9\uFF09",
+    "history.addTag": "\u52A0\u5165\u6A19\u7C64",
+    "history.removeTag": "\u79FB\u9664\u6A19\u7C64",
+    "history.favoriteSelected": "\u6536\u85CF",
+    "history.unfavoriteSelected": "\u53D6\u6D88\u6536\u85CF",
+    "history.organizationFailed": "\u6536\u85CF\u6216\u6A19\u7C64\u66F4\u65B0\u5931\u6557",
+    "history.tagNameConflict": "\u9019\u500B\u6A19\u7C64\u540D\u7A31\u5DF2\u5B58\u5728",
+    "history.noTags": "\u9084\u6C92\u6709\u6A19\u7C64",
+    "history.backendRestartRequired": "\u6B77\u53F2\u5EAB\u529F\u80FD\u5DF2\u66F4\u65B0\uFF0C\u8ACB\u91CD\u65B0\u555F\u52D5\u61C9\u7528\u7A0B\u5F0F\u5F8C\u518D\u8A66",
+    "history.export": "\u532F\u51FA",
+    "history.exportImagesOnly": "\u53EA\u6709\u5716\u7247",
+    "history.exportImagesWithPrompts": "\u5716\u7247\uFF0B\u63D0\u793A\u8A5E",
+    "history.exportPreparing": "\u6B63\u5728\u6E96\u5099\u532F\u51FA\u2026",
+    "history.exportStarted": "\u5DF2\u958B\u59CB\u4E0B\u8F09",
+    "history.exportSummary": "{taskCount} \u500B\u4EFB\u52D9 \xB7 {imageCount} \u5F35\u5716\u7247",
+    "history.exportFailed": "\u532F\u51FA\u5931\u6557",
+    "history.closeExport": "\u95DC\u9589\u532F\u51FA\u9078\u64C7",
     "history.type": "\u985E\u578B",
     "history.allTypes": "\u5168\u90E8\u985E\u578B",
     "history.type.textToImage": "\u6587\u751F\u5716",
@@ -11882,6 +13334,7 @@
     "language.ru": "\u0420\u0443\u0441\u0441\u043A\u0438\u0439",
     "language.it": "Italiano",
     "language.hi": "\u0939\u093F\u0928\u094D\u0926\u0940",
+    "language.vi": "Ti\u1EBFng Vi\u1EC7t",
     "auth.label": "\u6388\u6B0A\u4F86\u6E90",
     "auth.checking": "\u6388\u6B0A\u6AA2\u67E5\u4E2D",
     "auth.missingCodexSession": "\u6C92\u6709\u5075\u6E2C\u5230Codex\u767B\u5165\u614B",
@@ -12755,12 +14208,41 @@
     "historyLibrary.openFull": "\u958B\u555F\u5B8C\u6574\u6B77\u53F2\u5EAB",
     "history.documentTitle": "\u6B77\u53F2\u5EAB - iLab CONJURE",
     "history.back": "\u8FD4\u56DE\u751F\u6210\u9801",
+    "history.homeAria": "\u8FD4\u56DE iLab CONJURE \u751F\u6210\u9801",
+    "history.backToGenerator": "\u8FD4\u56DE\u751F\u6210\u9801",
     "history.title": "\u6B77\u53F2\u5EAB",
     "history.loading": "\u8F09\u5165\u4E2D",
     "history.total": "{total}\u500B\u4EFB\u52D9 \xB7{archived}\u5DF2\u6B78\u6A94",
     "history.search": "\u641C\u5C0B",
     "history.searchPlaceholder": "\u641C\u5C0B\u63D0\u793A\u8A5E\u6216\u4EFB\u52D9ID",
     "history.clear": "\u6E05\u7A7A",
+    "history.favorites": "\u6536\u85CF",
+    "history.onlyFavorites": "\u53EA\u770B\u6536\u85CF",
+    "history.favoriteTask": "\u6536\u85CF\u4EFB\u52D9",
+    "history.unfavoriteTask": "\u53D6\u6D88\u6536\u85CF",
+    "history.tags": "\u6A19\u7C64",
+    "history.untagged": "\u7121\u6A19\u7C64",
+    "history.manageTags": "\u7BA1\u7406\u6A19\u7C64",
+    "history.createTag": "\u5EFA\u7ACB\u6A19\u7C64",
+    "history.renameTag": "\u91CD\u65B0\u547D\u540D",
+    "history.deleteTag": "\u522A\u9664",
+    "history.deleteTagAffected": "\u522A\u9664\uFF08\u5F71\u97FF {count} \u500B\u4EFB\u52D9\uFF09",
+    "history.addTag": "\u52A0\u5165\u6A19\u7C64",
+    "history.removeTag": "\u79FB\u9664\u6A19\u7C64",
+    "history.favoriteSelected": "\u6536\u85CF",
+    "history.unfavoriteSelected": "\u53D6\u6D88\u6536\u85CF",
+    "history.organizationFailed": "\u6536\u85CF\u6216\u6A19\u7C64\u66F4\u65B0\u5931\u6557",
+    "history.tagNameConflict": "\u9019\u500B\u6A19\u7C64\u540D\u7A31\u5DF2\u5B58\u5728",
+    "history.noTags": "\u9084\u6C92\u6709\u6A19\u7C64",
+    "history.backendRestartRequired": "\u6B77\u53F2\u5EAB\u529F\u80FD\u5DF2\u66F4\u65B0\uFF0C\u8ACB\u91CD\u65B0\u555F\u52D5\u61C9\u7528\u7A0B\u5F0F\u5F8C\u518D\u8A66",
+    "history.export": "\u532F\u51FA",
+    "history.exportImagesOnly": "\u53EA\u6709\u5716\u7247",
+    "history.exportImagesWithPrompts": "\u5716\u7247\uFF0B\u63D0\u793A\u8A5E",
+    "history.exportPreparing": "\u6B63\u5728\u6E96\u5099\u532F\u51FA\u2026",
+    "history.exportStarted": "\u5DF2\u958B\u59CB\u4E0B\u8F09",
+    "history.exportSummary": "{taskCount} \u500B\u4EFB\u52D9 \xB7 {imageCount} \u5F35\u5716\u7247",
+    "history.exportFailed": "\u532F\u51FA\u5931\u6557",
+    "history.closeExport": "\u95DC\u9589\u532F\u51FA\u9078\u64C7",
     "history.type": "\u985E\u578B",
     "history.allTypes": "\u5168\u90E8\u985E\u578B",
     "history.type.textToImage": "\u6587\u751F\u5716",
@@ -12941,6 +14423,7 @@
     "language.ru": "\u0420\u0443\u0441\u0441\u043A\u0438\u0439",
     "language.it": "Italiano",
     "language.hi": "\u0939\u093F\u0928\u094D\u0926\u0940",
+    "language.vi": "Ti\u1EBFng Vi\u1EC7t",
     "auth.label": "\u6388\u6B0A\u4F86\u6E90",
     "auth.checking": "\u6388\u6B0A\u6AA2\u67E5\u4E2D",
     "auth.missingCodexSession": "\u6C92\u6709\u5075\u6E2C\u5230Codex\u767B\u5165\u614B",
@@ -13678,7 +15161,7 @@
 
   // codex_image/webui/frontend/src/i18n/dictionaries.ts
   var DEFAULT_LOCALE = "zh-CN";
-  var LOCALES = ["zh-CN", "zh-TW", "zh-HK", "ja", "ko", "en", "es", "pt", "fr", "de", "ru", "it", "hi"];
+  var LOCALES = ["zh-CN", "zh-TW", "zh-HK", "ja", "ko", "en", "vi", "es", "pt", "fr", "de", "ru", "it", "hi"];
   var DICTIONARIES = {
     "zh-CN": ZH_CN_DICTIONARY,
     "zh-TW": ZH_TW_DICTIONARY,
@@ -13686,6 +15169,7 @@
     "ja": JA_DICTIONARY,
     "ko": KO_DICTIONARY,
     "en": EN_DICTIONARY,
+    "vi": VI_DICTIONARY,
     "es": ES_DICTIONARY,
     "pt": PT_DICTIONARY,
     "fr": FR_DICTIONARY,
@@ -13697,23 +15181,34 @@
 
   // codex_image/webui/frontend/src/state.ts
   function getLegacyBridge() {
-    const bridge = window.__codexImageWebUI;
-    if (!bridge) {
+    const bridge7 = window.__codexImageWebUI;
+    if (!bridge7) {
       throw new Error("WebUI legacy bridge is not initialized");
     }
-    return bridge;
+    return bridge7;
+  }
+  function getState() {
+    return getLegacyBridge().state;
   }
 
   // codex_image/webui/frontend/src/themed-select.ts
+  var DEFAULT_SELECT_IDS = ["languageSelect", "generationProviderSelect"];
   var instances = /* @__PURE__ */ new WeakMap();
   var openInstances = /* @__PURE__ */ new Set();
-  function optionText(option) {
-    return option?.textContent?.trim() || option?.label || option?.value || "";
+  var nextInstanceId = 1;
+  var documentPointerListenerBound = false;
+  var documentPositionListenersBound = false;
+  var MENU_EDGE_GUTTER = 12;
+  var MENU_GAP = 5;
+  var MENU_MAX_HEIGHT = 280;
+  var MENU_PREFERRED_BELOW_HEIGHT = 160;
+  function optionText(option2) {
+    return option2?.textContent?.trim() || option2?.label || option2?.value || "";
   }
-  function appendOptionContent(target, option) {
+  function appendOptionContent(target, option2) {
     target.replaceChildren();
-    const icon = option?.dataset.optionIcon?.trim();
-    const kind = option?.dataset.optionIconKind === "image" ? "image" : "emoji";
+    const icon = option2?.dataset.optionIcon?.trim();
+    const kind = option2?.dataset.optionIconKind === "image" ? "image" : "emoji";
     if (icon) {
       const iconElement = document.createElement("span");
       iconElement.className = `themed-select-option-icon ${kind}`;
@@ -13731,11 +15226,11 @@
     }
     const label = document.createElement("span");
     label.className = "themed-select-option-label";
-    label.textContent = optionText(option);
+    label.textContent = optionText(option2);
     target.append(label);
   }
   function selectableOptionIndexes(instance) {
-    return Array.from(instance.select.options).map((option, index) => ({ option, index })).filter(({ option }) => !option.disabled && !option.hidden).map(({ index }) => index);
+    return Array.from(instance.select.options).map((option2, index) => ({ option: option2, index })).filter(({ option: option2 }) => !option2.disabled && !option2.hidden).map(({ index }) => index);
   }
   function nearestSelectableIndex(instance, preferredIndex) {
     const indexes = selectableOptionIndexes(instance);
@@ -13775,8 +15270,8 @@
     instance.menu.querySelector(`#${optionButtonId(instance, nextIndex)}`)?.focus();
   }
   function selectOption(instance, index) {
-    const option = instance.select.options[index];
-    if (!option || option.disabled) return;
+    const option2 = instance.select.options[index];
+    if (!option2 || option2.disabled) return;
     instance.select.selectedIndex = index;
     instance.select.dispatchEvent(new Event("input", { bubbles: true }));
     instance.select.dispatchEvent(new Event("change", { bubbles: true }));
@@ -13823,16 +15318,16 @@
       instance.menu.replaceChildren(empty);
       return;
     }
-    const buttons = options.map((option, index) => {
+    const buttons = options.map((option2, index) => {
       const button = document.createElement("button");
       button.id = optionButtonId(instance, index);
       button.type = "button";
       button.className = "themed-select-option";
       button.setAttribute("role", "option");
       button.setAttribute("aria-selected", index === selectedIndex ? "true" : "false");
-      button.disabled = option.disabled;
-      button.hidden = option.hidden;
-      appendOptionContent(button, option);
+      button.disabled = option2.disabled;
+      button.hidden = option2.hidden;
+      appendOptionContent(button, option2);
       if (index === selectedIndex) button.classList.add("selected");
       if (index === instance.activeIndex) button.classList.add("active");
       button.addEventListener("click", () => selectOption(instance, index));
@@ -13840,6 +15335,24 @@
       return button;
     });
     instance.menu.replaceChildren(...buttons);
+  }
+  function handleTriggerKeydown(instance, event) {
+    if (event.key === "Escape") {
+      if (!openInstances.has(instance)) return;
+      event.preventDefault();
+      event.stopPropagation();
+      closeThemedSelect(instance);
+      return;
+    }
+    if (event.key !== "ArrowDown" && event.key !== "ArrowUp" && event.key !== "Enter" && event.key !== " " && event.key !== "Spacebar") {
+      return;
+    }
+    event.preventDefault();
+    event.stopPropagation();
+    if (!openInstances.has(instance)) openThemedSelect(instance);
+    const indexes = selectableOptionIndexes(instance);
+    const initialIndex = event.key === "ArrowUp" ? indexes[indexes.length - 1] ?? -1 : nearestSelectableIndex(instance, instance.select.selectedIndex);
+    focusOption(instance, initialIndex);
   }
   function resetThemedSelectMenuPosition(instance) {
     instance.menu.classList.remove("is-portal", "opens-upward");
@@ -13851,12 +15364,129 @@
     resetThemedSelectMenuPosition(instance);
     if (instance.menu.parentElement !== instance.host) instance.host.append(instance.menu);
   }
+  function positionThemedSelectMenu(instance) {
+    const rect = instance.trigger.getBoundingClientRect();
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    const availableBelow = Math.max(0, viewportHeight - rect.bottom - MENU_GAP - MENU_EDGE_GUTTER);
+    const availableAbove = Math.max(0, rect.top - MENU_GAP - MENU_EDGE_GUTTER);
+    const opensUpward = availableBelow < MENU_PREFERRED_BELOW_HEIGHT && availableAbove > availableBelow;
+    const availableHeight = opensUpward ? availableAbove : availableBelow;
+    const maxHeight = Math.max(80, Math.min(MENU_MAX_HEIGHT, availableHeight));
+    const visibleHeight = Math.min(instance.menu.scrollHeight || maxHeight, maxHeight);
+    const width = Math.min(rect.width, Math.max(0, viewportWidth - MENU_EDGE_GUTTER * 2));
+    const maximumLeft = Math.max(MENU_EDGE_GUTTER, viewportWidth - MENU_EDGE_GUTTER - width);
+    const left = Math.min(Math.max(MENU_EDGE_GUTTER, rect.left), maximumLeft);
+    const top = opensUpward ? Math.max(MENU_EDGE_GUTTER, rect.top - MENU_GAP - visibleHeight) : rect.bottom + MENU_GAP;
+    instance.menu.classList.toggle("opens-upward", opensUpward);
+    instance.menu.style.top = `${top}px`;
+    instance.menu.style.left = `${left}px`;
+    instance.menu.style.width = `${width}px`;
+    instance.menu.style.maxHeight = `${maxHeight}px`;
+  }
+  function positionOpenThemedSelectMenus() {
+    openInstances.forEach((instance) => positionThemedSelectMenu(instance));
+  }
   function closeThemedSelect(instance, restoreFocus = false) {
     if (!openInstances.delete(instance)) return;
     instance.menu.classList.add("hidden");
     restoreThemedSelectMenu(instance);
     instance.trigger.setAttribute("aria-expanded", "false");
     if (restoreFocus) instance.trigger.focus({ preventScroll: true });
+  }
+  function openThemedSelect(instance) {
+    if (instance.trigger.disabled) return;
+    openInstances.forEach((openInstance) => {
+      if (openInstance !== instance) closeThemedSelect(openInstance);
+    });
+    instance.activeIndex = nearestSelectableIndex(instance, instance.select.selectedIndex);
+    syncTrigger(instance);
+    renderOptions(instance);
+    document.body.append(instance.menu);
+    instance.menu.classList.add("is-portal");
+    instance.menu.classList.remove("hidden");
+    positionThemedSelectMenu(instance);
+    instance.trigger.setAttribute("aria-expanded", "true");
+    openInstances.add(instance);
+  }
+  function bindDocumentPointerListener() {
+    if (documentPointerListenerBound) return;
+    documentPointerListenerBound = true;
+    document.addEventListener("pointerdown", (event) => {
+      openInstances.forEach((instance) => {
+        const target = event.target;
+        if (!instance.host.contains(target) && !instance.menu.contains(target)) closeThemedSelect(instance);
+      });
+    });
+  }
+  function bindDocumentPositionListeners() {
+    if (documentPositionListenersBound) return;
+    documentPositionListenersBound = true;
+    window.addEventListener("resize", positionOpenThemedSelectMenus);
+    document.addEventListener("scroll", positionOpenThemedSelectMenus, true);
+  }
+  function mountThemedSelect(select) {
+    if (!select || select.multiple || instances.has(select)) {
+      if (select) syncThemedSelect(select);
+      return;
+    }
+    const parent = select.parentElement;
+    if (!parent) return;
+    const host = document.createElement("div");
+    host.className = "themed-select";
+    host.dataset.themedSelect = "";
+    const trigger = document.createElement("button");
+    trigger.type = "button";
+    trigger.className = "themed-select-trigger";
+    trigger.setAttribute("aria-haspopup", "listbox");
+    trigger.setAttribute("aria-expanded", "false");
+    const value = document.createElement("span");
+    value.className = "themed-select-value";
+    const caret = document.createElement("span");
+    caret.className = "themed-select-caret";
+    caret.setAttribute("aria-hidden", "true");
+    trigger.append(value, caret);
+    const menu = document.createElement("div");
+    menu.className = "themed-select-menu hidden";
+    menu.setAttribute("role", "listbox");
+    const id = nextInstanceId++;
+    menu.id = `themed-select-${id}-options`;
+    trigger.setAttribute("aria-controls", menu.id);
+    parent.insertBefore(host, select);
+    host.append(select, trigger, menu);
+    const instance = {
+      id,
+      select,
+      host,
+      trigger,
+      value,
+      menu,
+      activeIndex: select.selectedIndex,
+      observer: new MutationObserver(() => syncThemedSelect(select)),
+      originalTabIndex: select.tabIndex,
+      originalAriaHidden: select.getAttribute("aria-hidden")
+    };
+    instances.set(select, instance);
+    select.classList.add("themed-select-native");
+    select.tabIndex = -1;
+    select.setAttribute("aria-hidden", "true");
+    select.addEventListener("change", () => syncThemedSelect(select));
+    select.addEventListener("input", () => syncThemedSelect(select));
+    trigger.addEventListener("click", () => {
+      if (openInstances.has(instance)) closeThemedSelect(instance);
+      else openThemedSelect(instance);
+    });
+    trigger.addEventListener("keydown", (event) => handleTriggerKeydown(instance, event));
+    instance.observer.observe(select, {
+      attributes: true,
+      attributeFilter: ["aria-describedby", "aria-label", "aria-labelledby", "disabled", "title"],
+      characterData: true,
+      childList: true,
+      subtree: true
+    });
+    bindDocumentPointerListener();
+    bindDocumentPositionListeners();
+    syncThemedSelect(select);
   }
   function syncThemedSelect(select) {
     if (!select) return;
@@ -13865,11 +15495,35 @@
     syncTrigger(instance);
     if (openInstances.has(instance)) renderOptions(instance);
   }
+  function destroyThemedSelects(container) {
+    if (!container) return;
+    container.querySelectorAll("select.themed-select-native").forEach((select) => {
+      const instance = instances.get(select);
+      if (!instance) return;
+      closeThemedSelect(instance);
+      restoreThemedSelectMenu(instance);
+      instance.observer.disconnect();
+      select.classList.remove("themed-select-native");
+      select.tabIndex = instance.originalTabIndex;
+      if (instance.originalAriaHidden === null) select.removeAttribute("aria-hidden");
+      else select.setAttribute("aria-hidden", instance.originalAriaHidden);
+      instance.menu.remove();
+      instance.host.replaceWith(select);
+      instances.delete(select);
+    });
+  }
+  function initThemedSelectFeature() {
+    DEFAULT_SELECT_IDS.forEach((id) => {
+      mountThemedSelect(document.getElementById(id));
+    });
+  }
 
   // codex_image/webui/frontend/src/i18n.ts
   var LOCALE_STORAGE_KEY = "codex-image-locale-preference";
   var LOCALE_CHANGE_EVENT = "codex-image-locale-change";
   var currentLocale = DEFAULT_LOCALE;
+  var i18nInitialized = false;
+  var localePreferenceRevision = 0;
   function canUseLocale(value) {
     return LOCALES.includes(value);
   }
@@ -13897,6 +15551,7 @@
     if (language.startsWith("ja")) return "ja";
     if (language.startsWith("ko")) return "ko";
     if (language.startsWith("en")) return "en";
+    if (language.startsWith("vi")) return "vi";
     if (language.startsWith("es")) return "es";
     if (language.startsWith("pt")) return "pt";
     if (language.startsWith("fr")) return "fr";
@@ -13960,6 +15615,7 @@
     updateLanguageSelect();
   }
   function setLocale(locale, options = {}) {
+    localePreferenceRevision += 1;
     currentLocale = normalizeLocale(locale);
     if (options.persist !== false) {
       persistLocalePreference();
@@ -14001,11 +15657,6567 @@
   function restoreLocalePreference() {
     const fallback = readLocalLocalePreference() || detectPreferredLocale();
     setLocale(fallback, { persist: false });
+    const restoreRevision = localePreferenceRevision;
     void readStoredLocalePreference().then((storedLocale) => {
+      if (localePreferenceRevision !== restoreRevision) return;
       setLocale(storedLocale || fallback);
     }).catch(() => {
+      if (localePreferenceRevision !== restoreRevision) return;
       persistLocalePreference();
     });
+  }
+  function bindLanguageSelect() {
+    const select = languageSelectElement();
+    select?.addEventListener("change", () => {
+      setLocale(normalizeLocale(select.value));
+    });
+  }
+  function initI18nFeature() {
+    if (i18nInitialized) return;
+    i18nInitialized = true;
+    bindLanguageSelect();
+    restoreLocalePreference();
+    window.__codexImageI18n = {
+      applyLocaleToDocument,
+      locale: () => currentLocale,
+      setLocale,
+      t: translate
+    };
+  }
+
+  // codex_image/webui/frontend/src/event-bindings.ts
+  function call(methods, name, ...args) {
+    return methods[name]?.(...args);
+  }
+  async function handleRefreshButtonClick(methods) {
+    call(methods, "closePromptPopover");
+    await window.refreshQueue?.();
+    await call(methods, "refreshTasks");
+  }
+  function isRunTaskShortcut(event) {
+    return event.key === "Enter" && event.metaKey && !event.ctrlKey && !event.altKey && !event.shiftKey && !event.repeat && !event.isComposing;
+  }
+  function hasOpenShortcutBlockingLayer() {
+    return Boolean(document.querySelector(
+      "#promptTemplateDrawer.open, #galleryDrawer.open, .modal-overlay:not(.hidden), .prompt-popover:not(.hidden), .confirm-popover:not(.hidden), .compression-popover:not(.hidden), .task-notification-center:not(.hidden)"
+    ));
+  }
+  function handleRunTaskShortcut(event, els9, methods) {
+    if (!isRunTaskShortcut(event)) return;
+    if (hasOpenShortcutBlockingLayer() || els9.runButton.disabled) return;
+    event.preventDefault();
+    void call(methods, "runTask");
+  }
+  var systemSettingsBackdropPointerDown = false;
+  function bindSharedTopNavSettingsEvents(els9, methods) {
+    els9.systemSettingsModalClose?.addEventListener("click", () => call(methods, "closeSystemSettingsModal"));
+    els9.systemSettingsModal?.addEventListener("pointerdown", (event) => {
+      systemSettingsBackdropPointerDown = event.target === els9.systemSettingsModal;
+    });
+    els9.systemSettingsModal?.addEventListener("click", (event) => {
+      if (event.target === els9.systemSettingsModal && systemSettingsBackdropPointerDown) {
+        call(methods, "closeSystemSettingsModal");
+      }
+      systemSettingsBackdropPointerDown = false;
+    });
+    els9.saveSettingsButton?.addEventListener("click", () => call(methods, "saveSettings"));
+    els9.authSourceGroup?.addEventListener("click", (event) => call(methods, "handleAuthSourceClick", event));
+    els9.apiDirectSettingsButton?.addEventListener("click", () => call(methods, "openApiSettingsModal"));
+    els9.modelFamilyOptions?.addEventListener("click", (event) => {
+      const item = event.target?.closest?.("[data-family-id]");
+      if (item?.dataset.familyId) call(methods, "selectModelFamily", item.dataset.familyId);
+    });
+    els9.modelFamilyOptions?.addEventListener("keydown", (event) => call(methods, "handleModelFamilyOptionsKeydown", event));
+    els9.concreteModelSelect?.addEventListener("change", () => call(methods, "selectConcreteModel", els9.concreteModelSelect.value));
+    els9.generationProviderSelect?.addEventListener("change", () => call(methods, "selectGenerationProvider", els9.generationProviderSelect.value));
+    els9.generationProviderSettingsButton?.addEventListener("click", () => call(methods, "openGenerationProviderSettings"));
+    els9.apiProviderQuick?.addEventListener("change", () => {
+      call(methods, "selectApiProvider", els9.apiProviderQuick?.value || call(methods, "currentApiProviderId"));
+    });
+    els9.apiProvider?.addEventListener("change", () => {
+      call(methods, "selectApiProvider", els9.apiProvider?.value || call(methods, "currentApiProviderId"));
+    });
+    els9.apiProviderSearch?.addEventListener("input", () => call(methods, "renderApiProviderList"));
+    els9.apiProviderList?.addEventListener("click", (event) => {
+      const sortButton = event.target?.closest?.("[data-api-provider-sort]");
+      if (sortButton) {
+        call(methods, "moveApiProvider", sortButton.dataset.apiProviderId, sortButton.dataset.apiProviderSort);
+        return;
+      }
+      const button = event.target?.closest?.("[data-api-provider-id]");
+      if (!button) return;
+      call(methods, "selectApiProvider", button.dataset.apiProviderId);
+    });
+    els9.editApiProviderButton?.addEventListener("click", () => call(methods, "editApiProvider"));
+    els9.copyApiProviderButton?.addEventListener("click", () => call(methods, "copyApiProvider"));
+    els9.addApiProviderButton?.addEventListener("click", () => call(methods, "addApiProvider"));
+    els9.sortApiProvidersButton?.addEventListener("click", () => call(methods, "toggleApiProviderSortMode"));
+    els9.deleteApiProviderButton?.addEventListener("click", () => call(methods, "confirmDeleteApiProvider", els9.deleteApiProviderButton));
+    els9.cancelApiProviderEditButton?.addEventListener("click", () => call(methods, "cancelApiProviderEdit"));
+    els9.saveApiProviderEditButton?.addEventListener("click", () => call(methods, "saveApiProviderEdit"));
+    els9.addProviderBindingButton?.addEventListener("click", () => call(methods, "addProviderBinding"));
+    els9.apiProviderBindings?.addEventListener("click", (event) => {
+      const button = event.target?.closest?.("[data-remove-provider-binding]");
+      if (button?.dataset.removeProviderBinding) call(methods, "removeProviderBinding", button.dataset.removeProviderBinding);
+    });
+    els9.apiProviderBindings?.addEventListener("change", (event) => call(methods, "handleProviderBindingEditorChange", event));
+    els9.apiKeyRevealButton?.addEventListener("pointerdown", (event) => call(methods, "revealApiKeyWhilePressed", event));
+    els9.apiKeyRevealButton?.addEventListener("pointerup", () => call(methods, "hideApiKeyReveal"));
+    els9.apiKeyRevealButton?.addEventListener("pointercancel", () => call(methods, "hideApiKeyReveal"));
+    els9.apiKeyRevealButton?.addEventListener("pointerleave", () => call(methods, "hideApiKeyReveal"));
+    els9.apiKeyRevealButton?.addEventListener("blur", () => call(methods, "hideApiKeyReveal"));
+    els9.apiKeyRevealButton?.addEventListener("keydown", (event) => {
+      if (event.key === " " || event.key === "Enter") call(methods, "revealApiKeyWhilePressed", event);
+    });
+    els9.apiKeyRevealButton?.addEventListener("keyup", () => call(methods, "hideApiKeyReveal"));
+    els9.apiKey?.addEventListener("input", () => call(methods, "updateApiKeyRevealButton"));
+    els9.apiBaseUrl?.addEventListener("input", () => call(methods, "updateApiRequestEndpointPreview"));
+    call(methods, "bindOverlayPopoverEvents");
+  }
+  function bindWebUIEvents(state5, els9, methods) {
+    call(methods, "bindShellUiEvents");
+    call(methods, "bindFormControlEvents");
+    els9.clearPromptButton.addEventListener("click", () => {
+      call(methods, "setPromptText", "");
+      call(methods, "syncGalleryInputsFromPrompt");
+      call(methods, "updatePromptCount");
+      call(methods, "updateRequestPreview");
+    });
+    els9.quickGalleryRail?.addEventListener("mouseover", (event) => call(methods, "handleQuickGalleryCategoryEvent", event));
+    els9.quickGalleryRail?.addEventListener("focusin", (event) => call(methods, "handleQuickGalleryCategoryEvent", event));
+    els9.quickGalleryRail?.addEventListener("click", (event) => call(methods, "handleQuickGalleryCategoryEvent", event));
+    els9.quickGalleryList?.addEventListener("scroll", () => call(methods, "scheduleQuickGalleryFocusUpdate"));
+    els9.quickGalleryList?.addEventListener("wheel", (event) => call(methods, "handleQuickGalleryBoundaryWheel", event), { passive: false });
+    els9.addGalleryCategoryButton?.addEventListener("click", () => call(methods, "createGalleryCategory"));
+    els9.addToGalleryClose?.addEventListener("click", () => call(methods, "closeAddToGallery"));
+    els9.addToGalleryModal?.addEventListener("click", (event) => {
+      if (event.target === els9.addToGalleryModal) call(methods, "closeAddToGallery");
+    });
+    els9.saveToGalleryButton?.addEventListener("click", () => call(methods, "saveUploadToGallery"));
+    bindSharedTopNavSettingsEvents(els9, methods);
+    els9.runButton.addEventListener("click", () => call(methods, "runTask"));
+    document.addEventListener("keydown", (event) => handleRunTaskShortcut(event, els9, methods));
+    els9.refreshButton.addEventListener("click", () => {
+      void handleRefreshButtonClick(methods);
+    });
+    call(methods, "bindTaskListControlEvents");
+  }
+
+  // codex_image/webui/frontend/src/boot.ts
+  function call2(methods, name, ...args) {
+    return methods[name]?.(...args);
+  }
+  function bootWebUI(state5, els9, methods) {
+    bindWebUIEvents(state5, els9, methods);
+    call2(methods, "restoreThemePreference");
+    call2(methods, "restoreSidebarWidth");
+    call2(methods, "restoreMainModel");
+    call2(methods, "restoreApiSettings");
+    call2(methods, "restoreModelSelection");
+    call2(methods, "syncReferenceFileAvailability");
+    call2(methods, "refreshColorPalette");
+    call2(methods, "refreshPromptSnippets");
+    call2(methods, "refreshPromptTemplates");
+    call2(methods, "renderGalleryCategoryControls");
+    call2(methods, "restoreLegacyArchivedTasks");
+    call2(methods, "restoreExpandedTaskGroupKey");
+    call2(methods, "setMode", "generate");
+    call2(methods, "updatePromptCount");
+    call2(methods, "updateQuantity");
+    call2(methods, "updateCompression");
+    call2(methods, "updateSizeFromPreset");
+    call2(methods, "updateCustomSize");
+    call2(methods, "restoreOutputSettingsLock");
+    call2(methods, "renderImageStrip");
+    void call2(methods, "restoreHistoryReferenceHandoff");
+    void call2(methods, "restoreHistoryTaskReuseHandoff");
+    call2(methods, "refreshSettings");
+    call2(methods, "refreshApiSettings");
+    call2(methods, "refreshHealth");
+    void call2(methods, "refreshGenerationCatalog");
+    call2(methods, "refreshGallery");
+    call2(methods, "refreshRecentAssets");
+    const realtimeStarted = window.startRealtimeUpdates?.({ migrateLegacyArchives: true });
+    if (!realtimeStarted) {
+      void window.refreshQueue?.();
+      void call2(methods, "refreshTasks", { migrateLegacyArchives: true });
+    }
+    call2(methods, "startUiClock");
+    call2(methods, "updateRequestPreview");
+    call2(methods, "openSystemSettingsFromUrl");
+  }
+
+  // codex_image/webui/frontend/src/elements.ts
+  function createWebUIElements() {
+    return {
+      themeSwitcher: document.querySelector("#themeSwitcher"),
+      languageSelect: document.querySelector("#languageSelect"),
+      sidebar: document.querySelector("#sidebar"),
+      sidebarResizeHandle: document.querySelector("#sidebarResizeHandle"),
+      sidebarResizeShield: document.querySelector("#sidebarResizeShield"),
+      authSourceGroup: document.querySelector("#authSourceGroup"),
+      authSourceDetail: document.querySelector("#authSourceDetail"),
+      apiSourceSettingsButton: document.querySelector("#generationProviderSettingsButton"),
+      modelFamilyOptions: document.querySelector("#modelFamilyOptions"),
+      concreteModelSelect: document.querySelector("#concreteModelSelect"),
+      concreteModelOptions: document.querySelector("#concreteModelOptions"),
+      generationProviderSelect: document.querySelector("#generationProviderSelect"),
+      generationProviderSettingsButton: document.querySelector("#generationProviderSettingsButton"),
+      githubLink: document.querySelector("#githubLink"),
+      apiStatus: document.querySelector("#apiStatus"),
+      versionInfo: document.querySelector("#versionInfo"),
+      versionLabel: document.querySelector("#versionLabel"),
+      versionUpdateBadge: document.querySelector("#versionUpdateBadge"),
+      versionModal: document.querySelector("#versionModal"),
+      versionModalClose: document.querySelector("#versionModalClose"),
+      versionModalStatus: document.querySelector("#versionModalStatus"),
+      versionCurrent: document.querySelector("#versionCurrent"),
+      versionLatest: document.querySelector("#versionLatest"),
+      versionSource: document.querySelector("#versionSource"),
+      versionOnboardingNotice: document.querySelector("#versionOnboardingNotice"),
+      versionOnboardingBody: document.querySelector("#versionOnboardingBody"),
+      versionReleaseLink: document.querySelector("#versionReleaseLink"),
+      versionStandardDownloadLink: document.querySelector("#versionStandardDownloadLink"),
+      versionUpdateButton: document.querySelector("#versionUpdateButton"),
+      versionContinuePortableButton: document.querySelector("#versionContinuePortableButton"),
+      versionDismissOnboardingButton: document.querySelector("#versionDismissOnboardingButton"),
+      apiDirectSettingsButton: document.querySelector("#apiDirectSettingsButton"),
+      queueButton: document.querySelector("#queueButton"),
+      queueStatusText: document.querySelector("#queueStatusText"),
+      taskNotificationButton: document.querySelector("#taskNotificationButton"),
+      taskNotificationBadge: document.querySelector("#taskNotificationBadge"),
+      taskNotificationCenter: document.querySelector("#taskNotificationCenter"),
+      taskNotificationUnreadSummary: document.querySelector("#taskNotificationUnreadSummary"),
+      taskNotificationClearButton: document.querySelector("#taskNotificationClearButton"),
+      taskNotificationList: document.querySelector("#taskNotificationList"),
+      taskNotificationToastRegion: document.querySelector("#taskNotificationToastRegion"),
+      taskNotificationInApp: document.querySelector("#taskNotificationInApp"),
+      taskNotificationSystem: document.querySelector("#taskNotificationSystem"),
+      taskHistoryShell: document.querySelector(".task-history-shell"),
+      sidebarContent: document.querySelector(".sidebar-content"),
+      taskActiveList: document.querySelector("#taskActiveList"),
+      taskLatestButton: document.querySelector("#taskLatestButton"),
+      taskLatestBadge: document.querySelector("#taskLatestBadge"),
+      taskList: document.querySelector("#taskList"),
+      taskSearch: document.querySelector("#taskSearch"),
+      taskSearchClearButton: document.querySelector("#taskSearchClearButton"),
+      taskFilterButton: document.querySelector("#taskFilterButton"),
+      taskFilterPopover: document.querySelector("#taskFilterPopover"),
+      taskFilterClearButton: document.querySelector("#taskFilterClearButton"),
+      taskFilterActiveCount: document.querySelector("#taskFilterActiveCount"),
+      taskStatusFilter: document.querySelector("#taskStatusFilter"),
+      taskRatioFilter: document.querySelector("#taskRatioFilter"),
+      taskOrientationFilter: document.querySelector("#taskOrientationFilter"),
+      taskPromptFidelityFilter: document.querySelector("#taskPromptFidelityFilter"),
+      taskResolutionFilter: document.querySelector("#taskResolutionFilter"),
+      taskHistoryTopAnchors: document.querySelector("#taskHistoryTopAnchors"),
+      taskHistoryBottomAnchors: document.querySelector("#taskHistoryBottomAnchors"),
+      taskHistoryLibrarySlot: document.querySelector("#taskHistoryLibrarySlot"),
+      archiveButton: document.querySelector("#archiveButton"),
+      batchCancelTasksButton: document.querySelector("#batchCancelTasksButton"),
+      batchManageButton: document.querySelector("#batchManageButton"),
+      batchToolbar: document.querySelector("#batchToolbar"),
+      batchSelectedCount: document.querySelector("#batchSelectedCount"),
+      batchSelectGroupButton: document.querySelector("#batchSelectGroupButton"),
+      batchArchiveButton: document.querySelector("#batchArchiveButton"),
+      batchCancelSelectedButton: document.querySelector("#batchCancelSelectedButton"),
+      batchDeleteButton: document.querySelector("#batchDeleteButton"),
+      batchCancelButton: document.querySelector("#batchCancelButton"),
+      archiveModal: document.querySelector("#archiveModal"),
+      archiveModalClose: document.querySelector("#archiveModalClose"),
+      archiveList: document.querySelector("#archiveList"),
+      archiveCount: document.querySelector("#archiveCount"),
+      systemSettingsModal: document.querySelector("#systemSettingsModal"),
+      systemSettingsModalClose: document.querySelector("#systemSettingsModalClose"),
+      systemSettingsTabs: document.querySelector("#systemSettingsTabs"),
+      systemSettingsApiTab: document.querySelector("#systemSettingsApiTab"),
+      systemSettingsNetworkTab: document.querySelector("#systemSettingsNetworkTab"),
+      systemSettingsLanguageTab: document.querySelector("#systemSettingsLanguageTab"),
+      systemSettingsStorageTab: document.querySelector("#systemSettingsStorageTab"),
+      systemSettingsApiPanel: document.querySelector("#systemSettingsApiPanel"),
+      systemSettingsNetworkPanel: document.querySelector("#systemSettingsNetworkPanel"),
+      systemSettingsLanguagePanel: document.querySelector("#systemSettingsLanguagePanel"),
+      systemSettingsStoragePanel: document.querySelector("#systemSettingsStoragePanel"),
+      networkEgressMode: document.querySelector("#networkEgressMode"),
+      networkEgressCustomProxyField: document.querySelector("#networkEgressCustomProxyField"),
+      networkEgressCustomProxy: document.querySelector("#networkEgressCustomProxy"),
+      networkEgressCurrentRoute: document.querySelector("#networkEgressCurrentRoute"),
+      networkEgressStatus: document.querySelector("#networkEgressStatus"),
+      testNetworkEgressButton: document.querySelector("#testNetworkEgressButton"),
+      saveNetworkEgressButton: document.querySelector("#saveNetworkEgressButton"),
+      languageSettingsStatus: document.querySelector("#languageSettingsStatus"),
+      settingsStatus: document.querySelector("#settingsStatus"),
+      settingsInputRoot: document.querySelector("#settingsInputRoot"),
+      settingsOutputRoot: document.querySelector("#settingsOutputRoot"),
+      settingsGalleryRoot: document.querySelector("#settingsGalleryRoot"),
+      settingsSourceDataRoot: document.querySelector("#settingsSourceDataRoot"),
+      saveSettingsButton: document.querySelector("#saveSettingsButton"),
+      apiSettingsStatus: document.querySelector("#apiSettingsStatus"),
+      apiSettingsActions: document.querySelector("#apiSettingsActions"),
+      apiProviderQuick: document.querySelector("#apiProviderQuick"),
+      apiProvider: document.querySelector("#apiProvider"),
+      apiProviderSection: document.querySelector("#apiProviderSection"),
+      apiProviderCount: document.querySelector("#apiProviderCount"),
+      apiProviderSearch: document.querySelector("#apiProviderSearch"),
+      apiProviderList: document.querySelector("#apiProviderList"),
+      apiProviderDetail: document.querySelector("#apiProviderDetail"),
+      apiProviderDetailBaseUrl: document.querySelector("#apiProviderDetailBaseUrl"),
+      apiProviderDetailKey: document.querySelector("#apiProviderDetailKey"),
+      apiProviderDetailMode: document.querySelector("#apiProviderDetailMode"),
+      apiProviderDetailConcurrency: document.querySelector("#apiProviderDetailConcurrency"),
+      apiProviderEditor: document.querySelector("#apiProviderEditor"),
+      apiProviderEditorTitle: document.querySelector("#apiProviderEditorTitle"),
+      apiProviderName: document.querySelector("#apiProviderName"),
+      apiProviderIconEmoji: document.querySelector("#apiProviderIconEmoji"),
+      editApiProviderButton: document.querySelector("#editApiProviderButton"),
+      copyApiProviderButton: document.querySelector("#copyApiProviderButton"),
+      addApiProviderButton: document.querySelector("#addApiProviderButton"),
+      sortApiProvidersButton: document.querySelector("#sortApiProvidersButton"),
+      deleteApiProviderButton: document.querySelector("#deleteApiProviderButton"),
+      cancelApiProviderEditButton: document.querySelector("#cancelApiProviderEditButton"),
+      saveApiProviderEditButton: document.querySelector("#saveApiProviderEditButton"),
+      apiBaseUrl: document.querySelector("#apiBaseUrl"),
+      apiRequestEndpointPreview: document.querySelector("#apiRequestEndpointPreview"),
+      apiKey: document.querySelector("#apiKey"),
+      apiKeyRevealButton: document.querySelector("#apiKeyRevealButton"),
+      apiImagesConcurrency: document.querySelector("#apiImagesConcurrency"),
+      apiProviderBindings: document.querySelector("#apiProviderBindings"),
+      addProviderBindingButton: document.querySelector("#addProviderBindingButton"),
+      newTaskButton: document.querySelector("#newTaskButton"),
+      imageInput: document.querySelector("#imageInput"),
+      referenceFileSelection: document.querySelector("#referenceFileSelection"),
+      imageEditorModal: document.querySelector("#imageEditorModal"),
+      imageEditorClose: document.querySelector("#imageEditorClose"),
+      imageEditorSubtitle: document.querySelector("#imageEditorSubtitle"),
+      imageEditorCanvas: document.querySelector("#imageEditorCanvas"),
+      imageEditorCanvasWrap: document.querySelector("#imageEditorCanvasWrap"),
+      imageEditorKonvaMount: document.querySelector("#imageEditorKonvaMount"),
+      imageEditorCropBox: document.querySelector("#imageEditorCropBox"),
+      imageEditorToolSelect: document.querySelector("#imageEditorToolSelect"),
+      imageEditorToolBrush: document.querySelector("#imageEditorToolBrush"),
+      imageEditorToolArrow: document.querySelector("#imageEditorToolArrow"),
+      imageEditorToolCrop: document.querySelector("#imageEditorToolCrop"),
+      imageEditorToolFill: document.querySelector("#imageEditorToolFill"),
+      imageEditorToolEraser: document.querySelector("#imageEditorToolEraser"),
+      imageEditorInsertList: document.querySelector("#imageEditorInsertList"),
+      imageEditorLayerList: document.querySelector("#imageEditorLayerList"),
+      imageEditorLayerUp: document.querySelector("#imageEditorLayerUp"),
+      imageEditorLayerDown: document.querySelector("#imageEditorLayerDown"),
+      imageEditorLayerDelete: document.querySelector("#imageEditorLayerDelete"),
+      imageEditorColor: document.querySelector("#imageEditorColor"),
+      imageEditorStroke: document.querySelector("#imageEditorStroke"),
+      imageEditorStrokeValue: document.querySelector("#imageEditorStrokeValue"),
+      imageEditorUndo: document.querySelector("#imageEditorUndo"),
+      imageEditorRedo: document.querySelector("#imageEditorRedo"),
+      imageEditorReset: document.querySelector("#imageEditorReset"),
+      imageEditorSave: document.querySelector("#imageEditorSave"),
+      imageEditorCancel: document.querySelector("#imageEditorCancel"),
+      imageEditorStatus: document.querySelector("#imageEditorStatus"),
+      recentAssetDock: document.querySelector("#recentAssetDock"),
+      recentAssetList: document.querySelector("#recentAssetList"),
+      referenceCollector: document.querySelector("#referenceCollector"),
+      imageStrip: document.querySelector("#imageStrip"),
+      imageThumbList: document.querySelector("#imageThumbList"),
+      imageThumbItems: document.querySelector("#imageThumbItems"),
+      imageUploaderGrid: document.querySelector(".image-uploader-grid"),
+      imageUploadSource: document.querySelector("#imageUploadSource"),
+      quickGalleryDock: document.querySelector("#quickGalleryDock"),
+      quickGalleryPreview: document.querySelector("#quickGalleryPreview"),
+      quickGalleryList: document.querySelector("#quickGalleryList"),
+      quickGalleryRail: document.querySelector("#quickGalleryRail"),
+      galleryManagePanel: document.querySelector("#galleryManagePanel"),
+      galleryManageButton: document.querySelector("#galleryManageButton"),
+      galleryDrawer: document.querySelector("#galleryDrawer"),
+      galleryDrawerClose: document.querySelector("#galleryDrawerClose"),
+      galleryDrawerBackdrop: document.querySelector("#galleryDrawerBackdrop"),
+      galleryDrawerSubtitle: document.querySelector("#galleryDrawerSubtitle"),
+      galleryDrawerCategoryTabs: document.querySelector("#galleryDrawerCategoryTabs"),
+      galleryCategoryManagePanel: document.querySelector("#galleryCategoryManagePanel"),
+      galleryCategoryManageToggle: document.querySelector("#galleryCategoryManageToggle"),
+      galleryCategoryList: document.querySelector("#galleryCategoryList"),
+      newGalleryCategoryName: document.querySelector("#newGalleryCategoryName"),
+      newGalleryCategoryPromptRole: document.querySelector("#newGalleryCategoryPromptRole"),
+      addGalleryCategoryButton: document.querySelector("#addGalleryCategoryButton"),
+      galleryGrid: document.querySelector("#galleryGrid"),
+      addToGalleryModal: document.querySelector("#addToGalleryModal"),
+      addToGalleryClose: document.querySelector("#addToGalleryClose"),
+      addToGalleryPreview: document.querySelector("#addToGalleryPreview"),
+      galleryNameInput: document.querySelector("#galleryNameInput"),
+      galleryCategoryInput: document.querySelector("#galleryCategoryInput"),
+      galleryPromptNoteInput: document.querySelector("#galleryPromptNoteInput"),
+      saveToGalleryButton: document.querySelector("#saveToGalleryButton"),
+      clearImagesButton: document.querySelector("#clearImagesButton"),
+      pasteClipboardButton: document.querySelector("#pasteClipboardButton"),
+      prompt: document.querySelector("#prompt"),
+      promptEditor: document.querySelector("#promptEditor"),
+      promptTemplateButton: document.querySelector("#promptTemplateButton"),
+      promptTemplateRecentDock: document.querySelector("#promptTemplateRecentDock"),
+      promptTemplateDrawer: document.querySelector("#promptTemplateDrawer"),
+      promptTemplateDrawerClose: document.querySelector("#promptTemplateDrawerClose"),
+      promptTemplateDrawerBackdrop: document.querySelector("#promptTemplateDrawerBackdrop"),
+      promptTemplateSummary: document.querySelector("#promptTemplateSummary"),
+      promptTemplateSearch: document.querySelector("#promptTemplateSearch"),
+      promptTemplateSearchClearButton: document.querySelector("#promptTemplateSearchClearButton"),
+      promptTemplateCreateButton: document.querySelector("#promptTemplateCreateButton"),
+      promptTemplateImportButton: document.querySelector("#promptTemplateImportButton"),
+      promptTemplateImportInput: document.querySelector("#promptTemplateImportInput"),
+      promptTemplateExportButton: document.querySelector("#promptTemplateExportButton"),
+      promptTemplateCategoryList: document.querySelector("#promptTemplateCategoryList"),
+      promptTemplateCategoryManageButton: document.querySelector("#promptTemplateCategoryManageButton"),
+      promptTemplateCategoryPanel: document.querySelector("#promptTemplateCategoryPanel"),
+      promptTemplateList: document.querySelector("#promptTemplateList"),
+      promptTemplateDetail: document.querySelector("#promptTemplateDetail"),
+      promptTemplateForm: document.querySelector("#promptTemplateForm"),
+      mentionSuggest: document.querySelector("#mentionSuggest"),
+      colorSuggest: document.querySelector("#colorSuggest"),
+      charCount: document.querySelector("#charCount"),
+      clearPromptButton: document.querySelector("#clearPromptButton"),
+      promptFindButton: document.querySelector("#promptFindButton"),
+      promptFindPanel: document.querySelector("#promptFindPanel"),
+      promptFindInput: document.querySelector("#promptFindInput"),
+      promptReplaceInput: document.querySelector("#promptReplaceInput"),
+      promptFindCount: document.querySelector("#promptFindCount"),
+      promptFindStatus: document.querySelector("#promptFindStatus"),
+      promptFindClose: document.querySelector("#promptFindClose"),
+      modeSettingsSlot: document.querySelector("#modeSettingsSlot"),
+      outputSettingsHeader: document.querySelector("#outputSettingsHeader"),
+      outputSettingsLockButton: document.querySelector("#outputSettingsLockButton"),
+      outputSettingsLockedSummary: document.querySelector("#outputSettingsLockedSummary"),
+      outputSettingsSummaryContent: document.querySelector("#outputSettingsSummaryContent"),
+      outputSettingsTaskAction: document.querySelector("#outputSettingsTaskAction"),
+      adoptTaskOutputSettingsButton: document.querySelector("#adoptTaskOutputSettingsButton"),
+      outputSettingsStage: document.querySelector("#outputSettingsStage"),
+      modelParameterGrid: document.querySelector("#modelParameterGrid"),
+      taskParameterInspector: document.querySelector("#taskParameterInspector"),
+      taskParameterInspectorHeader: document.querySelector("#taskParameterInspectorHeader"),
+      taskParameterInspectorGrid: document.querySelector("#taskParameterInspectorGrid"),
+      taskParameterInspectorUnknown: document.querySelector("#taskParameterInspectorUnknown"),
+      modeSpecificSettings: document.querySelector("#modeSpecificSettings"),
+      mainModelField: document.querySelector("#mainModelField"),
+      mainModelCombobox: document.querySelector("#mainModelCombobox"),
+      mainModel: document.querySelector("#mainModel"),
+      mainModelToggle: document.querySelector("#mainModelToggle"),
+      mainModelOptions: document.querySelector("#mainModelOptions"),
+      webSearchField: document.querySelector("#webSearchField"),
+      webSearch: document.querySelector("#webSearch"),
+      promptFidelityField: document.querySelector("#promptFidelityField"),
+      promptFidelity: document.querySelector("#promptFidelity"),
+      apiDirectSettingsNotice: document.querySelector("#apiDirectSettingsNotice"),
+      settingsGrid: document.querySelector("#settingsGrid"),
+      model: document.querySelector("#model"),
+      size: document.querySelector("#size"),
+      sizeModeGroup: document.querySelector("#sizeModeGroup"),
+      customSizeToggle: document.querySelector("#customSizeToggle"),
+      nInput: document.querySelector("#nInput"),
+      nValue: document.querySelector("#nValue"),
+      resolution: document.querySelector("#resolution"),
+      ratio: document.querySelector("#ratio"),
+      orientation: document.querySelector("#orientation"),
+      pixelPreview: document.querySelector("#pixelPreview"),
+      customSize: document.querySelector("#customSize"),
+      customSizeHint: document.querySelector("#customSizeHint"),
+      customWidth: document.querySelector("#customWidth"),
+      customHeight: document.querySelector("#customHeight"),
+      customRatioField: document.querySelector(".custom-ratio-field"),
+      customRatioWidth: document.querySelector("#customRatioWidth"),
+      customRatioHeight: document.querySelector("#customRatioHeight"),
+      customRatioFromImageButton: document.querySelector("#customRatioFromImageButton"),
+      swapCustomSizeButton: document.querySelector("#swapCustomSizeButton"),
+      quality: document.querySelector("#quality"),
+      outputFormat: document.querySelector("#outputFormat"),
+      outputFormatField: document.querySelector("#outputFormatField"),
+      outputFormatGroup: document.querySelector("#outputFormatGroup"),
+      moderation: document.querySelector("#moderation"),
+      compressionPopover: document.querySelector("#compressionPopover"),
+      compressionField: document.querySelector("#compressionField"),
+      compression: document.querySelector("#compression"),
+      compressionValue: document.querySelector("#compressionValue"),
+      runButton: document.querySelector("#runButton"),
+      statusText: document.querySelector("#statusText"),
+      previewGrid: document.querySelector("#previewGrid"),
+      downloadAllButton: document.querySelector("#downloadAllButton"),
+      previewSelectionActions: document.querySelector("#previewSelectionActions"),
+      previewSelectionCount: document.querySelector("#previewSelectionCount"),
+      downloadSelectedButton: document.querySelector("#downloadSelectedButton"),
+      deleteUnselectedOutputsButton: document.querySelector("#deleteUnselectedOutputsButton"),
+      refreshButton: document.querySelector("#refreshButton"),
+      copyJsonButton: document.querySelector("#copyJsonButton"),
+      requestJson: document.querySelector("#requestJson"),
+      controlsCol: document.querySelector(".controls-col"),
+      previewCol: document.querySelector(".preview-col"),
+      previewPanel: document.querySelector(".preview-panel")
+    };
+  }
+
+  // codex_image/webui/frontend/src/legacy-bridge.ts
+  function installLegacyBridge(bridge7) {
+    window.__codexImageWebUI = bridge7;
+    return bridge7;
+  }
+  function bindBridgeMethod(name, options = {}) {
+    const proxy2 = (...args) => {
+      const method = window.__codexImageWebUI?.methods?.[name];
+      if (typeof method !== "function" || method === proxy2) {
+        if (options.required) {
+          throw new Error("Legacy bridge method " + name + " is not initialized");
+        }
+        return void 0;
+      }
+      return method(...args);
+    };
+    return proxy2;
+  }
+
+  // codex_image/webui/frontend/src/webui-utils.ts
+  function escapeHtml(value) {
+    return String(value).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+  }
+  function cssEscape(value) {
+    const text = String(value || "");
+    if (window.CSS?.escape) return window.CSS.escape(text);
+    return text.replace(/["\\]/g, "\\$&");
+  }
+
+  // codex_image/webui/frontend/src/task-cancellation.ts
+  var USER_CANCELLATION_ERROR = "Task cancelled by user.";
+  function taskWasCancelled(task) {
+    const error = String(task?.error || task?.last_error || "").trim();
+    return Boolean(task?.cancel_requested || error === USER_CANCELLATION_ERROR);
+  }
+
+  // codex_image/webui/frontend/src/runtime-feedback.ts
+  function legacyMethod(name, ...args) {
+    const method = getLegacyBridge().methods[name];
+    if (typeof method !== "function") {
+      throw new Error("Legacy bridge method " + name + " is not available");
+    }
+    return method(...args);
+  }
+  var renderTasks = (...args) => legacyMethod("renderTasks", ...args);
+  var renderPreview = (...args) => legacyMethod("renderPreview", ...args);
+  var revokeTaskUploadPreviewUrls = (...args) => legacyMethod("revokeTaskUploadPreviewUrls", ...args);
+  var taskProgressStartValue = (...args) => legacyMethod("taskProgressStartValue", ...args);
+  var taskStatusAccessibleLabel = (...args) => legacyMethod("taskStatusAccessibleLabel", ...args);
+  var taskMetaDetailsText = (...args) => legacyMethod("taskMetaDetailsText", ...args);
+  var taskCardRuntimeText = (...args) => legacyMethod("taskCardRuntimeText", ...args);
+  var taskRetryStateText = (...args) => legacyMethod("taskRetryStateText", ...args);
+  var timestampMs = (...args) => legacyMethod("timestampMs", ...args);
+  var elapsedSecondsSince = (...args) => legacyMethod("elapsedSecondsSince", ...args);
+  var elapsedMillisecondsSince = (...args) => legacyMethod("elapsedMillisecondsSince", ...args);
+  var formatDuration = (...args) => legacyMethod("formatDuration", ...args);
+  var formatDurationParts = (...args) => legacyMethod("formatDurationParts", ...args);
+  var formatDurationTenths = (...args) => legacyMethod("formatDurationTenths", ...args);
+  var elapsedPartMarkup = (...args) => legacyMethod("elapsedPartMarkup", ...args);
+  var elapsedTimerMarkup = (...args) => legacyMethod("elapsedTimerMarkup", ...args);
+  var setStatus = (...args) => legacyMethod("setStatus", ...args);
+  var getPromptText = (...args) => legacyMethod("getPromptText", ...args);
+  var syncRunButtonLabel = (...args) => legacyMethod("syncRunButtonLabel", ...args);
+  function updateTaskInState(task) {
+    const state5 = getLegacyBridge().state;
+    if (!task?.task_id) return false;
+    const taskId = String(task.task_id);
+    const previousIndex = state5.tasks.findIndex((item) => String(item.task_id) === taskId);
+    if (previousIndex === -1) {
+      state5.tasks.unshift(task);
+      return true;
+    }
+    const previousTask = state5.tasks[previousIndex];
+    if (previousTask?.local_pending) {
+      revokeTaskUploadPreviewUrls(previousTask);
+    }
+    state5.tasks = state5.tasks.map((item, index) => index === previousIndex ? task : item);
+    if (state5.pendingTaskId && String(state5.pendingTaskId) === taskId && !task.local_pending) {
+      state5.pendingTaskId = null;
+    }
+    return true;
+  }
+  function formatTaskStatus(task) {
+    if (!task) return "";
+    if (taskWasCancelled(task)) return translate("queue.runningCancelled");
+    if (task.status === "submitting") return translate("taskStatus.submitting");
+    if (task.status === "running") {
+      const progressStartedAt = taskProgressStartValue(task);
+      return progressStartedAt ? formatTranslation("taskStatus.runningWithElapsed", { elapsed: formatDuration(elapsedSecondsSince(progressStartedAt)) }) : translate("taskStatus.running");
+    }
+    if (task.status === "completed") return translate("taskStatus.completed");
+    if (task.status === "partial_failed") return translate("taskStatus.partialFailed");
+    if (task.status === "failed") return translate("taskStatus.failed");
+    if (task.status === "queued") return translate("taskStatus.queued");
+    return task.status || "";
+  }
+  function formatTaskCardStatus(task) {
+    if (task?.status === "running" && !taskWasCancelled(task)) return translate("taskStatus.running");
+    return formatTaskStatus(task);
+  }
+  var uiClockVisibilityBound = false;
+  function startUiClock() {
+    const state5 = getLegacyBridge().state;
+    if (!uiClockVisibilityBound) {
+      uiClockVisibilityBound = true;
+      document.addEventListener("visibilitychange", handleUiClockVisibilityChange);
+    }
+    if (state5.uiClockTimerId || document.hidden) return;
+    state5.uiClockTimerId = window.setInterval(updateElapsedDisplays, 100);
+  }
+  function handleUiClockVisibilityChange() {
+    const state5 = getLegacyBridge().state;
+    if (document.hidden) {
+      if (state5.uiClockTimerId) {
+        window.clearInterval(state5.uiClockTimerId);
+        state5.uiClockTimerId = null;
+      }
+      return;
+    }
+    if (!state5.uiClockTimerId) {
+      state5.uiClockTimerId = window.setInterval(updateElapsedDisplays, 100);
+      updateElapsedDisplays();
+    }
+  }
+  function updateElapsedDisplays() {
+    updateTaskElapsedDisplays();
+    updatePreviewElapsedDisplay();
+  }
+  var ELAPSED_TICK_STATUSES = /* @__PURE__ */ new Set(["submitting", "queued", "running"]);
+  function taskNeedsElapsedTick(task) {
+    if (!task) return false;
+    if (task.local_pending) return true;
+    return ELAPSED_TICK_STATUSES.has(String(task.status || ""));
+  }
+  function setTextIfChanged(element, text) {
+    if (element.textContent !== text) element.textContent = text;
+  }
+  function activeElapsedTaskCards(els9, taskId) {
+    const roots = [els9.taskActiveList, els9.taskList].filter((root) => root instanceof HTMLElement);
+    const cards = roots.flatMap(
+      (root) => Array.from(root.querySelectorAll(`.task-card[data-task-id="${cssEscape(taskId)}"]`))
+    );
+    return Array.from(new Set(cards));
+  }
+  function updateTaskElapsedCard(card, task) {
+    const statusElement = card.querySelector("[data-task-status-id]");
+    if (statusElement) {
+      setTextIfChanged(statusElement, formatTaskCardStatus(task) || translate("taskStatus.unknown"));
+      const statusRow = statusElement.closest(".task-status-row");
+      if (statusRow) {
+        const accessibleLabel = taskStatusAccessibleLabel(task);
+        if (statusRow.getAttribute("aria-label") !== accessibleLabel) {
+          statusRow.setAttribute("aria-label", accessibleLabel);
+        }
+      }
+    }
+    const metaElement = card.querySelector("[data-task-meta-id]");
+    if (metaElement) setTextIfChanged(metaElement, taskMetaDetailsText(task));
+    const runtimeElement = card.querySelector("[data-task-runtime-id]");
+    if (runtimeElement) setTextIfChanged(runtimeElement, taskCardRuntimeText(task));
+    const retryElement = card.querySelector("[data-task-retry-id]");
+    if (retryElement) setTextIfChanged(retryElement, taskRetryStateText(task));
+    card.querySelectorAll("[data-preview-elapsed]").forEach((element) => {
+      updateElapsedTimerElement(element, elapsedMillisecondsSince(element.dataset.previewStart));
+    });
+  }
+  function updateTaskElapsedDisplays() {
+    const { state: state5, els: els9 } = getLegacyBridge();
+    const activeTasks = state5.tasks.filter((task) => taskNeedsElapsedTick(task));
+    if (!activeTasks.length) return;
+    activeTasks.forEach((task) => {
+      const taskId = String(task.task_id || "");
+      if (!taskId) return;
+      activeElapsedTaskCards(els9, taskId).forEach((card) => updateTaskElapsedCard(card, task));
+    });
+  }
+  function updatePreviewElapsedDisplay() {
+    const { els: els9 } = getLegacyBridge();
+    if (!els9.previewGrid) return;
+    els9.previewGrid.querySelectorAll("[data-preview-elapsed]").forEach((element) => {
+      updateElapsedTimerElement(element, elapsedMillisecondsSince(element.dataset.previewStart));
+    });
+  }
+  function updateElapsedTimerElement(element, totalMilliseconds) {
+    const elapsed = formatDurationParts(totalMilliseconds);
+    element.setAttribute("aria-label", elapsed.text);
+    const main = element.querySelector(".elapsed-main");
+    const ms = element.querySelector(".elapsed-ms");
+    if (main && ms) {
+      updateElapsedPartElement(main, elapsed.clock);
+      updateElapsedPartElement(ms, elapsed.fraction);
+      return;
+    }
+    element.innerHTML = elapsedTimerMarkup(totalMilliseconds);
+  }
+  function updateElapsedPartElement(element, text) {
+    const chars = Array.from(text);
+    const charNodes = Array.from(element.querySelectorAll("[data-elapsed-char]"));
+    if (charNodes.length !== chars.length) {
+      element.innerHTML = elapsedPartMarkup(text);
+      return;
+    }
+    for (const [index, node] of charNodes.entries()) {
+      const char = chars[index];
+      if (node.dataset.elapsedCharValue === char) continue;
+      if (!/^\d$/.test(char || "") || !node.classList.contains("elapsed-wheel")) {
+        element.innerHTML = elapsedPartMarkup(text);
+        return;
+      }
+      node.dataset.elapsedCharValue = char;
+      node.dataset.elapsedChar = char;
+      node.style.setProperty("--digit-offset", char);
+    }
+  }
+  function updatePromptCount() {
+    const { els: els9 } = getLegacyBridge();
+    if (!els9.charCount) return;
+    els9.charCount.textContent = `${getPromptText().length} / 4000`;
+  }
+  function addPendingTask(task) {
+    const state5 = getLegacyBridge().state;
+    state5.pendingTaskId = task.task_id;
+    state5.selectedTaskId = task.task_id;
+    state5.tasks = [task, ...state5.tasks.filter((item) => item.task_id !== task.task_id)];
+    renderTasks();
+    renderPreview(task);
+  }
+  function replacePendingTask(pendingTaskId, completedTask) {
+    const state5 = getLegacyBridge().state;
+    const removedPendingTasks = state5.tasks.filter((task) => task?.local_pending && (task.task_id === completedTask.task_id || task.task_id === pendingTaskId));
+    state5.tasks = [
+      completedTask,
+      ...state5.tasks.filter((task) => task.task_id !== completedTask.task_id && task.task_id !== pendingTaskId)
+    ];
+    removedPendingTasks.forEach(revokeTaskUploadPreviewUrls);
+    state5.selectedTaskId = completedTask.task_id;
+    state5.pendingTaskId = null;
+    renderTasks();
+    renderPreview(completedTask);
+  }
+  function markPendingTaskFailed(pendingTaskId, message) {
+    const state5 = getLegacyBridge().state;
+    const task = state5.tasks.find((item) => item.task_id === pendingTaskId);
+    if (!task) return;
+    task.status = "failed";
+    task.error = message;
+    task.updated_at = (/* @__PURE__ */ new Date()).toISOString();
+    state5.selectedTaskId = pendingTaskId;
+    state5.pendingTaskId = null;
+    renderTasks();
+    renderPreview(task);
+  }
+  function startRunFeedback(task, actionLabel = null) {
+    const { state: state5, els: els9 } = getLegacyBridge();
+    stopRunFeedback();
+    state5.runFeedbackAction = actionLabel;
+    state5.runStartedAt = timestampMs(task.started_at || task.created_at) || Date.now();
+    state5.runTimerId = window.setInterval(updateRunFeedback, 100);
+    els9.runButton?.classList.add("running");
+    updateRunFeedback();
+  }
+  function updateRunFeedback() {
+    const { state: state5, els: els9 } = getLegacyBridge();
+    if (!state5.runStartedAt) return;
+    const elapsed = formatDurationTenths(elapsedMillisecondsSince(state5.runStartedAt));
+    const action = state5.runFeedbackAction || (state5.mode === "edit" ? translate("runFeedback.editing") : translate("runFeedback.generating"));
+    if (els9.runButton) els9.runButton.textContent = `${action} ${elapsed}`;
+    setStatus(formatTranslation("runFeedback.status", { action, elapsed }), "running");
+    updateElapsedDisplays();
+    if (state5.selectedTaskId === state5.pendingTaskId) {
+      renderPreview();
+    }
+  }
+  function stopRunFeedback() {
+    const { state: state5, els: els9 } = getLegacyBridge();
+    if (state5.runTimerId) {
+      window.clearInterval(state5.runTimerId);
+    }
+    state5.runTimerId = null;
+    state5.runStartedAt = null;
+    state5.runFeedbackAction = null;
+    els9.runButton?.classList.remove("running");
+    syncRunButtonLabel();
+  }
+
+  // codex_image/webui/frontend/src/state-defaults.ts
+  var DEFAULT_GALLERY_CATEGORIES = [
+    { id: "portrait", name: "\u4EBA\u50CF", prompt_role: "\u4EBA\u50CF\u53C2\u8003", order: 10 },
+    { id: "character", name: "\u89D2\u8272", prompt_role: "\u89D2\u8272\u53C2\u8003", order: 20 },
+    { id: "product", name: "\u4EA7\u54C1", prompt_role: "\u4EA7\u54C1\u53C2\u8003", order: 30 }
+  ];
+  var DEFAULT_API_BASE_URL = "https://api.openai.com/v1";
+  var DEFAULT_API_IMAGE_MODEL = "gpt-image-2";
+  var DEFAULT_API_MODE = "images";
+  var DEFAULT_CODEX_MODE = "images";
+  var DEFAULT_API_IMAGES_CONCURRENCY = 4;
+  var API_SETTINGS_STORAGE_KEY = "codex-image-api-settings";
+  var DEFAULT_DOCUMENT_TITLE = document.title || "iLab CONJURE";
+  function defaultGalleryCategories() {
+    return DEFAULT_GALLERY_CATEGORIES.map((category) => ({ ...category }));
+  }
+  function createDefaultState() {
+    return {
+      mode: "generate",
+      images: [],
+      referenceFiles: [],
+      tasks: [],
+      taskSidebarGroupCounts: {},
+      taskSidebarGroupLoadedCounts: {},
+      taskSidebarGroupLoading: null,
+      selectedTaskId: null,
+      taskInputRestoreSeq: 0,
+      authAvailable: false,
+      runTimerId: null,
+      runStartedAt: null,
+      runFeedbackAction: null,
+      uiClockTimerId: null,
+      previewRenderKey: null,
+      tasksRenderKey: null,
+      taskSearchHistoryResultIds: [],
+      taskSearchHistoryResultQuery: "",
+      taskSearchHistoryRequestSeq: 0,
+      pendingTaskId: null,
+      galleryItems: [],
+      promptSnippets: [],
+      promptTemplates: [],
+      promptTemplateCategories: [],
+      promptTemplateFilter: "all",
+      promptTemplateCategory: "",
+      promptTemplateQuery: "",
+      selectedPromptTemplateId: null,
+      recentAssets: [],
+      collectedReferences: [],
+      galleryCategories: defaultGalleryCategories(),
+      activeGalleryCategory: "portrait",
+      hoveredGalleryItemId: null,
+      quickGalleryFocusItemId: null,
+      colorPalette: {
+        version: 1,
+        favorites: [
+          { name: "\u767D\u8272", hex: "#FFFFFF", order: 10 },
+          { name: "\u9ED1\u8272", hex: "#111111", order: 20 },
+          { name: "\u6696\u7C73\u8272", hex: "#F6E8D8", order: 30 },
+          { name: "\u6D45\u7EFF", hex: "#E6F0EC", order: 40 },
+          { name: "\u54C1\u724C\u7EFF", hex: "#457B66", order: 50 },
+          { name: "\u6843\u6A59", hex: "#F4B183", order: 60 },
+          { name: "\u6D45\u84DD", hex: "#B7D7F0", order: 70 },
+          { name: "\u6D45\u7C89", hex: "#F8D7DA", order: 80 }
+        ],
+        recent_colors: [],
+        recent_limit: 6
+      },
+      colorPaletteManageMode: false,
+      selectedColorCode: "#FFFFFF",
+      activeColorRange: null,
+      activeColorChip: null,
+      activePromptSnippetRange: null,
+      activePromptSnippetChip: null,
+      promptSnippetSelectionRange: null,
+      promptSnippetSelectionText: "",
+      addToGalleryIndex: null,
+      authStatus: null,
+      pendingAuthSource: null,
+      customSizeMode: null,
+      customSizeTransitionSeq: 0,
+      customAspectRatioLocked: false,
+      customAspectRatioValue: null,
+      customAspectRatioSource: "manual",
+      galleryGridTransitionSeq: 0,
+      galleryGridTransitionTimerId: null,
+      queue: { waiting: [], running: [], summary: { waiting_count: 0, running_count: 0, channel_count: 0 } },
+      queueRenderKey: null,
+      queueRequestSeq: 0,
+      queueDispatchSyncTimerId: null,
+      taskViewedRequestIds: /* @__PURE__ */ new Set(),
+      tasksRequestSeq: 0,
+      realtimeSource: null,
+      realtimeSnapshotNeedsArchiveMigration: false,
+      queueDragTaskId: null,
+      activeTaskGroupCollapsed: false,
+      expandedTaskGroupKey: null,
+      expandedTaskGroupAnimationPending: false,
+      latestTaskNoticeCount: 0,
+      latestTaskKeepAtTop: false,
+      latestTaskKeepAtTopExpiresAt: 0,
+      taskNotifications: [],
+      taskNotificationUnreadCount: 0,
+      taskNotificationCenterOpen: false,
+      taskNotificationToastTimerIds: [],
+      taskNotificationSettings: { inApp: true, system: false },
+      taskNotificationSeenKeys: /* @__PURE__ */ new Set(),
+      generationCatalog: null,
+      generationCatalogError: null,
+      selectedFamilyId: null,
+      selectedModelId: null,
+      selectedProviderId: null,
+      selectedProviderBindingId: null,
+      lastModelByFamily: {},
+      lastProviderByModel: {},
+      lastProviderSelectionByModel: {},
+      parameterDraftsByModel: {},
+      parameterDraftVersionsByModel: {},
+      parameterValidationErrorsByModel: {},
+      inspectedGenerationSnapshot: null,
+      draggedPromptChip: null,
+      legacyArchivedTaskIds: [],
+      batchMode: false,
+      batchSelectedTaskIds: [],
+      batchSelectionAnchorTaskId: null,
+      batchSelectionIncludesUnloaded: false,
+      batchSelectionDrag: null,
+      suppressTaskClickAfterDrag: false,
+      sidebarResize: null,
+      themePreference: "system",
+      themeSystemQuery: null,
+      apiSettings: {
+        codex_mode: DEFAULT_CODEX_MODE,
+        active_provider_id: "default",
+        providers: [{
+          id: "default",
+          name: "Default",
+          base_url: DEFAULT_API_BASE_URL,
+          api_key: "",
+          image_model: DEFAULT_API_IMAGE_MODEL,
+          api_mode: DEFAULT_API_MODE,
+          images_concurrency: DEFAULT_API_IMAGES_CONCURRENCY
+        }]
+      },
+      apiSettingsSaveTimerId: null,
+      mainModelComboboxOpen: false,
+      mainModelOptionIndex: 0,
+      mainModelShowAllOptions: false
+    };
+  }
+
+  // codex_image/webui/frontend/src/bootstrap.ts
+  var state = createDefaultState();
+  var els = createWebUIElements();
+  var proxy = (name) => bindBridgeMethod(name);
+  function syncActiveLightboxUrls() {
+  }
+  var bridgeMethods = {
+    addApiProvider: proxy("addApiProvider"),
+    addGalleryInput: proxy("addGalleryInput"),
+    addImageFiles: proxy("addImageFiles"),
+    addPendingTask,
+    addReferenceAssetInput: proxy("addReferenceAssetInput"),
+    acceptTaskSuccesses: proxy("acceptTaskSuccesses"),
+    applyTaskUpdate: proxy("applyTaskUpdate"),
+    applyTasksSnapshot: proxy("applyTasksSnapshot"),
+    assetSource: proxy("assetSource"),
+    backendForAuthSource: proxy("backendForAuthSource"),
+    bindFormControlEvents: proxy("bindFormControlEvents"),
+    bindOverlayPopoverEvents: proxy("bindOverlayPopoverEvents"),
+    bindShellUiEvents: proxy("bindShellUiEvents"),
+    bindTaskListControlEvents: proxy("bindTaskListControlEvents"),
+    canAddSourceToGallery: proxy("canAddSourceToGallery"),
+    categoryLabel: proxy("categoryLabel"),
+    categoryPromptRole: proxy("categoryPromptRole"),
+    closeAddToGallery: proxy("closeAddToGallery"),
+    closeApiSettingsModal: proxy("closeApiSettingsModal"),
+    closeConfirmPopover: proxy("closeConfirmPopover"),
+    closeGallery: proxy("closeGallery"),
+    closePromptPopover: proxy("closePromptPopover"),
+    closeSettingsModal: proxy("closeSettingsModal"),
+    cleanupSessionSelections: proxy("cleanupSessionSelections"),
+    consumeLatestTaskNavigationScrollAnchor: proxy("consumeLatestTaskNavigationScrollAnchor"),
+    collectReferenceOutput: proxy("collectReferenceOutput"),
+    colorNameForHex: proxy("colorNameForHex"),
+    colorSwatchButton: proxy("colorSwatchButton"),
+    buildPromptForModel: proxy("buildPromptForModel"),
+    createGalleryChip: proxy("createGalleryChip"),
+    createPromptSnippetChip: proxy("createPromptSnippetChip"),
+    currentApiImagesConcurrency: proxy("currentApiImagesConcurrency"),
+    currentApiMode: proxy("currentApiMode"),
+    currentApiProviderId: proxy("currentApiProviderId"),
+    currentApiProviderLabel: proxy("currentApiProviderLabel"),
+    currentAuthSource: proxy("currentAuthSource"),
+    currentCodexMode: proxy("currentCodexMode"),
+    currentMainModel: proxy("currentMainModel"),
+    currentPromptFidelity: proxy("currentPromptFidelity"),
+    currentPromptForModel: proxy("currentPromptForModel"),
+    currentSize: proxy("currentSize"),
+    currentTaskParams: proxy("currentTaskParams"),
+    customSizeValidationMessage: proxy("customSizeValidationMessage"),
+    deleteApiProvider: proxy("deleteApiProvider"),
+    deleteTask: proxy("deleteTask"),
+    escapeHtml,
+    favoriteColorsForDisplay: proxy("favoriteColorsForDisplay"),
+    findGalleryItem: proxy("findGalleryItem"),
+    firstVisibleTaskId: proxy("firstVisibleTaskId"),
+    formatTaskCardStatus,
+    formatTaskStatus,
+    galleryInputs: proxy("galleryInputs"),
+    gallerySource: proxy("gallerySource"),
+    getPromptText: proxy("getPromptText"),
+    handleAuthSourceClick: proxy("handleAuthSourceClick"),
+    handleCustomDimensionInput: proxy("handleCustomDimensionInput"),
+    handleQuickGalleryBoundaryWheel: proxy("handleQuickGalleryBoundaryWheel"),
+    handleQuickGalleryCategoryEvent: proxy("handleQuickGalleryCategoryEvent"),
+    imageFileFromUrl: proxy("imageFileFromUrl"),
+    importColorPalette: proxy("importColorPalette"),
+    isDirectApiMode: proxy("isDirectApiMode"),
+    isQueueDispatchPending: proxy("isQueueDispatchPending"),
+    isEditableImageSource: proxy("isEditableImageSource"),
+    isTaskArchived: proxy("isTaskArchived"),
+    markPendingTaskFailed,
+    markTaskViewed: proxy("markTaskViewed"),
+    migrateLegacyArchivedTasks: proxy("migrateLegacyArchivedTasks"),
+    missingGalleryInputs: proxy("missingGalleryInputs"),
+    missingReferenceAssetInputs: proxy("missingReferenceAssetInputs"),
+    normalizeApiImagesConcurrency: proxy("normalizeApiImagesConcurrency"),
+    normalizeApiSettings: proxy("normalizeApiSettings"),
+    normalizeHexColor: proxy("normalizeHexColor"),
+    notifyLatestTaskAvailable: proxy("notifyLatestTaskAvailable"),
+    notifyTaskUpdate: proxy("notifyTaskUpdate"),
+    openAddToGallery: proxy("openAddToGallery"),
+    openApiSettingsModal: proxy("openApiSettingsModal"),
+    openConfirmPopover: proxy("openConfirmPopover"),
+    openGallery: proxy("openGallery"),
+    openPromptPopover: proxy("openPromptPopover"),
+    openSettingsModal: proxy("openSettingsModal"),
+    persistApiSettings: proxy("persistApiSettings"),
+    persistMainModel: proxy("persistMainModel"),
+    populateApiSettingsForm: proxy("populateApiSettingsForm"),
+    populateSettingsForm: proxy("populateSettingsForm"),
+    positionPromptPopover: proxy("positionPromptPopover"),
+    readApiSettingsForm: proxy("readApiSettingsForm"),
+    recentColorsForDisplay: proxy("recentColorsForDisplay"),
+    refreshApiSettings: proxy("refreshApiSettings"),
+    refreshColorPalette: proxy("refreshColorPalette"),
+    refreshGallery: proxy("refreshGallery"),
+    refreshHealth: proxy("refreshHealth"),
+    refreshPromptTemplates: proxy("refreshPromptTemplates"),
+    refreshPromptSnippets: proxy("refreshPromptSnippets"),
+    refreshRecentAssets: proxy("refreshRecentAssets"),
+    refreshSettings: proxy("refreshSettings"),
+    refreshTasks: proxy("refreshTasks"),
+    revealActiveTaskGroup: proxy("revealActiveTaskGroup"),
+    retryFailedTask: proxy("retryFailedTask"),
+    referenceAssetInputs: proxy("referenceAssetInputs"),
+    rememberLatestTaskNavigationBeforeRender: proxy("rememberLatestTaskNavigationBeforeRender"),
+    rememberRecentColor: proxy("rememberRecentColor"),
+    removeBatchSelectedTaskId: proxy("removeBatchSelectedTaskId"),
+    removeFavoriteColor: proxy("removeFavoriteColor"),
+    renderArchiveButton: proxy("renderArchiveButton"),
+    renderArchiveModal: proxy("renderArchiveModal"),
+    renderAuthSource: proxy("renderAuthSource"),
+    renderBatchToolbar: proxy("renderBatchToolbar"),
+    ensureSelectedTaskDetail: proxy("ensureSelectedTaskDetail"),
+    renderGalleryCategoryControls: proxy("renderGalleryCategoryControls"),
+    renderImageStrip: proxy("renderImageStrip"),
+    renderPreview: proxy("renderPreview"),
+    renderTaskHistoryAnchors: proxy("renderTaskHistoryAnchors"),
+    renderReferenceCollector: proxy("renderReferenceCollector"),
+    renderTasks: proxy("renderTasks"),
+    scheduleLatestTaskNavigationRefresh: proxy("scheduleLatestTaskNavigationRefresh"),
+    replacePendingTask,
+    replaceTask: proxy("replaceTask"),
+    restoreApiSettings: proxy("restoreApiSettings"),
+    restoreExpandedTaskGroupKey: proxy("restoreExpandedTaskGroupKey"),
+    restoreLegacyArchivedTasks: proxy("restoreLegacyArchivedTasks"),
+    restoreMainModel: proxy("restoreMainModel"),
+    restoreSidebarWidth: proxy("restoreSidebarWidth"),
+    restoreThemePreference: proxy("restoreThemePreference"),
+    revokeTaskUploadPreviewUrls: proxy("revokeTaskUploadPreviewUrls"),
+    revokeUploadPreviewUrl: proxy("revokeUploadPreviewUrl"),
+    revokeUploadPreviewUrls: proxy("revokeUploadPreviewUrls"),
+    runTask: proxy("runTask"),
+    saveApiSettings: proxy("saveApiSettings"),
+    saveFavoriteColor: proxy("saveFavoriteColor"),
+    saveSettings: proxy("saveSettings"),
+    saveUploadToGallery: proxy("saveUploadToGallery"),
+    scheduleQuickGalleryFocusUpdate: proxy("scheduleQuickGalleryFocusUpdate"),
+    queueApiSettingsAutosave: proxy("queueApiSettingsAutosave"),
+    selectCodexMode: proxy("selectCodexMode"),
+    selectTask: proxy("selectTask"),
+    ensureExpandedTaskGroupKey: proxy("ensureExpandedTaskGroupKey"),
+    setMode: proxy("setMode"),
+    setExpandedTaskGroupKey: proxy("setExpandedTaskGroupKey"),
+    setPromptText: proxy("setPromptText"),
+    setPromptWithGalleryRefs: proxy("setPromptWithGalleryRefs"),
+    setStatus: proxy("setStatus"),
+    setTaskArchiveState: proxy("setTaskArchiveState"),
+    sourceName: proxy("sourceName"),
+    sourcePreviewUrl: proxy("sourcePreviewUrl"),
+    startRunFeedback,
+    startUiClock,
+    stopRunFeedback,
+    scrollExpandedTaskGroupToTop: proxy("scrollExpandedTaskGroupToTop"),
+    syncActiveLightboxUrls,
+    syncGalleryInputsFromPrompt: proxy("syncGalleryInputsFromPrompt"),
+    syncPromptFromEditor: proxy("syncPromptFromEditor"),
+    syncPromptGalleryMentionsFromInputs: proxy("syncPromptGalleryMentionsFromInputs"),
+    syncCodexModeNotes: proxy("syncCodexModeNotes"),
+    syncRadioButtons: proxy("syncRadioButtons"),
+    syncSizeControlsFromSize: proxy("syncSizeControlsFromSize"),
+    taskApiProviderId: proxy("taskApiProviderId"),
+    taskApiProviderLabel: proxy("taskApiProviderLabel"),
+    taskBackendLabel: proxy("taskBackendLabel"),
+    taskHasViewableUpdate: proxy("taskHasViewableUpdate"),
+    taskRetryStateText: proxy("taskRetryStateText"),
+    taskTotalCount: proxy("taskTotalCount"),
+    toggleColorPaletteManageMode: proxy("toggleColorPaletteManageMode"),
+    updateCompression: proxy("updateCompression"),
+    applyFirstReferenceImageAspectRatio: proxy("applyFirstReferenceImageAspectRatio"),
+    updateCustomRatioFieldState: proxy("updateCustomRatioFieldState"),
+    updateCustomRatioReferenceButtonState: proxy("updateCustomRatioReferenceButtonState"),
+    updateCustomSize: proxy("updateCustomSize"),
+    updateDocumentTitle: proxy("updateDocumentTitle"),
+    addImages: proxy("addImages"),
+    clearImages: proxy("clearImages"),
+    updateImageStripDensity: proxy("updateImageStripDensity"),
+    updatePixelPreview: proxy("updatePixelPreview"),
+    updatePreviewElapsedDisplay,
+    updatePromptCount,
+    updateQuantity: proxy("updateQuantity"),
+    updateRequestPreview: proxy("updateRequestPreview"),
+    updateSizeFromPreset: proxy("updateSizeFromPreset"),
+    updateTaskElapsedDisplays,
+    updateTaskInState,
+    uploadInputs: proxy("uploadInputs"),
+    uploadSource: proxy("uploadSource")
+  };
+  function initializeLegacyBridge() {
+    installLegacyBridge({
+      state,
+      els,
+      boot: () => bootWebUI(state, els, bridgeMethods),
+      constants: {
+        defaultDocumentTitle: DEFAULT_DOCUMENT_TITLE
+      },
+      methods: bridgeMethods
+    });
+  }
+
+  // codex_image/webui/frontend/legacy-app.js
+  initializeLegacyBridge();
+
+  // codex_image/webui/frontend/src/api-advanced-settings.ts
+  var DEFAULT_IMAGE_MODEL = "gpt-image-2";
+  var DEFAULT_CONCURRENCY = "4";
+  function advancedSettingsElement() {
+    return document.querySelector("#apiAdvancedSettings");
+  }
+  function imageModelInput() {
+    return document.querySelector("#apiImageModel");
+  }
+  function concurrencyInput() {
+    return document.querySelector("#apiImagesConcurrency");
+  }
+  function syncApiAdvancedSettingsSummary() {
+    const modelSummary = document.querySelector("#apiAdvancedImageModelSummary");
+    const concurrencySummary = document.querySelector("#apiAdvancedConcurrencySummary");
+    if (modelSummary) {
+      modelSummary.textContent = imageModelInput()?.value.trim() || DEFAULT_IMAGE_MODEL;
+    }
+    if (concurrencySummary) {
+      concurrencySummary.textContent = concurrencyInput()?.value.trim() || DEFAULT_CONCURRENCY;
+    }
+  }
+  function resetApiAdvancedSettings() {
+    const details = advancedSettingsElement();
+    if (details) details.open = false;
+    syncApiAdvancedSettingsSummary();
+  }
+  var apiAdvancedSettingsInitialized = false;
+  function initApiAdvancedSettingsFeature() {
+    if (apiAdvancedSettingsInitialized) return;
+    apiAdvancedSettingsInitialized = true;
+    imageModelInput()?.addEventListener("input", syncApiAdvancedSettingsSummary);
+    concurrencyInput()?.addEventListener("input", syncApiAdvancedSettingsSummary);
+    syncApiAdvancedSettingsSummary();
+  }
+
+  // codex_image/webui/frontend/src/provider-selection.ts
+  function providerBindingSelectionKey(providerId, bindingId) {
+    return `${providerId}::${bindingId}`;
+  }
+  function providerIsEligible(catalog, provider, modelId) {
+    if (!provider.available || !modelId) return false;
+    const model = catalog.models.find((item) => item.id === modelId);
+    return provider.id !== "codex" || catalog.codex.available && model?.family_id === "gpt-image" && model.id === "gpt-image-2";
+  }
+  function eligibleProviderBindings(catalog, modelId, operation) {
+    if (!modelId) return [];
+    return catalog.providers.flatMap((provider) => {
+      if (!providerIsEligible(catalog, provider, modelId)) return [];
+      return provider.bindings.filter((binding) => binding.canonical_model_id === modelId && binding.operations.includes(operation) && binding.available !== false).map((binding) => ({
+        provider,
+        binding,
+        selectionKey: providerBindingSelectionKey(provider.id, binding.id)
+      }));
+    });
+  }
+  function eligibleProviders(catalog, modelId, operation) {
+    const providers = /* @__PURE__ */ new Map();
+    eligibleProviderBindings(catalog, modelId, operation).forEach(({ provider }) => {
+      providers.set(provider.id, provider);
+    });
+    return [...providers.values()];
+  }
+  function preferredProviderBinding(entries, providerId, codexMode) {
+    const providerEntries = entries.filter((entry) => entry.provider.id === providerId);
+    if (!providerEntries.length) return null;
+    if (providerId === "codex") {
+      return providerEntries.find((entry) => entry.binding.protocol_profile === `codex_${codexMode}`) || providerEntries[0] || null;
+    }
+    return providerEntries[0] || null;
+  }
+  function resolveProviderSelection(entries, lastSelectionKey, lastProviderId, defaultProviderId, codexMode) {
+    if (lastSelectionKey) {
+      const remembered = entries.find((entry) => entry.selectionKey === lastSelectionKey);
+      if (remembered) return remembered;
+    }
+    return preferredProviderBinding(entries, lastProviderId, codexMode) || preferredProviderBinding(entries, defaultProviderId, codexMode) || entries[0] || null;
+  }
+  function resolveProviderId(eligible, lastProviderId, defaultProviderId) {
+    const ids = new Set(eligible.map((provider) => provider.id));
+    if (lastProviderId && ids.has(lastProviderId)) return lastProviderId;
+    if (defaultProviderId && ids.has(defaultProviderId)) return defaultProviderId;
+    return eligible[0]?.id ?? null;
+  }
+  function selectedProviderBinding() {
+    const { state: state5 } = getLegacyBridge();
+    const provider = state5.generationCatalog?.providers.find((item) => item.id === state5.selectedProviderId);
+    const candidates = provider?.bindings.filter((binding) => binding.canonical_model_id === state5.selectedModelId && binding.operations.includes(state5.mode) && binding.available !== false) || [];
+    return candidates.find((binding) => binding.id === state5.selectedProviderBindingId) || candidates[0] || null;
+  }
+  function syncCodexCatalogMode(mode) {
+    const { state: state5 } = getLegacyBridge();
+    const catalog = state5.generationCatalog;
+    if (!catalog) return;
+    catalog.codex.mode = mode;
+    if (state5.selectedProviderId !== "codex") return;
+    const selected = preferredProviderBinding(
+      eligibleProviderBindings(catalog, state5.selectedModelId, state5.mode),
+      "codex",
+      mode
+    );
+    if (selected) state5.selectedProviderBindingId = selected.binding.id;
+    renderProviderSelection();
+  }
+  function settingsTabForProvider(_providerId) {
+    return "api";
+  }
+  function optionLabel(entry) {
+    return entry.binding.display_name || entry.provider.name;
+  }
+  function applyOptionIcon(option2, entry) {
+    if (entry.provider.id === "codex") {
+      option2.dataset.optionIcon = "/static/brand/codex-channel-mark.svg";
+      option2.dataset.optionIconKind = "image";
+      return;
+    }
+    if (entry.provider.icon_emoji) {
+      option2.dataset.optionIcon = entry.provider.icon_emoji;
+      option2.dataset.optionIconKind = "emoji";
+    }
+  }
+  function renderProviderSelection() {
+    const { state: state5, els: els9 } = getLegacyBridge();
+    const select = els9.generationProviderSelect;
+    const catalog = state5.generationCatalog;
+    const entries = catalog ? eligibleProviderBindings(catalog, state5.selectedModelId, state5.mode) : [];
+    const resolved = catalog ? resolveProviderSelection(
+      entries,
+      state5.lastProviderSelectionByModel[state5.selectedModelId || ""],
+      state5.lastProviderByModel[state5.selectedModelId || ""],
+      catalog.default_provider_by_model[state5.selectedModelId || ""],
+      catalog.codex.mode
+    ) : null;
+    state5.selectedProviderId = resolved?.provider.id || null;
+    state5.selectedProviderBindingId = resolved?.binding.id || null;
+    state5.authAvailable = Boolean(resolved);
+    if (select) {
+      select.replaceChildren();
+      if (!entries.length) {
+        const option2 = document.createElement("option");
+        option2.value = "";
+        option2.textContent = catalog ? translate("modelSelection.providerUnavailable") : translate("modelSelection.catalogUnavailable");
+        select.append(option2);
+      } else {
+        for (const entry of entries) {
+          const option2 = document.createElement("option");
+          option2.value = entry.selectionKey;
+          option2.textContent = optionLabel(entry);
+          option2.title = optionLabel(entry);
+          applyOptionIcon(option2, entry);
+          select.append(option2);
+        }
+      }
+      select.value = resolved?.selectionKey || "";
+      select.disabled = !resolved;
+      select.title = resolved ? optionLabel(resolved) : "";
+      select.setAttribute("aria-invalid", resolved ? "false" : "true");
+      syncThemedSelect(select);
+    }
+    if (els9.runButton) els9.runButton.disabled = !resolved;
+  }
+  function selectGenerationProvider(selectionOrProviderId) {
+    const { state: state5 } = getLegacyBridge();
+    const catalog = state5.generationCatalog;
+    if (!catalog || !state5.selectedModelId) return;
+    const entries = eligibleProviderBindings(catalog, state5.selectedModelId, state5.mode);
+    const selected = entries.find((entry) => entry.selectionKey === selectionOrProviderId) || preferredProviderBinding(entries, selectionOrProviderId, catalog.codex.mode);
+    if (!selected) {
+      renderProviderSelection();
+      return;
+    }
+    state5.selectedProviderId = selected.provider.id;
+    state5.selectedProviderBindingId = selected.binding.id;
+    state5.lastProviderByModel[state5.selectedModelId] = selected.provider.id;
+    state5.lastProviderSelectionByModel[state5.selectedModelId] = selected.selectionKey;
+    getLegacyBridge().methods.persistModelSelection?.();
+    renderProviderSelection();
+    getLegacyBridge().methods.updateModeSpecificSettings?.();
+    getLegacyBridge().methods.updateRequestPreview?.();
+  }
+  function initProviderSelectionFeature() {
+    Object.assign(getLegacyBridge().methods, {
+      eligibleProviders,
+      eligibleProviderBindings,
+      resolveProviderId,
+      resolveProviderSelection,
+      settingsTabForProvider,
+      renderProviderSelection,
+      selectedProviderBinding,
+      selectGenerationProvider,
+      syncCodexCatalogMode
+    });
+  }
+
+  // codex_image/webui/frontend/src/mode-settings-visibility.ts
+  function resolveModeSettingsVisibility({
+    catalogAvailable,
+    modelId,
+    protocolProfile,
+    legacyDirectApi
+  }) {
+    if (!catalogAvailable) {
+      return {
+        showMainModel: !legacyDirectApi,
+        showApiDirectNotice: legacyDirectApi,
+        showPromptFidelity: true
+      };
+    }
+    if (modelId !== "gpt-image-2") {
+      return {
+        showMainModel: false,
+        showApiDirectNotice: false,
+        showPromptFidelity: false
+      };
+    }
+    if (!protocolProfile) {
+      return {
+        showMainModel: false,
+        showApiDirectNotice: false,
+        showPromptFidelity: true
+      };
+    }
+    const usesResponses = protocolProfile.endsWith("_responses");
+    return {
+      showMainModel: usesResponses,
+      showApiDirectNotice: !usesResponses,
+      showPromptFidelity: true
+    };
+  }
+
+  // codex_image/webui/frontend/src/api-mode-settings.ts
+  var bridge = getLegacyBridge();
+  var els2 = bridge.els;
+  function legacyMethod2(name, ...args) {
+    const method = getLegacyBridge().methods[name];
+    if (typeof method !== "function") {
+      throw new Error("Legacy method " + name + " is not initialized");
+    }
+    return method(...args);
+  }
+  function currentAuthSource() {
+    return legacyMethod2("currentAuthSource");
+  }
+  function currentApiMode() {
+    return legacyMethod2("currentApiMode");
+  }
+  function currentCodexMode() {
+    return legacyMethod2("currentCodexMode");
+  }
+  function setModeSpecificElementVisibility(element, visible) {
+    if (!element) return;
+    element.setAttribute("aria-hidden", visible ? "false" : "true");
+    if (visible) {
+      element.classList.remove("hidden");
+      element.classList.remove("mode-collapsed");
+      return;
+    }
+    element.classList.add("mode-collapsed");
+    element.classList.add("hidden");
+  }
+  function applyModeSettingsVisibility(visibility) {
+    const showModeSettings = visibility.showMainModel || visibility.showApiDirectNotice || visibility.showPromptFidelity;
+    setModeSpecificElementVisibility(els2.modeSettingsSlot, showModeSettings);
+    setModeSpecificElementVisibility(els2.modeSpecificSettings, showModeSettings);
+    setModeSpecificElementVisibility(els2.mainModelField, visibility.showMainModel);
+    setModeSpecificElementVisibility(els2.apiDirectSettingsNotice, visibility.showApiDirectNotice);
+    setModeSpecificElementVisibility(els2.promptFidelityField, visibility.showPromptFidelity);
+  }
+  function updateWebSearchAvailability(authSource = currentAuthSource()) {
+    const binding = selectedProviderBinding();
+    const supported = binding ? binding.protocol_profile.endsWith("_responses") : authSource === "api" ? currentApiMode() === "responses" : currentCodexMode() === "responses";
+    if (els2.webSearch) {
+      const wasChecked = Boolean(els2.webSearch.checked);
+      els2.webSearch.disabled = !supported;
+      if (!supported) els2.webSearch.checked = false;
+      if (wasChecked && !els2.webSearch.checked) {
+        els2.webSearch.dispatchEvent(new Event("input"));
+      }
+    }
+    if (els2.webSearchField) {
+      els2.webSearchField.classList.toggle("is-disabled", !supported);
+      els2.webSearchField.setAttribute("aria-disabled", supported ? "false" : "true");
+    }
+  }
+  function setModeSettingsVariant(isDirectApi, visibility) {
+    const slot = els2.modeSettingsSlot;
+    if (slot) {
+      slot.style.height = "";
+      slot.classList.remove("is-transitioning");
+    }
+    applyModeSettingsVisibility(visibility || resolveModeSettingsVisibility({
+      catalogAvailable: false,
+      modelId: null,
+      protocolProfile: null,
+      legacyDirectApi: Boolean(isDirectApi)
+    }));
+  }
+  function updateModeSpecificSettings(authSource = currentAuthSource()) {
+    const binding = selectedProviderBinding();
+    const isDirectApi = binding ? !binding.protocol_profile.endsWith("_responses") : authSource === "api" && currentApiMode() !== "responses" || authSource === "codex" && currentCodexMode() !== "responses";
+    setModeSettingsVariant(isDirectApi, resolveModeSettingsVisibility({
+      catalogAvailable: Boolean(getLegacyBridge().state.generationCatalog),
+      modelId: getLegacyBridge().state.selectedModelId,
+      protocolProfile: binding?.protocol_profile || null,
+      legacyDirectApi: isDirectApi
+    }));
+    updateWebSearchAvailability(authSource);
+    legacyMethod2("syncReferenceFileAvailability");
+    const refreshOutputSettingsLock = getLegacyBridge().methods.refreshOutputSettingsLock;
+    if (typeof refreshOutputSettingsLock === "function") refreshOutputSettingsLock();
+  }
+
+  // codex_image/webui/frontend/src/auth-source.ts
+  var bridge2 = getLegacyBridge();
+  var state2 = bridge2.state;
+  var els3 = bridge2.els;
+  function legacyMethod3(name, ...args) {
+    const method = getLegacyBridge().methods[name];
+    if (typeof method !== "function") {
+      throw new Error("Legacy method " + name + " is not initialized");
+    }
+    return method(...args);
+  }
+  function setStatus2(message, type) {
+    legacyMethod3("setStatus", message, type);
+  }
+  function updateRequestPreview() {
+    legacyMethod3("updateRequestPreview");
+  }
+  function currentApiMode2() {
+    return legacyMethod3("currentApiMode");
+  }
+  function currentCodexMode2() {
+    return legacyMethod3("currentCodexMode");
+  }
+  function currentApiProviderLabel() {
+    return legacyMethod3("currentApiProviderLabel");
+  }
+  function apiModeLabel(mode) {
+    return legacyMethod3("apiModeLabel", mode);
+  }
+  function codexModeLabel(mode) {
+    return legacyMethod3("codexModeLabel", mode);
+  }
+  async function refreshHealth() {
+    try {
+      const response = await fetch("/api/health");
+      const data = await response.json();
+      if (!state2.generationCatalog) state2.authAvailable = Boolean(data.auth_available);
+      state2.authStatus = data.auth || null;
+      renderAuthSource(state2.authStatus);
+      els3.apiStatus.className = `status-dot ${state2.authAvailable ? "ok" : "error"}`;
+      if (state2.generationCatalog) getLegacyBridge().methods.renderProviderSelection?.();
+      els3.runButton.disabled = !state2.authAvailable;
+      if (!state2.authAvailable && !state2.generationCatalog) {
+        setStatus2(translate("auth.missingCodexSession"), "error");
+      }
+      updateRequestPreview();
+    } catch (error) {
+      if (state2.generationCatalog) {
+        getLegacyBridge().methods.renderProviderSelection?.();
+        getLegacyBridge().methods.updateModeSpecificSettings?.();
+        updateRequestPreview();
+        return;
+      }
+      state2.authAvailable = false;
+      els3.apiStatus.className = "status-dot error";
+      els3.runButton.disabled = true;
+      setStatus2(error.message, "error");
+    }
+  }
+  async function applyAuthSource(source) {
+    state2.pendingAuthSource = source;
+    applyAuthSourceSelection(source);
+    updateRequestPreview();
+    try {
+      const response = await fetch("/api/auth", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ source })
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.detail || translate("auth.switchFailed"));
+      }
+      state2.pendingAuthSource = null;
+      state2.authStatus = data;
+      if (!state2.generationCatalog) state2.authAvailable = Boolean(data.auth_available);
+      renderAuthSource(data);
+      if (state2.generationCatalog) getLegacyBridge().methods.renderProviderSelection?.();
+      getLegacyBridge().methods.updateModeSpecificSettings?.();
+      els3.apiStatus.className = `status-dot ${state2.authAvailable ? "ok" : "error"}`;
+      els3.runButton.disabled = !state2.authAvailable;
+      setStatus2(authSourceDetailText(data), state2.authAvailable ? "ok" : "error");
+      updateRequestPreview();
+      return true;
+    } catch (error) {
+      state2.pendingAuthSource = null;
+      renderAuthSource(state2.authStatus);
+      if (state2.generationCatalog) getLegacyBridge().methods.renderProviderSelection?.();
+      getLegacyBridge().methods.updateModeSpecificSettings?.();
+      updateRequestPreview();
+      setStatus2(error.message || translate("auth.switchFailed"), "error");
+      return false;
+    }
+  }
+  async function setAuthSource(source, _anchor) {
+    const normalized = source === "api" ? "api" : "codex";
+    return await applyAuthSource(normalized);
+  }
+  function handleAuthSourceClick(event) {
+    const button = event.target.closest?.("[data-auth-source]");
+    if (!button) return;
+    const source = button.dataset.authSource;
+    void setAuthSource(source, button);
+  }
+  function renderAuthSource(auth) {
+    const selected = state2.pendingAuthSource || auth?.selected_source || "codex";
+    applyAuthSourceSelection(selected);
+    if (els3.authSourceDetail) {
+      const text = auth ? authSourceDetailText(auth) : translate("auth.checking");
+      els3.authSourceDetail.textContent = text;
+      els3.authSourceDetail.title = text;
+    }
+  }
+  function applyAuthSourceSelection(source) {
+    const selected = source || "codex";
+    els3.authSourceGroup?.querySelectorAll("[data-auth-source]").forEach((button) => {
+      const active = button.dataset.authSource === selected;
+      button.classList.toggle("active", active);
+      button.setAttribute("aria-pressed", active ? "true" : "false");
+    });
+    els3.apiProviderQuick?.classList.add("hidden");
+    updateModeSpecificSettings(selected);
+  }
+  function authSourceDetailText(auth) {
+    if (!auth) return translate("auth.checking");
+    const selected = sourceLabel(auth.selected_source);
+    const effectiveApi = auth.effective_source === "api";
+    if (!auth.auth_available) {
+      if (auth.selected_source === "api" || effectiveApi) {
+        return formatTranslation("auth.sourceUnavailable", { source: selected });
+      }
+      return formatTranslation("auth.sourceUnavailable", { source: selected });
+    }
+    if (effectiveApi) {
+      const provider = currentApiProviderLabel();
+      const mode = apiModeLabel(currentApiMode2());
+      return `API \xB7 ${provider} \xB7 ${mode}`;
+    }
+    return codexModeLabel(currentCodexMode2());
+  }
+  function sourceLabel(source) {
+    if (source === "codex") return "Codex";
+    if (source === "api") return "API";
+    return translate("auth.notActive");
+  }
+  function currentAuthSource2() {
+    if (state2.selectedProviderId) return state2.selectedProviderId === "codex" ? "codex" : "api";
+    return state2.pendingAuthSource || state2.authStatus?.selected_source || "codex";
+  }
+  function isDirectApiMode(authSource = currentAuthSource2()) {
+    return authSource === "api" && currentApiMode2() !== "responses" || authSource === "codex" && currentCodexMode2() !== "responses";
+  }
+
+  // codex_image/webui/frontend/src/aspect-ratio-controls.ts
+  var PREFERRED_RATIO_SLOTS = [
+    ["1:1", "21:9"],
+    ["4:5", "5:4"],
+    ["3:4", "4:3"],
+    ["2:3", "3:2"],
+    ["9:16", "16:9"],
+    ["1:4", "4:1"],
+    ["1:8", "8:1"],
+    ["1:2", "2:1"],
+    ["9:19.5", "19.5:9"],
+    ["9:20", "20:9"]
+  ];
+  function parsedRatio(value) {
+    const match = value.trim().match(/^(\d+(?:\.\d+)?):(\d+(?:\.\d+)?)$/);
+    if (!match) return null;
+    const width = Number(match[1]);
+    const height = Number(match[2]);
+    if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) return null;
+    return { width, height };
+  }
+  function reciprocal(left, right) {
+    const a = parsedRatio(left);
+    const b = parsedRatio(right);
+    if (!a || !b) return false;
+    return Math.abs(a.width * b.width - a.height * b.height) < 1e-9;
+  }
+  function aspectRatioSlots(values) {
+    const available = new Set(values);
+    const used = /* @__PURE__ */ new Set();
+    const slots = [];
+    PREFERRED_RATIO_SLOTS.forEach((preferred, index) => {
+      const matched = preferred.filter((value) => available.has(value) && !used.has(value));
+      if (!matched.length) return;
+      if (index === 0 && matched.length === 1 && matched[0] === "1:1" && available.has("auto")) {
+        matched.push("auto");
+      }
+      matched.forEach((value) => used.add(value));
+      slots.push({ values: [...matched] });
+    });
+    values.forEach((value) => {
+      if (used.has(value)) return;
+      used.add(value);
+      const pair = values.find((candidate) => !used.has(candidate) && reciprocal(value, candidate));
+      if (pair) used.add(pair);
+      slots.push({ values: pair ? [value, pair] : [value] });
+    });
+    return slots;
+  }
+  function aspectRatioRect(value) {
+    const ratio = parsedRatio(value);
+    if (!ratio) return null;
+    const maximum = 16;
+    const minimum = 2;
+    let width = maximum;
+    let height = maximum;
+    if (ratio.width > ratio.height) height = Math.max(minimum, maximum * ratio.height / ratio.width);
+    else if (ratio.height > ratio.width) width = Math.max(minimum, maximum * ratio.width / ratio.height);
+    return {
+      x: (20 - width) / 2,
+      y: (20 - height) / 2,
+      width,
+      height
+    };
+  }
+  var SVG_NAMESPACE = "http://www.w3.org/2000/svg";
+  function createAspectRatioIcon(value) {
+    const geometry = aspectRatioRect(value);
+    if (!geometry) return null;
+    const svg = document.createElementNS(SVG_NAMESPACE, "svg");
+    svg.classList.add("aspect-ratio-icon");
+    svg.setAttribute("viewBox", "0 0 20 20");
+    svg.setAttribute("aria-hidden", "true");
+    svg.setAttribute("focusable", "false");
+    const rect = document.createElementNS(SVG_NAMESPACE, "rect");
+    rect.setAttribute("x", String(geometry.x));
+    rect.setAttribute("y", String(geometry.y));
+    rect.setAttribute("width", String(geometry.width));
+    rect.setAttribute("height", String(geometry.height));
+    rect.setAttribute("rx", "1");
+    rect.setAttribute("fill", "none");
+    rect.setAttribute("stroke", "currentColor");
+    rect.setAttribute("stroke-width", "1.35");
+    rect.setAttribute("vector-effect", "non-scaling-stroke");
+    svg.append(rect);
+    return svg;
+  }
+
+  // codex_image/webui/frontend/src/segmented-indicator.ts
+  var HOST_SELECTORS = [
+    ".radio-group:not(.ratio-group):not(.model-parameter-segmented-multiline):not(.model-aspect-ratio-grid)",
+    "#authSourceGroup",
+    "#systemSettingsTabs",
+    ".history-view-toggle",
+    ".history-sort-toggle"
+  ];
+  var HOST_SELECTOR = HOST_SELECTORS.join(", ");
+  var BUTTON_SELECTOR = ".radio-btn, .auth-source-button, .system-settings-tab, .history-view-button, .history-sort-button";
+  var INDICATOR_CLASS = "segmented-indicator";
+  var HOST_CLASS = "segmented-indicator-host";
+  var READY_CLASS = "segmented-indicator-ready";
+  var initializedHosts = /* @__PURE__ */ new WeakSet();
+  var scheduledFrames = /* @__PURE__ */ new WeakMap();
+  var segmentedIndicatorsInitialized = false;
+  var resizeObserver = null;
+  function activeSegment(host) {
+    return host.querySelector(".radio-btn.active, .auth-source-button.active, .system-settings-tab.active, .history-view-button.active, .history-sort-button.active");
+  }
+  function ensureIndicator(host) {
+    const existing = Array.from(host.children).find((child) => child.classList.contains(INDICATOR_CLASS));
+    if (existing instanceof HTMLElement) return existing;
+    const indicator = document.createElement("span");
+    indicator.className = INDICATOR_CLASS;
+    indicator.setAttribute("aria-hidden", "true");
+    host.insertBefore(indicator, host.firstElementChild);
+    return indicator;
+  }
+  function updateIndicator(host) {
+    scheduledFrames.delete(host);
+    if (!host.isConnected) return false;
+    const indicator = ensureIndicator(host);
+    const active = activeSegment(host);
+    if (!active) {
+      host.classList.remove(READY_CLASS);
+      indicator.style.setProperty("--segmented-indicator-opacity", "0");
+      return false;
+    }
+    const hostRect = host.getBoundingClientRect();
+    const activeRect = active.getBoundingClientRect();
+    if (hostRect.width <= 0 || hostRect.height <= 0 || activeRect.width <= 0 || activeRect.height <= 0) {
+      host.classList.remove(READY_CLASS);
+      indicator.style.setProperty("--segmented-indicator-opacity", "0");
+      return false;
+    }
+    const hostStyle = window.getComputedStyle(host);
+    const borderLeft = Number.parseFloat(hostStyle.borderLeftWidth) || 0;
+    const borderTop = Number.parseFloat(hostStyle.borderTopWidth) || 0;
+    indicator.style.setProperty("--segmented-indicator-x", `${activeRect.left - hostRect.left - borderLeft}px`);
+    indicator.style.setProperty("--segmented-indicator-y", `${activeRect.top - hostRect.top - borderTop}px`);
+    indicator.style.setProperty("--segmented-indicator-width", `${activeRect.width}px`);
+    indicator.style.setProperty("--segmented-indicator-height", `${activeRect.height}px`);
+    indicator.style.setProperty("--segmented-indicator-opacity", "1");
+    return true;
+  }
+  function commitIndicatorUpdate(host) {
+    if (updateIndicator(host)) host.classList.add(READY_CLASS);
+  }
+  function scheduleIndicatorUpdate(host) {
+    if (scheduledFrames.has(host)) return;
+    scheduledFrames.set(host, window.requestAnimationFrame(() => commitIndicatorUpdate(host)));
+  }
+  function watchButtonClassChanges(host) {
+    const observer = new MutationObserver(() => scheduleIndicatorUpdate(host));
+    host.querySelectorAll(BUTTON_SELECTOR).forEach((button) => {
+      observer.observe(button, { attributes: true, attributeFilter: ["class"] });
+    });
+  }
+  function initHost(host) {
+    if (initializedHosts.has(host)) return false;
+    initializedHosts.add(host);
+    host.classList.add(HOST_CLASS);
+    ensureIndicator(host);
+    host.addEventListener("click", () => scheduleIndicatorUpdate(host));
+    watchButtonClassChanges(host);
+    if ("ResizeObserver" in window) {
+      resizeObserver || (resizeObserver = new ResizeObserver((entries) => {
+        entries.forEach((entry) => scheduleIndicatorUpdate(entry.target));
+      }));
+      resizeObserver.observe(host);
+    }
+    commitIndicatorUpdate(host);
+    return true;
+  }
+  function refreshSegmentedIndicators() {
+    document.querySelectorAll(HOST_SELECTOR).forEach((host) => {
+      if (!initHost(host)) scheduleIndicatorUpdate(host);
+    });
+  }
+  function initSegmentedIndicatorFeature() {
+    if (segmentedIndicatorsInitialized) return;
+    segmentedIndicatorsInitialized = true;
+    document.querySelectorAll(HOST_SELECTOR).forEach(initHost);
+    window.addEventListener("resize", refreshSegmentedIndicators, { passive: true });
+    document.fonts?.ready?.then(refreshSegmentedIndicators).catch(() => {
+    });
+  }
+
+  // codex_image/webui/frontend/src/model-parameters.ts
+  function cloneValue(value) {
+    if (Array.isArray(value)) return value.map(cloneValue);
+    if (value && typeof value === "object") {
+      return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, cloneValue(item)]));
+    }
+    return value;
+  }
+  function gptSizeValid(value) {
+    if (typeof value !== "string") return false;
+    const match = value.match(/^(\d+)x(\d+)$/i);
+    if (!match) return false;
+    const width = Number(match[1]);
+    const height = Number(match[2]);
+    if (!Number.isInteger(width) || !Number.isInteger(height)) return false;
+    if (width < 16 || width > 3840 || height < 16 || height > 3840) return false;
+    if (width % 16 !== 0 || height % 16 !== 0) return false;
+    if (Math.max(width, height) / Math.min(width, height) > 3) return false;
+    const pixels = width * height;
+    return pixels >= 655360 && pixels <= 8294400;
+  }
+  function parameterValueValid(definition, value) {
+    if (definition.id === "canvas.size" && definition.allowed_values.length === 0) {
+      return gptSizeValid(value);
+    }
+    const typeValid = definition.value_type === "string" ? typeof value === "string" : definition.value_type === "integer" ? typeof value === "number" && Number.isInteger(value) : definition.value_type === "boolean" ? typeof value === "boolean" : definition.value_type === "object" ? Boolean(value) && typeof value === "object" && !Array.isArray(value) : false;
+    if (!typeValid) return false;
+    if (definition.object_choices?.length && value && typeof value === "object" && !Array.isArray(value)) {
+      const choices = new Map(definition.object_choices.map((row) => [row.key, row]));
+      for (const [key, item] of Object.entries(value)) {
+        const row = choices.get(key);
+        if (row && (typeof item !== "string" || !row.allowed_values.includes(item))) return false;
+      }
+    }
+    if (definition.allowed_values.length && !definition.allowed_values.includes(value)) return false;
+    if (typeof value === "number") {
+      if (definition.minimum !== null && value < definition.minimum) return false;
+      if (definition.maximum !== null && value > definition.maximum) return false;
+      if (definition.step !== null) {
+        const base = definition.minimum ?? 0;
+        const quotient = (value - base) / definition.step;
+        if (Math.abs(quotient - Math.round(quotient)) > 1e-9) return false;
+      }
+    }
+    return true;
+  }
+  function nextObjectChoiceValue(definition, value, key, next) {
+    const row = definition.object_choices?.find((item) => item.key === key);
+    if (!row || !row.allowed_values.includes(next)) return { ...value };
+    const updated = { ...value };
+    if (next === row.default) delete updated[key];
+    else updated[key] = next;
+    return updated;
+  }
+  function managedPresetKeys(definition) {
+    return new Set(definition.object_presets?.flatMap((preset) => Object.keys(preset.value)) || []);
+  }
+  function matchingObjectPreset(definition, value) {
+    const presets = definition.object_presets || [];
+    const managedKeys = managedPresetKeys(definition);
+    const presentManagedKeys = [...managedKeys].filter((key) => key in value);
+    if (presentManagedKeys.length === 0) {
+      return presets.find((preset) => preset.matches_empty) || null;
+    }
+    return presets.find((preset) => [...managedKeys].every((key) => key in value && key in preset.value && value[key] === preset.value[key])) || null;
+  }
+  function nextObjectPresetValue(definition, value, preset) {
+    if (!definition.object_presets?.some((item) => item.id === preset.id)) return { ...value };
+    const updated = { ...value };
+    managedPresetKeys(definition).forEach((key) => delete updated[key]);
+    Object.assign(updated, cloneValue(preset.value));
+    return updated;
+  }
+  function conditionMatches(condition, values) {
+    const actual = values[condition.parameter_id];
+    if (condition.operator === "equals") return actual === condition.value;
+    if (condition.operator === "not_equals") return actual !== condition.value;
+    return Array.isArray(condition.value) && condition.value.includes(actual);
+  }
+  function initializeParameterDraft(model, previous = {}) {
+    const values = {};
+    const defaulted = [];
+    const definitions = new Map(model.parameters.map((definition) => [definition.id, definition]));
+    for (const definition of model.parameters) {
+      if (!(definition.id in previous)) {
+        values[definition.id] = cloneValue(definition.default);
+        continue;
+      }
+      const prior = previous[definition.id];
+      if (parameterValueValid(definition, prior)) {
+        values[definition.id] = cloneValue(prior);
+      } else {
+        const replacement = cloneValue(definition.default);
+        values[definition.id] = replacement;
+        defaulted.push({ id: definition.id, previous: cloneValue(prior), replacement: cloneValue(replacement) });
+      }
+    }
+    const dropped = Object.entries(previous).filter(([id]) => !definitions.has(id)).map(([id, prior]) => ({ id, previous: cloneValue(prior) }));
+    return { values, defaulted, dropped };
+  }
+  function parameterAffectsVisibility(model, parameterId) {
+    return model.parameters.some((definition) => definition.visible_when.some(
+      (condition) => condition.parameter_id === parameterId
+    ));
+  }
+  function fieldShell(definition) {
+    const field = document.createElement("div");
+    field.className = `field model-parameter-field${definition.full_width ? " full-width" : ""}`;
+    field.dataset.parameterId = definition.id;
+    const label = document.createElement("span");
+    label.className = "model-parameter-label";
+    label.textContent = translate(definition.label_key);
+    field.append(label);
+    return field;
+  }
+  function setReadOnly(control, readOnly) {
+    if (!readOnly) return;
+    control.disabled = true;
+    control.tabIndex = -1;
+    control.setAttribute("aria-readonly", "true");
+  }
+  function interactiveModel(context) {
+    if (context.readOnly) return context.model;
+    const { state: state5 } = getLegacyBridge();
+    return state5.generationCatalog?.models.find((model) => model.id === state5.selectedModelId) || context.model;
+  }
+  function commitValue(context, definition, value, rerender = false) {
+    if (context.readOnly) return;
+    const model = interactiveModel(context);
+    const currentDefinition = model.parameters.find((item) => item.id === definition.id);
+    if (!currentDefinition) return;
+    setParameterValue(model.id, currentDefinition.id, value);
+    if (rerender) renderModelParameters(model, { readOnly: false });
+  }
+  function renderSelect(definition, value, context) {
+    const field = fieldShell(definition);
+    const select = document.createElement("select");
+    select.className = "control";
+    select.setAttribute("aria-label", translate(definition.label_key));
+    definition.allowed_values.forEach((allowed) => {
+      const option2 = document.createElement("option");
+      option2.value = String(allowed);
+      option2.textContent = String(allowed);
+      select.append(option2);
+    });
+    select.value = String(value);
+    setReadOnly(select, context.readOnly);
+    select.addEventListener("change", () => commitValue(
+      context,
+      definition,
+      select.value,
+      parameterAffectsVisibility(interactiveModel(context), definition.id)
+    ));
+    field.append(select);
+    return field;
+  }
+  function renderSegmented(definition, value, context) {
+    const field = fieldShell(definition);
+    if (definition.allowed_values.length === 1) {
+      const staticValue = document.createElement("div");
+      staticValue.className = "control model-parameter-static-value";
+      staticValue.textContent = String(definition.allowed_values[0]);
+      staticValue.setAttribute("aria-label", translate(definition.label_key));
+      field.append(staticValue);
+      return field;
+    }
+    const group = document.createElement("div");
+    const multiline = definition.allowed_values.length > 4;
+    group.className = `radio-group model-parameter-segmented${multiline ? " model-parameter-segmented-multiline" : ""}`;
+    group.setAttribute("role", "group");
+    group.setAttribute("aria-label", translate(definition.label_key));
+    definition.allowed_values.forEach((allowed) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = `radio-btn${allowed === value ? " active" : ""}`;
+      button.textContent = String(allowed);
+      button.disabled = context.readOnly;
+      button.tabIndex = context.readOnly ? -1 : 0;
+      button.setAttribute("aria-pressed", allowed === value ? "true" : "false");
+      button.addEventListener("click", () => {
+        if (context.readOnly || button.classList.contains("active")) return;
+        group.querySelectorAll(".radio-btn").forEach((item) => {
+          const active = item === button;
+          item.classList.toggle("active", active);
+          item.setAttribute("aria-pressed", active ? "true" : "false");
+        });
+        commitValue(
+          context,
+          definition,
+          allowed,
+          parameterAffectsVisibility(interactiveModel(context), definition.id)
+        );
+        refreshSegmentedIndicators();
+      });
+      group.append(button);
+    });
+    field.append(group);
+    return field;
+  }
+  function renderBooleanSegmented(definition, value, context) {
+    const field = fieldShell(definition);
+    const group = document.createElement("div");
+    group.className = "radio-group model-parameter-segmented model-parameter-boolean-segmented";
+    group.setAttribute("role", "group");
+    group.setAttribute("aria-label", translate(definition.label_key));
+    const choices = [
+      { value: false, label: translate("output.lock.disabled") },
+      { value: true, label: translate("output.lock.enabled") }
+    ];
+    choices.forEach((choice) => {
+      const button = document.createElement("button");
+      const active = choice.value === Boolean(value);
+      button.type = "button";
+      button.className = `radio-btn${active ? " active" : ""}`;
+      button.textContent = choice.label;
+      button.disabled = context.readOnly;
+      button.tabIndex = context.readOnly ? -1 : 0;
+      button.setAttribute("aria-pressed", active ? "true" : "false");
+      button.addEventListener("click", () => {
+        if (context.readOnly || button.classList.contains("active")) return;
+        group.querySelectorAll(".radio-btn").forEach((item) => {
+          const isActive = item === button;
+          item.classList.toggle("active", isActive);
+          item.setAttribute("aria-pressed", isActive ? "true" : "false");
+        });
+        commitValue(
+          context,
+          definition,
+          choice.value,
+          parameterAffectsVisibility(interactiveModel(context), definition.id)
+        );
+        refreshSegmentedIndicators();
+      });
+      group.append(button);
+    });
+    field.append(group);
+    return field;
+  }
+  function renderToggle(definition, value, context) {
+    const field = fieldShell(definition);
+    const label = document.createElement("label");
+    label.className = "web-search-toggle model-parameter-toggle";
+    const input = document.createElement("input");
+    input.type = "checkbox";
+    input.checked = Boolean(value);
+    input.setAttribute("aria-label", translate(definition.label_key));
+    setReadOnly(input, context.readOnly);
+    const track = document.createElement("span");
+    track.className = "web-search-toggle-track";
+    track.setAttribute("aria-hidden", "true");
+    const text = document.createElement("span");
+    text.className = "web-search-toggle-text";
+    text.textContent = translate(input.checked ? "output.lock.enabled" : "output.lock.disabled");
+    input.addEventListener("change", () => {
+      text.textContent = translate(input.checked ? "output.lock.enabled" : "output.lock.disabled");
+      commitValue(
+        context,
+        definition,
+        input.checked,
+        parameterAffectsVisibility(interactiveModel(context), definition.id)
+      );
+    });
+    label.append(input, track, text);
+    field.append(label);
+    return field;
+  }
+  function renderNumeric(definition, value, context, slider) {
+    const field = fieldShell(definition);
+    const input = document.createElement("input");
+    input.className = slider ? "slider" : "control";
+    input.type = slider ? "range" : "number";
+    input.value = String(value);
+    input.setAttribute("aria-label", translate(definition.label_key));
+    if (definition.minimum !== null) input.min = String(definition.minimum);
+    if (definition.maximum !== null) input.max = String(definition.maximum);
+    if (definition.step !== null) input.step = String(definition.step);
+    setReadOnly(input, context.readOnly);
+    const output = document.createElement("output");
+    output.className = "model-parameter-number-value";
+    output.textContent = String(value);
+    const error = document.createElement("span");
+    error.className = "model-parameter-error hidden";
+    error.setAttribute("role", "alert");
+    input.addEventListener("input", () => {
+      const next = Number(input.value);
+      output.textContent = input.value;
+      const message = parameterValueValid(definition, next) ? "" : translate("modelParameters.invalidValue");
+      error.textContent = message;
+      error.classList.toggle("hidden", !message);
+      setValidationError(interactiveModel(context).id, definition.id, message);
+      if (!message) commitValue(context, definition, next);
+    });
+    if (slider) field.append(input, output, error);
+    else field.append(input, error);
+    return field;
+  }
+  function renderSlider(definition, value, context) {
+    return renderNumeric(definition, value, context, true);
+  }
+  function renderNumber(definition, value, context) {
+    return renderNumeric(definition, value, context, false);
+  }
+  function setValidationError(modelId, parameterId, message) {
+    const { state: state5, els: els9 } = getLegacyBridge();
+    const errors = state5.parameterValidationErrorsByModel[modelId] || {};
+    if (message) errors[parameterId] = message;
+    else delete errors[parameterId];
+    state5.parameterValidationErrorsByModel[modelId] = errors;
+    if (els9.runButton) els9.runButton.disabled = !state5.authAvailable || Object.keys(errors).length > 0;
+  }
+  function renderText(definition, value, context) {
+    const field = fieldShell(definition);
+    const input = definition.value_type === "object" ? document.createElement("textarea") : document.createElement("input");
+    input.className = "control model-parameter-text";
+    input.setAttribute("aria-label", translate(definition.label_key));
+    if (input instanceof HTMLTextAreaElement) {
+      input.rows = 4;
+      input.value = JSON.stringify(value, null, 2);
+    } else {
+      input.type = "text";
+      input.value = String(value);
+    }
+    setReadOnly(input, context.readOnly);
+    const error = document.createElement("span");
+    error.className = "model-parameter-error hidden";
+    error.setAttribute("role", "alert");
+    const handle = () => {
+      if (context.readOnly) return;
+      if (definition.value_type !== "object") {
+        const message2 = parameterValueValid(definition, input.value) ? "" : translate("modelParameters.invalidValue");
+        error.textContent = message2;
+        error.classList.toggle("hidden", !message2);
+        setValidationError(interactiveModel(context).id, definition.id, message2);
+        if (!message2) commitValue(context, definition, input.value);
+        return;
+      }
+      let parsed;
+      let message = "";
+      try {
+        parsed = JSON.parse(input.value);
+        if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) message = translate("modelParameters.objectRequired");
+      } catch {
+        message = translate("modelParameters.invalidJson");
+      }
+      error.textContent = message;
+      error.classList.toggle("hidden", !message);
+      setValidationError(interactiveModel(context).id, definition.id, message);
+      if (!message) commitValue(context, definition, parsed);
+    };
+    input.addEventListener("input", handle);
+    input.addEventListener("blur", handle);
+    field.append(input, error);
+    return field;
+  }
+  function renderNotice(definition, value, _context) {
+    const notice = document.createElement("p");
+    notice.className = `model-parameter-notice${definition.full_width ? " full-width" : ""}`;
+    notice.dataset.parameterId = definition.id;
+    notice.textContent = String(value || translate(definition.label_key));
+    return notice;
+  }
+  function renderChoiceGrid(definition, value, context) {
+    const field = fieldShell(definition);
+    field.classList.add("model-parameter-choice-grid");
+    const current = value && typeof value === "object" && !Array.isArray(value) ? value : {};
+    definition.object_choices?.forEach((row) => {
+      const choiceRow = document.createElement("div");
+      choiceRow.className = "model-parameter-choice-row";
+      const label = document.createElement("span");
+      label.className = "model-parameter-choice-label";
+      label.textContent = translate(row.label_key);
+      const group = document.createElement("div");
+      group.className = "radio-group model-parameter-choice-options model-parameter-segmented-multiline";
+      group.setAttribute("role", "group");
+      group.setAttribute("aria-label", translate(row.label_key));
+      const selected = typeof current[row.key] === "string" ? String(current[row.key]) : row.default;
+      row.allowed_values.forEach((allowed, index) => {
+        const button = document.createElement("button");
+        const active = selected === allowed;
+        button.type = "button";
+        button.className = `radio-btn${active ? " active" : ""}`;
+        button.textContent = translate(row.label_keys[index] || row.label_key);
+        button.title = allowed;
+        button.disabled = context.readOnly;
+        button.tabIndex = context.readOnly ? -1 : 0;
+        button.setAttribute("aria-pressed", active ? "true" : "false");
+        button.addEventListener("click", () => {
+          if (context.readOnly || button.classList.contains("active")) return;
+          group.querySelectorAll(".radio-btn").forEach((item) => {
+            const isActive = item === button;
+            item.classList.toggle("active", isActive);
+            item.setAttribute("aria-pressed", isActive ? "true" : "false");
+          });
+          const nextValue = nextObjectChoiceValue(definition, current, row.key, allowed);
+          Object.keys(current).forEach((key) => delete current[key]);
+          Object.assign(current, nextValue);
+          commitValue(context, definition, nextValue);
+        });
+        group.append(button);
+      });
+      choiceRow.append(label, group);
+      field.append(choiceRow);
+    });
+    return field;
+  }
+  function renderObjectPresets(definition, value, context) {
+    const field = fieldShell(definition);
+    const group = document.createElement("div");
+    group.className = "radio-group model-parameter-object-presets";
+    group.setAttribute("role", "group");
+    group.setAttribute("aria-label", translate(definition.label_key));
+    let current = value && typeof value === "object" && !Array.isArray(value) ? { ...value } : {};
+    const selected = matchingObjectPreset(definition, current);
+    definition.object_presets?.forEach((preset) => {
+      const button = document.createElement("button");
+      const active = selected?.id === preset.id;
+      button.type = "button";
+      button.className = `radio-btn${active ? " active" : ""}`;
+      button.textContent = translate(preset.label_key);
+      button.disabled = context.readOnly;
+      button.tabIndex = context.readOnly ? -1 : 0;
+      button.setAttribute("aria-pressed", active ? "true" : "false");
+      button.addEventListener("click", () => {
+        if (context.readOnly || button.classList.contains("active")) return;
+        group.querySelectorAll(".radio-btn").forEach((item) => {
+          const isActive = item === button;
+          item.classList.toggle("active", isActive);
+          item.setAttribute("aria-pressed", isActive ? "true" : "false");
+        });
+        current = nextObjectPresetValue(definition, current, preset);
+        commitValue(context, definition, current);
+        refreshSegmentedIndicators();
+      });
+      group.append(button);
+    });
+    field.append(group);
+    return field;
+  }
+  function renderAspectRatioGrid(definition, value, context) {
+    const field = fieldShell(definition);
+    const group = document.createElement("div");
+    group.className = "radio-group model-aspect-ratio-grid";
+    group.setAttribute("role", "group");
+    group.setAttribute("aria-label", translate(definition.label_key));
+    aspectRatioSlots(definition.allowed_values.map(String)).forEach((ratioSlot) => {
+      const slot = document.createElement("div");
+      slot.className = "aspect-ratio-slot";
+      ratioSlot.values.forEach((allowed) => {
+        const button = document.createElement("button");
+        const active = allowed === value;
+        button.type = "button";
+        button.className = `radio-btn${active ? " active" : ""}`;
+        button.dataset.val = allowed;
+        button.disabled = context.readOnly;
+        button.tabIndex = context.readOnly ? -1 : 0;
+        button.setAttribute("aria-pressed", active ? "true" : "false");
+        const icon = createAspectRatioIcon(allowed);
+        const label = document.createElement("span");
+        label.className = "aspect-ratio-label";
+        label.textContent = allowed;
+        if (icon) button.append(icon, label);
+        else {
+          button.classList.add("aspect-ratio-no-icon");
+          button.append(label);
+        }
+        button.addEventListener("click", () => {
+          if (context.readOnly || button.classList.contains("active")) return;
+          group.querySelectorAll(".radio-btn").forEach((item) => {
+            const isActive = item === button;
+            item.classList.toggle("active", isActive);
+            item.setAttribute("aria-pressed", isActive ? "true" : "false");
+          });
+          commitValue(context, definition, allowed);
+        });
+        slot.append(button);
+      });
+      group.append(slot);
+    });
+    field.append(group);
+    return field;
+  }
+  var PARAMETER_RENDERERS = {
+    select: renderSelect,
+    segmented: renderSegmented,
+    boolean_segmented: renderBooleanSegmented,
+    toggle: renderToggle,
+    slider: renderSlider,
+    number: renderNumber,
+    text: renderText,
+    notice: renderNotice,
+    choice_grid: renderChoiceGrid,
+    object_presets: renderObjectPresets,
+    aspect_ratio_grid: renderAspectRatioGrid
+  };
+  function advancedParametersAreExpanded(model, readOnly) {
+    return readOnly || model.expand_advanced_parameters === true;
+  }
+  function legacyParameterVisibility(modelId, sizeMode) {
+    const legacyGpt = modelId === "gpt-image-2";
+    return {
+      legacyGpt,
+      customSize: legacyGpt && sizeMode === "custom"
+    };
+  }
+  function parameterTranslations(definition) {
+    return [
+      translate(definition.label_key),
+      ...(definition.object_choices || []).flatMap((choice) => [
+        translate(choice.label_key),
+        ...choice.label_keys.map((key) => translate(key))
+      ]),
+      ...(definition.object_presets || []).map((preset) => translate(preset.label_key))
+    ];
+  }
+  function parameterRenderFingerprint(definition, value, readOnly) {
+    return JSON.stringify([definition, value, readOnly, parameterTranslations(definition)]);
+  }
+  function resolvedParameterValues(model, values) {
+    return Object.fromEntries(model.parameters.map((definition) => [
+      definition.id,
+      parameterValueValid(definition, values[definition.id]) ? values[definition.id] : cloneValue(definition.default)
+    ]));
+  }
+  function visibleParameterDefinitions(model, values, operation) {
+    return model.parameters.filter((definition) => definition.operations.includes(operation)).filter((definition) => definition.visible_when.every((condition) => conditionMatches(condition, values)));
+  }
+  function renderParameterDefinitionsInto(root, model, values, options) {
+    const operation = options.operation || "generate";
+    const resolvedValues = resolvedParameterValues(model, values);
+    root.replaceChildren();
+    const context = { readOnly: options.readOnly, model, values: resolvedValues, root };
+    const visibleDefinitions = visibleParameterDefinitions(model, resolvedValues, operation);
+    visibleDefinitions.filter((definition) => definition.group !== "advanced").forEach((definition) => root.append(PARAMETER_RENDERERS[definition.control](definition, resolvedValues[definition.id], context)));
+    const advancedDefinitions = visibleDefinitions.filter((definition) => definition.group === "advanced");
+    if (advancedDefinitions.length) {
+      const content = document.createElement("div");
+      content.className = "model-parameter-advanced-grid";
+      advancedDefinitions.forEach((definition) => content.append(
+        PARAMETER_RENDERERS[definition.control](definition, resolvedValues[definition.id], context)
+      ));
+      if (advancedParametersAreExpanded(model, options.readOnly)) {
+        content.classList.add("model-parameter-advanced-grid-expanded", "full-width");
+        root.append(content);
+      } else {
+        const details = document.createElement("details");
+        details.className = "model-parameter-advanced full-width";
+        const summary = document.createElement("summary");
+        summary.textContent = translate("apiSettings.advancedSettings");
+        details.append(summary, content);
+        root.append(details);
+      }
+    }
+    refreshSegmentedIndicators();
+  }
+  function renderInteractiveParameterDefinitionsInto(root, model, values, operation) {
+    const resolvedValues = resolvedParameterValues(model, values);
+    const visibleDefinitions = visibleParameterDefinitions(model, resolvedValues, operation);
+    if (visibleDefinitions.some((definition) => definition.group === "advanced")) {
+      renderParameterDefinitionsInto(root, model, values, { readOnly: false, operation });
+      return;
+    }
+    const context = { readOnly: false, model, values: resolvedValues, root };
+    const existingFields = new Map(Array.from(root.children).flatMap((child) => {
+      const parameterId = child.dataset.parameterId;
+      return parameterId ? [[parameterId, child]] : [];
+    }));
+    const fields = visibleDefinitions.map((definition) => {
+      const fingerprint = parameterRenderFingerprint(definition, resolvedValues[definition.id], false);
+      const existingField = existingFields.get(definition.id);
+      if (existingField?.dataset.renderFingerprint === fingerprint) return existingField;
+      const field = PARAMETER_RENDERERS[definition.control](definition, resolvedValues[definition.id], context);
+      field.dataset.renderFingerprint = fingerprint;
+      return field;
+    });
+    root.replaceChildren(...fields);
+    refreshSegmentedIndicators();
+  }
+  function ensureModelDraft(model) {
+    const { state: state5 } = getLegacyBridge();
+    const previous = state5.parameterDraftsByModel[model.id] || {};
+    const report = initializeParameterDraft(model, previous);
+    state5.parameterDraftsByModel[model.id] = report.values;
+    state5.parameterDraftVersionsByModel[model.id] = model.version;
+    return report;
+  }
+  function renderModelParameters(model, options = { readOnly: false }) {
+    const { state: state5, els: els9 } = getLegacyBridge();
+    const root = options.root || els9.modelParameterGrid;
+    if (!root) return;
+    if (options.readOnly) {
+      renderParameterDefinitionsInto(root, model, options.values || {}, { readOnly: true, operation: state5.mode });
+      return;
+    }
+    ensureModelDraft(model);
+    const visibility = legacyParameterVisibility(model.id, els9.size?.value);
+    const legacyGpt = visibility.legacyGpt;
+    state5.customSizeTransitionSeq += 1;
+    state5.customSizeMode = visibility.customSize;
+    const legacyElements = [
+      els9.sizeModeGroup?.closest(".custom-size-control"),
+      els9.orientation?.closest(".orientation-field"),
+      els9.resolution?.closest(".resolution-field"),
+      els9.ratio?.closest(".ratio-field"),
+      els9.quality?.closest(".quantity-quality-row"),
+      els9.pixelPreview,
+      els9.outputFormatField,
+      els9.moderation?.closest(".moderation-field")
+    ].filter(Boolean);
+    legacyElements.forEach((element) => {
+      element.classList.toggle("hidden", !legacyGpt);
+    });
+    if (els9.customSize) {
+      els9.customSize.classList.toggle("hidden", !visibility.customSize);
+      els9.customSize.classList.toggle("custom-size-collapsed", !visibility.customSize);
+      els9.customSize.setAttribute("aria-hidden", visibility.customSize ? "false" : "true");
+    }
+    els9.settingsGrid?.classList.toggle("custom-size-mode", visibility.customSize);
+    els9.webSearchField?.classList.toggle("hidden", !legacyGpt);
+    root.classList.toggle("hidden", legacyGpt);
+    if (legacyGpt) root.replaceChildren();
+    else renderInteractiveParameterDefinitionsInto(
+      root,
+      model,
+      state5.parameterDraftsByModel[model.id] || {},
+      state5.mode
+    );
+  }
+  function setParameterValue(modelId, parameterId, value) {
+    const { state: state5 } = getLegacyBridge();
+    const model = state5.generationCatalog?.models.find((item) => item.id === modelId);
+    const definition = model?.parameters.find((item) => item.id === parameterId);
+    if (!model || !definition || !parameterValueValid(definition, value)) return;
+    state5.parameterDraftsByModel[modelId] = {
+      ...state5.parameterDraftsByModel[modelId] || {},
+      [parameterId]: cloneValue(value)
+    };
+    if (definition.scope === "application") {
+      state5.generationCatalog?.models.forEach((item) => {
+        if (item.parameters.some((parameter) => parameter.id === parameterId)) {
+          state5.parameterDraftsByModel[item.id] = {
+            ...state5.parameterDraftsByModel[item.id] || {},
+            [parameterId]: cloneValue(value)
+          };
+        }
+      });
+    }
+    getLegacyBridge().methods.persistModelSelection?.();
+    getLegacyBridge().methods.updateRequestPreview?.();
+  }
+  function renderCurrentModelParameters() {
+    const { state: state5 } = getLegacyBridge();
+    const model = state5.generationCatalog?.models.find((item) => item.id === state5.selectedModelId);
+    if (model) renderModelParameters(model, { readOnly: false });
+  }
+
+  // codex_image/webui/frontend/src/model-parameter-drafts.ts
+  function cloneValue2(value) {
+    if (Array.isArray(value)) return value.map(cloneValue2);
+    if (value && typeof value === "object") {
+      return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, cloneValue2(item)]));
+    }
+    return value;
+  }
+  function canonicalControlValues(taskParams, protocolProfile) {
+    const format = String(taskParams.output_format || "png");
+    const values = {
+      "canvas.size": taskParams.size,
+      "canvas.aspect_ratio": taskParams.ratio,
+      "canvas.resolution": taskParams.resolution,
+      "gpt.quality": taskParams.quality,
+      "gpt.background": taskParams.background ?? "auto",
+      "output.format": format,
+      "gpt.moderation": taskParams.moderation,
+      "gpt.web_search": protocolProfile.endsWith("_responses") && Boolean(taskParams.web_search),
+      "output.count": taskParams.n
+    };
+    if (format === "jpeg" || format === "webp") {
+      values["gpt.output_compression"] = taskParams.output_compression;
+    }
+    return Object.fromEntries(Object.entries(values).filter(([, value]) => value !== void 0 && value !== null));
+  }
+  function parameterValueValid2(parameter, value) {
+    const typeValid = parameter.value_type === "string" ? typeof value === "string" : parameter.value_type === "integer" ? typeof value === "number" && Number.isInteger(value) : parameter.value_type === "boolean" ? typeof value === "boolean" : parameter.value_type === "object" ? Boolean(value) && typeof value === "object" && !Array.isArray(value) : false;
+    if (!typeValid) return false;
+    if (parameter.allowed_values.length && !parameter.allowed_values.includes(value)) return false;
+    if (typeof value === "number") {
+      if (parameter.minimum !== null && value < parameter.minimum) return false;
+      if (parameter.maximum !== null && value > parameter.maximum) return false;
+      if (parameter.step !== null) {
+        const base = parameter.minimum ?? 0;
+        const quotient = (value - base) / parameter.step;
+        if (Math.abs(quotient - Math.round(quotient)) > 1e-9) return false;
+      }
+    }
+    return true;
+  }
+  function migratePortableModelDraft(sourceModel, targetModel, sourceDraft, targetDraft) {
+    const sourceIds = new Set(sourceModel.parameters.map((definition) => definition.id));
+    return Object.fromEntries(targetModel.parameters.map((definition) => {
+      if (sourceIds.has(definition.id)) {
+        const sourceValue = sourceDraft[definition.id];
+        return [definition.id, cloneValue2(
+          parameterValueValid2(definition, sourceValue) ? sourceValue : definition.default
+        )];
+      }
+      const targetValue = targetDraft[definition.id];
+      return [definition.id, cloneValue2(
+        parameterValueValid2(definition, targetValue) ? targetValue : definition.default
+      )];
+    }));
+  }
+  function saveCurrentModelParameterDraft() {
+    const { state: state5, methods } = getLegacyBridge();
+    const model = state5.generationCatalog?.models.find((item) => item.id === state5.selectedModelId);
+    if (!model || typeof methods.currentTaskParams !== "function") return;
+    if (model.id !== "gpt-image-2") {
+      methods.persistModelSelection?.();
+      return;
+    }
+    const values = canonicalControlValues(methods.currentTaskParams(), selectedProviderBinding()?.protocol_profile || "");
+    const allowed = new Set(model.parameters.map((parameter) => parameter.id));
+    state5.parameterDraftsByModel[model.id] = {
+      ...state5.parameterDraftsByModel[model.id] || {},
+      ...Object.fromEntries(Object.entries(values).filter(([id]) => allowed.has(id)))
+    };
+    methods.persistModelSelection?.();
+  }
+  function restoreCurrentModelParameterDraft() {
+    const { state: state5, els: els9, methods } = getLegacyBridge();
+    const modelId = state5.selectedModelId || "";
+    const model = state5.generationCatalog?.models.find((item) => item.id === modelId);
+    if (!model) return;
+    if (model.id !== "gpt-image-2") {
+      renderCurrentModelParameters();
+      return;
+    }
+    const draft = {
+      ...Object.fromEntries(model.parameters.map((parameter) => [parameter.id, parameter.default])),
+      ...state5.parameterDraftsByModel[modelId] || {}
+    };
+    if (typeof draft["canvas.resolution"] === "string" && els9.resolution) els9.resolution.value = draft["canvas.resolution"];
+    if (typeof draft["canvas.aspect_ratio"] === "string" && els9.ratio) els9.ratio.value = draft["canvas.aspect_ratio"];
+    if ((draft["canvas.resolution"] || draft["canvas.aspect_ratio"]) && typeof methods.updateSizeFromPreset === "function") {
+      methods.updateSizeFromPreset();
+    }
+    if (typeof draft["canvas.size"] === "string") methods.syncSizeControlsFromSize?.(draft["canvas.size"]);
+    if (typeof draft["gpt.quality"] === "string" && els9.quality) els9.quality.value = draft["gpt.quality"];
+    if (typeof draft["output.format"] === "string" && els9.outputFormat) els9.outputFormat.value = draft["output.format"];
+    if (typeof draft["gpt.moderation"] === "string" && els9.moderation) els9.moderation.value = draft["gpt.moderation"];
+    if (typeof draft["gpt.output_compression"] === "number" && els9.compression) els9.compression.value = String(draft["gpt.output_compression"]);
+    if (typeof draft["gpt.web_search"] === "boolean" && els9.webSearch) {
+      els9.webSearch.checked = draft["gpt.web_search"] && (selectedProviderBinding()?.protocol_profile || "").endsWith("_responses");
+    }
+    if (typeof draft["output.count"] === "number" && els9.nInput) els9.nInput.value = String(draft["output.count"]);
+    methods.syncRadioButtons?.(els9.quality, els9.outputFormat, els9.moderation);
+    methods.updateQuantity?.();
+    methods.updateCompression?.();
+    renderCurrentModelParameters();
+  }
+
+  // codex_image/webui/frontend/src/model-family-icons.ts
+  var BRAND_MARKS = {
+    "gpt-image": {
+      asset: "/static/brand/model-marks/openai.svg",
+      className: "openai"
+    },
+    "gemini-image": {
+      asset: "/static/brand/model-marks/gemini.svg",
+      className: "gemini"
+    }
+  };
+  function fallbackMarkHtml(className) {
+    return `
+    <svg class="${className} model-family-brand-mark-fallback" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path d="m12 4 8 8-8 8-8-8Z" />
+    </svg>`;
+  }
+  function modelFamilyBrandMarkHtml(familyId, className) {
+    const mark = BRAND_MARKS[familyId];
+    if (!mark) return fallbackMarkHtml(className);
+    return `<img class="${className} model-family-brand-mark-${mark.className}" src="${mark.asset}" alt="" aria-hidden="true" decoding="async" />`;
+  }
+
+  // codex_image/webui/frontend/src/model-selection.ts
+  function modelsForFamily(catalog, familyId) {
+    return catalog.models.filter((model) => model.family_id === familyId);
+  }
+  function usesExpandedConcreteModelOptions(models) {
+    return models.length > 1;
+  }
+  function selectConcreteModel(modelId) {
+    const { state: state5 } = getLegacyBridge();
+    const model = state5.generationCatalog?.models.find((item) => item.id === modelId);
+    if (!model) return;
+    const sourceModel = state5.generationCatalog?.models.find((item) => item.id === state5.selectedModelId);
+    const familyChanged = sourceModel?.family_id !== model.family_id;
+    saveCurrentModelParameterDraft();
+    if (sourceModel?.family_id === model.family_id) {
+      state5.parameterDraftsByModel[model.id] = migratePortableModelDraft(
+        sourceModel,
+        model,
+        state5.parameterDraftsByModel[sourceModel.id] || {},
+        state5.parameterDraftsByModel[model.id] || {}
+      );
+    }
+    state5.selectedModelId = model.id;
+    state5.selectedFamilyId = model.family_id;
+    state5.lastModelByFamily[model.family_id] = model.id;
+    getLegacyBridge().methods.persistModelSelection?.();
+    if (familyChanged) renderModelSelectors();
+    else updateConcreteModelSelection(model.id);
+    renderProviderSelection();
+    restoreCurrentModelParameterDraft();
+    getLegacyBridge().methods.reconcileTaskParameterInspection?.();
+    getLegacyBridge().methods.updateModeSpecificSettings?.();
+    getLegacyBridge().methods.refreshOutputSettingsLock?.();
+    getLegacyBridge().methods.updateRequestPreview?.();
+  }
+  function updateConcreteModelSelection(modelId) {
+    const { state: state5, els: els9 } = getLegacyBridge();
+    const modelSelect = els9.concreteModelSelect;
+    const modelOptions = els9.concreteModelOptions;
+    if (modelSelect) modelSelect.value = modelId;
+    modelOptions?.querySelectorAll("[data-model-id]").forEach((button) => {
+      const active = button.dataset.modelId === modelId;
+      button.classList.toggle("active", active);
+      button.setAttribute("aria-pressed", active ? "true" : "false");
+    });
+    const model = state5.generationCatalog?.models.find((item) => item.id === modelId);
+    if (modelSelect) modelSelect.title = model?.display_name || "";
+    refreshSegmentedIndicators();
+  }
+  function renderModelSelectors() {
+    const { state: state5, els: els9 } = getLegacyBridge();
+    const catalog = state5.generationCatalog;
+    const familyOptions = els9.modelFamilyOptions;
+    const modelSelect = els9.concreteModelSelect;
+    const modelOptions = els9.concreteModelOptions;
+    const modelField = modelSelect?.closest(".concrete-model-field");
+    if (!catalog) {
+      if (familyOptions) {
+        familyOptions.replaceChildren();
+        familyOptions.setAttribute("aria-disabled", "true");
+      }
+      if (modelSelect) modelSelect.disabled = true;
+      modelOptions?.replaceChildren();
+      modelOptions?.classList.add("hidden");
+      modelField?.classList.add("hidden");
+      return;
+    }
+    const selectedFamily = catalog.families.find((family) => family.id === state5.selectedFamilyId);
+    if (familyOptions) {
+      familyOptions.querySelectorAll("[data-family-id]").forEach((item) => item.remove());
+      familyOptions.removeAttribute("aria-disabled");
+      catalog.families.forEach((family) => {
+        const item = document.createElement("button");
+        item.type = "button";
+        item.role = "radio";
+        const active = family.id === state5.selectedFamilyId;
+        item.className = `model-family-segment radio-btn${active ? " active" : ""}`;
+        item.dataset.familyId = family.id;
+        item.title = family.display_name;
+        item.setAttribute("aria-label", family.display_name);
+        item.setAttribute("aria-checked", active ? "true" : "false");
+        const icon = document.createElement("span");
+        icon.className = `model-family-segment-icon model-family-segment-icon-${family.id}`;
+        icon.setAttribute("aria-hidden", "true");
+        icon.innerHTML = modelFamilyBrandMarkHtml(family.id, "model-family-brand-mark");
+        const label = document.createElement("span");
+        label.className = "model-family-segment-label";
+        label.textContent = family.short_name || family.display_name;
+        item.append(icon, label);
+        familyOptions.append(item);
+      });
+    }
+    if (modelSelect && selectedFamily) {
+      const familyModels = modelsForFamily(catalog, selectedFamily.id);
+      const expanded = usesExpandedConcreteModelOptions(familyModels);
+      modelField?.classList.toggle("hidden", !expanded);
+      modelSelect.replaceChildren();
+      familyModels.forEach((model) => {
+        const option2 = document.createElement("option");
+        option2.value = model.id;
+        option2.textContent = model.display_name;
+        option2.title = model.display_name;
+        modelSelect.append(option2);
+      });
+      modelSelect.value = state5.selectedModelId || "";
+      modelSelect.disabled = modelSelect.options.length === 0;
+      modelSelect.title = catalog.models.find((model) => model.id === state5.selectedModelId)?.display_name || "";
+      modelSelect.classList.toggle("hidden", expanded);
+      if (modelOptions) {
+        modelOptions.replaceChildren();
+        modelOptions.classList.toggle("hidden", !expanded);
+        if (expanded) {
+          familyModels.forEach((model) => {
+            const button = document.createElement("button");
+            const active = model.id === state5.selectedModelId;
+            button.type = "button";
+            button.className = `radio-btn${active ? " active" : ""}`;
+            button.dataset.modelId = model.id;
+            button.textContent = model.display_name;
+            button.title = model.display_name;
+            button.setAttribute("aria-pressed", active ? "true" : "false");
+            button.addEventListener("click", () => {
+              if (!button.classList.contains("active")) selectConcreteModel(model.id);
+            });
+            modelOptions.append(button);
+          });
+        }
+      }
+    }
+    refreshSegmentedIndicators();
+  }
+
+  // codex_image/webui/frontend/src/model-catalog.ts
+  var MODEL_SELECTION_STORAGE_KEY = "codex-image-model-selection-v1";
+  function stringRecord(value) {
+    if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+    return Object.fromEntries(Object.entries(value).filter((entry) => typeof entry[0] === "string" && typeof entry[1] === "string"));
+  }
+  function safeDraftValue(value, depth = 0) {
+    if (value === null || ["string", "number", "boolean"].includes(typeof value)) return value;
+    if (depth >= 6) return void 0;
+    if (Array.isArray(value)) return value.map((item) => safeDraftValue(item, depth + 1)).filter((item) => item !== void 0);
+    if (!value || typeof value !== "object") return void 0;
+    const output = {};
+    for (const [key, item] of Object.entries(value)) {
+      if (/api.?key|base.?url|remote.?model|secret|token|credential/i.test(key)) continue;
+      const safe = safeDraftValue(item, depth + 1);
+      if (safe !== void 0) output[key] = safe;
+    }
+    return output;
+  }
+  function draftRecord(value) {
+    const safe = safeDraftValue(value);
+    return safe && typeof safe === "object" && !Array.isArray(safe) ? safe : {};
+  }
+  function positiveIntegerRecord(value) {
+    if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+    return Object.fromEntries(Object.entries(value).filter((entry) => typeof entry[0] === "string" && typeof entry[1] === "number" && Number.isInteger(entry[1]) && entry[1] > 0));
+  }
+  function restoreModelSelection() {
+    try {
+      const stored = JSON.parse(localStorage.getItem(MODEL_SELECTION_STORAGE_KEY) || "{}");
+      const { state: state5 } = getLegacyBridge();
+      state5.selectedModelId = typeof stored.selectedModelId === "string" ? stored.selectedModelId : null;
+      state5.lastModelByFamily = stringRecord(stored.lastModelByFamily);
+      state5.lastProviderByModel = stringRecord(stored.lastProviderByModel);
+      state5.lastProviderSelectionByModel = stringRecord(stored.lastProviderSelectionByModel);
+      state5.parameterDraftsByModel = draftRecord(stored.parameterDraftsByModel);
+      state5.parameterDraftVersionsByModel = positiveIntegerRecord(stored.parameterDraftVersionsByModel);
+    } catch {
+      localStorage.removeItem(MODEL_SELECTION_STORAGE_KEY);
+    }
+  }
+  function persistModelSelection() {
+    const { state: state5 } = getLegacyBridge();
+    const stored = {
+      ...state5.selectedModelId ? { selectedModelId: state5.selectedModelId } : {},
+      lastModelByFamily: stringRecord(state5.lastModelByFamily),
+      lastProviderByModel: stringRecord(state5.lastProviderByModel),
+      lastProviderSelectionByModel: stringRecord(state5.lastProviderSelectionByModel),
+      parameterDraftsByModel: draftRecord(state5.parameterDraftsByModel),
+      parameterDraftVersionsByModel: positiveIntegerRecord(state5.parameterDraftVersionsByModel)
+    };
+    localStorage.setItem(MODEL_SELECTION_STORAGE_KEY, JSON.stringify(stored));
+  }
+  function isGenerationCatalog(value) {
+    if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+    const candidate = value;
+    const object = (item) => Boolean(item) && typeof item === "object" && !Array.isArray(item);
+    const nonempty = (item) => typeof item === "string" && item.length > 0;
+    const operation = (item) => item === "generate" || item === "edit";
+    const operations = (item) => Array.isArray(item) && item.length > 0 && item.every(operation);
+    const finiteOrNull = (item) => item === null || typeof item === "number" && Number.isFinite(item);
+    const valueType = (item) => ["string", "integer", "boolean", "object"].includes(String(item));
+    const hasValueType = (kind, item) => kind === "string" ? typeof item === "string" : kind === "integer" ? Number.isInteger(item) && typeof item !== "boolean" : kind === "boolean" ? typeof item === "boolean" : kind === "object" ? object(item) : false;
+    const parameter = (item) => {
+      if (!object(item)) return false;
+      const objectChoicesValid = item.object_choices === void 0 || Array.isArray(item.object_choices) && item.object_choices.every((row) => object(row) && nonempty(row.key) && nonempty(row.label_key) && nonempty(row.default) && Array.isArray(row.allowed_values) && row.allowed_values.length > 0 && row.allowed_values.every(nonempty) && row.allowed_values.includes(row.default) && Array.isArray(row.label_keys) && row.label_keys.length === row.allowed_values.length && row.label_keys.every(nonempty));
+      const objectPresetsValid = item.object_presets === void 0 || Array.isArray(item.object_presets) && item.object_presets.every((preset) => object(preset) && nonempty(preset.id) && nonempty(preset.label_key) && object(preset.value) && typeof preset.matches_empty === "boolean");
+      return nonempty(item.id) && nonempty(item.label_key) && ["model", "canvas", "generation", "advanced"].includes(String(item.group)) && ["select", "segmented", "boolean_segmented", "toggle", "slider", "number", "text", "notice", "choice_grid", "object_presets", "aspect_ratio_grid"].includes(String(item.control)) && valueType(item.value_type) && hasValueType(item.value_type, item.default) && Array.isArray(item.allowed_values) && item.allowed_values.every((value2) => hasValueType(item.value_type, value2)) && (item.scope === "application" || item.scope === "model") && finiteOrNull(item.minimum) && finiteOrNull(item.maximum) && finiteOrNull(item.step) && operations(item.operations) && typeof item.full_width === "boolean" && objectChoicesValid && objectPresetsValid && (item.control !== "boolean_segmented" || item.value_type === "boolean") && (item.control !== "choice_grid" || item.value_type === "object" && Array.isArray(item.object_choices) && item.object_choices.length > 0) && (item.control !== "object_presets" || item.value_type === "object" && Array.isArray(item.object_choices) && item.object_choices.length > 0 && Array.isArray(item.object_presets) && item.object_presets.length > 0) && (item.control !== "aspect_ratio_grid" || item.value_type === "string" && Array.isArray(item.allowed_values) && item.allowed_values.length > 0) && Array.isArray(item.visible_when) && item.visible_when.every((condition) => object(condition) && nonempty(condition.parameter_id) && ["equals", "not_equals", "in"].includes(String(condition.operator)) && (condition.operator !== "in" || Array.isArray(condition.value)));
+    };
+    if (candidate.schema_version !== 1 || !Number.isInteger(candidate.manifest_version) || candidate.manifest_version <= 0 || !Array.isArray(candidate.families) || candidate.families.length === 0 || !Array.isArray(candidate.models) || candidate.models.length === 0 || !Array.isArray(candidate.providers) || candidate.providers.length === 0 || !object(candidate.default_provider_by_model) || !object(candidate.codex)) return false;
+    const families = candidate.families;
+    if (!families.every((family) => object(family) && nonempty(family.id) && nonempty(family.display_name) && nonempty(family.short_name) && nonempty(family.label_key))) return false;
+    const familyIds = new Set(families.map((family) => family.id));
+    if (familyIds.size !== families.length) return false;
+    const models = candidate.models;
+    if (!models.every((model) => object(model) && nonempty(model.id) && nonempty(model.family_id) && familyIds.has(model.family_id) && nonempty(model.display_name) && nonempty(model.official_model_id) && Number.isInteger(model.version) && model.version > 0 && operations(model.operations) && Array.isArray(model.parameters) && model.parameters.every(parameter) && new Set(model.parameters.map((item) => item.id)).size === model.parameters.length && model.parameters.every((item) => item.visible_when.every((condition) => model.parameters.some((candidate2) => candidate2.id === condition.parameter_id))) && object(model.input_constraints) && Number.isInteger(model.input_constraints.max_images) && model.input_constraints.max_images >= 0 && typeof model.input_constraints.supports_mask === "boolean" && typeof model.input_constraints.supports_reference_files === "boolean" && (model.expand_advanced_parameters === void 0 || typeof model.expand_advanced_parameters === "boolean"))) return false;
+    const modelIds = new Set(models.map((model) => model.id));
+    if (modelIds.size !== models.length) return false;
+    const providers = candidate.providers;
+    const bindingValid = (binding) => {
+      if (!object(binding) || !nonempty(binding.id) || !nonempty(binding.canonical_model_id) || !modelIds.has(binding.canonical_model_id) || !nonempty(binding.remote_model_id) || !nonempty(binding.protocol_profile) || !nonempty(binding.parameter_codec) || !operations(binding.operations) || binding.available !== void 0 && typeof binding.available !== "boolean") return false;
+      const model = models.find((item) => item.id === binding.canonical_model_id);
+      return Boolean(model) && binding.operations.every((item) => (model?.operations).includes(item));
+    };
+    if (!providers.every((provider) => object(provider) && nonempty(provider.id) && nonempty(provider.name) && typeof provider.builtin === "boolean" && typeof provider.available === "boolean" && (provider.icon_emoji === void 0 || nonempty(provider.icon_emoji)) && Array.isArray(provider.bindings) && provider.bindings.length > 0 && provider.bindings.every(bindingValid) && new Set(provider.bindings.map((binding) => binding.id)).size === provider.bindings.length)) return false;
+    const providerIds = new Set(providers.map((provider) => provider.id));
+    if (providerIds.size !== providers.length) return false;
+    if (!Object.entries(candidate.default_provider_by_model).every(([modelId, providerId]) => modelIds.has(modelId) && typeof providerId === "string" && providerIds.has(providerId) && (providers.find((provider) => provider.id === providerId)?.bindings).some((binding) => binding.canonical_model_id === modelId))) return false;
+    const codex = candidate.codex;
+    if (typeof codex.available !== "boolean" || codex.mode !== "images" && codex.mode !== "responses") return false;
+    const codexProvider = providers.find((provider) => provider.id === "codex");
+    if (codex.available && !codexProvider) return false;
+    if (codexProvider) {
+      if (codexProvider.builtin !== true || codexProvider.available !== codex.available || codexProvider.bindings.length !== 2) return false;
+      const expected = /* @__PURE__ */ new Map([
+        ["codex-gpt-image-2-images", ["codex_images", "gpt_codex_images"]],
+        ["codex-gpt-image-2-responses", ["codex_responses", "gpt_codex_responses"]]
+      ]);
+      if (!codexProvider.bindings.every((binding) => object(binding) && binding.canonical_model_id === "gpt-image-2" && binding.remote_model_id === "gpt-image-2" && expected.get(String(binding.id))?.[0] === binding.protocol_profile && expected.get(String(binding.id))?.[1] === binding.parameter_codec)) return false;
+    }
+    return true;
+  }
+  function initialCatalogSelection(catalog, storedModelId, lastProviderByModel, operation, lastProviderSelectionByModel = {}) {
+    const model = catalog.models.find((item) => item.id === storedModelId) || catalog.models.find((item) => item.id === "gpt-image-2") || catalog.models[0];
+    if (!model) return { familyId: null, modelId: null, providerId: null, bindingId: null };
+    const entries = eligibleProviderBindings(catalog, model.id, operation);
+    const selected = resolveProviderSelection(
+      entries,
+      lastProviderSelectionByModel[model.id],
+      lastProviderByModel[model.id],
+      catalog.default_provider_by_model[model.id],
+      catalog.codex.mode
+    );
+    return {
+      familyId: model.family_id,
+      modelId: model.id,
+      providerId: selected?.provider.id || null,
+      bindingId: selected?.binding.id || null
+    };
+  }
+  async function refreshGenerationCatalog() {
+    const { state: state5 } = getLegacyBridge();
+    try {
+      const response = await fetch("/api/generation-catalog", { headers: { Accept: "application/json" } });
+      const payload = await response.json();
+      if (!response.ok || !isGenerationCatalog(payload)) throw new Error("generation catalog unavailable");
+      state5.generationCatalog = payload;
+      state5.generationCatalogError = null;
+      const selection = initialCatalogSelection(
+        payload,
+        state5.selectedModelId,
+        state5.lastProviderByModel,
+        state5.mode,
+        state5.lastProviderSelectionByModel
+      );
+      state5.selectedFamilyId = selection.familyId;
+      state5.selectedModelId = selection.modelId;
+      state5.selectedProviderId = selection.providerId;
+      state5.selectedProviderBindingId = selection.bindingId;
+      if (selection.modelId && selection.providerId && selection.bindingId) {
+        state5.lastProviderByModel[selection.modelId] = selection.providerId;
+        state5.lastProviderSelectionByModel[selection.modelId] = `${selection.providerId}::${selection.bindingId}`;
+      }
+      persistModelSelection();
+    } catch (error) {
+      state5.generationCatalog = null;
+      state5.generationCatalogError = error instanceof Error ? error.message : "generation catalog unavailable";
+      state5.selectedFamilyId = null;
+      state5.selectedModelId = null;
+      state5.selectedProviderId = null;
+      state5.selectedProviderBindingId = null;
+    }
+    renderModelSelectors();
+    renderProviderSelection();
+    getLegacyBridge().methods.renderCurrentModelParameters?.();
+    getLegacyBridge().methods.updateModeSpecificSettings?.();
+    getLegacyBridge().methods.updateRequestPreview?.();
+  }
+  function initModelCatalogFeature() {
+    Object.assign(getLegacyBridge().methods, {
+      persistModelSelection,
+      refreshGenerationCatalog,
+      restoreModelSelection
+    });
+  }
+
+  // codex_image/webui/frontend/src/system-settings.ts
+  var systemSettingsFeatureInitialized = false;
+  var systemSettingsHeightAnimationToken = 0;
+  var systemSettingsHeightAnimationTimer;
+  var systemSettingsReturnFocus = null;
+  var MIN_SYSTEM_SETTINGS_MODAL_EDGE = 30;
+  var VALID_TABS = /* @__PURE__ */ new Set(["api", "network", "language", "storage"]);
+  function normalizedTab(tab) {
+    if (tab === "codex") return "api";
+    return VALID_TABS.has(tab) ? tab : "api";
+  }
+  function maybeCall(name, ...args) {
+    const method = getLegacyBridge().methods[name];
+    if (typeof method === "function") method(...args);
+  }
+  function systemSettingsPanel() {
+    const { els: els9 } = getLegacyBridge();
+    return els9.systemSettingsModal?.querySelector(".system-settings-modal-panel") || null;
+  }
+  function shouldAnimateSystemSettingsHeight() {
+    const { els: els9 } = getLegacyBridge();
+    if (els9.systemSettingsModal?.classList.contains("hidden")) return false;
+    return !window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+  }
+  function clearSystemSettingsHeightAnimation(panel) {
+    systemSettingsHeightAnimationToken += 1;
+    if (systemSettingsHeightAnimationTimer !== void 0) {
+      window.clearTimeout(systemSettingsHeightAnimationTimer);
+      systemSettingsHeightAnimationTimer = void 0;
+    }
+    panel.classList.remove("is-height-animating");
+    panel.style.height = "";
+  }
+  function positionSystemSettingsModal() {
+    const { els: els9 } = getLegacyBridge();
+    const modal = els9.systemSettingsModal;
+    const panel = systemSettingsPanel();
+    if (!modal || !panel || modal.classList.contains("hidden")) return;
+    const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+    const panelHeight = panel.getBoundingClientRect().height;
+    const centeredTop = Math.floor((viewportHeight - panelHeight) / 2);
+    const top = Math.max(MIN_SYSTEM_SETTINGS_MODAL_EDGE, centeredTop);
+    modal.style.setProperty("--system-settings-modal-top", `${top}px`);
+  }
+  function systemSettingsTargetHeight(panel) {
+    const style = window.getComputedStyle(panel);
+    const borderHeight = (parseFloat(style.borderTopWidth) || 0) + (parseFloat(style.borderBottomWidth) || 0);
+    const naturalHeight = Math.ceil(panel.scrollHeight + borderHeight);
+    const maxHeight = parseFloat(style.maxHeight);
+    return Number.isFinite(maxHeight) ? Math.min(naturalHeight, Math.ceil(maxHeight)) : naturalHeight;
+  }
+  function animateSystemSettingsPanelHeight(panel, beforeHeight) {
+    const afterHeight = systemSettingsTargetHeight(panel);
+    if (Math.abs(afterHeight - beforeHeight) < 1) {
+      clearSystemSettingsHeightAnimation(panel);
+      return;
+    }
+    systemSettingsHeightAnimationToken += 1;
+    const token = systemSettingsHeightAnimationToken;
+    panel.classList.add("is-height-animating");
+    panel.style.height = `${beforeHeight}px`;
+    panel.getBoundingClientRect();
+    window.requestAnimationFrame(() => {
+      if (token !== systemSettingsHeightAnimationToken) return;
+      panel.style.height = `${afterHeight}px`;
+    });
+    const cleanup = (event) => {
+      if (event && (event.target !== panel || event.propertyName !== "height")) return;
+      if (token !== systemSettingsHeightAnimationToken) return;
+      systemSettingsHeightAnimationToken += 1;
+      if (systemSettingsHeightAnimationTimer !== void 0) {
+        window.clearTimeout(systemSettingsHeightAnimationTimer);
+        systemSettingsHeightAnimationTimer = void 0;
+      }
+      panel.removeEventListener("transitionend", cleanup);
+      panel.classList.remove("is-height-animating");
+      panel.style.height = "";
+    };
+    panel.addEventListener("transitionend", cleanup);
+    systemSettingsHeightAnimationTimer = window.setTimeout(() => cleanup(), 320);
+  }
+  function setSystemSettingsTab(tab, options = {}) {
+    const selected = normalizedTab(tab);
+    const { els: els9 } = getLegacyBridge();
+    const panel = systemSettingsPanel();
+    const animateHeight = Boolean(panel && shouldAnimateSystemSettingsHeight());
+    const beforeHeight = animateHeight && panel ? panel.getBoundingClientRect().height : 0;
+    if (animateHeight && panel) clearSystemSettingsHeightAnimation(panel);
+    const buttons = Array.from(els9.systemSettingsTabs?.querySelectorAll("[data-system-settings-tab]") || []);
+    buttons.forEach((button) => {
+      const active = button.dataset.systemSettingsTab === selected;
+      button.classList.toggle("active", active);
+      button.setAttribute("aria-selected", active ? "true" : "false");
+      button.tabIndex = active ? 0 : -1;
+    });
+    [
+      ["api", els9.systemSettingsApiPanel],
+      ["network", els9.systemSettingsNetworkPanel],
+      ["language", els9.systemSettingsLanguagePanel],
+      ["storage", els9.systemSettingsStoragePanel]
+    ].forEach(([name, panel2]) => {
+      if (!panel2) return;
+      const active = name === selected;
+      panel2.hidden = !active;
+      panel2.setAttribute("aria-hidden", active ? "false" : "true");
+    });
+    if (options.refresh === false) return;
+    if (selected === "storage") maybeCall("refreshSettings");
+    if (selected === "network") maybeCall("refreshNetworkEgress");
+    if (selected === "api") {
+      maybeCall("setApiSettingsFeedback", "", "");
+      maybeCall("populateApiSettingsForm");
+      maybeCall("updateModeSpecificSettings");
+    }
+    refreshSegmentedIndicators();
+    if (animateHeight && panel) animateSystemSettingsPanelHeight(panel, beforeHeight);
+  }
+  function openSystemSettingsModal(tab = "api") {
+    const { els: els9 } = getLegacyBridge();
+    const modal = els9.systemSettingsModal;
+    const wasHidden = modal?.classList.contains("hidden") ?? true;
+    if (wasHidden) {
+      const activeElement = document.activeElement;
+      systemSettingsReturnFocus = activeElement instanceof HTMLElement && activeElement !== document.body && !modal?.contains(activeElement) ? activeElement : null;
+    }
+    setSystemSettingsTab(tab);
+    modal?.classList.remove("hidden");
+    modal?.setAttribute("aria-hidden", "false");
+    if (wasHidden) positionSystemSettingsModal();
+    refreshSegmentedIndicators();
+  }
+  function closeSystemSettingsModal() {
+    const { els: els9 } = getLegacyBridge();
+    const modal = els9.systemSettingsModal;
+    const activeElement = document.activeElement;
+    if (modal && activeElement instanceof HTMLElement && modal.contains(activeElement)) {
+      const returnFocus = systemSettingsReturnFocus;
+      if (returnFocus?.isConnected && !returnFocus.closest("[inert]")) {
+        returnFocus.focus({ preventScroll: true });
+      }
+      if (modal.contains(document.activeElement)) activeElement.blur();
+    }
+    systemSettingsReturnFocus = null;
+    modal?.classList.add("hidden");
+    modal?.setAttribute("aria-hidden", "true");
+    modal?.style.removeProperty("--system-settings-modal-top");
+  }
+  function openSystemSettingsFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("settings") !== "1") return;
+    const requestedTab = params.get("settingsTab") || params.get("tab");
+    const settingsTab = requestedTab && VALID_TABS.has(requestedTab) ? requestedTab : "";
+    openSystemSettingsModal(settingsTab || "api");
+    const url = new URL(window.location.href);
+    url.searchParams.delete("settings");
+    url.searchParams.delete("settingsTab");
+    url.searchParams.delete("tab");
+    window.history.replaceState(window.history.state, "", `${url.pathname}${url.search}${url.hash}`);
+  }
+  function handleSystemSettingsTabClick(event) {
+    const target = event.target;
+    const button = target?.closest?.("[data-system-settings-tab]");
+    if (!button) return;
+    event.preventDefault();
+    setSystemSettingsTab(button.dataset.systemSettingsTab || "api");
+  }
+  function handleSystemSettingsResize() {
+    positionSystemSettingsModal();
+  }
+  function initSystemSettingsFeature() {
+    if (systemSettingsFeatureInitialized) return;
+    systemSettingsFeatureInitialized = true;
+    const { els: els9 } = getLegacyBridge();
+    els9.systemSettingsTabs?.addEventListener("click", handleSystemSettingsTabClick);
+    window.addEventListener("resize", handleSystemSettingsResize);
+    Object.assign(getLegacyBridge().methods, {
+      setSystemSettingsTab,
+      openSystemSettingsModal,
+      openSystemSettingsFromUrl,
+      closeSystemSettingsModal
+    });
+  }
+
+  // codex_image/webui/frontend/src/api-provider-list-ui.ts
+  var API_PROVIDER_SEARCH_THRESHOLD = 10;
+  function providerChoiceGrid() {
+    return document.querySelector(".api-provider-choice-grid");
+  }
+  function providerSearchField() {
+    return document.querySelector("#apiProviderSearchField");
+  }
+  function providerSearchInput() {
+    return document.querySelector("#apiProviderSearch");
+  }
+  function updateApiProviderListPresentation(providerCount, sorting) {
+    const longList = providerCount > API_PROVIDER_SEARCH_THRESHOLD;
+    const searchVisible = longList && !sorting;
+    providerChoiceGrid()?.classList.toggle("is-long-list", longList);
+    providerSearchField()?.classList.toggle("hidden", !searchVisible);
+    const input = providerSearchInput();
+    if (!input) return "";
+    if (!searchVisible && input.value) input.value = "";
+    return searchVisible ? input.value.trim().toLocaleLowerCase() : "";
+  }
+  function apiProviderMatchesSearch(provider, query) {
+    if (!query) return true;
+    return [provider?.name, provider?.id].some((value) => String(value || "").toLocaleLowerCase().includes(query));
+  }
+  function scrollActiveApiProviderCardIntoView(providerId, align = "center") {
+    window.requestAnimationFrame(() => {
+      const grid = providerChoiceGrid();
+      if (!grid?.classList.contains("is-long-list")) return;
+      const escapedId = CSS.escape(providerId);
+      const card = grid.querySelector(`.api-provider-choice[data-api-provider-id="${escapedId}"]`);
+      if (!card) return;
+      const gridRect = grid.getBoundingClientRect();
+      const cardRect = card.getBoundingClientRect();
+      const cardTop = grid.scrollTop + cardRect.top - gridRect.top;
+      let targetTop = align === "center" ? cardTop - Math.max(0, (grid.clientHeight - card.offsetHeight) / 2) : Math.min(cardTop, Math.max(grid.scrollTop, cardTop + card.offsetHeight - grid.clientHeight));
+      if (align === "center") {
+        const rowGap = Number.parseFloat(window.getComputedStyle(grid).rowGap || "0") || 0;
+        const rowStep = card.offsetHeight + rowGap;
+        const maxScrollTop = Math.max(0, grid.scrollHeight - grid.clientHeight);
+        if (rowStep > 0) {
+          targetTop = Math.min(
+            Math.floor(Math.max(0, targetTop) / rowStep) * rowStep,
+            Math.floor(maxScrollTop / rowStep) * rowStep
+          );
+        }
+      }
+      grid.scrollTo({ top: Math.max(0, targetTop), behavior: "auto" });
+    });
+  }
+
+  // codex_image/webui/frontend/src/provider-model-bindings.ts
+  var BINDING_TEMPLATES = {
+    gpt_openai_images: {
+      protocol_profile: "openai_images",
+      parameter_codec: "gpt_openai_images",
+      base_url: "https://api.openai.com/v1"
+    },
+    gpt_openai_responses: {
+      protocol_profile: "openai_responses",
+      parameter_codec: "gpt_openai_responses",
+      base_url: "https://api.openai.com/v1"
+    },
+    gemini_generate_content: {
+      protocol_profile: "gemini_generate_content",
+      parameter_codec: "gemini_generate_content_image",
+      base_url: "https://generativelanguage.googleapis.com/v1beta"
+    },
+    gemini_generate_content_image_config: {
+      protocol_profile: "gemini_generate_content",
+      parameter_codec: "gemini_generate_content_image_config",
+      base_url: "https://api.change2pro.com/v1beta"
+    },
+    gemini_change2pro_generate_content: {
+      protocol_profile: "gemini_change2pro_generate_content",
+      parameter_codec: "gemini_generate_content_image_config",
+      base_url: "https://api.change2pro.com/v1"
+    },
+    gemini_openai_images: {
+      protocol_profile: "openai_images",
+      parameter_codec: "gemini_openai_images",
+      base_url: "https://generativelanguage.googleapis.com/v1beta/openai"
+    },
+    gemini_t8_images: {
+      protocol_profile: "t8_images",
+      parameter_codec: "gemini_t8_images",
+      base_url: "https://ai.t8star.org/v1"
+    },
+    gemini_openrouter_images: {
+      protocol_profile: "openrouter_images",
+      parameter_codec: "gemini_openrouter_images",
+      base_url: "https://openrouter.ai/api/v1"
+    }
+  };
+  var BINDING_PROTOCOL_LABELS = {
+    gemini: "Gemini",
+    openai_images: "OpenAI Images",
+    openai_responses: "OpenAI Responses"
+  };
+  var BINDING_COMPATIBILITY_LABELS = {
+    standard: "\u6807\u51C6",
+    gemini_image_config: "Gemini ImageConfig",
+    change2pro: "Change2Pro / Gemini v1beta",
+    t8_newapi: "T8 / NewAPI",
+    openrouter: "OpenRouter"
+  };
+  function slug(value, fallback) {
+    return String(value || fallback).trim().toLowerCase().replace(/[^a-z0-9_-]+/g, "-").replace(/^-+|-+$/g, "") || fallback;
+  }
+  function normalizedOperations(value) {
+    const operations = Array.isArray(value) ? value.filter((item) => item === "generate" || item === "edit") : [];
+    return [...new Set(operations)];
+  }
+  function resolvedBindingOperations(binding, bindings, model) {
+    const hasLegacySplitBindings = bindings.filter(
+      (candidate) => candidate.canonical_model_id === binding.canonical_model_id
+    ).length > 1;
+    if (hasLegacySplitBindings || !model) return binding.operations;
+    return [...model.operations];
+  }
+  function availableProtocolsForModel(modelId) {
+    if (modelId.startsWith("nano-banana")) return ["gemini", "openai_images"];
+    if (modelId === "gpt-image-2") return ["openai_images", "openai_responses"];
+    return [];
+  }
+  function availableCompatibilityLayers(modelId, protocol) {
+    if (modelId.startsWith("nano-banana") && protocol === "gemini") {
+      return ["standard", "gemini_image_config", "change2pro"];
+    }
+    if (modelId.startsWith("nano-banana") && protocol === "openai_images") {
+      return ["standard", "t8_newapi", "openrouter"];
+    }
+    return ["standard"];
+  }
+  function protocolForBinding(binding) {
+    const profile = String(binding.protocol_profile || "");
+    if (profile.startsWith("gemini_")) return "gemini";
+    return profile.includes("responses") ? "openai_responses" : "openai_images";
+  }
+  function compatibilityForBinding(binding) {
+    if (binding.protocol_profile === "gemini_change2pro_generate_content") return "change2pro";
+    const codec = String(binding.parameter_codec || "");
+    if (codec === "gemini_generate_content_image_config") return "gemini_image_config";
+    if (codec === "gemini_t8_images") return "t8_newapi";
+    if (codec === "gemini_openrouter_images") return "openrouter";
+    return "standard";
+  }
+  function bindingTemplateForProtocol(modelId, protocol) {
+    if (!availableProtocolsForModel(modelId).includes(protocol)) {
+      throw new Error("unsupported_binding_protocol");
+    }
+    if (modelId.startsWith("nano-banana")) {
+      return protocol === "gemini" ? "gemini_generate_content" : "gemini_openai_images";
+    }
+    if (modelId === "gpt-image-2") {
+      return protocol === "openai_responses" ? "gpt_openai_responses" : "gpt_openai_images";
+    }
+    throw new Error("unsupported_binding_protocol");
+  }
+  function bindingTemplateForCompatibility(modelId, protocol, compatibility) {
+    if (!availableCompatibilityLayers(modelId, protocol).includes(compatibility)) {
+      throw new Error("unsupported_binding_compatibility");
+    }
+    if (compatibility === "gemini_image_config") {
+      return "gemini_generate_content_image_config";
+    }
+    if (compatibility === "change2pro") return "gemini_change2pro_generate_content";
+    if (compatibility === "t8_newapi") return "gemini_t8_images";
+    if (compatibility === "openrouter") return "gemini_openrouter_images";
+    return bindingTemplateForProtocol(modelId, protocol);
+  }
+  function bindingFromTemplate(id, canonicalModelId, remoteModelId, templateId, operations = ["generate", "edit"]) {
+    const template = BINDING_TEMPLATES[templateId];
+    return {
+      id: slug(id, `binding-${Date.now()}`),
+      canonical_model_id: String(canonicalModelId || "").trim(),
+      remote_model_id: String(remoteModelId || "").trim(),
+      protocol_profile: template.protocol_profile,
+      parameter_codec: template.parameter_codec,
+      operations: normalizedOperations(operations)
+    };
+  }
+  function bindingFromProtocol(id, canonicalModelId, remoteModelId, protocol, operations = ["generate", "edit"]) {
+    return bindingFromTemplate(
+      id,
+      canonicalModelId,
+      remoteModelId,
+      bindingTemplateForProtocol(canonicalModelId, protocol),
+      operations
+    );
+  }
+  function bindingForCompatibilitySelection(original, canonicalModelId, remoteModelId, protocol, compatibility, selectionChanged, operations) {
+    if (!selectionChanged && canonicalModelId === original.canonical_model_id) {
+      return {
+        ...original,
+        remote_model_id: remoteModelId,
+        operations: normalizedOperations(operations)
+      };
+    }
+    return {
+      ...bindingFromTemplate(
+        original.id,
+        canonicalModelId,
+        remoteModelId,
+        bindingTemplateForCompatibility(canonicalModelId, protocol, compatibility),
+        operations
+      ),
+      append_aspect_ratio_prompt: Boolean(original.append_aspect_ratio_prompt)
+    };
+  }
+  function normalizeProviderBindings(bindings, providerId = "provider") {
+    if (!Array.isArray(bindings)) return [];
+    const seen = /* @__PURE__ */ new Set();
+    return bindings.filter((item) => Boolean(item && typeof item === "object")).map((item, index) => {
+      let id = slug(item.id, `${providerId}-binding-${index + 1}`);
+      while (seen.has(id)) id = `${id}-${index + 1}`;
+      seen.add(id);
+      const fallbackProtocol = availableProtocolsForModel(String(item.canonical_model_id || ""))[0];
+      const fallbackTemplate = fallbackProtocol ? BINDING_TEMPLATES[bindingTemplateForProtocol(String(item.canonical_model_id || ""), fallbackProtocol)] : null;
+      return {
+        id,
+        canonical_model_id: String(item.canonical_model_id || "").trim(),
+        remote_model_id: String(item.remote_model_id || "").trim(),
+        protocol_profile: String(item.protocol_profile || fallbackTemplate?.protocol_profile || "").trim(),
+        parameter_codec: String(item.parameter_codec || fallbackTemplate?.parameter_codec || "").trim(),
+        operations: normalizedOperations(item.operations),
+        append_aspect_ratio_prompt: Boolean(item.append_aspect_ratio_prompt)
+      };
+    });
+  }
+  function validateProviderBindingOverlaps(bindings) {
+    const claimed = /* @__PURE__ */ new Map();
+    for (const binding of bindings) {
+      for (const operation of binding.operations) {
+        const key = `${binding.canonical_model_id}\0${operation}`;
+        const firstBindingId = claimed.get(key);
+        if (firstBindingId) {
+          return {
+            firstBindingId,
+            secondBindingId: binding.id,
+            canonicalModelId: binding.canonical_model_id,
+            operation
+          };
+        }
+        claimed.set(key, binding.id);
+      }
+    }
+    return null;
+  }
+  function bindingTemplateSuggestion(templateId) {
+    const template = BINDING_TEMPLATES[templateId];
+    return { base_url: template.base_url };
+  }
+  function isBindingTemplateBaseUrl(value) {
+    const normalized = String(value || "").trim().replace(/\/+$/, "");
+    return Object.values(BINDING_TEMPLATES).some(
+      (template) => template.base_url.replace(/\/+$/, "") === normalized
+    );
+  }
+  function option(value, label, selected) {
+    const element = document.createElement("option");
+    element.value = value;
+    element.textContent = label;
+    element.selected = selected;
+    return element;
+  }
+  function renderProviderBindingCards(container, bindings, models, providerId, defaults) {
+    if (!container) return;
+    destroyThemedSelects(container);
+    const normalizedBindings = normalizeProviderBindings(bindings, providerId);
+    const cards = normalizedBindings.map((binding, index) => {
+      const card = document.createElement("fieldset");
+      card.className = "provider-binding-card";
+      card.dataset.bindingId = binding.id;
+      const legend = document.createElement("legend");
+      legend.textContent = `\u6A21\u578B\u7ED1\u5B9A ${index + 1}`;
+      const remove = document.createElement("button");
+      remove.type = "button";
+      remove.className = "ghost-button danger-button provider-binding-remove";
+      remove.dataset.removeProviderBinding = binding.id;
+      remove.dataset.i18n = "apiSettings.removeBinding";
+      remove.textContent = translate("apiSettings.removeBinding");
+      const grid = document.createElement("div");
+      grid.className = "provider-binding-grid";
+      const modelField = document.createElement("div");
+      modelField.className = "field";
+      const modelLabel = document.createElement("span");
+      modelLabel.id = `provider-binding-${binding.id}-model-label`;
+      modelLabel.textContent = "\u5177\u4F53\u578B\u53F7";
+      const modelSelect = document.createElement("select");
+      modelSelect.className = "control";
+      modelSelect.dataset.bindingModel = "";
+      modelSelect.setAttribute("aria-labelledby", modelLabel.id);
+      models.forEach((model) => modelSelect.append(option(model.id, model.display_name, model.id === binding.canonical_model_id)));
+      modelField.append(modelLabel, modelSelect);
+      const protocolField = document.createElement("div");
+      protocolField.className = "field";
+      const protocolLabel = document.createElement("span");
+      protocolLabel.id = `provider-binding-${binding.id}-protocol-label`;
+      protocolLabel.textContent = "\u534F\u8BAE";
+      const protocolSelect = document.createElement("select");
+      protocolSelect.className = "control";
+      protocolSelect.dataset.bindingProtocol = "";
+      protocolSelect.setAttribute("aria-labelledby", protocolLabel.id);
+      const selectedProtocol = protocolForBinding(binding);
+      const selectedModel = models.find((model) => model.id === binding.canonical_model_id);
+      card.dataset.bindingModelOperations = resolvedBindingOperations(
+        binding,
+        normalizedBindings,
+        selectedModel
+      ).join(",");
+      availableProtocolsForModel(binding.canonical_model_id).forEach((protocol) => {
+        protocolSelect.append(option(protocol, BINDING_PROTOCOL_LABELS[protocol], protocol === selectedProtocol));
+      });
+      protocolField.append(protocolLabel, protocolSelect);
+      const remoteField = document.createElement("label");
+      remoteField.className = "field provider-binding-remote-model";
+      remoteField.append(document.createTextNode("\u4E2D\u8F6C\u7AD9\u6A21\u578B\u540D\u79F0"));
+      const remoteInput = document.createElement("input");
+      remoteInput.className = "control";
+      remoteInput.type = "text";
+      remoteInput.autocomplete = "off";
+      remoteInput.value = binding.remote_model_id;
+      remoteInput.dataset.bindingRemoteModel = "";
+      remoteInput.placeholder = "\u4F8B\u5982 vendor/model.name:version-1";
+      remoteField.append(remoteInput);
+      const compatibilityField = document.createElement("div");
+      compatibilityField.className = "field provider-binding-compatibility";
+      const compatibilityLabel = document.createElement("span");
+      compatibilityLabel.id = `provider-binding-${binding.id}-compatibility-label`;
+      compatibilityLabel.textContent = "\u517C\u5BB9\u5C42";
+      const compatibilitySelect = document.createElement("select");
+      compatibilitySelect.className = "control";
+      compatibilitySelect.dataset.bindingCompatibility = "";
+      compatibilitySelect.setAttribute("aria-labelledby", compatibilityLabel.id);
+      const selectedCompatibility = compatibilityForBinding(binding);
+      availableCompatibilityLayers(binding.canonical_model_id, selectedProtocol).forEach((compatibility) => {
+        compatibilitySelect.append(option(
+          compatibility,
+          BINDING_COMPATIBILITY_LABELS[compatibility],
+          compatibility === selectedCompatibility
+        ));
+      });
+      compatibilityField.append(compatibilityLabel, compatibilitySelect);
+      const ratioPromptField = document.createElement("label");
+      ratioPromptField.className = "provider-binding-toggle provider-binding-ratio-prompt";
+      ratioPromptField.dataset.i18nAttr = "title:apiSettings.appendRatioPrompt";
+      const ratioPromptInput = document.createElement("input");
+      ratioPromptInput.type = "checkbox";
+      ratioPromptInput.dataset.bindingRatioPrompt = "";
+      ratioPromptInput.checked = Boolean(binding.append_aspect_ratio_prompt);
+      const ratioPromptLabel = document.createElement("span");
+      ratioPromptLabel.dataset.i18n = "apiSettings.appendRatioPrompt";
+      ratioPromptLabel.textContent = translate("apiSettings.appendRatioPrompt");
+      ratioPromptField.append(ratioPromptInput, ratioPromptLabel);
+      const defaultField = document.createElement("label");
+      defaultField.className = "provider-binding-toggle provider-binding-default";
+      defaultField.dataset.i18nAttr = "title:apiSettings.defaultProviderForModel";
+      const defaultInput = document.createElement("input");
+      defaultInput.type = "checkbox";
+      defaultInput.dataset.bindingDefault = "";
+      defaultInput.checked = defaults[binding.canonical_model_id] === providerId;
+      const defaultLabel = document.createElement("span");
+      defaultLabel.dataset.i18n = "apiSettings.defaultProviderForModel";
+      defaultLabel.textContent = translate("apiSettings.defaultProviderForModel");
+      defaultField.append(defaultInput, defaultLabel);
+      const footer = document.createElement("div");
+      footer.className = "provider-binding-footer";
+      const footerSettings = document.createElement("div");
+      footerSettings.className = "provider-binding-footer-settings";
+      footerSettings.append(ratioPromptField, defaultField);
+      footer.append(footerSettings, remove);
+      card.dataset.bindingOriginalModelId = binding.canonical_model_id;
+      card.dataset.bindingOriginalProtocolProfile = binding.protocol_profile;
+      card.dataset.bindingOriginalParameterCodec = binding.parameter_codec;
+      card.dataset.bindingProtocolChanged = "false";
+      card.dataset.bindingCompatibilityChanged = "false";
+      grid.append(modelField, protocolField, remoteField, compatibilityField, footer);
+      card.append(legend, grid);
+      return card;
+    });
+    container.replaceChildren(...cards);
+    container.querySelectorAll("[data-binding-model], [data-binding-protocol], [data-binding-compatibility]").forEach((select) => mountThemedSelect(select));
+  }
+  function readProviderBindingCards(container) {
+    if (!container) return [];
+    return [...container.querySelectorAll("[data-binding-id]")].map((card) => {
+      const modelId = card.querySelector("[data-binding-model]")?.value || "";
+      const remoteModelId = card.querySelector("[data-binding-remote-model]")?.value || "";
+      const protocol = card.querySelector("[data-binding-protocol]")?.value || availableProtocolsForModel(modelId)[0];
+      const compatibility = card.querySelector("[data-binding-compatibility]")?.value || "standard";
+      const operations = normalizedOperations(
+        String(card.dataset.bindingModelOperations || "").split(",")
+      );
+      const original = {
+        id: card.dataset.bindingId || "binding",
+        canonical_model_id: card.dataset.bindingOriginalModelId || modelId,
+        remote_model_id: remoteModelId,
+        protocol_profile: card.dataset.bindingOriginalProtocolProfile || "",
+        parameter_codec: card.dataset.bindingOriginalParameterCodec || "",
+        operations,
+        append_aspect_ratio_prompt: Boolean(
+          card.querySelector("[data-binding-ratio-prompt]")?.checked
+        )
+      };
+      return {
+        ...bindingForCompatibilitySelection(
+          original,
+          modelId,
+          remoteModelId,
+          protocol,
+          compatibility,
+          card.dataset.bindingProtocolChanged === "true" || card.dataset.bindingCompatibilityChanged === "true",
+          operations
+        ),
+        is_default: Boolean(card.querySelector("[data-binding-default]")?.checked)
+      };
+    });
+  }
+
+  // codex_image/webui/frontend/src/api-provider-settings.ts
+  var bridge3 = getLegacyBridge();
+  var state3 = bridge3.state;
+  var els4 = bridge3.els;
+  var apiSettingsAutosaveTimerId = null;
+  function legacyMethod4(name, ...args) {
+    const method = getLegacyBridge().methods[name];
+    if (typeof method !== "function") {
+      throw new Error("Legacy method " + name + " is not initialized");
+    }
+    return method(...args);
+  }
+  function setStatus3(message, type) {
+    legacyMethod4("setStatus", message, type);
+  }
+  function updateRequestPreview2() {
+    legacyMethod4("updateRequestPreview");
+  }
+  function closePromptPopover() {
+    legacyMethod4("closePromptPopover");
+  }
+  function openConfirmPopover(...args) {
+    legacyMethod4("openConfirmPopover", ...args);
+  }
+  function normalizeApiProvider(provider = {}, index = 0) {
+    const fallbackId = index === 0 ? "default" : `provider-${index + 1}`;
+    const id = String(provider.id || fallbackId).trim().toLowerCase().replace(/[^a-z0-9_-]+/g, "-").replace(/^-+|-+$/g, "") || fallbackId;
+    const legacyMode = provider.api_mode === "responses" ? "responses" : DEFAULT_API_MODE;
+    const bindings = normalizeProviderBindings(
+      Array.isArray(provider.bindings) && provider.bindings.length ? provider.bindings : [{
+        id: `${id}-gpt-image-2`,
+        canonical_model_id: "gpt-image-2",
+        remote_model_id: String(provider.image_model || DEFAULT_API_IMAGE_MODEL).trim() || DEFAULT_API_IMAGE_MODEL,
+        protocol_profile: legacyMode === "responses" ? "openai_responses" : "openai_images",
+        parameter_codec: legacyMode === "responses" ? "gpt_openai_responses" : "gpt_openai_images",
+        operations: ["generate", "edit"]
+      }],
+      id
+    );
+    const gptBinding = bindings.find((binding) => binding.canonical_model_id === "gpt-image-2") || bindings[0];
+    const apiMode = gptBinding?.protocol_profile === "openai_responses" ? "responses" : "images";
+    const concurrency = normalizeApiImagesConcurrency(provider.concurrency ?? provider.images_concurrency);
+    return {
+      id,
+      name: String(provider.name || (id === "default" ? "Default" : `Provider ${index + 1}`)).trim() || id,
+      base_url: String(provider.base_url || DEFAULT_API_BASE_URL).trim() || DEFAULT_API_BASE_URL,
+      api_key: String(provider.api_key || "").trim(),
+      concurrency,
+      bindings,
+      image_model: gptBinding?.remote_model_id || DEFAULT_API_IMAGE_MODEL,
+      api_mode: apiMode,
+      images_concurrency: concurrency,
+      api_key_set: Boolean(provider.api_key_set || provider.api_key),
+      api_key_masked: String(provider.api_key_masked || ""),
+      api_key_source_provider_id: String(provider.api_key_source_provider_id || "").trim(),
+      icon_emoji: String(provider.icon_emoji || "").trim(),
+      default_model_ids: Array.isArray(provider.default_model_ids) ? provider.default_model_ids.map((value) => String(value || "").trim()).filter(Boolean) : []
+    };
+  }
+  function appendProviderIdentity(target, provider, className) {
+    const icon = String(provider?.icon_emoji || "").trim();
+    if (icon) {
+      const emoji = document.createElement("span");
+      emoji.className = "api-provider-emoji";
+      emoji.setAttribute("aria-hidden", "true");
+      emoji.textContent = icon;
+      target.append(emoji);
+    }
+    const label = document.createElement("span");
+    label.className = className;
+    label.textContent = provider?.name || provider?.id || "";
+    target.append(label);
+  }
+  function normalizeApiImagesConcurrency(value) {
+    const parsed = Number.parseInt(value, 10);
+    if (Number.isNaN(parsed)) return DEFAULT_API_IMAGES_CONCURRENCY;
+    return Math.min(32, Math.max(1, parsed));
+  }
+  function normalizeCodexMode(value) {
+    return value === "responses" ? "responses" : DEFAULT_CODEX_MODE;
+  }
+  function providerById(providerId, settings = state3.apiSettings) {
+    const normalized = normalizeApiSettings(settings);
+    return normalized.providers.find((provider) => provider.id === providerId) || normalized.providers[0];
+  }
+  function apiBaseUrlForEndpoint(value) {
+    const withoutQueryOrFragment = String(value || DEFAULT_API_BASE_URL).trim().split(/[?#]/, 1)[0] || "";
+    let baseUrl = withoutQueryOrFragment.replace(/\/+$/, "") || DEFAULT_API_BASE_URL;
+    for (const suffix of ["/responses", "/images/generations", "/images/edits"]) {
+      if (!baseUrl.endsWith(suffix)) continue;
+      baseUrl = baseUrl.slice(0, -suffix.length).replace(/\/+$/, "");
+      break;
+    }
+    return baseUrl || DEFAULT_API_BASE_URL;
+  }
+  function updateApiRequestEndpointPreview() {
+    if (!els4.apiRequestEndpointPreview) return;
+    const provider = state3.apiProviderDraft || activeApiProvider();
+    const baseUrl = apiBaseUrlForEndpoint(els4.apiBaseUrl?.value || provider?.base_url);
+    const bindingCount = readProviderBindingCards(els4.apiProviderBindings).length || provider?.bindings?.length || 0;
+    const preview = `${baseUrl} \xB7 ${bindingCount} \xB7 ${translate("apiSettings.modelBindings")}`;
+    els4.apiRequestEndpointPreview.textContent = preview;
+    els4.apiRequestEndpointPreview.title = preview;
+  }
+  function providerHasApiKey(provider) {
+    return Boolean(provider?.api_key || provider?.api_key_set);
+  }
+  function providerKeyLabel(provider) {
+    if (!providerHasApiKey(provider)) return translate("apiSettings.keyNotSet");
+    return provider.api_key_masked || translate("apiSettings.keySaved");
+  }
+  function providerMetaLabel(provider) {
+    return [
+      `${provider?.bindings?.length || 0} \xB7 ${translate("apiSettings.modelBindings")}`,
+      formatTranslation("apiSettings.concurrencyValue", {
+        concurrency: String(normalizeApiImagesConcurrency(provider?.concurrency ?? provider?.images_concurrency))
+      })
+    ].filter(Boolean).join(" \xB7 ");
+  }
+  function uniqueCopiedProviderId(provider) {
+    const base = String(provider?.id || provider?.name || "provider").trim().toLowerCase().replace(/[^a-z0-9_-]+/g, "-").replace(/^-+|-+$/g, "") || "provider";
+    const existing = new Set((state3.apiSettings.providers || []).map((item) => item.id));
+    const root = `${base}-copy`;
+    if (!existing.has(root)) return root;
+    for (let index = 2; index < 1e3; index += 1) {
+      const candidate = `${root}-${index}`;
+      if (!existing.has(candidate)) return candidate;
+    }
+    return `provider-${Date.now()}`;
+  }
+  function copiedProviderName(provider) {
+    const sourceName = String(provider?.name || provider?.id || translate("apiSettings.newProvider")).trim();
+    const rootName = formatTranslation("apiSettings.copyProviderName", { name: sourceName });
+    const existing = new Set((state3.apiSettings.providers || []).map((item) => String(item.name || "").trim()));
+    if (!existing.has(rootName)) return rootName;
+    for (let index = 2; index < 1e3; index += 1) {
+      const candidate = `${rootName} ${index}`;
+      if (!existing.has(candidate)) return candidate;
+    }
+    return `${rootName} ${Date.now()}`;
+  }
+  function setElementText(element, value) {
+    if (element) element.textContent = String(value ?? "");
+  }
+  function setApiKeyRevealVisible(visible) {
+    if (!els4.apiKey) return;
+    const canReveal = Boolean(els4.apiKey.value);
+    const shouldReveal = Boolean(visible && canReveal);
+    els4.apiKey.type = shouldReveal ? "text" : "password";
+    els4.apiKeyRevealButton?.setAttribute("aria-pressed", shouldReveal ? "true" : "false");
+    const label = translate(shouldReveal ? "apiSettings.hideApiKey" : "apiSettings.showApiKey");
+    els4.apiKeyRevealButton?.setAttribute("aria-label", label);
+    els4.apiKeyRevealButton?.setAttribute("title", label);
+    els4.apiKeyRevealButton?.classList.toggle("active", shouldReveal);
+  }
+  function hideApiKeyReveal() {
+    setApiKeyRevealVisible(false);
+  }
+  function updateApiKeyRevealButton() {
+    if (!els4.apiKeyRevealButton) return;
+    const canReveal = Boolean(els4.apiKey?.value);
+    if (!canReveal) hideApiKeyReveal();
+    els4.apiKeyRevealButton.disabled = !canReveal;
+    const label = translate("apiSettings.showApiKey");
+    els4.apiKeyRevealButton.setAttribute("aria-label", label);
+    els4.apiKeyRevealButton.setAttribute("title", label);
+  }
+  function revealApiKeyWhilePressed(event) {
+    if (!els4.apiKey?.value || els4.apiKeyRevealButton?.disabled) return;
+    event?.preventDefault();
+    setApiKeyRevealVisible(true);
+  }
+  function scrollApiProviderEditorIntoView() {
+    window.requestAnimationFrame(() => {
+      els4.apiProviderEditor?.scrollIntoView?.({ block: "nearest", inline: "nearest" });
+    });
+  }
+  function setApiProviderEditorVisible(visible) {
+    els4.apiProviderSection?.classList.toggle("editing", visible);
+    els4.apiProviderSection?.setAttribute("aria-hidden", visible ? "true" : "false");
+    if (visible) els4.apiProviderSection?.setAttribute("inert", "");
+    else els4.apiProviderSection?.removeAttribute("inert");
+    els4.apiProviderEditor?.classList.toggle("hidden", !visible);
+    els4.apiProviderEditor?.setAttribute("aria-hidden", visible ? "false" : "true");
+    els4.apiProviderDetail?.classList.toggle("hidden", visible);
+    els4.apiSettingsActions?.classList.toggle("hidden", visible);
+    els4.apiSettingsActions?.setAttribute("aria-hidden", visible ? "true" : "false");
+    if (els4.editApiProviderButton) els4.editApiProviderButton.disabled = visible;
+    if (els4.addApiProviderButton) els4.addApiProviderButton.disabled = visible;
+    if (els4.copyApiProviderButton) els4.copyApiProviderButton.disabled = visible;
+    if (els4.sortApiProvidersButton) els4.sortApiProvidersButton.disabled = visible;
+    if (els4.deleteApiProviderButton) {
+      els4.deleteApiProviderButton.disabled = visible || normalizeApiSettings(state3.apiSettings).providers.length <= 1;
+    }
+    if (!visible) hideApiKeyReveal();
+  }
+  function apiProviderEditorActive() {
+    return Boolean(state3.apiProviderEditingId && state3.apiProviderDraft);
+  }
+  function draftProviderFromForm() {
+    const draft = state3.apiProviderDraft || activeApiProvider();
+    const bindingCards = readProviderBindingCards(els4.apiProviderBindings);
+    return normalizeApiProvider({
+      ...draft,
+      name: els4.apiProviderName?.value || draft.name,
+      icon_emoji: els4.apiProviderIconEmoji ? els4.apiProviderIconEmoji.value : draft.icon_emoji,
+      base_url: els4.apiBaseUrl?.value || DEFAULT_API_BASE_URL,
+      api_key: els4.apiKey?.value || "",
+      concurrency: normalizeApiImagesConcurrency(els4.apiImagesConcurrency?.value),
+      bindings: bindingCards,
+      default_model_ids: bindingCards.filter((binding) => binding.is_default).map((binding) => binding.canonical_model_id),
+      api_key_set: Boolean(draft.api_key_set || draft.api_key || draft.api_key_source_provider_id),
+      api_key_masked: draft.api_key_masked,
+      api_key_source_provider_id: draft.api_key_source_provider_id
+    }, 0);
+  }
+  function writeProviderForm(provider) {
+    if (els4.apiProviderName) els4.apiProviderName.value = provider.name || "";
+    if (els4.apiProviderIconEmoji) els4.apiProviderIconEmoji.value = provider.icon_emoji || "";
+    if (els4.apiBaseUrl) els4.apiBaseUrl.value = provider.base_url || DEFAULT_API_BASE_URL;
+    if (els4.apiImagesConcurrency) els4.apiImagesConcurrency.value = String(normalizeApiImagesConcurrency(provider.concurrency ?? provider.images_concurrency));
+    if (els4.apiKey) {
+      els4.apiKey.value = provider.api_key || "";
+      els4.apiKey.placeholder = provider.api_key_set && !provider.api_key ? translate("apiSettings.savedKeyPlaceholder") : "sk-...";
+    }
+    hideApiKeyReveal();
+    updateApiKeyRevealButton();
+    renderProviderBindingCards(
+      els4.apiProviderBindings,
+      provider.bindings || [],
+      state3.generationCatalog?.models || [],
+      provider.id,
+      state3.apiSettings.default_provider_by_model || {}
+    );
+    updateApiRequestEndpointPreview();
+    resetApiAdvancedSettings();
+  }
+  function defaultsForProviderDraft(provider) {
+    const defaults = { ...state3.apiSettings.default_provider_by_model || {} };
+    (provider.default_model_ids || []).forEach((modelId) => {
+      defaults[modelId] = provider.id;
+    });
+    return defaults;
+  }
+  function renderApiProviderList() {
+    const settings = normalizeApiSettings(state3.apiSettings);
+    state3.apiSettings = settings;
+    const sorting = Boolean(state3.apiProviderSortMode && settings.providers.length > 1);
+    const searchQuery = updateApiProviderListPresentation(settings.providers.length, sorting);
+    setElementText(els4.apiProviderCount, formatTranslation("apiSettings.providerCount", {
+      count: String(settings.providers.length)
+    }));
+    if (els4.sortApiProvidersButton) {
+      const canSort = settings.providers.length > 1;
+      els4.sortApiProvidersButton.classList.toggle("hidden", !canSort);
+      els4.sortApiProvidersButton.classList.toggle("active", sorting);
+      els4.sortApiProvidersButton.disabled = apiProviderEditorActive() || !canSort;
+      els4.sortApiProvidersButton.textContent = translate(sorting ? "apiSettings.finishSortProviders" : "apiSettings.sortProviders");
+      els4.sortApiProvidersButton.setAttribute("aria-pressed", sorting ? "true" : "false");
+    }
+    els4.addApiProviderButton?.classList.toggle("hidden", sorting || apiProviderEditorActive());
+    if (!els4.apiProviderList) return;
+    els4.apiProviderList.classList.toggle("is-sorting", sorting);
+    els4.apiProviderList.setAttribute("role", sorting ? "list" : "listbox");
+    if (sorting) {
+      const rows = settings.providers.map((provider, index) => {
+        const row = document.createElement("div");
+        row.className = `api-provider-sort-row${provider.id === settings.active_provider_id ? " active" : ""}`;
+        row.dataset.apiProviderId = provider.id;
+        row.setAttribute("role", "listitem");
+        const content = document.createElement("div");
+        content.className = "api-provider-sort-content";
+        const name = document.createElement("strong");
+        name.className = "api-provider-sort-name";
+        appendProviderIdentity(name, provider, "api-provider-choice-label");
+        const meta = document.createElement("span");
+        meta.textContent = providerMetaLabel(provider);
+        content.append(name, meta);
+        const controls = document.createElement("div");
+        controls.className = "api-provider-sort-actions";
+        [
+          ["up", "apiSettings.moveProviderUp", "apiSettings.moveProviderUpAria", index <= 0],
+          ["down", "apiSettings.moveProviderDown", "apiSettings.moveProviderDownAria", index >= settings.providers.length - 1]
+        ].forEach(([direction, labelKey, ariaKey, disabled]) => {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = "ghost-button api-provider-sort-button";
+          button.dataset.apiProviderId = provider.id;
+          button.dataset.apiProviderSort = direction;
+          button.disabled = Boolean(disabled);
+          button.textContent = translate(labelKey);
+          button.setAttribute("aria-label", formatTranslation(ariaKey, { provider: provider.name || provider.id }));
+          controls.append(button);
+        });
+        row.append(content, controls);
+        return row;
+      });
+      els4.apiProviderList.replaceChildren(...rows);
+      return;
+    }
+    const visibleProviders = settings.providers.filter((provider) => apiProviderMatchesSearch(provider, searchQuery));
+    const buttons = visibleProviders.map((provider) => {
+      const button = document.createElement("button");
+      const active = provider.id === settings.active_provider_id;
+      button.type = "button";
+      button.className = `api-provider-choice${active ? " active" : ""}`;
+      button.dataset.apiProviderId = provider.id;
+      button.setAttribute("role", "option");
+      button.setAttribute("aria-selected", active ? "true" : "false");
+      const name = document.createElement("strong");
+      name.className = "api-provider-choice-name";
+      appendProviderIdentity(name, provider, "api-provider-choice-label");
+      const meta = document.createElement("span");
+      meta.textContent = providerMetaLabel(provider);
+      button.append(name, meta);
+      return button;
+    });
+    if (!buttons.length) {
+      const empty = document.createElement("div");
+      empty.className = "api-provider-search-empty";
+      empty.textContent = translate("apiSettings.noProviderSearchResults");
+      els4.apiProviderList.replaceChildren(empty);
+      return;
+    }
+    els4.apiProviderList.replaceChildren(...buttons);
+    if (!searchQuery) scrollActiveApiProviderCardIntoView(settings.active_provider_id, "center");
+  }
+  function renderApiProviderDetail() {
+    const provider = activeApiProvider();
+    setElementText(els4.apiProviderDetailBaseUrl, provider.base_url || DEFAULT_API_BASE_URL);
+    setElementText(els4.apiProviderDetailKey, providerKeyLabel(provider));
+    setElementText(
+      els4.apiProviderDetailMode,
+      `${provider.bindings?.length || 0} \xB7 ${translate("apiSettings.modelBindings")}`
+    );
+    setElementText(els4.apiProviderDetailConcurrency, normalizeApiImagesConcurrency(provider.concurrency ?? provider.images_concurrency));
+  }
+  function renderApiProviderEditor() {
+    const editing = apiProviderEditorActive();
+    setApiProviderEditorVisible(editing);
+    if (!editing) return;
+    const isNew = Boolean(state3.apiProviderDraftIsNew);
+    setElementText(els4.apiProviderEditorTitle, translate(isNew ? "apiSettings.newProviderTitle" : "apiSettings.editProvider"));
+    writeProviderForm(state3.apiProviderDraft);
+  }
+  function applyApiProviderDraft(settings) {
+    if (!apiProviderEditorActive()) return normalizeApiSettings(settings);
+    const draft = draftProviderFromForm();
+    const normalized = normalizeApiSettings(settings);
+    const index = normalized.providers.findIndex((provider) => provider.id === draft.id);
+    if (index >= 0) {
+      normalized.providers[index] = normalizeApiProvider({ ...normalized.providers[index], ...draft }, index);
+    } else {
+      normalized.providers.push(normalizeApiProvider(draft, normalized.providers.length));
+    }
+    normalized.active_provider_id = draft.id;
+    const defaultModelIds = new Set(draft.default_model_ids || []);
+    for (const binding of draft.bindings || []) {
+      const modelId = binding.canonical_model_id;
+      if (defaultModelIds.has(modelId)) normalized.default_provider_by_model[modelId] = draft.id;
+      else if (normalized.default_provider_by_model[modelId] === draft.id) delete normalized.default_provider_by_model[modelId];
+    }
+    for (const modelId of Object.keys(normalized.default_provider_by_model)) {
+      if (normalized.default_provider_by_model[modelId] !== draft.id) continue;
+      if (!(draft.bindings || []).some((binding) => binding.canonical_model_id === modelId)) {
+        delete normalized.default_provider_by_model[modelId];
+      }
+    }
+    state3.apiProviderEditingId = null;
+    state3.apiProviderDraft = null;
+    state3.apiProviderDraftIsNew = false;
+    return normalizeApiSettings(normalized);
+  }
+  function normalizeApiSettings(settings = {}) {
+    const rawProviders = Array.isArray(settings.providers) && settings.providers.length ? settings.providers : [{
+      id: settings.active_provider_id || "default",
+      name: settings.name || "Default",
+      base_url: settings.base_url,
+      api_key: settings.api_key,
+      image_model: settings.image_model,
+      api_mode: settings.api_mode,
+      images_concurrency: settings.images_concurrency,
+      api_key_set: settings.api_key_set,
+      api_key_masked: settings.api_key_masked
+    }];
+    const providers = [];
+    const seen = /* @__PURE__ */ new Set();
+    rawProviders.forEach((provider, index) => {
+      const normalized = normalizeApiProvider(provider, index);
+      if (seen.has(normalized.id)) return;
+      seen.add(normalized.id);
+      providers.push(normalized);
+    });
+    if (!providers.length) providers.push(normalizeApiProvider({}, 0));
+    const requestedActive = String(settings.active_provider_id || providers[0].id).trim().toLowerCase();
+    const activeProvider = providers.find((provider) => provider.id === requestedActive) || providers[0];
+    return {
+      schema_version: 2,
+      codex_mode: normalizeCodexMode(settings.codex_mode),
+      active_provider_id: activeProvider.id,
+      default_provider_by_model: { ...settings.default_provider_by_model || { "gpt-image-2": activeProvider.id } },
+      providers
+    };
+  }
+  function activeApiProvider() {
+    const settings = normalizeApiSettings(state3.apiSettings);
+    state3.apiSettings = settings;
+    return settings.providers.find((provider) => provider.id === settings.active_provider_id) || settings.providers[0];
+  }
+  function restoreApiSettings() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(API_SETTINGS_STORAGE_KEY) || "{}");
+      state3.apiSettings = normalizeApiSettings(saved);
+    } catch {
+      state3.apiSettings = normalizeApiSettings();
+    }
+  }
+  function persistApiSettings() {
+    try {
+      localStorage.setItem(API_SETTINGS_STORAGE_KEY, JSON.stringify({
+        codex_mode: state3.apiSettings.codex_mode,
+        active_provider_id: state3.apiSettings.active_provider_id,
+        default_provider_by_model: state3.apiSettings.default_provider_by_model,
+        providers: state3.apiSettings.providers.map((provider) => ({
+          id: provider.id,
+          name: provider.name,
+          icon_emoji: provider.icon_emoji || "",
+          concurrency: provider.concurrency,
+          bindings: provider.bindings,
+          api_key_set: provider.api_key_set,
+          api_key_masked: provider.api_key_masked
+        }))
+      }));
+    } catch {
+    }
+  }
+  function mergeApiProviderKeys(serverSettings) {
+    const localById = new Map((state3.apiSettings.providers || []).map((provider) => [provider.id, provider]));
+    const normalized = normalizeApiSettings(serverSettings);
+    normalized.providers = normalized.providers.map((provider) => {
+      const local = localById.get(provider.id);
+      return local?.api_key ? { ...provider, api_key: local.api_key } : provider;
+    });
+    return normalized;
+  }
+  async function refreshApiSettings() {
+    try {
+      const response = await fetch("/api/api-settings");
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.detail || translate("apiSettings.loadFailed"));
+      state3.apiSettings = mergeApiProviderKeys(data.settings || {});
+      populateApiSettingsForm();
+      renderAuthSourceAfterProviderChange();
+    } catch (error) {
+      setApiSettingsFeedback(error.message || translate("apiSettings.loadFailed"), "error");
+    }
+  }
+  function populateApiSettingsForm() {
+    const provider = activeApiProvider();
+    if (els4.apiProviderQuick) {
+      els4.apiProviderQuick.innerHTML = "";
+      state3.apiSettings.providers.forEach((item) => {
+        const option2 = document.createElement("option");
+        option2.value = item.id;
+        option2.textContent = item.name || item.id;
+        els4.apiProviderQuick.append(option2);
+      });
+      els4.apiProviderQuick.value = provider.id;
+    }
+    if (els4.apiProvider) {
+      els4.apiProvider.innerHTML = "";
+      state3.apiSettings.providers.forEach((item) => {
+        const option2 = document.createElement("option");
+        option2.value = item.id;
+        option2.textContent = item.name || item.id;
+        els4.apiProvider.append(option2);
+      });
+      els4.apiProvider.value = provider.id;
+    }
+    renderApiProviderList();
+    renderApiProviderDetail();
+    renderApiProviderEditor();
+    updateModeSpecificSettings();
+  }
+  function readApiSettingsForm(options = {}) {
+    const settings = normalizeApiSettings(state3.apiSettings);
+    state3.apiSettings = options.applyProviderDraft ? applyApiProviderDraft(settings) : normalizeApiSettings(settings);
+    return state3.apiSettings;
+  }
+  function currentApiProviderId() {
+    if (state3.selectedProviderId && state3.selectedProviderId !== "codex") return state3.selectedProviderId;
+    return activeApiProvider().id;
+  }
+  function currentApiProviderLabel2() {
+    const selected = state3.generationCatalog?.providers.find((provider2) => provider2.id === state3.selectedProviderId);
+    if (selected) return String(selected.name || selected.id);
+    const provider = activeApiProvider();
+    return String(provider.name || provider.id || "").trim() || provider.id;
+  }
+  function addApiProvider() {
+    if (apiProviderEditorActive()) {
+      setApiSettingsFeedback(translate("apiSettings.finishEditFirst"), "error");
+      return;
+    }
+    state3.apiProviderSortMode = false;
+    const id = `provider-${Date.now()}`;
+    state3.apiProviderEditingId = id;
+    state3.apiProviderDraftIsNew = true;
+    state3.apiProviderDraft = normalizeApiProvider({
+      id,
+      name: translate("apiSettings.newProvider"),
+      base_url: DEFAULT_API_BASE_URL,
+      concurrency: DEFAULT_API_IMAGES_CONCURRENCY,
+      bindings: [bindingFromProtocol(`${id}-gpt-image-2`, "gpt-image-2", DEFAULT_API_IMAGE_MODEL, "openai_images")]
+    }, state3.apiSettings.providers.length);
+    populateApiSettingsForm();
+    setApiSettingsFeedback(translate("apiSettings.newDraftStatus"), "running");
+    scrollApiProviderEditorIntoView();
+    els4.apiProviderName?.focus();
+  }
+  function copyApiProvider() {
+    if (apiProviderEditorActive()) {
+      setApiSettingsFeedback(translate("apiSettings.finishEditFirst"), "error");
+      return;
+    }
+    state3.apiProviderSortMode = false;
+    const provider = activeApiProvider();
+    const copiesSavedKey = providerHasApiKey(provider);
+    const id = uniqueCopiedProviderId(provider);
+    state3.apiProviderEditingId = id;
+    state3.apiProviderDraftIsNew = true;
+    state3.apiProviderDraft = normalizeApiProvider({
+      ...provider,
+      bindings: provider.bindings.map((binding, index) => ({ ...binding, id: `${id}-binding-${index + 1}` })),
+      id,
+      name: copiedProviderName(provider),
+      api_key: "",
+      api_key_set: copiesSavedKey,
+      api_key_masked: provider.api_key_masked || "",
+      api_key_source_provider_id: copiesSavedKey ? provider.id : ""
+    }, state3.apiSettings.providers.length);
+    populateApiSettingsForm();
+    setApiSettingsFeedback(translate(copiesSavedKey ? "apiSettings.copyProviderStatus" : "apiSettings.copyProviderWithoutKeyStatus"), "running");
+    scrollApiProviderEditorIntoView();
+    els4.apiProviderName?.focus();
+  }
+  function deleteApiProvider() {
+    if (apiProviderEditorActive()) {
+      setApiSettingsFeedback(translate("apiSettings.finishEditFirst"), "error");
+      return;
+    }
+    if (state3.apiSettings.providers.length <= 1) return;
+    const activeId = state3.apiSettings.active_provider_id;
+    state3.apiSettings.providers = state3.apiSettings.providers.filter((provider) => provider.id !== activeId);
+    state3.apiSettings.active_provider_id = state3.apiSettings.providers[0]?.id || "default";
+    Object.entries(state3.apiSettings.default_provider_by_model || {}).forEach(([modelId, providerId]) => {
+      if (providerId === activeId) delete state3.apiSettings.default_provider_by_model[modelId];
+    });
+    Object.entries(state3.lastProviderByModel || {}).forEach(([modelId, providerId]) => {
+      if (providerId === activeId) delete state3.lastProviderByModel[modelId];
+    });
+    if (state3.apiSettings.providers.length <= 1) state3.apiProviderSortMode = false;
+    populateApiSettingsForm();
+    persistApiSettings();
+    renderAuthSourceAfterProviderChange();
+    setApiSettingsFeedback(translate("apiSettings.deleteProviderStatus"), "running");
+    queueApiSettingsAutosave();
+  }
+  function confirmDeleteApiProvider(anchor = els4.deleteApiProviderButton) {
+    if (apiProviderEditorActive()) {
+      setApiSettingsFeedback(translate("apiSettings.finishEditFirst"), "error");
+      return;
+    }
+    if (state3.apiSettings.providers.length <= 1) return;
+    const provider = activeApiProvider();
+    openConfirmPopover(anchor || els4.deleteApiProviderButton, {
+      title: translate("apiSettings.deleteProviderTitle"),
+      message: formatTranslation("apiSettings.deleteProviderMessage", {
+        provider: provider.name || provider.id
+      }),
+      detail: translate("apiSettings.deleteProviderDetail"),
+      confirmText: translate("action.delete"),
+      onConfirm: () => deleteApiProvider()
+    });
+  }
+  function openApiSettingsModal() {
+    closePromptPopover();
+    state3.apiProviderEditingId = null;
+    state3.apiProviderDraft = null;
+    state3.apiProviderDraftIsNew = false;
+    if (els4.apiProviderSearch) els4.apiProviderSearch.value = "";
+    populateApiSettingsForm();
+    setApiSettingsFeedback("", "");
+    openSystemSettingsModal("api");
+    scrollActiveApiProviderCardIntoView(activeApiProvider().id, "center");
+  }
+  function openGenerationProviderSettings() {
+    openApiSettingsModal();
+  }
+  function closeApiSettingsModal() {
+    closeSystemSettingsModal();
+  }
+  function selectApiProvider(providerId, anchor) {
+    const id = String(providerId || "").trim();
+    if (!id) return;
+    if (apiProviderEditorActive()) {
+      setApiSettingsFeedback(translate("apiSettings.finishEditFirst"), "error");
+      return;
+    }
+    if (state3.apiProviderSortMode) return;
+    const provider = providerById(id);
+    const continueSwitch = () => {
+      state3.apiSettings = normalizeApiSettings({
+        ...state3.apiSettings,
+        active_provider_id: provider.id
+      });
+      populateApiSettingsForm();
+      scrollActiveApiProviderCardIntoView(provider.id, "nearest");
+      persistApiSettings();
+      legacyMethod4("selectGenerationProvider", provider.id);
+      renderAuthSourceAfterProviderChange();
+      queueApiSettingsAutosave();
+    };
+    if (provider.id === currentApiProviderId()) {
+      continueSwitch();
+      return;
+    }
+    void anchor;
+    continueSwitch();
+  }
+  function editApiProvider() {
+    if (apiProviderEditorActive()) return;
+    state3.apiProviderSortMode = false;
+    const provider = activeApiProvider();
+    state3.apiProviderEditingId = provider.id;
+    state3.apiProviderDraftIsNew = false;
+    state3.apiProviderDraft = normalizeApiProvider({ ...provider }, 0);
+    populateApiSettingsForm();
+    setApiSettingsFeedback(translate("apiSettings.editDraftStatus"), "running");
+    scrollApiProviderEditorIntoView();
+    els4.apiProviderName?.focus();
+  }
+  function cancelApiProviderEdit() {
+    if (!apiProviderEditorActive()) return;
+    els4.systemSettingsApiTab?.focus({ preventScroll: true });
+    state3.apiProviderEditingId = null;
+    state3.apiProviderDraft = null;
+    state3.apiProviderDraftIsNew = false;
+    populateApiSettingsForm();
+    setApiSettingsFeedback("", "");
+    scrollActiveApiProviderCardIntoView(activeApiProvider().id, "center");
+  }
+  function toggleApiProviderSortMode() {
+    if (apiProviderEditorActive()) {
+      setApiSettingsFeedback(translate("apiSettings.finishEditFirst"), "error");
+      return;
+    }
+    const settings = normalizeApiSettings(state3.apiSettings);
+    if (settings.providers.length <= 1) return;
+    state3.apiProviderSortMode = !state3.apiProviderSortMode;
+    renderApiProviderList();
+    if (!state3.apiProviderSortMode) scrollActiveApiProviderCardIntoView(settings.active_provider_id, "center");
+    setApiSettingsFeedback(state3.apiProviderSortMode ? translate("apiSettings.sortProviderModeStatus") : "", state3.apiProviderSortMode ? "running" : "");
+  }
+  function moveApiProvider(providerId, direction) {
+    if (!state3.apiProviderSortMode || apiProviderEditorActive()) return;
+    const settings = normalizeApiSettings(state3.apiSettings);
+    const index = settings.providers.findIndex((provider) => provider.id === providerId);
+    const offset = direction === "up" ? -1 : direction === "down" ? 1 : 0;
+    const nextIndex = index + offset;
+    if (index < 0 || nextIndex < 0 || nextIndex >= settings.providers.length) return;
+    const providers = [...settings.providers];
+    [providers[index], providers[nextIndex]] = [providers[nextIndex], providers[index]];
+    state3.apiSettings = normalizeApiSettings({
+      ...settings,
+      providers,
+      active_provider_id: settings.active_provider_id
+    });
+    persistApiSettings();
+    renderApiProviderList();
+    setApiSettingsFeedback(translate("apiSettings.sortProviderStatus"), "running");
+    queueApiSettingsAutosave();
+  }
+  async function saveApiProviderEdit() {
+    if (!apiProviderEditorActive()) return;
+    await saveApiSettings();
+  }
+  function addProviderBinding() {
+    if (!apiProviderEditorActive()) return;
+    const draft = draftProviderFromForm();
+    const models = state3.generationCatalog?.models || [];
+    const model = models.find((item) => !draft.bindings.some((binding) => binding.canonical_model_id === item.id)) || models[0];
+    if (!model) {
+      setApiSettingsFeedback(translate("apiSettings.catalogRequiredForBinding"), "error");
+      return;
+    }
+    const bindingId = `${draft.id}-binding-${Date.now()}`;
+    const protocol = availableProtocolsForModel(model.id)[0];
+    if (!protocol) {
+      setApiSettingsFeedback(translate("apiSettings.catalogRequiredForBinding"), "error");
+      return;
+    }
+    draft.bindings.push(bindingFromProtocol(
+      bindingId,
+      model.id,
+      model.official_model_id || model.id,
+      protocol,
+      [...model.operations]
+    ));
+    if (!state3.apiSettings.default_provider_by_model?.[model.id]) {
+      draft.default_model_ids = [.../* @__PURE__ */ new Set([...draft.default_model_ids || [], model.id])];
+    }
+    state3.apiProviderDraft = draft;
+    renderProviderBindingCards(
+      els4.apiProviderBindings,
+      draft.bindings,
+      models,
+      draft.id,
+      defaultsForProviderDraft(draft)
+    );
+    updateApiRequestEndpointPreview();
+  }
+  function removeProviderBinding(bindingId) {
+    if (!apiProviderEditorActive()) return;
+    const draft = draftProviderFromForm();
+    if (draft.bindings.length <= 1) {
+      setApiSettingsFeedback(translate("apiSettings.keepOneBinding"), "error");
+      return;
+    }
+    draft.bindings = draft.bindings.filter((binding) => binding.id !== bindingId);
+    state3.apiProviderDraft = draft;
+    renderProviderBindingCards(
+      els4.apiProviderBindings,
+      draft.bindings,
+      state3.generationCatalog?.models || [],
+      draft.id,
+      defaultsForProviderDraft(draft)
+    );
+    updateApiRequestEndpointPreview();
+  }
+  function handleProviderBindingEditorChange(event) {
+    const target = event.target;
+    const card = target?.closest("[data-binding-id]");
+    if (!target || !card) return;
+    if (target.matches("[data-binding-model]")) {
+      const modelId = target.value;
+      const protocols = availableProtocolsForModel(modelId);
+      const defaultProtocol = protocols[0];
+      const protocolSelect = card.querySelector("[data-binding-protocol]");
+      if (protocolSelect) {
+        protocolSelect.replaceChildren(...protocols.map((protocol) => {
+          const option2 = document.createElement("option");
+          option2.value = protocol;
+          option2.textContent = BINDING_PROTOCOL_LABELS[protocol];
+          return option2;
+        }));
+        protocolSelect.value = protocols[0] || "";
+        syncThemedSelect(protocolSelect);
+      }
+      const compatibilitySelect = card.querySelector("[data-binding-compatibility]");
+      if (compatibilitySelect) {
+        compatibilitySelect.replaceChildren(...(defaultProtocol ? availableCompatibilityLayers(modelId, defaultProtocol) : []).map((compatibility) => {
+          const option2 = document.createElement("option");
+          option2.value = compatibility;
+          option2.textContent = BINDING_COMPATIBILITY_LABELS[compatibility];
+          return option2;
+        }));
+        compatibilitySelect.value = "standard";
+        syncThemedSelect(compatibilitySelect);
+      }
+      card.dataset.bindingProtocolChanged = "true";
+      card.dataset.bindingCompatibilityChanged = "true";
+      if (state3.apiProviderDraftIsNew && defaultProtocol) {
+        const suggestion = bindingTemplateSuggestion(bindingTemplateForProtocol(modelId, defaultProtocol));
+        const currentBase = String(els4.apiBaseUrl?.value || "").trim();
+        if (!currentBase || isBindingTemplateBaseUrl(currentBase)) els4.apiBaseUrl.value = suggestion.base_url;
+      }
+      const remoteInput = card.querySelector("[data-binding-remote-model]");
+      const model = state3.generationCatalog?.models.find((item) => item.id === modelId);
+      if (remoteInput && !remoteInput.value.trim()) remoteInput.value = model?.official_model_id || modelId;
+      const existingOperations = String(card.dataset.bindingModelOperations || "").split(",").filter(Boolean);
+      card.dataset.bindingModelOperations = (model?.operations || existingOperations).join(",");
+    }
+    if (target.matches("[data-binding-default]")) {
+      const modelId = card.querySelector("[data-binding-model]")?.value;
+      if (modelId) {
+        els4.apiProviderBindings?.querySelectorAll("[data-binding-id]").forEach((item) => {
+          if (item === card) return;
+          if (item.querySelector("[data-binding-model]")?.value !== modelId) return;
+          const checkbox = item.querySelector("[data-binding-default]");
+          if (checkbox) checkbox.checked = target.checked;
+        });
+      }
+    }
+    if (target.matches("[data-binding-protocol]")) {
+      card.dataset.bindingProtocolChanged = "true";
+      const modelId = card.querySelector("[data-binding-model]")?.value || "";
+      const compatibilitySelect = card.querySelector("[data-binding-compatibility]");
+      const protocol = target.value;
+      if (compatibilitySelect) {
+        compatibilitySelect.replaceChildren(...availableCompatibilityLayers(modelId, protocol).map((compatibility) => {
+          const option2 = document.createElement("option");
+          option2.value = compatibility;
+          option2.textContent = BINDING_COMPATIBILITY_LABELS[compatibility];
+          return option2;
+        }));
+        compatibilitySelect.value = "standard";
+        syncThemedSelect(compatibilitySelect);
+      }
+      card.dataset.bindingCompatibilityChanged = "true";
+      if (state3.apiProviderDraftIsNew) {
+        const templateId = bindingTemplateForProtocol(modelId, protocol);
+        const suggestion = bindingTemplateSuggestion(templateId);
+        const currentBase = String(els4.apiBaseUrl?.value || "").trim();
+        if (!currentBase || isBindingTemplateBaseUrl(currentBase)) els4.apiBaseUrl.value = suggestion.base_url;
+      }
+    }
+    if (target.matches("[data-binding-compatibility]")) {
+      card.dataset.bindingCompatibilityChanged = "true";
+      if (state3.apiProviderDraftIsNew) {
+        const modelId = card.querySelector("[data-binding-model]")?.value || "";
+        const protocol = card.querySelector("[data-binding-protocol]")?.value || availableProtocolsForModel(modelId)[0];
+        const templateId = bindingTemplateForCompatibility(
+          modelId,
+          protocol,
+          target.value
+        );
+        const suggestion = bindingTemplateSuggestion(templateId);
+        const currentBase = String(els4.apiBaseUrl?.value || "").trim();
+        if (!currentBase || isBindingTemplateBaseUrl(currentBase)) els4.apiBaseUrl.value = suggestion.base_url;
+      }
+    }
+    updateApiRequestEndpointPreview();
+  }
+  function renderAuthSourceAfterProviderChange() {
+    legacyMethod4("renderAuthSource", state3.authStatus);
+    legacyMethod4("renderProviderSelection");
+    updateModeSpecificSettings();
+    updateRequestPreview2();
+  }
+  function currentApiImageModel() {
+    const provider = activeApiProvider();
+    const binding = provider.bindings?.find((item) => item.canonical_model_id === state3.selectedModelId) || provider.bindings?.find((item) => item.canonical_model_id === "gpt-image-2") || provider.bindings?.[0];
+    return String(binding?.remote_model_id || provider.image_model || DEFAULT_API_IMAGE_MODEL).trim() || DEFAULT_API_IMAGE_MODEL;
+  }
+  function currentApiMode3() {
+    const binding = selectedProviderBinding();
+    if (binding) return String(binding.protocol_profile).includes("responses") ? "responses" : "images";
+    return activeApiProvider().api_mode === "responses" ? "responses" : DEFAULT_API_MODE;
+  }
+  function currentCodexMode3() {
+    const binding = selectedProviderBinding();
+    if (state3.selectedProviderId === "codex" && binding) {
+      return binding.protocol_profile === "codex_responses" ? "responses" : "images";
+    }
+    state3.apiSettings = normalizeApiSettings(state3.apiSettings);
+    return normalizeCodexMode(state3.apiSettings.codex_mode);
+  }
+  function currentApiImagesConcurrency() {
+    const provider = activeApiProvider();
+    return normalizeApiImagesConcurrency(provider.concurrency ?? provider.images_concurrency);
+  }
+  function apiModeLabel2(mode) {
+    return mode === "responses" ? "Responses" : translate("apiSettings.modeImagesShort");
+  }
+  function codexModeLabel2(mode) {
+    return mode === "responses" ? "Codex Responses" : "Codex Image";
+  }
+  function backendDisplayLabel(backend) {
+    if (backend === "codex_images") return "Codex Image";
+    if (backend === "codex_responses") return "Codex Responses";
+    if (backend === "openai_images") return "API Image";
+    if (backend === "openai_responses") return "API Responses";
+    return backend;
+  }
+  function backendModeLabel(backend) {
+    if (backend === "codex_images" || backend === "openai_images") return "Image";
+    if (backend === "codex_responses" || backend === "openai_responses") return "Responses";
+    return "";
+  }
+  function syncCodexModeNotes() {
+  }
+  function selectCodexMode(mode, anchor) {
+    const normalized = normalizeCodexMode(mode);
+    void anchor;
+    state3.apiSettings = normalizeApiSettings({ ...state3.apiSettings, codex_mode: normalized });
+    legacyMethod4("syncCodexCatalogMode", normalized);
+    legacyMethod4("selectGenerationProvider", providerBindingSelectionKey("codex", `codex-gpt-image-2-${normalized}`));
+    legacyMethod4("renderProviderSelection");
+    updateModeSpecificSettings();
+    updateRequestPreview2();
+    persistApiSettings();
+    queueApiSettingsAutosave();
+    return true;
+  }
+  function queueApiSettingsAutosave() {
+    if (apiProviderEditorActive()) return;
+    if (apiSettingsAutosaveTimerId !== null) {
+      window.clearTimeout(apiSettingsAutosaveTimerId);
+    }
+    setApiSettingsFeedback(translate("apiSettings.autoSaving"), "running");
+    apiSettingsAutosaveTimerId = window.setTimeout(() => {
+      apiSettingsAutosaveTimerId = null;
+      void saveApiSettings({ auto: true });
+    }, 260);
+  }
+  function backendForAuthSource(authSource, apiMode = currentApiMode3(), codexMode = currentCodexMode3()) {
+    if (authSource === "api") {
+      return apiMode === "responses" ? "openai_responses" : "openai_images";
+    }
+    return codexMode === "responses" ? "codex_responses" : "codex_images";
+  }
+  function taskBackendValue(task) {
+    return String(task?.backend || task?.requested_backend || "").trim();
+  }
+  function taskApiProviderId(task) {
+    return String(
+      task?.api_provider_id || task?.params?.api_provider_id || task?.request?.webui_api_provider_id || task?.request?.api_provider_id || task?.provider_id || ""
+    ).trim();
+  }
+  function taskApiProviderLabel(task) {
+    const providerId = taskApiProviderId(task);
+    const providerName = String(
+      task?.api_provider_name || task?.params?.api_provider_name || task?.request?.webui_api_provider_name || task?.request?.api_provider_name || task?.provider || ""
+    ).trim();
+    const configuredProvider = providerId ? state3.apiSettings.providers.find((provider) => provider.id === providerId) : null;
+    const label = providerName || configuredProvider?.name || providerId;
+    if (!label) return "";
+    return !providerId || label === providerId ? label : `${label} (${providerId})`;
+  }
+  function taskBackendLabel(task) {
+    const backend = taskBackendValue(task);
+    const provider = taskApiProviderLabel(task);
+    const backendLabel = backendDisplayLabel(backend);
+    if (provider && backend.startsWith("openai_")) {
+      return [provider, backendModeLabel(backend)].filter(Boolean).join(" \xB7 ");
+    }
+    return [backendLabel, provider].filter(Boolean).join(" \xB7 ");
+  }
+  function setApiSettingsFeedback(message, type = "") {
+    [els4.apiSettingsStatus].filter(Boolean).forEach((statusElement) => {
+      statusElement.textContent = message;
+      statusElement.className = `api-settings-feedback settings-action-status ${type || ""}`.trim();
+    });
+  }
+  function saveButtons() {
+    return [els4.saveApiProviderEditButton].filter(Boolean);
+  }
+  function setSaveButtonsDisabled(disabled) {
+    saveButtons().forEach((button) => {
+      button.disabled = disabled;
+    });
+  }
+  function setSaveButtonText(stateName) {
+    const providerText = {
+      saving: translate("apiSettings.saving"),
+      saved: translate("apiSettings.savedShort"),
+      failed: translate("apiSettings.saveFailedShort"),
+      default: translate("apiSettings.saveProvider")
+    }[stateName];
+    if (els4.saveApiProviderEditButton) els4.saveApiProviderEditButton.textContent = providerText;
+  }
+  async function saveApiSettings(options = {}) {
+    const autoSave = Boolean(options.auto);
+    if (autoSave && apiProviderEditorActive()) return true;
+    if (state3.apiSettingsSaveTimerId) {
+      window.clearTimeout(state3.apiSettingsSaveTimerId);
+      state3.apiSettingsSaveTimerId = null;
+    }
+    const previousSettings = normalizeApiSettings(state3.apiSettings);
+    const previousEditingId = state3.apiProviderEditingId;
+    const previousDraft = state3.apiProviderDraft ? structuredClone(state3.apiProviderDraft) : null;
+    const previousDraftIsNew = state3.apiProviderDraftIsNew;
+    if (!autoSave && apiProviderEditorActive()) {
+      const bindings = readProviderBindingCards(els4.apiProviderBindings);
+      if (!bindings.length || bindings.some((binding) => !binding.canonical_model_id || !binding.remote_model_id || !binding.operations.length)) {
+        setApiSettingsFeedback(translate("apiSettings.bindingRequiredFields"), "error");
+        return false;
+      }
+      const overlap = validateProviderBindingOverlaps(bindings);
+      if (overlap) {
+        setApiSettingsFeedback(formatTranslation("apiSettings.bindingOverlap", {
+          model: overlap.canonicalModelId,
+          operation: overlap.operation
+        }), "error");
+        els4.apiProviderBindings?.querySelector(`[data-binding-id="${CSS.escape(overlap.secondBindingId)}"]`)?.scrollIntoView?.({ block: "nearest" });
+        return false;
+      }
+    }
+    const settings = readApiSettingsForm({ applyProviderDraft: !autoSave });
+    persistApiSettings();
+    const payload = {
+      schema_version: 2,
+      codex_mode: settings.codex_mode,
+      active_provider_id: settings.active_provider_id,
+      default_provider_by_model: settings.default_provider_by_model,
+      providers: settings.providers.map((provider) => {
+        const item = {
+          id: provider.id,
+          name: provider.name,
+          icon_emoji: provider.icon_emoji || "",
+          base_url: provider.base_url,
+          concurrency: provider.concurrency,
+          bindings: provider.bindings
+        };
+        if (provider.api_key || !provider.api_key_set) item.api_key = provider.api_key;
+        if (!provider.api_key && provider.api_key_source_provider_id) {
+          item.api_key_source_provider_id = provider.api_key_source_provider_id;
+        }
+        return item;
+      })
+    };
+    if (!autoSave) {
+      setSaveButtonsDisabled(true);
+      setSaveButtonText("saving");
+    }
+    setApiSettingsFeedback(translate(autoSave ? "apiSettings.autoSaving" : "apiSettings.savingStatus"), "running");
+    try {
+      const response = await fetch("/api/api-settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.detail || translate("apiSettings.saveFailed"));
+      state3.apiSettings = mergeApiProviderKeys(data.settings || {});
+      state3.apiProviderEditingId = null;
+      state3.apiProviderDraft = null;
+      state3.apiProviderDraftIsNew = false;
+      persistApiSettings();
+      populateApiSettingsForm();
+      setApiSettingsFeedback(autoSave ? translate("apiSettings.autoSaved") : formatTranslation("apiSettings.savedSummary", {
+        codex: codexModeLabel2(currentCodexMode3()),
+        provider: activeApiProvider().name,
+        mode: apiModeLabel2(currentApiMode3()),
+        model: currentApiImageModel(),
+        concurrency: currentApiImagesConcurrency()
+      }), "ok");
+      if (!autoSave) setSaveButtonText("saved");
+      state3.apiSettingsSaveTimerId = window.setTimeout(() => {
+        if (!autoSave) setSaveButtonText("default");
+        state3.apiSettingsSaveTimerId = null;
+      }, 1600);
+      setStatus3(translate("apiSettings.savedStatus"), "ok");
+      await refreshGenerationCatalog();
+      await refreshHealth();
+      updateRequestPreview2();
+      return true;
+    } catch (error) {
+      state3.apiSettings = previousSettings;
+      state3.apiProviderEditingId = previousEditingId;
+      state3.apiProviderDraft = previousDraft;
+      state3.apiProviderDraftIsNew = previousDraftIsNew;
+      persistApiSettings();
+      populateApiSettingsForm();
+      setApiSettingsFeedback(error.message || translate("apiSettings.saveFailed"), "error");
+      if (!autoSave) setSaveButtonText("failed");
+      setStatus3(error.message || translate("apiSettings.saveFailed"), "error");
+      return false;
+    } finally {
+      if (!autoSave) setSaveButtonsDisabled(false);
+      if (!autoSave && !state3.apiSettingsSaveTimerId && els4.saveApiProviderEditButton?.textContent !== translate("apiSettings.saveProvider")) {
+        state3.apiSettingsSaveTimerId = window.setTimeout(() => {
+          setSaveButtonText("default");
+          state3.apiSettingsSaveTimerId = null;
+        }, 1600);
+      }
+    }
+  }
+
+  // codex_image/webui/frontend/src/api-settings.ts
+  var apiSettingsFeatureInitialized = false;
+  function initApiSettingsFeature() {
+    if (apiSettingsFeatureInitialized) return;
+    apiSettingsFeatureInitialized = true;
+    document.addEventListener(LOCALE_CHANGE_EVENT, () => {
+      const bridge7 = getLegacyBridge();
+      renderAuthSource(bridge7.state.authStatus);
+      if (!bridge7.els.systemSettingsModal?.classList.contains("hidden") && !bridge7.els.systemSettingsApiPanel?.hidden) {
+        setApiSettingsFeedback("", "");
+      }
+    });
+    Object.assign(getLegacyBridge().methods, {
+      refreshHealth,
+      setAuthSource,
+      handleAuthSourceClick,
+      renderAuthSource,
+      applyAuthSourceSelection,
+      authSourceDetailText,
+      sourceLabel,
+      currentAuthSource: currentAuthSource2,
+      isDirectApiMode,
+      setModeSpecificElementVisibility,
+      setModeSettingsVariant,
+      updateModeSpecificSettings,
+      normalizeApiProvider,
+      normalizeApiImagesConcurrency,
+      normalizeApiSettings,
+      activeApiProvider,
+      addProviderBinding,
+      restoreApiSettings,
+      persistApiSettings,
+      mergeApiProviderKeys,
+      refreshApiSettings,
+      populateApiSettingsForm,
+      queueApiSettingsAutosave,
+      readApiSettingsForm,
+      currentApiProviderId,
+      currentApiProviderLabel: currentApiProviderLabel2,
+      addApiProvider,
+      confirmDeleteApiProvider,
+      copyApiProvider,
+      deleteApiProvider,
+      editApiProvider,
+      hideApiKeyReveal,
+      handleProviderBindingEditorChange,
+      cancelApiProviderEdit,
+      saveApiProviderEdit,
+      selectApiProvider,
+      selectCodexMode,
+      setApiKeyRevealVisible,
+      updateApiKeyRevealButton,
+      updateApiRequestEndpointPreview,
+      revealApiKeyWhilePressed,
+      renderApiProviderList,
+      syncCodexModeNotes,
+      moveApiProvider,
+      removeProviderBinding,
+      toggleApiProviderSortMode,
+      openGenerationProviderSettings,
+      openApiSettingsModal,
+      closeApiSettingsModal,
+      currentApiImageModel,
+      currentApiMode: currentApiMode3,
+      currentCodexMode: currentCodexMode3,
+      currentApiImagesConcurrency,
+      apiModeLabel: apiModeLabel2,
+      codexModeLabel: codexModeLabel2,
+      backendForAuthSource,
+      taskBackendValue,
+      taskApiProviderId,
+      taskApiProviderLabel,
+      taskBackendLabel,
+      setApiSettingsFeedback,
+      saveApiSettings
+    });
+  }
+
+  // codex_image/webui/frontend/src/network-egress-settings.ts
+  var networkEgressFeatureInitialized = false;
+  var currentNetworkEgress = null;
+  function normalizedMode(value) {
+    return value === "direct" || value === "custom" ? value : "system";
+  }
+  function modeTranslationKey(mode) {
+    return `networkEgress.${mode}`;
+  }
+  function setNetworkEgressFeedback(message, type = "") {
+    const { els: els9 } = getLegacyBridge();
+    if (!els9.networkEgressStatus) return;
+    els9.networkEgressStatus.textContent = message;
+    els9.networkEgressStatus.classList.toggle("ok", type === "ok");
+    els9.networkEgressStatus.classList.toggle("error", type === "error");
+    els9.networkEgressStatus.classList.toggle("running", type === "running");
+  }
+  function selectedNetworkEgressMode() {
+    const { els: els9 } = getLegacyBridge();
+    return normalizedMode(els9.networkEgressMode?.value);
+  }
+  function renderNetworkEgressMode(mode) {
+    const { els: els9 } = getLegacyBridge();
+    if (els9.networkEgressMode) els9.networkEgressMode.value = mode;
+    const buttons = Array.from(
+      els9.systemSettingsNetworkPanel?.querySelectorAll("[data-network-egress-mode]") || []
+    );
+    buttons.forEach((button) => {
+      const active = button.dataset.networkEgressMode === mode;
+      button.classList.toggle("active", active);
+      button.setAttribute("aria-pressed", active ? "true" : "false");
+    });
+    if (els9.networkEgressCustomProxyField) {
+      els9.networkEgressCustomProxyField.hidden = mode !== "custom";
+    }
+  }
+  function renderNetworkEgress(payload) {
+    const { els: els9 } = getLegacyBridge();
+    currentNetworkEgress = payload;
+    const mode = normalizedMode(payload.settings?.mode);
+    renderNetworkEgressMode(mode);
+    if (els9.networkEgressCustomProxy) {
+      els9.networkEgressCustomProxy.value = payload.settings?.custom_proxy_url || "";
+    }
+    if (els9.networkEgressCurrentRoute) {
+      const resolvedMode = normalizedMode(payload.resolved?.mode);
+      els9.networkEgressCurrentRoute.textContent = formatTranslation(
+        "networkEgress.currentRoute",
+        { route: translate(modeTranslationKey(resolvedMode)) }
+      );
+    }
+  }
+  function networkEgressFormPayload() {
+    const { els: els9 } = getLegacyBridge();
+    return {
+      mode: selectedNetworkEgressMode(),
+      custom_proxy_url: String(els9.networkEgressCustomProxy?.value || "").trim()
+    };
+  }
+  function networkEgressPayloadIsValid(payload) {
+    if (payload.mode !== "custom") return true;
+    try {
+      const url = new URL(payload.custom_proxy_url);
+      return (url.protocol === "http:" || url.protocol === "https:") && Boolean(url.hostname) && !url.username && !url.password && (url.pathname === "" || url.pathname === "/") && !url.search && !url.hash;
+    } catch {
+      return false;
+    }
+  }
+  async function refreshNetworkEgress() {
+    try {
+      const response = await fetch("/api/network-egress");
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.detail || translate("networkEgress.loadFailed"));
+      renderNetworkEgress(data);
+      setNetworkEgressFeedback("", "");
+    } catch (error) {
+      setNetworkEgressFeedback(
+        error.message || translate("networkEgress.loadFailed"),
+        "error"
+      );
+    }
+  }
+  async function saveNetworkEgress() {
+    const { els: els9 } = getLegacyBridge();
+    if (!els9.saveNetworkEgressButton) return;
+    const payload = networkEgressFormPayload();
+    if (!networkEgressPayloadIsValid(payload)) {
+      setNetworkEgressFeedback(translate("networkEgress.saveFailed"), "error");
+      return;
+    }
+    els9.saveNetworkEgressButton.disabled = true;
+    try {
+      const response = await fetch("/api/network-egress", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.detail || translate("networkEgress.saveFailed"));
+      renderNetworkEgress(data);
+      setNetworkEgressFeedback(translate("networkEgress.saved"), "ok");
+    } catch (error) {
+      setNetworkEgressFeedback(
+        error.message || translate("networkEgress.saveFailed"),
+        "error"
+      );
+    } finally {
+      els9.saveNetworkEgressButton.disabled = false;
+    }
+  }
+  async function testNetworkEgress() {
+    const { els: els9 } = getLegacyBridge();
+    if (!els9.testNetworkEgressButton) return;
+    const payload = networkEgressFormPayload();
+    if (!networkEgressPayloadIsValid(payload)) {
+      setNetworkEgressFeedback(translate("networkEgress.testFailed"), "error");
+      return;
+    }
+    els9.testNetworkEgressButton.disabled = true;
+    setNetworkEgressFeedback(translate("networkEgress.test"), "running");
+    try {
+      const response = await fetch("/api/network-egress/test", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      const data = await response.json();
+      if (!response.ok || !data.ok) {
+        throw new Error(data.detail || data.error || translate("networkEgress.testFailed"));
+      }
+      setNetworkEgressFeedback(
+        formatTranslation("networkEgress.testSucceeded", {
+          target: data.target,
+          elapsed: data.elapsed_ms
+        }),
+        "ok"
+      );
+    } catch (error) {
+      setNetworkEgressFeedback(
+        error.message || translate("networkEgress.testFailed"),
+        "error"
+      );
+    } finally {
+      els9.testNetworkEgressButton.disabled = false;
+    }
+  }
+  function handleNetworkEgressModeClick(event) {
+    const target = event.target;
+    const button = target?.closest?.("[data-network-egress-mode]");
+    if (!button) return;
+    renderNetworkEgressMode(normalizedMode(button.dataset.networkEgressMode));
+    setNetworkEgressFeedback("", "");
+  }
+  function initNetworkEgressSettingsFeature() {
+    if (networkEgressFeatureInitialized) return;
+    networkEgressFeatureInitialized = true;
+    const { els: els9 } = getLegacyBridge();
+    els9.systemSettingsNetworkPanel?.addEventListener(
+      "click",
+      handleNetworkEgressModeClick
+    );
+    els9.testNetworkEgressButton?.addEventListener("click", testNetworkEgress);
+    els9.saveNetworkEgressButton?.addEventListener("click", saveNetworkEgress);
+    document.addEventListener(LOCALE_CHANGE_EVENT, () => {
+      if (currentNetworkEgress) renderNetworkEgress(currentNetworkEgress);
+    });
+    Object.assign(getLegacyBridge().methods, {
+      refreshNetworkEgress,
+      saveNetworkEgress,
+      testNetworkEgress
+    });
+  }
+
+  // codex_image/webui/frontend/src/overlay-popovers.ts
+  var bridge4 = getLegacyBridge();
+  var els5 = bridge4.els;
+  var overlayPopoversInitialized = false;
+  var overlayPopoverEventsBound = false;
+  var confirmPopoverEl = null;
+  var confirmPopoverState = {
+    anchor: null,
+    onConfirm: null
+  };
+  var promptPopoverEl = null;
+  var promptPopoverState = {
+    anchor: null,
+    data: null,
+    optimizedPrompt: "",
+    copyTimerId: null
+  };
+  function legacyMethod5(name, ...args) {
+    const method = getLegacyBridge().methods[name];
+    if (typeof method !== "function") {
+      throw new Error("Legacy method " + name + " is not initialized");
+    }
+    return method(...args);
+  }
+  function escapeHtml2(value) {
+    return legacyMethod5("escapeHtml", value);
+  }
+  function closeGalleryEditPopover() {
+    legacyMethod5("closeGalleryEditPopover");
+  }
+  function handlePromptDocumentClick(event) {
+    legacyMethod5("handlePromptDocumentClick", event);
+  }
+  function handleGalleryDocumentClick(event) {
+    legacyMethod5("handleGalleryDocumentClick", event);
+  }
+  function closeCompressionPopover() {
+    legacyMethod5("closeCompressionPopover");
+  }
+  function handleImageEditorHistoryShortcut(event) {
+    return legacyMethod5("handleImageEditorHistoryShortcut", event);
+  }
+  function hideMentionSuggest() {
+    legacyMethod5("hideMentionSuggest");
+  }
+  function hideColorSuggest() {
+    legacyMethod5("hideColorSuggest");
+  }
+  function hidePromptSnippetSuggest() {
+    legacyMethod5("hidePromptSnippetSuggest");
+  }
+  function hidePromptSnippetSelectionButton() {
+    legacyMethod5("hidePromptSnippetSelectionButton");
+  }
+  function closePromptSnippetPopover() {
+    legacyMethod5("closePromptSnippetPopover");
+  }
+  function closeArchiveModal() {
+    legacyMethod5("closeArchiveModal");
+  }
+  function closeImageEditor() {
+    legacyMethod5("closeImageEditor");
+  }
+  function closeGallery() {
+    legacyMethod5("closeGallery");
+  }
+  function closeApiSettingsModal2() {
+    legacyMethod5("closeApiSettingsModal");
+  }
+  function closePromptTemplateDrawer() {
+    legacyMethod5("closePromptTemplateDrawer");
+  }
+  function bindOverlayPopoverEvents() {
+    if (overlayPopoverEventsBound) return;
+    overlayPopoverEventsBound = true;
+    document.addEventListener("click", handleDocumentClick);
+    document.addEventListener("keydown", handleDocumentKeydown);
+  }
+  function ensureConfirmPopover() {
+    if (confirmPopoverEl) return confirmPopoverEl;
+    confirmPopoverEl = document.createElement("div");
+    confirmPopoverEl.className = "confirm-popover hidden";
+    confirmPopoverEl.setAttribute("role", "dialog");
+    confirmPopoverEl.setAttribute("aria-label", translate("action.confirm"));
+    document.body.appendChild(confirmPopoverEl);
+    return confirmPopoverEl;
+  }
+  function openConfirmPopover2(anchor, options = {}) {
+    if (!anchor) return;
+    const popover = ensureConfirmPopover();
+    if (!popover.classList.contains("hidden") && confirmPopoverState.anchor === anchor) {
+      closeConfirmPopover();
+      return;
+    }
+    closePromptPopover2();
+    closeGalleryEditPopover();
+    confirmPopoverState.anchor = anchor;
+    confirmPopoverState.onConfirm = typeof options.onConfirm === "function" ? options.onConfirm : null;
+    const message = options.message ? `<p class="confirm-popover-message">${escapeHtml2(options.message)}</p>` : "";
+    const detail = options.detail ? `<div class="confirm-popover-detail">${escapeHtml2(options.detail)}</div>` : "";
+    const confirmText = options.confirmText || translate("action.confirm");
+    popover.innerHTML = `
+    <div class="confirm-popover-title">${escapeHtml2(options.title || translate("action.confirmQuestion"))}</div>
+    ${message}
+    ${detail}
+    <div class="confirm-popover-actions">
+      <button class="ghost-button text-sm" type="button" data-confirm-popover-cancel>${escapeHtml2(translate("action.cancel"))}</button>
+      <button class="ghost-button text-sm danger-button confirm-popover-confirm" type="button" data-confirm-popover-confirm>${escapeHtml2(confirmText)}</button>
+    </div>
+  `;
+    popover.querySelector("[data-confirm-popover-cancel]")?.addEventListener("click", closeConfirmPopover);
+    popover.querySelector("[data-confirm-popover-confirm]")?.addEventListener("click", async () => {
+      const onConfirm = confirmPopoverState.onConfirm;
+      closeConfirmPopover();
+      if (onConfirm) await onConfirm();
+    });
+    popover.classList.remove("hidden");
+    positionConfirmPopover(anchor, popover);
+    popover.querySelector("[data-confirm-popover-confirm]")?.focus({ preventScroll: true });
+  }
+  function closeConfirmPopover() {
+    if (!confirmPopoverEl) return;
+    confirmPopoverEl.classList.add("hidden");
+    confirmPopoverState.anchor = null;
+    confirmPopoverState.onConfirm = null;
+  }
+  function positionConfirmPopover(anchor, popover) {
+    const anchorRect = anchor.getBoundingClientRect();
+    const margin = 10;
+    const width = Math.min(280, Math.max(220, window.innerWidth - margin * 2));
+    popover.style.width = `${width}px`;
+    popover.style.left = "0px";
+    popover.style.top = "0px";
+    const height = popover.offsetHeight;
+    const left = clampPopoverPosition(anchorRect.right - width, margin, window.innerWidth - width - margin);
+    const belowTop = anchorRect.bottom + 8;
+    const top = belowTop + height <= window.innerHeight - margin ? belowTop : clampPopoverPosition(anchorRect.top - height - 8, margin, window.innerHeight - height - margin);
+    popover.style.left = `${left}px`;
+    popover.style.top = `${top}px`;
+  }
+  function normalizedPromptText(value) {
+    return String(value || "").trim();
+  }
+  function promptLengthLabel(value) {
+    return formatTranslation("promptPopover.charCount", {
+      count: Array.from(normalizedPromptText(value)).length
+    });
+  }
+  function promptPopoverSection(label, text, meta, tone = "", actions = "") {
+    const toneClass = tone ? ` prompt-popover-section-${tone}` : "";
+    return `
+    <section class="prompt-popover-section${toneClass}">
+      <div class="prompt-popover-section-head">
+        <div class="prompt-popover-label">${escapeHtml2(label)}</div>
+        <div class="prompt-popover-section-tools">
+          <span class="prompt-popover-meta">${escapeHtml2(meta || promptLengthLabel(text))}</span>
+          ${actions}
+        </div>
+      </div>
+      <pre class="prompt-popover-text">${escapeHtml2(text || translate("promptPopover.empty"))}</pre>
+    </section>
+  `;
+  }
+  function optimizedPromptCopyButton(optimizedPrompt) {
+    return `
+    <button
+      class="prompt-copy-button prompt-copy-inline"
+      type="button"
+      data-copy-optimized-prompt
+      aria-label="${escapeHtml2(translate("promptPopover.copyOptimized"))}"
+      title="${escapeHtml2(translate("promptPopover.copyOptimized"))}"
+      ${optimizedPrompt ? "" : "disabled"}
+    >${escapeHtml2(translate("templates.copy"))}</button>
+  `;
+  }
+  function submittedPromptDetails(originalPrompt, submittedPrompt) {
+    if (!normalizedPromptText(submittedPrompt)) return "";
+    if (normalizedPromptText(originalPrompt) === normalizedPromptText(submittedPrompt)) return "";
+    return `
+    <details class="prompt-popover-submitted">
+      <summary>${escapeHtml2(translate("promptPopover.submitted"))}</summary>
+      <pre class="prompt-popover-submitted-text">${escapeHtml2(submittedPrompt)}</pre>
+    </details>
+  `;
+  }
+  function ensurePromptPopover() {
+    if (promptPopoverEl) return promptPopoverEl;
+    promptPopoverEl = document.createElement("div");
+    promptPopoverEl.className = "prompt-popover hidden";
+    promptPopoverEl.setAttribute("role", "dialog");
+    promptPopoverEl.setAttribute("aria-label", translate("promptPopover.title"));
+    document.body.appendChild(promptPopoverEl);
+    return promptPopoverEl;
+  }
+  function openPromptPopover(anchor, data) {
+    const popover = ensurePromptPopover();
+    const originalPrompt = data.originalPrompt || data.submittedPrompt || "";
+    const submittedPrompt = data.submittedPrompt || originalPrompt || "";
+    const optimizedPrompt = data.optimizedPrompt || "";
+    promptPopoverState.anchor = anchor;
+    promptPopoverState.data = data;
+    promptPopoverState.optimizedPrompt = optimizedPrompt;
+    clearPromptPopoverCopyTimer();
+    popover.setAttribute("aria-label", translate("promptPopover.title"));
+    const optimizedLength = optimizedPrompt ? promptLengthLabel(optimizedPrompt) : translate("promptPopover.notReturned");
+    popover.innerHTML = `
+    <div class="prompt-popover-header">
+      <div>
+        <strong>${escapeHtml2(translate("promptPopover.title"))}</strong>
+        <span class="prompt-popover-summary">${escapeHtml2(formatTranslation("promptPopover.summary", {
+      original: promptLengthLabel(originalPrompt),
+      optimized: optimizedLength
+    }))}</span>
+      </div>
+      <button class="prompt-popover-close" type="button" aria-label="${escapeHtml2(translate("promptPopover.close"))}">\xD7</button>
+    </div>
+    <div class="prompt-popover-body">
+      <div class="prompt-popover-compare">
+        ${promptPopoverSection(translate("promptPopover.original"), originalPrompt || translate("promptPopover.empty"), promptLengthLabel(originalPrompt), "original")}
+        ${promptPopoverSection(
+      translate("promptPopover.optimized"),
+      optimizedPrompt || translate("promptPopover.noOptimized"),
+      optimizedLength,
+      optimizedPrompt ? "optimized" : "empty",
+      optimizedPromptCopyButton(optimizedPrompt)
+    )}
+      </div>
+      ${submittedPromptDetails(originalPrompt, submittedPrompt)}
+    </div>
+  `;
+    popover.querySelector(".prompt-popover-close")?.addEventListener("click", closePromptPopover2);
+    popover.querySelector("[data-copy-optimized-prompt]")?.addEventListener("click", (event) => {
+      copyOptimizedPrompt(event.currentTarget);
+    });
+    popover.classList.remove("hidden");
+    positionPromptPopover(anchor, popover);
+  }
+  function positionPromptPopover(anchor, popover) {
+    const anchorRect = anchor.getBoundingClientRect();
+    const horizontalAnchorRect = promptPopoverHorizontalAnchorRect(anchor);
+    const horizontalAnchorCenter = horizontalAnchorRect.left + horizontalAnchorRect.width / 2;
+    const margin = 12;
+    const viewportWidth = Math.max(0, window.innerWidth - margin * 2);
+    const width = Math.min(760, viewportWidth);
+    popover.style.left = "0px";
+    popover.style.top = "0px";
+    popover.style.width = `${width}px`;
+    const height = popover.offsetHeight;
+    const left = clampPopoverPosition(
+      horizontalAnchorCenter - width / 2,
+      margin,
+      window.innerWidth - width - margin
+    );
+    const preferredTop = anchorRect.top - height - margin;
+    const fallbackTop = anchorRect.bottom + margin;
+    const top = preferredTop >= margin ? preferredTop : clampPopoverPosition(fallbackTop, margin, window.innerHeight - height - margin);
+    popover.style.left = `${left}px`;
+    popover.style.top = `${top}px`;
+  }
+  function promptPopoverHorizontalAnchorRect(anchor) {
+    const image = anchor.closest?.(".preview-card")?.querySelector?.("img[data-lightbox-url]");
+    if (!(image instanceof HTMLImageElement)) return anchor.getBoundingClientRect();
+    const imageRect = image.getBoundingClientRect();
+    if (!imageRect.width || !imageRect.height || !image.naturalWidth || !image.naturalHeight) return imageRect;
+    const scale = Math.min(imageRect.width / image.naturalWidth, imageRect.height / image.naturalHeight);
+    const width = image.naturalWidth * scale;
+    const height = image.naturalHeight * scale;
+    return {
+      left: imageRect.left + (imageRect.width - width) / 2,
+      top: imageRect.top + (imageRect.height - height) / 2,
+      right: imageRect.left + (imageRect.width + width) / 2,
+      bottom: imageRect.top + (imageRect.height + height) / 2,
+      width,
+      height
+    };
+  }
+  function clampPopoverPosition(value, min, max) {
+    return Math.min(Math.max(value, min), Math.max(min, max));
+  }
+  function closePromptPopover2() {
+    if (!promptPopoverEl) return;
+    promptPopoverEl.classList.add("hidden");
+    promptPopoverState.anchor = null;
+    promptPopoverState.data = null;
+    promptPopoverState.optimizedPrompt = "";
+    clearPromptPopoverCopyTimer();
+  }
+  function clearPromptPopoverCopyTimer() {
+    if (!promptPopoverState.copyTimerId) return;
+    window.clearTimeout(promptPopoverState.copyTimerId);
+    promptPopoverState.copyTimerId = null;
+  }
+  async function copyOptimizedPrompt(button) {
+    const text = promptPopoverState.optimizedPrompt;
+    if (!text) return;
+    const defaultLabel = button.dataset.copyLabel || button.textContent || translate("templates.copy");
+    button.dataset.copyLabel = defaultLabel;
+    await navigator.clipboard.writeText(text);
+    button.textContent = translate("promptPopover.copied");
+    clearPromptPopoverCopyTimer();
+    promptPopoverState.copyTimerId = window.setTimeout(() => {
+      button.textContent = defaultLabel;
+      promptPopoverState.copyTimerId = null;
+    }, 1200);
+  }
+  function rerenderPromptPopoverForLocale() {
+    if (!promptPopoverEl || promptPopoverEl.classList.contains("hidden")) return;
+    if (!promptPopoverState.anchor || !promptPopoverState.data) return;
+    openPromptPopover(promptPopoverState.anchor, promptPopoverState.data);
+  }
+  function handleDocumentClick(event) {
+    const target = event.target;
+    handlePromptDocumentClick(event);
+    if (promptPopoverEl && !promptPopoverEl.classList.contains("hidden")) {
+      const clickedPopover = promptPopoverEl.contains(target);
+      const clickedPromptButton = target.closest?.("[data-prompt-popover-index]");
+      if (!clickedPopover && !clickedPromptButton) {
+        closePromptPopover2();
+      }
+    }
+    handleGalleryDocumentClick(event);
+    if (confirmPopoverEl && !confirmPopoverEl.classList.contains("hidden")) {
+      const clickedPopover = confirmPopoverEl.contains(target);
+      const clickedAnchor = confirmPopoverState.anchor?.contains?.(target);
+      if (!clickedPopover && !clickedAnchor) {
+        closeConfirmPopover();
+      }
+    }
+    if (!els5.compressionPopover || els5.compressionPopover.classList.contains("hidden")) return;
+    if (els5.compressionPopover.contains(target) || els5.outputFormatField?.contains(target)) return;
+    closeCompressionPopover();
+  }
+  function handleDocumentKeydown(event) {
+    if (handleImageEditorHistoryShortcut(event)) return;
+    if (event.key === "Escape") {
+      hideMentionSuggest();
+      hideColorSuggest();
+      hidePromptSnippetSuggest();
+      hidePromptSnippetSelectionButton();
+      closeCompressionPopover();
+      closePromptPopover2();
+      closePromptSnippetPopover();
+      closeGalleryEditPopover();
+      closeConfirmPopover();
+      closeArchiveModal();
+      closeImageEditor();
+      closeGallery();
+      closeApiSettingsModal2();
+      closePromptTemplateDrawer();
+    }
+  }
+  function initOverlayPopoversFeature() {
+    if (overlayPopoversInitialized) return;
+    overlayPopoversInitialized = true;
+    document.addEventListener(LOCALE_CHANGE_EVENT, rerenderPromptPopoverForLocale);
+    Object.assign(getLegacyBridge().methods, {
+      bindOverlayPopoverEvents,
+      ensureConfirmPopover,
+      openConfirmPopover: openConfirmPopover2,
+      closeConfirmPopover,
+      positionConfirmPopover,
+      promptPopoverSection,
+      ensurePromptPopover,
+      openPromptPopover,
+      positionPromptPopover,
+      promptPopoverHorizontalAnchorRect,
+      clampPopoverPosition,
+      closePromptPopover: closePromptPopover2,
+      clearPromptPopoverCopyTimer,
+      copyOptimizedPrompt,
+      handleDocumentClick,
+      handleDocumentKeydown
+    });
+  }
+
+  // codex_image/webui/frontend/src/dom.ts
+  function getEls() {
+    return getLegacyBridge().els;
+  }
+
+  // codex_image/webui/frontend/src/queue.ts
+  var REALTIME_EVENTS_URL = "/api/events?stream=1";
+  var QUEUE_DISPATCH_RESYNC_DELAY_MS = 1500;
+  var queueFeatureInitialized = false;
+  function initializeQueueFeature() {
+    if (queueFeatureInitialized) return;
+    queueFeatureInitialized = true;
+    exposeQueueWindowApi();
+    bindQueueControls();
+    document.addEventListener(LOCALE_CHANGE_EVENT, renderQueue);
+  }
+  function exposeQueueWindowApi() {
+    window.startRealtimeUpdates = startRealtimeUpdates;
+    window.closeRealtimeUpdates = closeRealtimeUpdates;
+    window.refreshQueue = refreshQueue;
+    window.applyQueueState = applyQueueState;
+    window.applyQueueTasks = applyQueueTasks;
+    window.updateQueueElapsedDisplays = updateQueueElapsedDisplays;
+  }
+  function bindQueueControls() {
+    const els9 = getEls();
+    els9.queueButton?.addEventListener("click", jumpToActiveTaskGroup);
+  }
+  function startRealtimeUpdates({ migrateLegacyArchives = false } = {}) {
+    const state5 = getState();
+    if (!window.EventSource) return false;
+    closeRealtimeUpdates();
+    state5.realtimeSnapshotNeedsArchiveMigration = migrateLegacyArchives;
+    const source = new EventSource(REALTIME_EVENTS_URL);
+    state5.realtimeSource = source;
+    source.onmessage = (event) => {
+      handleRealtimeMessage(event).catch((error) => {
+        console.error(error);
+        getLegacyBridge().methods.setStatus(errorMessage(error, translate("queue.realtimeUpdateFailed")), "error");
+      });
+    };
+    source.onerror = () => {
+      if (state5.realtimeSource !== source) return;
+      const shouldMigrateArchives = state5.realtimeSnapshotNeedsArchiveMigration;
+      closeRealtimeUpdates();
+      state5.realtimeSnapshotNeedsArchiveMigration = false;
+      void refreshQueue();
+      void getLegacyBridge().methods.refreshTasks({ migrateLegacyArchives: shouldMigrateArchives });
+      getLegacyBridge().methods.setStatus(translate("queue.realtimeDisconnected"), "error");
+    };
+    return true;
+  }
+  function closeRealtimeUpdates() {
+    const state5 = getState();
+    if (!state5.realtimeSource) return;
+    state5.realtimeSource.close();
+    state5.realtimeSource = null;
+  }
+  async function handleRealtimeMessage(event) {
+    if (!event.data) return;
+    const payload = JSON.parse(String(event.data));
+    await handleRealtimePayload(payload);
+  }
+  async function handleRealtimePayload(payload) {
+    const bridge7 = getLegacyBridge();
+    const state5 = bridge7.state;
+    if (payload?.type === "snapshot") {
+      applyQueueState(payload.queue);
+      await bridge7.methods.applyTasksSnapshot(payload.tasks || [], {
+        migrateLegacyArchives: state5.realtimeSnapshotNeedsArchiveMigration,
+        ...payload.task_groups ? { taskGroups: payload.task_groups } : {}
+      });
+      applyQueueTasks(payload.queue);
+      state5.realtimeSnapshotNeedsArchiveMigration = false;
+      return;
+    }
+    if (payload?.type === "queue") {
+      applyQueueState(payload.queue);
+      await applyRealtimeTaskPayloads(payload.tasks || []);
+      applyQueueTasks(payload.queue);
+      return;
+    }
+    if (payload?.type === "task") {
+      await applyRealtimeTaskPayloads(payload.task ? [payload.task] : []);
+    }
+  }
+  async function applyRealtimeTaskPayloads(tasks) {
+    const bridge7 = getLegacyBridge();
+    const state5 = bridge7.state;
+    for (const task of tasks) {
+      const previousTask = state5.tasks.find((item) => String(item.task_id) === String(task?.task_id));
+      bridge7.methods.notifyTaskUpdate?.(previousTask, task);
+      await bridge7.methods.applyTaskUpdate(task);
+    }
+  }
+  async function refreshQueue() {
+    const bridge7 = getLegacyBridge();
+    const state5 = bridge7.state;
+    const requestSeq = ++state5.queueRequestSeq;
+    try {
+      const response = await fetch("/api/queue");
+      const data = await response.json();
+      if (requestSeq !== state5.queueRequestSeq) return;
+      if (!response.ok) {
+        throw new Error(data.detail || translate("queue.readFailed"));
+      }
+      state5.queue = normalizeQueueState(data);
+      renderQueue();
+    } catch (error) {
+      bridge7.methods.setStatus(errorMessage(error, translate("queue.readFailed")), "error");
+    }
+  }
+  function defaultQueueState() {
+    return { waiting: [], running: [], summary: { waiting_count: 0, running_count: 0, channel_count: 0 } };
+  }
+  function normalizeQueueState(queue) {
+    const fallback = defaultQueueState();
+    return {
+      waiting: Array.isArray(queue?.waiting) ? queue.waiting : fallback.waiting,
+      running: Array.isArray(queue?.running) ? queue.running : fallback.running,
+      summary: queue?.summary || fallback.summary
+    };
+  }
+  function invalidateQueueRequests() {
+    getState().queueRequestSeq += 1;
+  }
+  function applyQueueState(queue) {
+    const state5 = getState();
+    invalidateQueueRequests();
+    state5.queue = normalizeQueueState(queue);
+    renderQueue();
+  }
+  function renderQueue() {
+    const bridge7 = getLegacyBridge();
+    const state5 = bridge7.state;
+    const summary = state5.queue.summary || {};
+    const waitingCount = Number(summary.waiting_count ?? state5.queue.waiting.length ?? 0);
+    const runningCount = Number(summary.running_count ?? state5.queue.running.length ?? 0);
+    const channelCount = Number(summary.channel_count ?? 0);
+    const usableChannelCount = Number(summary.usable_channel_count ?? channelCount);
+    const dispatchPending = isQueueDispatchPending();
+    renderQueueStatusChip({
+      waitingCount,
+      runningCount,
+      channelCount,
+      usableChannelCount,
+      dispatchPending
+    });
+    bridge7.methods.updateDocumentTitle();
+    if (dispatchPending) {
+      scheduleQueueDispatchSync();
+    } else {
+      clearQueueDispatchSync();
+    }
+    const nextRenderKey = queueListRenderKey();
+    if (state5.queueRenderKey === nextRenderKey) {
+      updateQueueElapsedDisplays();
+      return;
+    }
+    state5.queueRenderKey = nextRenderKey;
+    renderActiveTaskGroupForQueueChange();
+  }
+  function renderActiveTaskGroupForQueueChange() {
+    const bridge7 = getLegacyBridge();
+    bridge7.methods.renderTasks?.({ preserveScroll: true });
+  }
+  function renderQueueStatusChip({
+    waitingCount,
+    runningCount,
+    channelCount,
+    usableChannelCount,
+    dispatchPending
+  }) {
+    const els9 = getEls();
+    const total = waitingCount + runningCount;
+    const channelText = usableChannelCount === channelCount ? formatTranslation("queue.channel", { count: channelCount }) : formatTranslation("queue.availableChannels", { usable: usableChannelCount, total: channelCount });
+    const text = dispatchPending ? formatTranslation("queue.dispatching", { waiting: waitingCount }) : total ? formatTranslation("queue.runningWaiting", { running: runningCount, waiting: waitingCount }) : translate("queue.empty");
+    const label = total ? formatTranslation("queue.statusLabel", { text, channelText }) : translate("queue.emptyAria");
+    if (els9.queueStatusText) els9.queueStatusText.textContent = text;
+    if (els9.queueButton) {
+      els9.queueButton.setAttribute("aria-label", label);
+      els9.queueButton.title = total ? translate("queue.jumpTitle") : translate("queue.emptyTitle");
+      els9.queueButton.classList.toggle("has-queue", total > 0 || dispatchPending);
+    }
+  }
+  function jumpToActiveTaskGroup() {
+    const bridge7 = getLegacyBridge();
+    const state5 = bridge7.state;
+    const hasActiveTasks = Boolean((state5.queue.running || []).length || (state5.queue.waiting || []).length);
+    if (!hasActiveTasks) return;
+    bridge7.methods.revealActiveTaskGroup?.();
+  }
+  function isQueueDispatchPending() {
+    const state5 = getState();
+    const summary = state5.queue.summary || {};
+    const waitingCount = Number(summary.waiting_count ?? state5.queue.waiting.length ?? 0);
+    const runningCount = Number(summary.running_count ?? state5.queue.running.length ?? 0);
+    const channelCount = Number(summary.channel_count ?? 0);
+    const usableChannelCount = Number(summary.usable_channel_count ?? channelCount);
+    return waitingCount > 0 && runningCount === 0 && usableChannelCount > 0;
+  }
+  function scheduleQueueDispatchSync() {
+    const state5 = getState();
+    if (state5.queueDispatchSyncTimerId) return;
+    state5.queueDispatchSyncTimerId = window.setTimeout(() => {
+      state5.queueDispatchSyncTimerId = null;
+      if (isQueueDispatchPending()) {
+        void refreshQueue();
+      }
+    }, QUEUE_DISPATCH_RESYNC_DELAY_MS);
+  }
+  function clearQueueDispatchSync() {
+    const state5 = getState();
+    if (!state5.queueDispatchSyncTimerId) return;
+    window.clearTimeout(state5.queueDispatchSyncTimerId);
+    state5.queueDispatchSyncTimerId = null;
+  }
+  function queueListRenderKey() {
+    const state5 = getState();
+    return JSON.stringify({
+      summary: state5.queue.summary || {},
+      running: (state5.queue.running || []).map((task) => [
+        task.task_id,
+        task.status,
+        task.viewed_at,
+        task.prompt,
+        task.channel_id,
+        task.account_id,
+        task.started_at,
+        task.attempts
+      ]),
+      waiting: (state5.queue.waiting || []).map((task) => [
+        task.task_id,
+        task.status,
+        task.prompt,
+        task.params?.size,
+        task.queue_position
+      ])
+    });
+  }
+  function applyQueueTasks(queue) {
+    const bridge7 = getLegacyBridge();
+    const tasks = [
+      ...Array.isArray(queue?.waiting) ? queue.waiting : [],
+      ...Array.isArray(queue?.running) ? queue.running : []
+    ];
+    const queueTaskIds = new Set(tasks.map((task) => String(task.task_id)));
+    const needsTaskReconcile = activeTasksNeedQueueReconcile(queueTaskIds);
+    if (!tasks.length) {
+      if (needsTaskReconcile) {
+        void bridge7.methods.refreshTasks();
+      }
+      return;
+    }
+    let changed = false;
+    tasks.forEach((task) => {
+      const previousTask = bridge7.state.tasks.find((item) => String(item.task_id) === String(task.task_id));
+      bridge7.methods.notifyTaskUpdate?.(previousTask, task);
+      changed = bridge7.methods.updateTaskInState(task) || changed;
+      if (String(task.task_id) === String(bridge7.state.selectedTaskId) && bridge7.methods.taskHasViewableUpdate(task)) {
+        void bridge7.methods.markTaskViewed(task.task_id);
+      }
+    });
+    if (!changed) {
+      if (needsTaskReconcile) {
+        void bridge7.methods.refreshTasks();
+      }
+      return;
+    }
+    bridge7.methods.cleanupSessionSelections();
+    bridge7.methods.renderTasks({ preserveScroll: true });
+    bridge7.methods.renderArchiveButton();
+    bridge7.methods.renderArchiveModal();
+    bridge7.methods.renderPreview();
+    if (needsTaskReconcile) {
+      void bridge7.methods.refreshTasks();
+    }
+  }
+  function activeTasksNeedQueueReconcile(queueTaskIds) {
+    const bridge7 = getLegacyBridge();
+    return bridge7.state.tasks.some((task) => {
+      const taskId = String(task?.task_id || "");
+      if (!taskId || queueTaskIds.has(taskId) || task?.local_pending) return false;
+      const status = String(task?.status || "");
+      return status === "submitting" || status === "queued" || status === "running";
+    });
+  }
+  function updateQueueElapsedDisplays() {
+    getLegacyBridge().methods.updateTaskElapsedDisplays?.();
+  }
+  function errorMessage(error, fallback) {
+    return error instanceof Error && error.message ? error.message : fallback;
+  }
+
+  // codex_image/webui/frontend/src/web-app-title.ts
+  function isStandaloneWebApp() {
+    const iosNavigator = navigator;
+    return Boolean(
+      window.matchMedia?.("(display-mode: standalone)")?.matches || iosNavigator.standalone === true
+    );
+  }
+  function webAppDocumentTitle(standaloneTitle, fullTitle) {
+    return isStandaloneWebApp() ? standaloneTitle : fullTitle;
+  }
+
+  // codex_image/webui/frontend/src/theme-preference.ts
+  var THEME_STORAGE_KEY = "codex-image-theme-preference";
+  var themeTransitionFrame = null;
+  function normalizeThemePreference(value) {
+    return value === "light" || value === "dark" ? value : "system";
+  }
+  function readThemePreference(storage = localStorage) {
+    try {
+      return normalizeThemePreference(
+        storage.getItem(THEME_STORAGE_KEY)
+      );
+    } catch {
+      return "system";
+    }
+  }
+  function persistThemePreference(preference, storage = localStorage) {
+    try {
+      storage.setItem(THEME_STORAGE_KEY, preference);
+    } catch {
+    }
+  }
+  function resolveEffectiveTheme(preference, systemDark = window.matchMedia?.("(prefers-color-scheme: dark)")?.matches === true) {
+    if (preference === "light" || preference === "dark") {
+      return preference;
+    }
+    return systemDark ? "dark" : "light";
+  }
+  function lockThemeTransitions(root) {
+    root.classList.add("theme-transition-lock");
+    const requestFrame = window.requestAnimationFrame?.bind(window);
+    if (!requestFrame) {
+      root.classList.remove("theme-transition-lock");
+      return;
+    }
+    if (themeTransitionFrame !== null) {
+      window.cancelAnimationFrame?.(themeTransitionFrame);
+    }
+    themeTransitionFrame = requestFrame(() => {
+      themeTransitionFrame = requestFrame(() => {
+        root.classList.remove("theme-transition-lock");
+        themeTransitionFrame = null;
+      });
+    });
+  }
+  function applyDocumentTheme(preference, root = document.documentElement, systemDark = window.matchMedia?.("(prefers-color-scheme: dark)")?.matches === true) {
+    const normalized = normalizeThemePreference(preference);
+    const effective = resolveEffectiveTheme(
+      normalized,
+      systemDark
+    );
+    if (root.dataset.theme !== effective) {
+      lockThemeTransitions(root);
+    }
+    root.dataset.theme = effective;
+    root.dataset.themePreference = normalized;
+    return effective;
+  }
+  function syncThemeSwitcher(root, preference) {
+    root?.querySelectorAll("[data-theme-option]").forEach((button) => {
+      const active = button.dataset.themeOption === preference;
+      button.classList.toggle("active", active);
+      button.setAttribute(
+        "aria-pressed",
+        active ? "true" : "false"
+      );
+    });
+  }
+  function bindThemeSwitcher(root, onSelect) {
+    if (!root) return () => void 0;
+    const handleClick = (event) => {
+      const target = event.target;
+      const button = target?.closest(
+        "[data-theme-option]"
+      );
+      if (!button || !root.contains(button)) return;
+      const value = button.dataset.themeOption;
+      if (value !== "system" && value !== "light" && value !== "dark") {
+        return;
+      }
+      onSelect(value);
+    };
+    root.addEventListener("click", handleClick);
+    return () => root.removeEventListener("click", handleClick);
+  }
+  function bindSystemThemePreference(onChange) {
+    const media = window.matchMedia?.(
+      "(prefers-color-scheme: dark)"
+    );
+    if (!media) return () => void 0;
+    const handleChange = (event) => {
+      onChange(event.matches);
+    };
+    if (media.addEventListener) {
+      media.addEventListener("change", handleChange);
+      return () => media.removeEventListener("change", handleChange);
+    }
+    media.addListener?.(handleChange);
+    return () => media.removeListener?.(handleChange);
+  }
+
+  // codex_image/webui/frontend/src/shell-ui.ts
+  var SIDEBAR_WIDTH_STORAGE_KEY = "codex-image-sidebar-width";
+  var SIDEBAR_MIN_WIDTH = 280;
+  var SIDEBAR_MAX_WIDTH = 520;
+  var SIDEBAR_DEFAULT_WIDTH = 347;
+  var COMPACT_SHELL_MAX_WIDTH = 1180;
+  var bridge5 = getLegacyBridge();
+  var state4 = bridge5.state;
+  var els6 = bridge5.els;
+  var shellUiInitialized = false;
+  var shellUiEventsBound = false;
+  var sidebarResizeFrameId = null;
+  var sidebarResizePendingWidth = null;
+  function legacyMethod6(name, ...args) {
+    const method = getLegacyBridge().methods[name];
+    if (typeof method !== "function") {
+      throw new Error("Legacy method " + name + " is not initialized");
+    }
+    return method(...args);
+  }
+  function formatTaskStatus2(task) {
+    return legacyMethod6("formatTaskStatus", task);
+  }
+  function closePromptPopover3() {
+    legacyMethod6("closePromptPopover");
+  }
+  function closePromptSnippetPopover2() {
+    legacyMethod6("closePromptSnippetPopover");
+  }
+  function closeArchiveModal2() {
+    legacyMethod6("closeArchiveModal");
+  }
+  function closeGallery2() {
+    legacyMethod6("closeGallery");
+  }
+  function closeImageEditor2() {
+    legacyMethod6("closeImageEditor");
+  }
+  function revokeUploadPreviewUrls(sources) {
+    legacyMethod6("revokeUploadPreviewUrls", sources);
+  }
+  function finishBatchMarqueeSelection() {
+    legacyMethod6("finishBatchMarqueeSelection");
+  }
+  function setPromptText(value) {
+    legacyMethod6("setPromptText", value);
+  }
+  function setMode(mode) {
+    legacyMethod6("setMode", mode);
+  }
+  function updateSizeFromPreset() {
+    legacyMethod6("updateSizeFromPreset");
+  }
+  function updatePromptCount2() {
+    legacyMethod6("updatePromptCount");
+  }
+  function updateQuantity() {
+    legacyMethod6("updateQuantity");
+  }
+  function updateCompression() {
+    legacyMethod6("updateCompression");
+  }
+  function renderImageStrip() {
+    legacyMethod6("renderImageStrip");
+  }
+  function renderTasks2() {
+    legacyMethod6("renderTasks");
+  }
+  function renderPreview2() {
+    legacyMethod6("renderPreview");
+  }
+  function updateRequestPreview3() {
+    legacyMethod6("updateRequestPreview");
+  }
+  function clearTaskParameterInspection() {
+    legacyMethod6("clearTaskParameterInspection");
+  }
+  function handleShellLocaleChange() {
+    if (!els6.statusText) return;
+    const current = String(els6.statusText.textContent || "").trim();
+    const waitingLabels = [translate("status.waiting", "zh-CN"), translate("status.waiting", "en")];
+    if (waitingLabels.includes(current)) {
+      setStatus4(translate("status.waiting"), "");
+    }
+  }
+  function bindShellUiEvents() {
+    if (shellUiEventsBound) return;
+    shellUiEventsBound = true;
+    bindThemeSwitcher(
+      els6.themeSwitcher,
+      (preference) => applyThemePreference(preference)
+    );
+    bindSystemThemePreference(handleThemeSystemChange);
+    document.addEventListener(LOCALE_CHANGE_EVENT, handleShellLocaleChange);
+    if (els6.copyJsonButton) {
+      els6.copyJsonButton.addEventListener("click", copyJson);
+    }
+    els6.newTaskButton?.addEventListener("click", resetForm);
+    els6.sidebarResizeHandle?.addEventListener("pointerdown", startSidebarResize);
+    els6.sidebarResizeHandle?.addEventListener("keydown", handleSidebarResizeKeydown);
+    els6.sidebarResizeHandle?.addEventListener("dblclick", resetSidebarWidth);
+    syncSidebarResizeHandleAria();
+  }
+  function normalizeThemePreference2(value) {
+    return normalizeThemePreference(value);
+  }
+  function resolveEffectiveTheme2(preference = state4.themePreference) {
+    return resolveEffectiveTheme(
+      normalizeThemePreference2(preference)
+    );
+  }
+  function updateThemeSwitcher() {
+    syncThemeSwitcher(
+      els6.themeSwitcher,
+      state4.themePreference
+    );
+  }
+  function applyThemePreference(preference, { persist = true } = {}) {
+    state4.themePreference = normalizeThemePreference2(preference);
+    applyDocumentTheme(state4.themePreference);
+    if (persist) {
+      persistThemePreference(state4.themePreference);
+    }
+    updateThemeSwitcher();
+  }
+  function restoreThemePreference() {
+    applyThemePreference(
+      readThemePreference(),
+      { persist: false }
+    );
+  }
+  function handleThemeSystemChange() {
+    if (state4.themePreference === "system") {
+      applyThemePreference("system", { persist: false });
+    }
+  }
+  function restoreSidebarWidth() {
+    try {
+      const saved = Number.parseInt(localStorage.getItem(SIDEBAR_WIDTH_STORAGE_KEY) || "", 10);
+      if (!Number.isNaN(saved)) {
+        applySidebarWidth(saved, { persist: false });
+      }
+    } catch {
+    }
+  }
+  function sidebarMaxWidth() {
+    const viewportWidth = window.innerWidth || SIDEBAR_MAX_WIDTH;
+    if (viewportWidth <= COMPACT_SHELL_MAX_WIDTH) return viewportWidth;
+    return Math.min(SIDEBAR_MAX_WIDTH, Math.max(SIDEBAR_MIN_WIDTH, viewportWidth - 760));
+  }
+  function clampSidebarWidth(value) {
+    const width = Number.parseInt(value, 10);
+    if (Number.isNaN(width)) return SIDEBAR_MIN_WIDTH;
+    return Math.min(sidebarMaxWidth(), Math.max(SIDEBAR_MIN_WIDTH, width));
+  }
+  function sidebarWidthFromCss() {
+    const widthOwner = els6.sidebar || document.documentElement;
+    const inlineWidth = Number.parseInt(widthOwner.style.getPropertyValue("--sidebar-width") || "", 10);
+    if (!Number.isNaN(inlineWidth)) return clampSidebarWidth(inlineWidth);
+    const tokenWidth = Number.parseInt(getComputedStyle(widthOwner).getPropertyValue("--sidebar-width") || "", 10);
+    return Number.isNaN(tokenWidth) ? null : clampSidebarWidth(tokenWidth);
+  }
+  function currentSidebarWidth() {
+    return sidebarWidthFromCss() ?? SIDEBAR_DEFAULT_WIDTH;
+  }
+  function syncSidebarResizeHandleAria(width = null) {
+    const handle = els6.sidebarResizeHandle;
+    if (!handle) return;
+    const currentWidth = width !== null ? width : currentSidebarWidth();
+    handle.setAttribute("aria-valuemin", String(SIDEBAR_MIN_WIDTH));
+    handle.setAttribute("aria-valuemax", String(SIDEBAR_MAX_WIDTH));
+    handle.setAttribute("aria-valuenow", String(currentWidth));
+  }
+  function applySidebarWidth(width, { persist = true } = {}) {
+    const nextWidth = clampSidebarWidth(width);
+    (els6.sidebar || document.documentElement).style.setProperty("--sidebar-width", `${nextWidth}px`);
+    syncSidebarResizeHandleAria(nextWidth);
+    if (persist) {
+      try {
+        localStorage.setItem(SIDEBAR_WIDTH_STORAGE_KEY, String(nextWidth));
+      } catch {
+      }
+    }
+  }
+  function resetSidebarWidth() {
+    applySidebarWidth(SIDEBAR_DEFAULT_WIDTH);
+  }
+  function scheduleSidebarResizeWidth(width) {
+    sidebarResizePendingWidth = clampSidebarWidth(width);
+    if (sidebarResizeFrameId !== null) return;
+    sidebarResizeFrameId = window.requestAnimationFrame(() => {
+      sidebarResizeFrameId = null;
+      const nextWidth = sidebarResizePendingWidth;
+      sidebarResizePendingWidth = null;
+      if (nextWidth === null) return;
+      applySidebarWidth(nextWidth, { persist: false });
+    });
+  }
+  function flushSidebarResizeWidth(width) {
+    if (sidebarResizeFrameId !== null) {
+      window.cancelAnimationFrame(sidebarResizeFrameId);
+      sidebarResizeFrameId = null;
+    }
+    sidebarResizePendingWidth = null;
+    applySidebarWidth(width, { persist: true });
+  }
+  function startSidebarResize(event) {
+    if (!els6.sidebar || event.button !== 0) return;
+    event.preventDefault();
+    const currentWidth = currentSidebarWidth();
+    state4.sidebarResize = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startWidth: currentWidth,
+      lastWidth: currentWidth
+    };
+    els6.sidebar.classList.add("resizing");
+    if (els6.sidebarResizeShield) {
+      els6.sidebarResizeShield.hidden = false;
+    }
+    els6.sidebarResizeHandle?.setPointerCapture?.(event.pointerId);
+    window.addEventListener("pointermove", updateSidebarResize);
+    window.addEventListener("pointerup", finishSidebarResize);
+    window.addEventListener("pointercancel", finishSidebarResize);
+  }
+  function updateSidebarResize(event) {
+    const resize = state4.sidebarResize;
+    if (!resize || event.pointerId !== resize.pointerId) return;
+    event.preventDefault();
+    resize.lastWidth = resize.startWidth + event.clientX - resize.startX;
+    scheduleSidebarResizeWidth(resize.lastWidth);
+  }
+  function finishSidebarResize(event) {
+    const resize = state4.sidebarResize;
+    if (!resize || event.pointerId !== resize.pointerId) return;
+    const nextWidth = resize.lastWidth ?? resize.startWidth;
+    state4.sidebarResize = null;
+    els6.sidebar?.classList.remove("resizing");
+    if (els6.sidebarResizeShield) {
+      els6.sidebarResizeShield.hidden = true;
+    }
+    els6.sidebarResizeHandle?.releasePointerCapture?.(event.pointerId);
+    window.removeEventListener("pointermove", updateSidebarResize);
+    window.removeEventListener("pointerup", finishSidebarResize);
+    window.removeEventListener("pointercancel", finishSidebarResize);
+    flushSidebarResizeWidth(nextWidth);
+  }
+  function handleSidebarResizeKeydown(event) {
+    if (!els6.sidebar) return;
+    const step = event.shiftKey ? 32 : 16;
+    const currentWidth = currentSidebarWidth();
+    if (event.key === "ArrowLeft") {
+      event.preventDefault();
+      applySidebarWidth(currentWidth - step);
+    } else if (event.key === "ArrowRight") {
+      event.preventDefault();
+      applySidebarWidth(currentWidth + step);
+    } else if (event.key === "Home") {
+      event.preventDefault();
+      applySidebarWidth(SIDEBAR_MIN_WIDTH);
+    } else if (event.key === "End") {
+      event.preventDefault();
+      applySidebarWidth(SIDEBAR_MAX_WIDTH);
+    }
+  }
+  function updateDocumentTitle() {
+    const summary = state4.queue.summary || {};
+    const waitingCount = Number(summary.waiting_count ?? state4.queue.waiting.length ?? 0);
+    const runningCount = Number(summary.running_count ?? state4.queue.running.length ?? 0);
+    const total = waitingCount + runningCount;
+    let status = "";
+    if (runningCount > 0) {
+      status = formatTranslation("document.generatingQueue", { total });
+    } else if (waitingCount > 0) {
+      status = formatTranslation("document.queuedWaiting", { count: waitingCount });
+    } else {
+      const selected = state4.tasks.find((item) => String(item.task_id) === String(state4.selectedTaskId));
+      status = selected ? formatTaskStatus2(selected) : "";
+    }
+    const defaultTitle = getLegacyBridge().constants.defaultDocumentTitle;
+    const fullTitle = status ? `${status} \xB7 ${defaultTitle}` : defaultTitle;
+    document.title = webAppDocumentTitle(status, fullTitle);
+  }
+  function setStatus4(message, type) {
+    if (!els6.statusText) return;
+    els6.statusText.textContent = message;
+    els6.statusText.className = `status-text ${type || ""}`;
+  }
+  function resetForm() {
+    const outputSettingsLocked = Boolean(legacyMethod6("isOutputSettingsLocked"));
+    closePromptPopover3();
+    closePromptSnippetPopover2();
+    closeArchiveModal2();
+    closeGallery2();
+    closeImageEditor2();
+    state4.selectedTaskId = null;
+    clearTaskParameterInspection();
+    state4.mode = "generate";
+    revokeUploadPreviewUrls(state4.images);
+    state4.images = [];
+    legacyMethod6("clearReferenceFiles", { silent: true });
+    state4.batchMode = false;
+    state4.batchSelectedTaskIds = [];
+    state4.batchSelectionAnchorTaskId = null;
+    finishBatchMarqueeSelection();
+    setPromptText("");
+    if (!outputSettingsLocked) {
+      if (els6.customSizeToggle) els6.customSizeToggle.checked = false;
+      if (els6.nInput) els6.nInput.value = "1";
+      if (els6.resolution) els6.resolution.value = "standard";
+      if (els6.ratio) els6.ratio.value = "1:1";
+      if (els6.orientation) els6.orientation.value = "square";
+      els6.size.value = "1024x1024";
+      els6.quality.value = "auto";
+      els6.outputFormat.value = "png";
+      els6.moderation.value = "auto";
+      els6.compression.value = "80";
+      if (els6.promptFidelity) els6.promptFidelity.value = "strict";
+      if (els6.webSearch) els6.webSearch.checked = false;
+      [els6.nInput, els6.resolution, els6.ratio, els6.orientation, els6.quality, els6.outputFormat, els6.moderation, els6.promptFidelity, els6.webSearch].forEach((sel) => {
+        if (sel) sel.dispatchEvent(new Event("change"));
+      });
+      updateSizeFromPreset();
+    }
+    setMode("generate");
+    updatePromptCount2();
+    updateQuantity();
+    updateCompression();
+    renderImageStrip();
+    renderTasks2();
+    renderPreview2();
+    updateRequestPreview3();
+    if (outputSettingsLocked) legacyMethod6("showLockedOutputSettings");
+    setStatus4(translate("status.waiting"), "");
+  }
+  async function copyJson() {
+    if (!els6.requestJson) return;
+    await navigator.clipboard.writeText(els6.requestJson.textContent);
+    setStatus4(translate("status.jsonCopied"), "ok");
+  }
+  function initShellUiFeature() {
+    if (shellUiInitialized) return;
+    shellUiInitialized = true;
+    Object.assign(getLegacyBridge().methods, {
+      bindShellUiEvents,
+      normalizeThemePreference: normalizeThemePreference2,
+      resolveEffectiveTheme: resolveEffectiveTheme2,
+      updateThemeSwitcher,
+      applyThemePreference,
+      restoreThemePreference,
+      handleThemeSystemChange,
+      restoreSidebarWidth,
+      sidebarMaxWidth,
+      clampSidebarWidth,
+      applySidebarWidth,
+      resetSidebarWidth,
+      syncSidebarResizeHandleAria,
+      startSidebarResize,
+      updateSidebarResize,
+      finishSidebarResize,
+      handleSidebarResizeKeydown,
+      updateDocumentTitle,
+      setStatus: setStatus4,
+      resetForm,
+      copyJson
+    });
+  }
+
+  // codex_image/webui/frontend/src/storage-settings.ts
+  var bridge6 = getLegacyBridge();
+  var els7 = bridge6.els;
+  var storageSettingsFeatureInitialized = false;
+  function legacyMethod7(name, ...args) {
+    const method = getLegacyBridge().methods[name];
+    if (typeof method !== "function") {
+      throw new Error("Legacy method " + name + " is not initialized");
+    }
+    return method(...args);
+  }
+  function setStatus5(message, type) {
+    legacyMethod7("setStatus", message, type);
+  }
+  function closePromptPopover4() {
+    legacyMethod7("closePromptPopover");
+  }
+  async function refreshSettings() {
+    if (!els7.settingsInputRoot) return;
+    try {
+      const response = await fetch("/api/settings");
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.detail || translate("settings.loadFailed"));
+      populateSettingsForm(data.settings || {});
+    } catch (error) {
+      if (els7.settingsStatus) els7.settingsStatus.textContent = error.message || translate("settings.loadFailed");
+    }
+  }
+  function populateSettingsForm(settings) {
+    if (els7.settingsInputRoot) els7.settingsInputRoot.value = settings.input_root || "";
+    if (els7.settingsOutputRoot) els7.settingsOutputRoot.value = settings.output_root || "";
+    if (els7.settingsGalleryRoot) els7.settingsGalleryRoot.value = settings.gallery_root || "";
+    if (els7.settingsSourceDataRoot) els7.settingsSourceDataRoot.value = settings.source_data_root || "";
+  }
+  function openSettingsModal() {
+    closePromptPopover4();
+    refreshSettings();
+    if (els7.settingsStatus) els7.settingsStatus.textContent = translate("settings.status");
+    openSystemSettingsModal("storage");
+  }
+  function closeSettingsModal() {
+    closeSystemSettingsModal();
+  }
+  async function saveSettings() {
+    if (!els7.saveSettingsButton) return;
+    els7.saveSettingsButton.disabled = true;
+    try {
+      const response = await fetch("/api/settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          input_root: els7.settingsInputRoot?.value || "",
+          output_root: els7.settingsOutputRoot?.value || "",
+          gallery_root: els7.settingsGalleryRoot?.value || "",
+          source_data_root: els7.settingsSourceDataRoot?.value || ""
+        })
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.detail || translate("settings.saveFailed"));
+      populateSettingsForm(data.settings || {});
+      if (els7.settingsStatus) {
+        els7.settingsStatus.textContent = data.restart_required ? translate("settings.savedRestart") : translate("settings.saved");
+      }
+      setStatus5(translate("settings.savedRestartStatus"), "ok");
+    } catch (error) {
+      if (els7.settingsStatus) els7.settingsStatus.textContent = error.message || translate("settings.saveFailed");
+      setStatus5(error.message || translate("settings.saveFailed"), "error");
+    } finally {
+      els7.saveSettingsButton.disabled = false;
+    }
+  }
+  function initStorageSettingsFeature() {
+    if (storageSettingsFeatureInitialized) return;
+    storageSettingsFeatureInitialized = true;
+    document.addEventListener(LOCALE_CHANGE_EVENT, () => {
+      if (!els7.systemSettingsModal?.classList.contains("hidden") && !els7.systemSettingsStoragePanel?.hidden && els7.settingsStatus) {
+        els7.settingsStatus.textContent = translate("settings.status");
+      }
+    });
+    Object.assign(getLegacyBridge().methods, {
+      refreshSettings,
+      populateSettingsForm,
+      openSettingsModal,
+      closeSettingsModal,
+      saveSettings
+    });
+  }
+
+  // codex_image/webui/frontend/src/task-notifications.ts
+  var TASK_NOTIFICATION_SETTINGS_KEY = "codex-image-task-notification-settings";
+  var TASK_NOTIFICATION_SEEN_KEY = "codex-image-task-notification-seen";
+  var MAX_TASK_NOTIFICATIONS = 30;
+  var MAX_SEEN_TASK_NOTIFICATION_KEYS = 400;
+  var TASK_NOTIFICATION_TOAST_MS = 5200;
+  var TRANSIENT_NOTICE_MS = 4200;
+  var taskNotificationsFeatureInitialized = false;
+  function initTaskNotificationsFeature() {
+    if (taskNotificationsFeatureInitialized) return;
+    taskNotificationsFeatureInitialized = true;
+    restoreTaskNotificationSettings();
+    restoreTaskNotificationSeenKeys();
+    bindTaskNotificationEvents();
+    document.addEventListener(LOCALE_CHANGE_EVENT, renderTaskNotifications);
+    renderTaskNotifications();
+    Object.assign(getLegacyBridge().methods, {
+      notifyTaskUpdate,
+      openTaskNotificationCenter,
+      renderTaskNotifications,
+      requestSystemNotificationPermission,
+      showTransientNotice
+    });
+  }
+  function showTransientNotice(message) {
+    const region = getLegacyBridge().els.taskNotificationToastRegion;
+    if (!region || !message) return;
+    const toast = document.createElement("div");
+    toast.className = "transient-notice-toast";
+    toast.setAttribute("role", "status");
+    const icon = document.createElement("span");
+    icon.className = "transient-notice-icon";
+    icon.setAttribute("aria-hidden", "true");
+    icon.textContent = "\u2713";
+    const text = document.createElement("span");
+    text.textContent = message;
+    toast.append(icon, text);
+    region.prepend(toast);
+    window.setTimeout(() => toast.remove(), TRANSIENT_NOTICE_MS);
+  }
+  function notifyTaskUpdate(previousTask, nextTask) {
+    if (taskWasCancelled(nextTask)) return;
+    const status = terminalTaskStatus(nextTask?.status);
+    if (!nextTask || !status || !shouldNotifyTerminalTask(previousTask, nextTask)) return;
+    getLegacyBridge().methods.notifyLatestTaskAvailable?.(nextTask);
+    const notification = buildTaskNotification(nextTask, status);
+    rememberTaskNotification(nextTask, status);
+    if (getLegacyBridge().state.taskNotificationSettings.inApp) {
+      addTaskNotification(notification);
+      showTaskNotificationToast(notification);
+    }
+    sendSystemTaskNotification(notification);
+  }
+  function shouldNotifyTerminalTask(previousTask, nextTask) {
+    const status = terminalTaskStatus(nextTask?.status);
+    if (!previousTask || !nextTask?.task_id || !status) return false;
+    if (terminalTaskStatus(previousTask.status)) return false;
+    return !getLegacyBridge().state.taskNotificationSeenKeys.has(taskNotificationSeenKey(nextTask, status));
+  }
+  function openTaskNotificationCenter() {
+    const state5 = getLegacyBridge().state;
+    state5.taskNotificationCenterOpen = true;
+    state5.taskNotifications = state5.taskNotifications.map((notification) => ({
+      ...notification,
+      unread: false
+    }));
+    renderTaskNotifications();
+  }
+  function closeTaskNotificationCenter() {
+    const state5 = getLegacyBridge().state;
+    if (!state5.taskNotificationCenterOpen) return;
+    state5.taskNotificationCenterOpen = false;
+    renderTaskNotifications();
+  }
+  function toggleTaskNotificationCenter() {
+    if (getLegacyBridge().state.taskNotificationCenterOpen) {
+      closeTaskNotificationCenter();
+      return;
+    }
+    openTaskNotificationCenter();
+  }
+  function renderTaskNotifications() {
+    const bridge7 = getLegacyBridge();
+    const state5 = bridge7.state;
+    const els9 = bridge7.els;
+    const unreadCount = state5.taskNotifications.filter((notification) => notification.unread).length;
+    state5.taskNotificationUnreadCount = unreadCount;
+    const unreadLabel = unreadCount > 0 ? formatTranslation("notifications.unread", { count: unreadCount }) : translate("notifications.title");
+    if (els9.taskNotificationBadge) {
+      els9.taskNotificationBadge.textContent = "";
+      els9.taskNotificationBadge.setAttribute("aria-hidden", "true");
+      els9.taskNotificationBadge.classList.toggle("hidden", unreadCount === 0);
+    }
+    if (els9.taskNotificationButton) {
+      els9.taskNotificationButton.classList.toggle("has-unread", unreadCount > 0);
+      els9.taskNotificationButton.setAttribute("aria-label", unreadLabel);
+      els9.taskNotificationButton.title = unreadLabel;
+      els9.taskNotificationButton.setAttribute("aria-expanded", state5.taskNotificationCenterOpen ? "true" : "false");
+    }
+    if (els9.taskNotificationUnreadSummary) {
+      els9.taskNotificationUnreadSummary.textContent = formatTranslation("notifications.unreadSummary", { count: unreadCount });
+      els9.taskNotificationUnreadSummary.classList.toggle("hidden", unreadCount === 0);
+    }
+    if (els9.taskNotificationCenter) {
+      els9.taskNotificationCenter.classList.toggle("hidden", !state5.taskNotificationCenterOpen);
+      els9.taskNotificationCenter.setAttribute("aria-hidden", state5.taskNotificationCenterOpen ? "false" : "true");
+    }
+    if (!els9.taskNotificationList) return;
+    if (!state5.taskNotifications.length) {
+      els9.taskNotificationList.innerHTML = `<div class="task-notification-empty">${translate("notifications.empty")}</div>`;
+      return;
+    }
+    els9.taskNotificationList.innerHTML = state5.taskNotifications.map((notification) => taskNotificationItemHtml(notification)).join("");
+  }
+  async function requestSystemNotificationPermission() {
+    if (typeof Notification === "undefined") {
+      setStatus6(translate("notifications.systemUnsupported"), "error");
+      return false;
+    }
+    if (Notification.permission === "granted") return true;
+    if (Notification.permission === "denied") {
+      setStatus6(translate("notifications.systemBlocked"), "error");
+      return false;
+    }
+    const permission = await Notification.requestPermission();
+    if (permission !== "granted") {
+      setStatus6(translate("notifications.systemDenied"), "error");
+      return false;
+    }
+    setStatus6(translate("notifications.systemEnabled"), "ok");
+    return true;
+  }
+  function bindTaskNotificationEvents() {
+    const els9 = getLegacyBridge().els;
+    els9.taskNotificationButton?.addEventListener("click", (event) => {
+      event.stopPropagation();
+      toggleTaskNotificationCenter();
+    });
+    els9.taskNotificationClearButton?.addEventListener("click", (event) => {
+      event.stopPropagation();
+      clearTaskNotifications();
+    });
+    els9.taskNotificationList?.addEventListener("click", (event) => {
+      const item = eventTargetElement(event)?.closest("[data-task-notification-id]");
+      if (!(item instanceof HTMLElement)) return;
+      const notification = notificationById(item.dataset.taskNotificationId);
+      if (notification) void openNotificationTask(notification);
+    });
+    els9.taskNotificationInApp?.addEventListener("change", handleTaskNotificationInAppChange);
+    els9.taskNotificationSystem?.addEventListener("change", (event) => {
+      void handleTaskNotificationSystemChange(event);
+    });
+    document.addEventListener("click", handleTaskNotificationDocumentClick);
+    document.addEventListener("keydown", handleTaskNotificationKeydown);
+  }
+  function handleTaskNotificationInAppChange(event) {
+    const input = event.currentTarget;
+    if (!(input instanceof HTMLInputElement)) return;
+    const state5 = getLegacyBridge().state;
+    state5.taskNotificationSettings = {
+      ...state5.taskNotificationSettings,
+      inApp: input.checked
+    };
+    persistTaskNotificationSettings();
+  }
+  async function handleTaskNotificationSystemChange(event) {
+    const input = event.currentTarget;
+    if (!(input instanceof HTMLInputElement)) return;
+    const state5 = getLegacyBridge().state;
+    if (!input.checked) {
+      state5.taskNotificationSettings = { ...state5.taskNotificationSettings, system: false };
+      persistTaskNotificationSettings();
+      return;
+    }
+    const granted = await requestSystemNotificationPermission();
+    state5.taskNotificationSettings = { ...state5.taskNotificationSettings, system: granted };
+    input.checked = granted;
+    persistTaskNotificationSettings();
+  }
+  function handleTaskNotificationDocumentClick(event) {
+    const target = event.target;
+    const els9 = getLegacyBridge().els;
+    if (!(target instanceof Node)) return;
+    if (els9.taskNotificationCenter?.contains(target) || els9.taskNotificationButton?.contains(target)) return;
+    closeTaskNotificationCenter();
+  }
+  function handleTaskNotificationKeydown(event) {
+    if (event.key === "Escape") closeTaskNotificationCenter();
+  }
+  function addTaskNotification(notification) {
+    const state5 = getLegacyBridge().state;
+    state5.taskNotifications = [notification, ...state5.taskNotifications].slice(0, MAX_TASK_NOTIFICATIONS);
+    renderTaskNotifications();
+  }
+  function clearTaskNotifications() {
+    const state5 = getLegacyBridge().state;
+    state5.taskNotifications = [];
+    renderTaskNotifications();
+  }
+  function showTaskNotificationToast(notification) {
+    const bridge7 = getLegacyBridge();
+    const region = bridge7.els.taskNotificationToastRegion;
+    if (!region) return;
+    const toast = document.createElement("button");
+    toast.type = "button";
+    toast.className = "task-notification-item task-notification-toast";
+    toast.dataset.taskNotificationId = notification.id;
+    toast.innerHTML = taskNotificationInnerHtml(notification);
+    toast.addEventListener("click", () => {
+      toast.remove();
+      void openNotificationTask(notification);
+    });
+    region.prepend(toast);
+    const timerId = window.setTimeout(() => {
+      toast.remove();
+      bridge7.state.taskNotificationToastTimerIds = bridge7.state.taskNotificationToastTimerIds.filter((id) => id !== timerId);
+    }, TASK_NOTIFICATION_TOAST_MS);
+    bridge7.state.taskNotificationToastTimerIds.push(timerId);
+  }
+  function sendSystemTaskNotification(notification) {
+    const settings = getLegacyBridge().state.taskNotificationSettings;
+    if (!settings.system || typeof Notification === "undefined" || Notification.permission !== "granted") return;
+    const options = { body: taskNotificationDisplayMessage(notification) };
+    if (notification.thumbnail_url) options.icon = notification.thumbnail_url;
+    const systemNotification = new Notification(taskNotificationDisplayTitle(notification), options);
+    systemNotification.onclick = () => {
+      window.focus();
+      void openNotificationTask(notification);
+      systemNotification.close();
+    };
+  }
+  async function openNotificationTask(notification) {
+    const bridge7 = getLegacyBridge();
+    const task = bridge7.state.tasks.find((item) => String(item.task_id) === String(notification.task_id));
+    markTaskNotificationRead(notification.id);
+    closeTaskNotificationCenter();
+    if (!task) {
+      setStatus6(translate("notifications.taskMissing"), "error");
+      return;
+    }
+    window.focus();
+    try {
+      const selectTask = bridge7.methods.selectTask;
+      if (typeof selectTask !== "function") throw new Error("selectTask is unavailable");
+      await selectTask(task.task_id);
+    } catch {
+      setStatus6(translate("notifications.taskMissing"), "error");
+    }
+  }
+  function markTaskNotificationRead(notificationId) {
+    const state5 = getLegacyBridge().state;
+    state5.taskNotifications = state5.taskNotifications.map((notification) => notification.id === notificationId ? { ...notification, unread: false } : notification);
+    renderTaskNotifications();
+  }
+  function notificationById(notificationId) {
+    if (!notificationId) return null;
+    return getLegacyBridge().state.taskNotifications.find((notification) => notification.id === notificationId) || null;
+  }
+  function buildTaskNotification(task, status) {
+    const thumbnailUrl = firstTaskThumbnailUrl(task);
+    const successCount = completedOutputCount(task);
+    const failedCount = positiveNumber(task.failed_count);
+    const prompt = promptSnippet(task.prompt || task.prompt_for_model || "");
+    const errorMessage3 = String(task.last_error || task.error || "");
+    return {
+      id: taskNotificationSeenKey(task, status),
+      task_id: task.task_id,
+      status,
+      title: taskNotificationTitle(status),
+      message: taskNotificationMessageFromParts(status, {
+        successCount,
+        failedCount,
+        prompt,
+        errorMessage: errorMessage3
+      }),
+      success_count: successCount,
+      failed_count: failedCount,
+      prompt_snippet: prompt,
+      error_message: errorMessage3,
+      created_at: (/* @__PURE__ */ new Date()).toISOString(),
+      ...thumbnailUrl ? { thumbnail_url: thumbnailUrl } : {},
+      unread: true
+    };
+  }
+  function taskNotificationTitle(status) {
+    if (status === "failed") return translate("notifications.taskFailed");
+    if (status === "partial_failed") return translate("notifications.taskPartial");
+    return translate("notifications.taskCompleted");
+  }
+  function taskNotificationMessageFromParts(status, parts) {
+    if (status === "failed") return String(parts.errorMessage || translate("notifications.generationFailed"));
+    const countText = parts.successCount ? formatTranslation("notifications.successCount", { count: parts.successCount }) : translate("notifications.resultAvailable");
+    const failureText = status === "partial_failed" && parts.failedCount ? formatTranslation("notifications.failedCount", { count: parts.failedCount }) : "";
+    return [countText, failureText, parts.prompt || ""].filter(Boolean).join(" \xB7 ");
+  }
+  function taskNotificationDisplayTitle(notification) {
+    return taskNotificationTitle(notification.status);
+  }
+  function taskNotificationDisplayMessage(notification) {
+    if (notification.success_count !== void 0 || notification.failed_count !== void 0 || notification.prompt_snippet !== void 0 || notification.error_message !== void 0) {
+      return taskNotificationMessageFromParts(notification.status, {
+        successCount: positiveNumber(notification.success_count),
+        failedCount: positiveNumber(notification.failed_count),
+        prompt: notification.prompt_snippet || "",
+        errorMessage: notification.error_message || notification.message
+      });
+    }
+    return notification.message;
+  }
+  function firstTaskThumbnailUrl(task) {
+    const bridge7 = getLegacyBridge();
+    const urls = bridge7.methods.taskThumbnailUrls?.(task);
+    if (Array.isArray(urls) && urls[0]) return String(urls[0]);
+    if (Array.isArray(task.thumbnail_urls) && task.thumbnail_urls[0]) return String(task.thumbnail_urls[0]);
+    const output = Array.isArray(task.outputs) ? task.outputs.find((record2) => record2?.status === "completed") : null;
+    if (output?.thumbnail_url) return String(output.thumbnail_url);
+    if (output?.thumbnail_file) return outputFileUrl(output.thumbnail_file);
+    if (output?.url || output?.file) {
+      const index = positiveNumber(output.index) || 1;
+      return `/api/tasks/${encodeURIComponent(task.task_id)}/outputs/${index}/thumbnail`;
+    }
+    if (Array.isArray(task.output_urls) && task.output_urls.some(Boolean)) {
+      return `/api/tasks/${encodeURIComponent(task.task_id)}/outputs/1/thumbnail`;
+    }
+    return void 0;
+  }
+  function taskNotificationItemHtml(notification) {
+    const unreadClass = notification.unread ? " unread" : "";
+    return `<button class="task-notification-item${unreadClass}" type="button" data-task-notification-id="${escapeHtml3(notification.id)}">
+    ${taskNotificationInnerHtml(notification)}
+  </button>`;
+  }
+  function taskNotificationInnerHtml(notification) {
+    const thumbnail = notification.thumbnail_url ? `<img class="task-notification-thumb" src="${escapeHtml3(notification.thumbnail_url)}" alt="">` : `<span class="task-notification-thumb task-notification-thumb-placeholder" aria-hidden="true">${escapeHtml3(statusGlyph(notification.status))}</span>`;
+    return `${thumbnail}
+    <span class="task-notification-body">
+      <span class="task-notification-title">${escapeHtml3(taskNotificationDisplayTitle(notification))}</span>
+      <span class="task-notification-message">${escapeHtml3(taskNotificationDisplayMessage(notification))}</span>
+      <span class="task-notification-time">${escapeHtml3(formatNotificationTime(notification.created_at))}</span>
+    </span>`;
+  }
+  function statusGlyph(status) {
+    if (status === "failed") return "!";
+    if (status === "partial_failed") return "~";
+    return "\u2713";
+  }
+  function formatNotificationTime(value) {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "";
+    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  }
+  function terminalTaskStatus(status) {
+    if (status === "completed" || status === "failed" || status === "partial_failed") return status;
+    return null;
+  }
+  function taskNotificationSeenKey(task, status) {
+    const revision = task.completed_at || task.updated_at || task.last_error || task.error || "";
+    return `${task.task_id}:${status}:${revision}`;
+  }
+  function rememberTaskNotification(task, status) {
+    const state5 = getLegacyBridge().state;
+    state5.taskNotificationSeenKeys.add(taskNotificationSeenKey(task, status));
+    while (state5.taskNotificationSeenKeys.size > MAX_SEEN_TASK_NOTIFICATION_KEYS) {
+      const firstKey = state5.taskNotificationSeenKeys.values().next().value;
+      if (typeof firstKey !== "string") break;
+      state5.taskNotificationSeenKeys.delete(firstKey);
+    }
+    persistTaskNotificationSeenKeys();
+  }
+  function restoreTaskNotificationSettings() {
+    const state5 = getLegacyBridge().state;
+    state5.taskNotificationSettings = defaultTaskNotificationSettings();
+    try {
+      const stored = JSON.parse(localStorage.getItem(TASK_NOTIFICATION_SETTINGS_KEY) || "{}");
+      state5.taskNotificationSettings = {
+        inApp: stored.inApp !== false,
+        system: stored.system === true && typeof Notification !== "undefined" && Notification.permission === "granted"
+      };
+    } catch {
+      state5.taskNotificationSettings = defaultTaskNotificationSettings();
+    }
+    persistTaskNotificationSettings();
+    syncTaskNotificationSettingsInputs();
+  }
+  function defaultTaskNotificationSettings() {
+    return { inApp: true, system: false };
+  }
+  function persistTaskNotificationSettings() {
+    try {
+      localStorage.setItem(TASK_NOTIFICATION_SETTINGS_KEY, JSON.stringify(getLegacyBridge().state.taskNotificationSettings));
+    } catch {
+    }
+    syncTaskNotificationSettingsInputs();
+  }
+  function syncTaskNotificationSettingsInputs() {
+    const bridge7 = getLegacyBridge();
+    const settings = bridge7.state.taskNotificationSettings;
+    if (bridge7.els.taskNotificationInApp instanceof HTMLInputElement) {
+      bridge7.els.taskNotificationInApp.checked = settings.inApp;
+    }
+    if (bridge7.els.taskNotificationSystem instanceof HTMLInputElement) {
+      bridge7.els.taskNotificationSystem.checked = settings.system;
+    }
+  }
+  function restoreTaskNotificationSeenKeys() {
+    const state5 = getLegacyBridge().state;
+    try {
+      const stored = JSON.parse(localStorage.getItem(TASK_NOTIFICATION_SEEN_KEY) || "[]");
+      state5.taskNotificationSeenKeys = new Set(Array.isArray(stored) ? stored.filter((key) => typeof key === "string") : []);
+    } catch {
+      state5.taskNotificationSeenKeys = /* @__PURE__ */ new Set();
+    }
+  }
+  function persistTaskNotificationSeenKeys() {
+    try {
+      const keys = Array.from(getLegacyBridge().state.taskNotificationSeenKeys).slice(-MAX_SEEN_TASK_NOTIFICATION_KEYS);
+      localStorage.setItem(TASK_NOTIFICATION_SEEN_KEY, JSON.stringify(keys));
+    } catch {
+    }
+  }
+  function outputFileUrl(filename) {
+    if (filename.startsWith("/outputs/")) return filename;
+    const clean = filename.split("/").filter(Boolean).map(encodeURIComponent).join("/");
+    return clean ? `/outputs/${clean}` : "";
+  }
+  function completedOutputCount(task) {
+    if (Array.isArray(task.outputs)) {
+      return task.outputs.filter((record2) => record2?.status === "completed").length;
+    }
+    if (Array.isArray(task.output_urls)) return task.output_urls.filter(Boolean).length;
+    return positiveNumber(task.generated_count);
+  }
+  function positiveNumber(value) {
+    const number = Number(value);
+    return Number.isFinite(number) && number > 0 ? Math.floor(number) : 0;
+  }
+  function promptSnippet(value) {
+    const text = String(value || "").replace(/\s+/g, " ").trim();
+    if (!text) return "";
+    return text.length > 48 ? `${text.slice(0, 48)}...` : text;
+  }
+  function escapeHtml3(value) {
+    return getLegacyBridge().methods.escapeHtml(value);
+  }
+  function setStatus6(message, type) {
+    getLegacyBridge().methods.setStatus(message, type);
+  }
+  function eventTargetElement(event) {
+    return event.target instanceof Element ? event.target : null;
+  }
+
+  // codex_image/webui/frontend/src/history-shell.ts
+  var historyShellInitialized = false;
+  function noOp() {
+  }
+  function taskHasViewableUpdate(task) {
+    const status = String(task?.status || "");
+    return ["completed", "failed", "partial_failed"].includes(status) || Boolean(task?.output_url) || Boolean(task?.output_urls?.length) || Boolean(task?.outputs?.length);
+  }
+  function isTerminalTask(task) {
+    return ["completed", "failed", "partial_failed"].includes(
+      String(task?.status || "")
+    );
+  }
+  function initializeHistoryShell(options) {
+    if (historyShellInitialized) return;
+    historyShellInitialized = true;
+    const bridge7 = getLegacyBridge();
+    const methods = bridge7.methods;
+    Object.assign(methods, {
+      syncReferenceFileAvailability: () => {
+      },
+      closeGalleryEditPopover: noOp,
+      handlePromptDocumentClick: noOp,
+      handleGalleryDocumentClick: noOp,
+      closeCompressionPopover: noOp,
+      handleImageEditorHistoryShortcut: () => false,
+      hideMentionSuggest: noOp,
+      hideColorSuggest: noOp,
+      hidePromptSnippetSuggest: noOp,
+      hidePromptSnippetSelectionButton: noOp,
+      closePromptSnippetPopover: noOp,
+      closeArchiveModal: noOp,
+      closeImageEditor: noOp,
+      closeGallery: noOp,
+      closePromptTemplateDrawer: noOp,
+      applyTasksSnapshot: async (tasks) => {
+        bridge7.state.tasks = Array.isArray(tasks) ? tasks : [];
+      },
+      applyTaskUpdate: async (task) => {
+        if (!task?.task_id) return;
+        methods.updateTaskInState(task);
+        if (isTerminalTask(task)) {
+          await options.refreshHistoryTasks?.();
+        }
+      },
+      refreshTasks: async () => {
+        await options.refreshHistoryTasks?.();
+      },
+      selectTask: async (taskId) => {
+        bridge7.state.selectedTaskId = String(taskId);
+        await options.selectHistoryTask(String(taskId));
+      },
+      revealActiveTaskGroup: () => {
+        window.location.assign("/");
+      },
+      taskHasViewableUpdate,
+      updateDocumentTitle: () => {
+      }
+    });
+    initShellUiFeature();
+    initThemedSelectFeature();
+    initI18nFeature();
+    initApiSettingsFeature();
+    initApiAdvancedSettingsFeature();
+    initStorageSettingsFeature();
+    initNetworkEgressSettingsFeature();
+    initSystemSettingsFeature();
+    initOverlayPopoversFeature();
+    initTaskNotificationsFeature();
+    initProviderSelectionFeature();
+    initModelCatalogFeature();
+    initializeQueueFeature();
+    initSegmentedIndicatorFeature();
+    methods.bindShellUiEvents?.();
+    bindSharedTopNavSettingsEvents(bridge7.els, methods);
+    methods.restoreThemePreference?.();
+    methods.restoreApiSettings?.();
+    methods.restoreModelSelection?.();
+    methods.refreshSettings?.();
+    methods.refreshApiSettings?.();
+    void methods.refreshGenerationCatalog?.();
+    methods.openSystemSettingsFromUrl?.();
+    const realtimeStarted = window.startRealtimeUpdates?.();
+    if (!realtimeStarted) {
+      void window.refreshQueue?.();
+    }
   }
 
   // codex_image/webui/frontend/src/reference-file-icons.ts
@@ -14064,11 +22276,6 @@
     <path d="M3 6a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4" fill="currentColor"></path>
     <text x="12" y="17" text-anchor="middle" fill="currentColor" font-size="${fontSize}" font-weight="800" font-family="Arial, sans-serif">${spec.label}</text>
   </svg>`;
-  }
-
-  // codex_image/webui/frontend/src/webui-utils.ts
-  function escapeHtml(value) {
-    return String(value).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
   }
 
   // codex_image/webui/frontend/src/history-detail-media.ts
@@ -14834,116 +23041,6 @@
     return isHistoryLightboxActive();
   }
 
-  // codex_image/webui/frontend/src/segmented-indicator.ts
-  var HOST_SELECTORS = [
-    ".radio-group:not(.ratio-group):not(.model-parameter-segmented-multiline):not(.model-aspect-ratio-grid)",
-    "#authSourceGroup",
-    "#systemSettingsTabs",
-    ".history-view-toggle",
-    ".history-sort-toggle"
-  ];
-  var HOST_SELECTOR = HOST_SELECTORS.join(", ");
-  var BUTTON_SELECTOR = ".radio-btn, .auth-source-button, .system-settings-tab, .history-view-button, .history-sort-button";
-  var INDICATOR_CLASS = "segmented-indicator";
-  var HOST_CLASS = "segmented-indicator-host";
-  var READY_CLASS = "segmented-indicator-ready";
-  var initializedHosts = /* @__PURE__ */ new WeakSet();
-  var scheduledFrames = /* @__PURE__ */ new WeakMap();
-  var segmentedIndicatorsInitialized = false;
-  var resizeObserver = null;
-  function activeSegment(host) {
-    return host.querySelector(".radio-btn.active, .auth-source-button.active, .system-settings-tab.active, .history-view-button.active, .history-sort-button.active");
-  }
-  function ensureIndicator(host) {
-    const existing = Array.from(host.children).find((child) => child.classList.contains(INDICATOR_CLASS));
-    if (existing instanceof HTMLElement) return existing;
-    const indicator = document.createElement("span");
-    indicator.className = INDICATOR_CLASS;
-    indicator.setAttribute("aria-hidden", "true");
-    host.insertBefore(indicator, host.firstElementChild);
-    return indicator;
-  }
-  function updateIndicator(host) {
-    scheduledFrames.delete(host);
-    if (!host.isConnected) return false;
-    const indicator = ensureIndicator(host);
-    const active = activeSegment(host);
-    if (!active) {
-      host.classList.remove(READY_CLASS);
-      indicator.style.setProperty("--segmented-indicator-opacity", "0");
-      return false;
-    }
-    const hostRect = host.getBoundingClientRect();
-    const activeRect = active.getBoundingClientRect();
-    if (hostRect.width <= 0 || hostRect.height <= 0 || activeRect.width <= 0 || activeRect.height <= 0) {
-      host.classList.remove(READY_CLASS);
-      indicator.style.setProperty("--segmented-indicator-opacity", "0");
-      return false;
-    }
-    const hostStyle = window.getComputedStyle(host);
-    const borderLeft = Number.parseFloat(hostStyle.borderLeftWidth) || 0;
-    const borderTop = Number.parseFloat(hostStyle.borderTopWidth) || 0;
-    indicator.style.setProperty("--segmented-indicator-x", `${activeRect.left - hostRect.left - borderLeft}px`);
-    indicator.style.setProperty("--segmented-indicator-y", `${activeRect.top - hostRect.top - borderTop}px`);
-    indicator.style.setProperty("--segmented-indicator-width", `${activeRect.width}px`);
-    indicator.style.setProperty("--segmented-indicator-height", `${activeRect.height}px`);
-    indicator.style.setProperty("--segmented-indicator-opacity", "1");
-    return true;
-  }
-  function commitIndicatorUpdate(host) {
-    if (updateIndicator(host)) host.classList.add(READY_CLASS);
-  }
-  function scheduleIndicatorUpdate(host) {
-    if (scheduledFrames.has(host)) return;
-    scheduledFrames.set(host, window.requestAnimationFrame(() => commitIndicatorUpdate(host)));
-  }
-  function watchButtonClassChanges(host) {
-    const observer = new MutationObserver(() => scheduleIndicatorUpdate(host));
-    host.querySelectorAll(BUTTON_SELECTOR).forEach((button) => {
-      observer.observe(button, { attributes: true, attributeFilter: ["class"] });
-    });
-  }
-  function initHost(host) {
-    if (initializedHosts.has(host)) return false;
-    initializedHosts.add(host);
-    host.classList.add(HOST_CLASS);
-    ensureIndicator(host);
-    host.addEventListener("click", () => scheduleIndicatorUpdate(host));
-    watchButtonClassChanges(host);
-    if ("ResizeObserver" in window) {
-      resizeObserver || (resizeObserver = new ResizeObserver((entries) => {
-        entries.forEach((entry) => scheduleIndicatorUpdate(entry.target));
-      }));
-      resizeObserver.observe(host);
-    }
-    commitIndicatorUpdate(host);
-    return true;
-  }
-  function refreshSegmentedIndicators() {
-    document.querySelectorAll(HOST_SELECTOR).forEach((host) => {
-      if (!initHost(host)) scheduleIndicatorUpdate(host);
-    });
-  }
-  function initSegmentedIndicatorFeature() {
-    if (segmentedIndicatorsInitialized) return;
-    segmentedIndicatorsInitialized = true;
-    document.querySelectorAll(HOST_SELECTOR).forEach(initHost);
-    window.addEventListener("resize", refreshSegmentedIndicators, { passive: true });
-    document.fonts?.ready?.then(refreshSegmentedIndicators).catch(() => {
-    });
-  }
-
-  // codex_image/webui/frontend/src/web-app-title.ts
-  function isStandaloneWebApp() {
-    const iosNavigator = navigator;
-    return Boolean(
-      window.matchMedia?.("(display-mode: standalone)")?.matches || iosNavigator.standalone === true
-    );
-  }
-  function webAppDocumentTitle(standaloneTitle, fullTitle) {
-    return isStandaloneWebApp() ? standaloneTitle : fullTitle;
-  }
-
   // codex_image/webui/frontend/src/grounding-attribution.ts
   function record(value) {
     return value && typeof value === "object" && !Array.isArray(value) ? value : null;
@@ -15066,6 +23163,276 @@
     return section;
   }
 
+  // codex_image/webui/frontend/src/history-export.ts
+  async function createHistoryExport(taskIds, mode) {
+    const response = await fetch("/api/task-history/exports", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        task_ids: taskIds,
+        mode
+      })
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      throw new Error(
+        typeof payload.detail === "string" ? payload.detail : "History export failed"
+      );
+    }
+    return payload;
+  }
+  function triggerHistoryExportDownload(result) {
+    const anchor = document.createElement("a");
+    anchor.href = result.download_url;
+    anchor.download = result.filename;
+    anchor.hidden = true;
+    document.body.append(anchor);
+    anchor.click();
+    anchor.remove();
+  }
+
+  // codex_image/webui/frontend/src/history-organization.ts
+  var HistoryOrganizationRequestError = class extends Error {
+    constructor(status, message) {
+      super(message);
+      __publicField(this, "status");
+      this.name = "HistoryOrganizationRequestError";
+      this.status = status;
+    }
+  };
+  function uniqueNonempty(values) {
+    return [
+      ...new Set(
+        [...values].map((value) => String(value ?? "").trim()).filter(Boolean)
+      )
+    ];
+  }
+  function readHistoryOrganizationFilters(params) {
+    const tagIds = uniqueNonempty(params.getAll("tag"));
+    const untagged = params.get("untagged") === "true" && tagIds.length === 0;
+    return {
+      favorite: params.get("favorite") === "true",
+      tagIds,
+      untagged
+    };
+  }
+  function appendHistoryOrganizationQuery(params, filters) {
+    if (filters.favorite) {
+      params.set("favorite", "true");
+    }
+    if (filters.untagged) {
+      params.set("untagged", "true");
+      return;
+    }
+    for (const tagId of uniqueNonempty(filters.tagIds)) {
+      params.append("tag", tagId);
+    }
+  }
+  function writeHistoryOrganizationFilters(params, filters) {
+    params.delete("favorite");
+    params.delete("tag");
+    params.delete("untagged");
+    appendHistoryOrganizationQuery(params, filters);
+  }
+  function withHistoryTagFilter(filters, tagId, selected) {
+    const cleanTagId = String(tagId ?? "").trim();
+    const tagIds = new Set(uniqueNonempty(filters.tagIds));
+    if (cleanTagId) {
+      if (selected) tagIds.add(cleanTagId);
+      else tagIds.delete(cleanTagId);
+    }
+    return {
+      favorite: filters.favorite,
+      tagIds: [...tagIds],
+      untagged: selected ? false : filters.untagged
+    };
+  }
+  function withHistoryUntaggedFilter(filters, selected) {
+    return {
+      favorite: filters.favorite,
+      tagIds: selected ? [] : [...filters.tagIds],
+      untagged: selected
+    };
+  }
+  function taskMatchesHistoryOrganizationFilters(organization, filters) {
+    if (filters.favorite && !organization.favorite) return false;
+    const taskTagIds = new Set(
+      organization.tags.map((tag) => tag.tag_id)
+    );
+    if (filters.tagIds.some((tagId) => !taskTagIds.has(tagId))) {
+      return false;
+    }
+    if (filters.untagged && taskTagIds.size > 0) return false;
+    return true;
+  }
+  function historyOrganizationSummarySupported(value) {
+    if (!value || typeof value !== "object" || Array.isArray(value)) {
+      return false;
+    }
+    const summary = value;
+    return typeof summary.favorite_total === "number" && Number.isFinite(summary.favorite_total) && typeof summary.untagged_total === "number" && Number.isFinite(summary.untagged_total) && Array.isArray(summary.tags);
+  }
+  function historyTaskRowsSupportOrganization(rows) {
+    return Array.isArray(rows) && rows.every(
+      (row) => Boolean(row) && typeof row === "object" && !Array.isArray(row) && typeof row.favorite === "boolean" && Array.isArray(
+        row.tags
+      )
+    );
+  }
+  async function historyOrganizationRequest(url, init) {
+    const response = await fetch(url, {
+      ...init,
+      headers: {
+        ...init?.body ? { "Content-Type": "application/json" } : {},
+        ...init?.headers || {}
+      }
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      const rawDetail = payload.detail;
+      const detail = typeof rawDetail === "string" ? rawDetail : rawDetail && typeof rawDetail === "object" && "message" in rawDetail ? String(
+        rawDetail.message
+      ) : `HTTP ${response.status}`;
+      throw new HistoryOrganizationRequestError(
+        response.status,
+        detail
+      );
+    }
+    return payload;
+  }
+  async function createHistoryTag(name) {
+    const payload = await historyOrganizationRequest("/api/task-history/tags", {
+      method: "POST",
+      body: JSON.stringify({ name })
+    });
+    return payload.tag;
+  }
+  async function renameHistoryTag(tagId, name) {
+    const payload = await historyOrganizationRequest(
+      `/api/task-history/tags/${encodeURIComponent(tagId)}`,
+      {
+        method: "PATCH",
+        body: JSON.stringify({ name })
+      }
+    );
+    return payload.tag;
+  }
+  async function deleteHistoryTag(tagId) {
+    return historyOrganizationRequest(
+      `/api/task-history/tags/${encodeURIComponent(tagId)}`,
+      { method: "DELETE" }
+    );
+  }
+  async function organizeHistoryTasks(change) {
+    const payload = await historyOrganizationRequest("/api/task-history/organize", {
+      method: "POST",
+      body: JSON.stringify({
+        task_ids: uniqueNonempty(change.task_ids),
+        favorite: change.favorite ?? null,
+        add_tag_ids: uniqueNonempty(change.add_tag_ids || []),
+        remove_tag_ids: uniqueNonempty(
+          change.remove_tag_ids || []
+        )
+      })
+    });
+    return payload.organizations || {};
+  }
+  async function createHistoryTagForTasks(name, taskIds) {
+    const tag = await createHistoryTag(name);
+    const cleanTaskIds = uniqueNonempty(taskIds);
+    const organizations = cleanTaskIds.length ? await organizeHistoryTasks({
+      task_ids: cleanTaskIds,
+      add_tag_ids: [tag.tag_id]
+    }) : {};
+    return { tag, organizations };
+  }
+  function historyTagPickerCreateHtml(escapeHtml5, labels) {
+    return `
+    <div class="history-tag-picker-create">
+      <form
+        class="history-tag-picker-create-form"
+        data-history-tag-create-inline
+      >
+        <input
+          class="control"
+          type="text"
+          maxlength="40"
+          autocomplete="off"
+          data-history-tag-create-name
+          placeholder="${escapeHtml5(labels.placeholder)}"
+          aria-label="${escapeHtml5(labels.placeholder)}"
+        />
+        <button
+          class="ghost-button text-sm"
+          type="submit"
+          data-history-tag-create-submit
+        >${escapeHtml5(labels.submitLabel)}</button>
+      </form>
+      <div
+        class="history-tag-picker-create-status"
+        data-history-tag-create-status
+        role="status"
+      ></div>
+    </div>
+  `;
+  }
+  function historyFavoriteButtonHtml(taskId, favorite, escapeHtml5, label) {
+    return `
+    <button
+      class="history-favorite-button${favorite ? " active" : ""}"
+      type="button"
+      data-history-favorite-task="${escapeHtml5(taskId)}"
+      aria-pressed="${favorite ? "true" : "false"}"
+      aria-label="${escapeHtml5(label)}"
+      title="${escapeHtml5(label)}"
+    >\u2605</button>
+  `;
+  }
+  function historyCardTagsHtml(tags, escapeHtml5) {
+    const visible = tags.slice(0, 2);
+    const remainder = Math.max(0, tags.length - visible.length);
+    if (!visible.length) return "";
+    return `
+    <div class="history-card-tags">
+      ${visible.map(
+      (tag) => `
+            <span
+              class="history-tag-chip"
+              data-history-tag-id="${escapeHtml5(tag.tag_id)}"
+            >${escapeHtml5(tag.name)}</span>
+          `
+    ).join("")}
+      ${remainder ? `<span class="history-tag-more">+${remainder}</span>` : ""}
+    </div>
+  `;
+  }
+  function historyDetailTagsHtml(tags, escapeHtml5) {
+    return tags.map(
+      (tag) => `
+        <span
+          class="history-tag-chip"
+          data-history-tag-id="${escapeHtml5(tag.tag_id)}"
+        >${escapeHtml5(tag.name)}</span>
+      `
+    ).join("");
+  }
+  function historyTagPickerHtml(tags, selectedTagIds, escapeHtml5) {
+    const selected = new Set(selectedTagIds);
+    return tags.map((tag) => {
+      const checked = selected.has(tag.tag_id);
+      return `
+        <label class="history-tag-picker-option">
+          <input
+            type="checkbox"
+            value="${escapeHtml5(tag.tag_id)}"
+            ${checked ? "checked" : ""}
+          />
+          <span>${escapeHtml5(tag.name)}</span>
+        </label>
+      `;
+    }).join("");
+  }
+
   // codex_image/webui/frontend/src/history.ts
   var HISTORY_FILTER_KEYS = ["mode", "month", "prompt_mode", "quality", "ratio", "orientation", "backend", "provider", "archived"];
   var HISTORY_RATIO_OTHER_VALUE = "__other__";
@@ -15073,7 +23440,6 @@
   var MAX_MOUNTED_TASK_CARDS = 300;
   var HISTORY_REFERENCE_HANDOFF_KEY = "codex-image-history-reference-handoff";
   var HISTORY_TASK_REUSE_HANDOFF_KEY = "codex-image-history-task-reuse-handoff";
-  var HISTORY_THEME_STORAGE_KEY = "codex-image-theme-preference";
   var HISTORY_THUMBNAIL_CACHE_VERSION = "thumb-768-fit";
   var HISTORY_GRID_DEFAULT_GAP = 14;
   var HISTORY_LAYOUT_STORAGE_KEY = "codex-image-history-layout";
@@ -15085,6 +23451,7 @@
     rightMax: 620,
     middleMin: 360
   };
+  var EMPTY_HISTORY_GRID_LAYOUT_OPTIONS = {};
   var historyState = {
     q: "",
     mode: "",
@@ -15127,8 +23494,27 @@
   var historyResizeFrame = 0;
   var historyDetailLoadToken = 0;
   var historyContextMenuEl = null;
+  var historyTags = [];
+  var historySummary = null;
+  var historyOrganizationFilters = {
+    favorite: false,
+    tagIds: [],
+    untagged: false
+  };
+  var historyTagDeleteConfirmId = "";
+  var historyTagPickerEl = null;
+  var historyTagPickerTrigger = null;
+  var historyTagPickerMode = "add";
+  var historyTagPickerTaskIds = [];
+  var historyTagPickerCreatePending = false;
+  var historyTagManagerCreatePending = false;
+  var historyOrganizationApiSupported = null;
+  var historyExportPickerEl = null;
+  var historyExportTrigger = null;
+  var historyExportTaskIds = [];
+  var historyExportPending = false;
   var activeHistoryResizer = null;
-  var els = {
+  var els8 = {
     page: document.querySelector(".history-page"),
     sidebar: document.querySelector(".history-sidebar"),
     leftResizer: document.querySelector('[data-history-resizer="left"]'),
@@ -15136,6 +23522,13 @@
     total: document.querySelector("#historyTotal"),
     search: document.querySelector("#historySearch"),
     searchClear: document.querySelector("#historySearchClear"),
+    favoriteList: document.querySelector("#historyFavoriteList"),
+    tagFilterList: document.querySelector("#historyTagFilterList"),
+    tagManageToggle: document.querySelector("#historyTagManageToggle"),
+    tagManager: document.querySelector("#historyTagManager"),
+    tagManagerList: document.querySelector("#historyTagManagerList"),
+    tagManagerStatus: document.querySelector("#historyTagManagerStatus"),
+    tagNameInput: document.querySelector("#historyTagNameInput"),
     modeList: document.querySelector("#historyModeList"),
     monthList: document.querySelector("#historyMonthList"),
     promptModeList: document.querySelector("#historyPromptModeList"),
@@ -15150,6 +23543,11 @@
     resultSummary: document.querySelector("#historyResultSummary"),
     bulkToolbar: document.querySelector("#historyBulkToolbar"),
     bulkCount: document.querySelector("#historyBulkCount"),
+    bulkFavorite: document.querySelector("#historyBulkFavoriteButton"),
+    bulkUnfavorite: document.querySelector("#historyBulkUnfavoriteButton"),
+    bulkAddTag: document.querySelector("#historyBulkAddTagButton"),
+    bulkRemoveTag: document.querySelector("#historyBulkRemoveTagButton"),
+    bulkExport: document.querySelector("#historyBulkExportButton"),
     bulkArchive: document.querySelector("#historyBulkArchiveButton"),
     bulkRestore: document.querySelector("#historyBulkRestoreButton"),
     bulkDelete: document.querySelector("#historyBulkDeleteButton"),
@@ -15159,7 +23557,7 @@
     sentinel: document.querySelector("[data-history-load-more]"),
     refresh: document.querySelector("#historyRefreshButton")
   };
-  function escapeHtml2(value) {
+  function escapeHtml4(value) {
     return String(value ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
   }
   function formatDate(value) {
@@ -15171,33 +23569,7 @@
   function setText(element, text) {
     if (element) element.textContent = text;
   }
-  function normalizeHistoryThemePreference(value) {
-    return value === "light" || value === "dark" ? value : "system";
-  }
-  function resolveHistoryTheme(preference) {
-    if (preference === "light" || preference === "dark") return preference;
-    return window.matchMedia?.("(prefers-color-scheme: dark)")?.matches ? "dark" : "light";
-  }
-  function restoreHistoryThemePreference() {
-    let saved = "system";
-    try {
-      saved = localStorage.getItem(HISTORY_THEME_STORAGE_KEY) || "system";
-    } catch {
-      saved = "system";
-    }
-    const preference = normalizeHistoryThemePreference(saved);
-    document.documentElement.dataset.themePreference = preference;
-    document.documentElement.dataset.theme = resolveHistoryTheme(preference);
-  }
-  function bindHistoryThemePreference() {
-    window.matchMedia?.("(prefers-color-scheme: dark)")?.addEventListener?.("change", () => {
-      if (document.documentElement.dataset.themePreference === "system") {
-        restoreHistoryThemePreference();
-      }
-    });
-  }
   function applyHistoryLocale() {
-    restoreLocalePreference();
     document.title = historyDocumentTitle();
   }
   function historyDocumentTitle() {
@@ -15257,11 +23629,12 @@
     </svg>`;
   }
   function historyFilterButtonLabelHtml(key, label, value = "") {
-    if (key !== "orientation") return escapeHtml2(label);
-    return `${historyOrientationIconHtml(value)}<span class="history-filter-label">${escapeHtml2(label)}</span>`;
+    if (key !== "orientation") return escapeHtml4(label);
+    return `${historyOrientationIconHtml(value)}<span class="history-filter-label">${escapeHtml4(label)}</span>`;
   }
   function syncStateFromUrl() {
     const params = new URLSearchParams(window.location.search);
+    historyOrganizationFilters = readHistoryOrganizationFilters(params);
     historyState.q = params.get("q") || "";
     historyState.sort = params.get("sort") === "oldest" ? "oldest" : "newest";
     historyState.view = params.get("view") === "list" ? "list" : "grid";
@@ -15273,9 +23646,15 @@
       if (section && historyState[key]) section.open = true;
     }
     historyState.selectedTaskId = params.get("task") || "";
-    if (els.search) els.search.value = historyState.q;
+    if (els8.search) els8.search.value = historyState.q;
+    syncHistorySearchClear();
     syncHistorySortMode();
     syncHistoryViewMode();
+  }
+  function syncHistorySearchClear() {
+    const hasQuery = Boolean(els8.search?.value.trim());
+    els8.searchClear?.classList.toggle("hidden", !hasQuery);
+    els8.searchClear?.toggleAttribute("hidden", !hasQuery);
   }
   function updateHistoryUrl() {
     const params = new URLSearchParams();
@@ -15285,6 +23664,10 @@
     for (const key of HISTORY_FILTER_KEYS) {
       if (historyState[key]) params.set(key, historyState[key]);
     }
+    writeHistoryOrganizationFilters(
+      params,
+      historyOrganizationFilters
+    );
     if (historyState.selectedTaskId) params.set("task", historyState.selectedTaskId);
     const query = params.toString();
     const nextUrl = query ? `${window.location.pathname}?${query}` : window.location.pathname;
@@ -15295,18 +23678,268 @@
       const response = await fetch("/api/task-history/summary");
       const summary = await response.json();
       if (!response.ok) throw new Error(summary.detail || translate("history.summaryFailed"));
-      setText(els.total, formatTranslation("history.total", { total: summary.total, archived: summary.archived_total }));
-      renderFacetButtons(els.modeList, "mode", summary.modes || [], translate("history.allTypes"));
-      renderFacetButtons(els.monthList, "month", summary.months.map((item) => ({ value: item.month, count: item.count })), translate("history.allMonths"));
-      renderFacetButtons(els.promptModeList, "prompt_mode", summary.prompt_modes || [], translate("history.allPromptModes"));
-      renderFacetButtons(els.qualityList, "quality", summary.qualities || [], translate("history.allQualities"));
-      renderFacetButtons(els.ratioList, "ratio", summary.ratios, translate("history.allRatios"));
-      renderFacetButtons(els.orientationList, "orientation", summary.orientations || [], translate("history.allOrientations"));
-      renderFacetButtons(els.backendList, "backend", summary.backends || [], translate("history.allBackends"));
-      renderFacetButtons(els.providerList, "provider", summary.providers || [], translate("history.allProviders"));
+      if (!historyOrganizationSummarySupported(summary)) {
+        historyOrganizationApiSupported = false;
+        throw new Error(
+          translate("history.backendRestartRequired")
+        );
+      }
+      historyOrganizationApiSupported = true;
+      historySummary = summary;
+      historyTags = Array.isArray(summary.tags) ? summary.tags : [];
+      setText(els8.total, formatTranslation("history.total", { total: summary.total, archived: summary.archived_total }));
+      renderHistoryOrganizationFilters(summary);
+      renderHistoryTagManager();
+      renderFacetButtons(els8.modeList, "mode", summary.modes || [], translate("history.allTypes"));
+      renderFacetButtons(els8.monthList, "month", summary.months.map((item) => ({ value: item.month, count: item.count })), translate("history.allMonths"));
+      renderFacetButtons(els8.promptModeList, "prompt_mode", summary.prompt_modes || [], translate("history.allPromptModes"));
+      renderFacetButtons(els8.qualityList, "quality", summary.qualities || [], translate("history.allQualities"));
+      renderFacetButtons(els8.ratioList, "ratio", summary.ratios, translate("history.allRatios"));
+      renderFacetButtons(els8.orientationList, "orientation", summary.orientations || [], translate("history.allOrientations"));
+      renderFacetButtons(els8.backendList, "backend", summary.backends || [], translate("history.allBackends"));
+      renderFacetButtons(els8.providerList, "provider", summary.providers || [], translate("history.allProviders"));
       syncArchiveButtons();
     } catch (error) {
-      setText(els.total, errorMessage(error, translate("history.summaryFailed")));
+      const message = errorMessage2(
+        error,
+        translate("history.summaryFailed")
+      );
+      setText(els8.total, message);
+      if (historyOrganizationApiSupported === false) {
+        setText(els8.resultSummary, message);
+      }
+    }
+  }
+  function renderHistoryOrganizationFilters(summary) {
+    const counts = summary || historySummary || {};
+    if (els8.favoriteList) {
+      const active = historyOrganizationFilters.favorite;
+      els8.favoriteList.innerHTML = `
+      <button
+        class="history-filter-button${active ? " active" : ""}"
+        type="button"
+        data-history-favorite-filter
+        aria-pressed="${active ? "true" : "false"}"
+      >
+        <span>${escapeHtml4(translate("history.onlyFavorites"))}</span>
+        <span class="history-filter-count">${Number(counts.favorite_total || 0)}</span>
+      </button>
+    `;
+    }
+    if (!els8.tagFilterList) return;
+    const selected = new Set(historyOrganizationFilters.tagIds);
+    const untaggedActive = historyOrganizationFilters.untagged;
+    els8.tagFilterList.innerHTML = [
+      `
+      <button
+        class="history-filter-button${untaggedActive ? " active" : ""}"
+        type="button"
+        data-history-untagged-filter
+        aria-pressed="${untaggedActive ? "true" : "false"}"
+      >
+        <span>${escapeHtml4(translate("history.untagged"))}</span>
+        <span class="history-filter-count">${Number(counts.untagged_total || 0)}</span>
+      </button>
+    `,
+      ...historyTags.map((tag) => {
+        const active = selected.has(tag.tag_id);
+        return `
+        <button
+          class="history-filter-button${active ? " active" : ""}"
+          type="button"
+          data-history-tag-filter="${escapeHtml4(tag.tag_id)}"
+          aria-pressed="${active ? "true" : "false"}"
+        >
+          <span>${escapeHtml4(tag.name)}</span>
+          <span class="history-filter-count">${Number(tag.count || 0)}</span>
+        </button>
+      `;
+      })
+    ].join("");
+  }
+  function renderHistoryTagManager() {
+    if (!els8.tagManagerList) return;
+    if (!historyTags.length) {
+      els8.tagManagerList.innerHTML = `
+      <div class="history-tag-manager-empty">
+        ${escapeHtml4(translate("history.noTags"))}
+      </div>
+    `;
+      return;
+    }
+    els8.tagManagerList.innerHTML = historyTags.map((tag) => {
+      const confirming = historyTagDeleteConfirmId === tag.tag_id;
+      const affectedDeleteLabel = formatTranslation(
+        "history.deleteTagAffected",
+        {
+          count: Number(tag.count || 0)
+        }
+      );
+      const deleteLabel = confirming ? translate("history.confirmDelete") : translate("history.deleteTag");
+      const deleteAriaLabel = confirming ? affectedDeleteLabel : deleteLabel;
+      return `
+        <div class="history-tag-manager-row" data-history-tag-row="${escapeHtml4(tag.tag_id)}">
+          <div class="history-tag-manager-row-field">
+            <input
+              class="control"
+              type="text"
+              maxlength="40"
+              value="${escapeHtml4(tag.name)}"
+              data-history-tag-name="${escapeHtml4(tag.tag_id)}"
+              aria-label="${escapeHtml4(translate("history.renameTag"))}"
+            />
+            <span class="history-filter-count">${Number(tag.count || 0)}</span>
+          </div>
+          <div class="history-tag-manager-row-actions">
+            <button
+              class="ghost-button text-sm"
+              type="button"
+              data-history-rename-tag="${escapeHtml4(tag.tag_id)}"
+            >${escapeHtml4(translate("history.renameTag"))}</button>
+            <button
+              class="ghost-button text-sm${confirming ? " danger-button" : ""}"
+              type="button"
+              data-history-delete-tag="${escapeHtml4(tag.tag_id)}"
+              aria-label="${escapeHtml4(deleteAriaLabel)}"
+              title="${escapeHtml4(deleteAriaLabel)}"
+            >${escapeHtml4(deleteLabel)}</button>
+          </div>
+        </div>
+      `;
+    }).join("");
+  }
+  function applyHistoryOrganizationFilterChange(filters) {
+    if (historyOrganizationApiSupported === false) {
+      setText(
+        els8.resultSummary,
+        translate("history.backendRestartRequired")
+      );
+      return;
+    }
+    historyOrganizationFilters = filters;
+    historyState.selectedTaskId = "";
+    clearHistoryDeleteConfirmation();
+    renderHistoryOrganizationFilters();
+    updateHistoryUrl();
+    void loadTasks({ reset: true });
+  }
+  function historyTagMutationErrorMessage(error) {
+    if (error instanceof HistoryOrganizationRequestError && error.status === 409) {
+      return translate("history.tagNameConflict");
+    }
+    return errorMessage2(
+      error,
+      translate("history.organizationFailed")
+    );
+  }
+  function historyTagCreateErrorMessage(error) {
+    if (error instanceof HistoryOrganizationRequestError && error.status === 404) {
+      return translate("history.backendRestartRequired");
+    }
+    return historyTagMutationErrorMessage(error);
+  }
+  async function createHistoryTagFromManager() {
+    if (historyTagManagerCreatePending) return;
+    const name = els8.tagNameInput?.value.trim() || "";
+    if (!name) {
+      els8.tagNameInput?.focus();
+      return;
+    }
+    const form = els8.tagManager?.querySelector(
+      "[data-history-tag-create]"
+    );
+    const controls = form?.querySelectorAll("input, button");
+    historyTagManagerCreatePending = true;
+    controls?.forEach((control) => {
+      control.disabled = true;
+    });
+    setText(els8.tagManagerStatus, "");
+    try {
+      const tag = await createHistoryTag(name);
+      if (els8.tagNameInput) els8.tagNameInput.value = "";
+      await loadSummary();
+      setText(
+        els8.tagManagerStatus,
+        `${translate("history.createTag")}\uFF1A${tag.name}`
+      );
+    } catch (error) {
+      const message = historyTagCreateErrorMessage(error);
+      setText(els8.tagManagerStatus, message);
+      setText(
+        els8.resultSummary,
+        message
+      );
+    } finally {
+      historyTagManagerCreatePending = false;
+      controls?.forEach((control) => {
+        control.disabled = false;
+      });
+    }
+  }
+  async function renameHistoryTagFromManager(tagId) {
+    const input = els8.tagManagerList?.querySelector(
+      `[data-history-tag-name="${CSS.escape(tagId)}"]`
+    );
+    const name = input?.value.trim() || "";
+    if (!name) return;
+    try {
+      const tag = await renameHistoryTag(tagId, name);
+      const organizations = {};
+      for (const [taskId, task] of historyState.loadedTaskSummaries) {
+        if (!task.tags.some((item) => item.tag_id === tagId)) {
+          continue;
+        }
+        organizations[taskId] = {
+          favorite: task.favorite,
+          tags: task.tags.map(
+            (item) => item.tag_id === tagId ? { ...item, name: tag.name } : item
+          )
+        };
+      }
+      applyHistoryOrganizations(organizations);
+      await loadSummary();
+    } catch (error) {
+      setText(
+        els8.resultSummary,
+        historyTagMutationErrorMessage(error)
+      );
+    }
+  }
+  async function deleteHistoryTagFromManager(tagId) {
+    if (historyTagDeleteConfirmId !== tagId) {
+      historyTagDeleteConfirmId = tagId;
+      renderHistoryTagManager();
+      return;
+    }
+    try {
+      await deleteHistoryTag(tagId);
+      historyTagDeleteConfirmId = "";
+      historyOrganizationFilters = {
+        ...historyOrganizationFilters,
+        tagIds: historyOrganizationFilters.tagIds.filter(
+          (value) => value !== tagId
+        )
+      };
+      const organizations = {};
+      for (const [taskId, task] of historyState.loadedTaskSummaries) {
+        organizations[taskId] = {
+          favorite: task.favorite,
+          tags: task.tags.filter(
+            (item) => item.tag_id !== tagId
+          )
+        };
+      }
+      applyHistoryOrganizations(organizations);
+      updateHistoryUrl();
+      await loadSummary();
+    } catch (error) {
+      setText(
+        els8.resultSummary,
+        errorMessage2(
+          error,
+          translate("history.organizationFailed")
+        )
+      );
     }
   }
   function renderFacetButtons(root, key, items, allLabel) {
@@ -15317,7 +23950,7 @@
       `<button class="history-filter-button ${current ? "" : "active"}" type="button" data-history-filter-key="${key}" data-history-${attr}="">${historyFilterButtonLabelHtml(key, allLabel)}</button>`,
       ...items.map((item) => {
         const active = current === item.value ? " active" : "";
-        return `<button class="history-filter-button${active}" type="button" data-history-filter-key="${key}" data-history-${attr}="${escapeHtml2(item.value)}">${historyFilterButtonLabelHtml(key, facetDisplayValue(key, item.value), item.value)}<span class="history-filter-count">${item.count}</span></button>`;
+        return `<button class="history-filter-button${active}" type="button" data-history-filter-key="${key}" data-history-${attr}="${escapeHtml4(item.value)}">${historyFilterButtonLabelHtml(key, facetDisplayValue(key, item.value), item.value)}<span class="history-filter-count">${item.count}</span></button>`;
       })
     ].join("");
   }
@@ -15329,7 +23962,7 @@
   function syncHistorySortMode() {
     const sort = historyState.sort === "oldest" ? "oldest" : "newest";
     historyState.sort = sort;
-    els.sortToggle?.querySelectorAll("[data-history-sort]").forEach((button) => {
+    els8.sortToggle?.querySelectorAll("[data-history-sort]").forEach((button) => {
       const active = button.dataset.historySort === sort;
       button.classList.toggle("active", active);
       button.setAttribute("aria-pressed", active ? "true" : "false");
@@ -15354,14 +23987,18 @@
     for (const key of HISTORY_FILTER_KEYS) {
       if (historyState[key]) params.set(key, historyState[key]);
     }
+    appendHistoryOrganizationQuery(
+      params,
+      historyOrganizationFilters
+    );
     return params.toString();
   }
   function syncHistoryViewMode() {
     const view = historyState.view === "list" ? "list" : "grid";
     historyState.view = view;
-    els.taskList?.classList.toggle("history-view-grid", view === "grid");
-    els.taskList?.classList.toggle("history-view-list", view === "list");
-    els.viewToggle?.querySelectorAll("[data-history-view]").forEach((button) => {
+    els8.taskList?.classList.toggle("history-view-grid", view === "grid");
+    els8.taskList?.classList.toggle("history-view-list", view === "list");
+    els8.viewToggle?.querySelectorAll("[data-history-view]").forEach((button) => {
       const active = button.dataset.historyView === view;
       button.classList.toggle("active", active);
       button.setAttribute("aria-pressed", active ? "true" : "false");
@@ -15380,11 +24017,11 @@
     return { targetHeight: 220, minWidth: 150, maxWidth: 430 };
   }
   function historyTaskCardElement(taskId) {
-    if (!taskId || !els.taskList) return null;
-    return historyTaskCards(els.taskList).find((card) => card.dataset.historyTaskCardId === taskId) || null;
+    if (!taskId || !els8.taskList) return null;
+    return historyTaskCards(els8.taskList).find((card) => card.dataset.historyTaskCardId === taskId) || null;
   }
   function isHistoryTaskCardVisible(taskId) {
-    const list = els.taskList;
+    const list = els8.taskList;
     const card = historyTaskCardElement(taskId);
     if (!list || !card) return false;
     const listRect = list.getBoundingClientRect();
@@ -15417,7 +24054,7 @@
     return Math.min(max, Math.max(min, value));
   }
   function isHistoryResizableLayout() {
-    return Boolean(els.page) && !window.matchMedia("(max-width: 1100px)").matches;
+    return Boolean(els8.page) && !window.matchMedia("(max-width: 1100px)").matches;
   }
   function readHistoryLayoutPreference() {
     try {
@@ -15433,7 +24070,7 @@
     }
   }
   function historyLayoutMaxCombinedWidth() {
-    const pageWidth = els.page?.getBoundingClientRect().width || window.innerWidth || 0;
+    const pageWidth = els8.page?.getBoundingClientRect().width || window.innerWidth || 0;
     return Math.max(
       HISTORY_LAYOUT_LIMITS.leftMin + HISTORY_LAYOUT_LIMITS.rightMin,
       pageWidth - HISTORY_LAYOUT_LIMITS.middleMin
@@ -15460,22 +24097,22 @@
   }
   function getCurrentHistoryLayoutWidths() {
     const fromStyle = {
-      left: parseCssPixels(els.page?.style.getPropertyValue("--history-sidebar-width") || ""),
-      right: parseCssPixels(els.page?.style.getPropertyValue("--history-detail-width") || "")
+      left: parseCssPixels(els8.page?.style.getPropertyValue("--history-sidebar-width") || ""),
+      right: parseCssPixels(els8.page?.style.getPropertyValue("--history-detail-width") || "")
     };
     if (fromStyle.left && fromStyle.right) return fromStyle;
-    const sidebarWidth = els.sidebar?.getBoundingClientRect().width || HISTORY_LAYOUT_DEFAULTS.left;
-    const detailWidth = els.detail?.getBoundingClientRect().width || HISTORY_LAYOUT_DEFAULTS.right;
+    const sidebarWidth = els8.sidebar?.getBoundingClientRect().width || HISTORY_LAYOUT_DEFAULTS.left;
+    const detailWidth = els8.detail?.getBoundingClientRect().width || HISTORY_LAYOUT_DEFAULTS.right;
     return constrainHistoryLayoutWidths(sidebarWidth, detailWidth);
   }
   function applyHistoryLayoutWidths(left, right, options = {}) {
-    if (!els.page) return;
+    if (!els8.page) return;
     const keepTaskId = options.preserveActiveTask ? activeHistoryTaskVisible() : "";
     const widths = constrainHistoryLayoutWidths(left, right, options.prioritySide || "");
-    els.page.style.setProperty("--history-sidebar-width", `${widths.left}px`);
-    els.page.style.setProperty("--history-detail-width", `${widths.right}px`);
-    els.leftResizer?.setAttribute("aria-valuenow", String(widths.left));
-    els.rightResizer?.setAttribute("aria-valuenow", String(widths.right));
+    els8.page.style.setProperty("--history-sidebar-width", `${widths.left}px`);
+    els8.page.style.setProperty("--history-detail-width", `${widths.right}px`);
+    els8.leftResizer?.setAttribute("aria-valuenow", String(widths.left));
+    els8.rightResizer?.setAttribute("aria-valuenow", String(widths.right));
     scheduleHistoryGridLayout({ keepTaskId });
     if (options.persist) {
       try {
@@ -15487,7 +24124,7 @@
   function applyPendingHistoryResize() {
     historyResizeFrame = 0;
     const resize = activeHistoryResizer;
-    if (!resize || !els.page) return;
+    if (!resize || !els8.page) return;
     const delta = resize.latestX - resize.startX;
     const nextLeft = resize.side === "left" ? resize.startLeft + delta : resize.startLeft;
     const nextRight = resize.side === "right" ? resize.startRight - delta : resize.startRight;
@@ -15497,11 +24134,15 @@
       resize.side,
       resize.maxCombinedWidth
     );
-    els.page.style.setProperty("--history-sidebar-width", `${widths.left}px`);
-    els.page.style.setProperty("--history-detail-width", `${widths.right}px`);
-    els.leftResizer?.setAttribute("aria-valuenow", String(widths.left));
-    els.rightResizer?.setAttribute("aria-valuenow", String(widths.right));
-    layoutJustifiedHistoryGrid();
+    els8.page.style.setProperty("--history-sidebar-width", `${widths.left}px`);
+    els8.page.style.setProperty("--history-detail-width", `${widths.right}px`);
+    els8.leftResizer?.setAttribute("aria-valuenow", String(widths.left));
+    els8.rightResizer?.setAttribute("aria-valuenow", String(widths.right));
+    const availableWidth = resize.gridLayoutSnapshot ? resize.gridLayoutSnapshot.availableWidth + resize.startLeft + resize.startRight - widths.left - widths.right : void 0;
+    layoutJustifiedHistoryGrid({
+      snapshot: resize.gridLayoutSnapshot,
+      availableWidth
+    });
   }
   function restoreHistoryLayoutPreference() {
     const stored = readHistoryLayoutPreference();
@@ -15551,12 +24192,13 @@
       startLeft: widths.left,
       startRight: widths.right,
       maxCombinedWidth: historyLayoutMaxCombinedWidth(),
+      gridLayoutSnapshot: captureHistoryGridLayoutSnapshot(),
       element
     };
     closeHistoryContextMenu();
     event.preventDefault();
     element.setPointerCapture?.(event.pointerId);
-    els.page?.classList.add("history-resizing");
+    els8.page?.classList.add("history-resizing");
   }
   function updateHistoryResize(event) {
     if (!activeHistoryResizer || event.pointerId !== activeHistoryResizer.pointerId) return;
@@ -15583,11 +24225,11 @@
     } catch {
     }
     activeHistoryResizer = null;
-    els.page?.classList.remove("history-resizing");
+    els8.page?.classList.remove("history-resizing");
     if (keepTaskId) ensureHistoryTaskCardVisible(keepTaskId);
   }
   function bindHistoryResizerEvents() {
-    for (const resizer of [els.leftResizer, els.rightResizer]) {
+    for (const resizer of [els8.leftResizer, els8.rightResizer]) {
       const side = resizer?.dataset.historyResizer;
       if (!resizer || side !== "left" && side !== "right") continue;
       resizer.addEventListener("pointerdown", (event) => startHistoryResize(side, event, resizer));
@@ -15606,6 +24248,21 @@
   function historyTaskCardRatio(card) {
     const ratio = Number.parseFloat(card.style.getPropertyValue("--history-task-card-ratio"));
     return Number.isFinite(ratio) && ratio > 0 ? clampNumber(ratio, 0.42, 3.2) : 1;
+  }
+  function captureHistoryGridLayoutSnapshot() {
+    const root = els8.taskList;
+    if (!root || historyState.view !== "grid" || !root.classList.contains("history-view-grid")) return null;
+    const cards = historyTaskCards(root);
+    if (!cards.length) return null;
+    const rootStyle = window.getComputedStyle(root);
+    const availableWidth = root.clientWidth - parseCssPixels(rootStyle.paddingLeft) - parseCssPixels(rootStyle.paddingRight);
+    if (availableWidth < 80) return null;
+    return {
+      items: cards.map((card) => ({ card, ratio: historyTaskCardRatio(card) })),
+      availableWidth,
+      gap: parseCssPixels(rootStyle.columnGap || rootStyle.gap) || HISTORY_GRID_DEFAULT_GAP,
+      settings: historyGridLayoutSettings()
+    };
   }
   function applyHistoryGridRowLayout(row, options) {
     if (!row.length) return;
@@ -15632,22 +24289,17 @@
       item.card.style.setProperty("--history-task-card-width", `${Math.max(1, widths[index] || 1)}px`);
     });
   }
-  function layoutJustifiedHistoryGrid() {
-    const root = els.taskList;
-    if (!root || historyState.view !== "grid" || !root.classList.contains("history-view-grid")) return;
-    const cards = historyTaskCards(root);
-    if (!cards.length) return;
-    const rootStyle = window.getComputedStyle(root);
-    const availableWidth = root.clientWidth - parseCssPixels(rootStyle.paddingLeft) - parseCssPixels(rootStyle.paddingRight);
+  function layoutJustifiedHistoryGrid(options = EMPTY_HISTORY_GRID_LAYOUT_OPTIONS) {
+    const snapshot = options.snapshot === void 0 ? captureHistoryGridLayoutSnapshot() : options.snapshot;
+    if (!snapshot) return;
+    const availableWidth = options.availableWidth ?? snapshot.availableWidth;
     if (availableWidth < 80) return;
-    const gap = parseCssPixels(rootStyle.columnGap || rootStyle.gap) || HISTORY_GRID_DEFAULT_GAP;
-    const settings = historyGridLayoutSettings();
+    const { gap, settings } = snapshot;
     let row = [];
     let rowRatioTotal = 0;
-    for (const card of cards) {
-      const ratio = historyTaskCardRatio(card);
-      row.push({ card, ratio });
-      rowRatioTotal += ratio;
+    for (const item of snapshot.items) {
+      row.push(item);
+      rowRatioTotal += item.ratio;
       const projectedWidth = rowRatioTotal * settings.targetHeight + gap * Math.max(0, row.length - 1);
       if (row.length > 1 && projectedWidth >= availableWidth) {
         applyHistoryGridRowLayout(row, { fillRow: true, availableWidth, gap, settings });
@@ -15658,18 +24310,18 @@
     applyHistoryGridRowLayout(row, { fillRow: false, availableWidth, gap, settings });
   }
   function setLoadMoreState(label, options = {}) {
-    if (!els.sentinel) return;
-    els.sentinel.textContent = label;
-    els.sentinel.hidden = Boolean(options.hidden);
-    els.sentinel.toggleAttribute("aria-busy", Boolean(options.busy));
+    if (!els8.sentinel) return;
+    els8.sentinel.textContent = label;
+    els8.sentinel.hidden = Boolean(options.hidden);
+    els8.sentinel.toggleAttribute("aria-busy", Boolean(options.busy));
   }
   function maybeLoadMoreFromScroll() {
-    if (!els.taskList || historyState.loading) return;
-    if (els.taskList.scrollTop <= 320 && !historyState.newerExhausted) {
+    if (!els8.taskList || historyState.loading) return;
+    if (els8.taskList.scrollTop <= 320 && !historyState.newerExhausted) {
       void loadTasks({ direction: "previous" });
       return;
     }
-    const remaining = els.taskList.scrollHeight - els.taskList.scrollTop - els.taskList.clientHeight;
+    const remaining = els8.taskList.scrollHeight - els8.taskList.scrollTop - els8.taskList.clientHeight;
     if (remaining <= 320 && !historyState.exhausted) void loadTasks({ direction: "next" });
   }
   async function loadTasks({ reset = false, direction = "next" } = {}) {
@@ -15694,17 +24346,29 @@
       historyState.selectionAnchorTaskId = "";
       clearHistoryDeleteConfirmation();
       historyState.deleteConfirmTaskId = "";
-      if (els.taskList) els.taskList.innerHTML = "";
+      if (els8.taskList) els8.taskList.innerHTML = "";
       renderBulkToolbar();
     }
     setLoadMoreState(translate("history.loadingMore"), { busy: true });
     try {
+      const organizationFilterActive = historyOrganizationFilters.favorite || historyOrganizationFilters.untagged || historyOrganizationFilters.tagIds.length > 0;
+      if (organizationFilterActive && historyOrganizationApiSupported === false) {
+        throw new Error(
+          translate("history.backendRestartRequired")
+        );
+      }
       const response = await fetch(`/api/task-history/tasks?${queryParams(cursor, direction)}`);
       const data = await response.json();
       if (!response.ok) throw new Error(data.detail || translate("history.tasksFailed"));
       if (requestId !== historyState.requestId) return;
       const tasks = data.tasks || [];
-      renderTasks(tasks, { position: reset ? "replace" : direction === "previous" ? "prepend" : "append" });
+      if (organizationFilterActive && !historyTaskRowsSupportOrganization(tasks)) {
+        historyOrganizationApiSupported = false;
+        throw new Error(
+          translate("history.backendRestartRequired")
+        );
+      }
+      renderTasks3(tasks, { position: reset ? "replace" : direction === "previous" ? "prepend" : "append" });
       if (direction === "previous") {
         historyState.newerExhausted = !data.previous_cursor || !tasks.length;
       } else {
@@ -15719,9 +24383,9 @@
       window.requestAnimationFrame(maybeLoadMoreFromScroll);
     } catch (error) {
       if (requestId === historyState.requestId) {
-        const message = errorMessage(error, translate("history.tasksFailed"));
-        if (els.taskList && historyTaskCards(els.taskList).length) {
-          setText(els.resultSummary, message);
+        const message = errorMessage2(error, translate("history.tasksFailed"));
+        if (els8.taskList && historyTaskCards(els8.taskList).length) {
+          setText(els8.resultSummary, message);
         } else {
           renderTaskListMessage("history-error", message);
         }
@@ -15737,15 +24401,15 @@
     }
   }
   function taskWindowCursor(reset, direction) {
-    if (reset || !els.taskList) return null;
-    if (direction === "previous") return historyWindowEdgeCursor(els.taskList, "top");
-    return historyState.nextCursor || historyWindowEdgeCursor(els.taskList, "bottom");
+    if (reset || !els8.taskList) return null;
+    if (direction === "previous") return historyWindowEdgeCursor(els8.taskList, "top");
+    return historyState.nextCursor || historyWindowEdgeCursor(els8.taskList, "bottom");
   }
-  function renderTasks(tasks, { position }) {
-    if (!els.taskList) return;
+  function renderTasks3(tasks, { position }) {
+    if (!els8.taskList) return;
     syncHistoryViewMode();
-    const anchor = position === "replace" ? null : captureHistoryScrollAnchor(els.taskList);
-    if (position === "replace") els.taskList.innerHTML = "";
+    const anchor = position === "replace" ? null : captureHistoryScrollAnchor(els8.taskList);
+    if (position === "replace") els8.taskList.innerHTML = "";
     const uniqueTasks = tasks.filter((task) => {
       if (historyState.loadedTaskIds.has(task.task_id)) return false;
       historyState.loadedTaskIds.add(task.task_id);
@@ -15754,26 +24418,26 @@
     });
     const html = uniqueTasks.map(taskCardHtml).join("");
     if (html) {
-      els.taskList.querySelector(".history-empty, .history-error")?.remove();
+      els8.taskList.querySelector(".history-empty, .history-error")?.remove();
       if (position === "prepend") {
-        els.taskList.insertAdjacentHTML("afterbegin", html);
+        els8.taskList.insertAdjacentHTML("afterbegin", html);
       } else {
-        els.taskList.insertAdjacentHTML("beforeend", html);
+        els8.taskList.insertAdjacentHTML("beforeend", html);
       }
     }
     trimMountedTaskCards(position === "prepend" ? "bottom" : "top");
     layoutJustifiedHistoryGrid();
-    restoreHistoryScrollAnchor(els.taskList, anchor);
-    if (!els.taskList.querySelector(".history-task-card")) {
+    restoreHistoryScrollAnchor(els8.taskList, anchor);
+    if (!els8.taskList.querySelector(".history-task-card")) {
       renderTaskListMessage("history-empty", translate("history.noMatches"));
     }
-    setText(els.resultSummary, formatTranslation("history.loadedCount", { count: historyState.loadedTaskIds.size }));
+    setText(els8.resultSummary, formatTranslation("history.loadedCount", { count: historyState.loadedTaskIds.size }));
     updateTaskSelectionVisuals();
   }
   function captureHistoryScrollAnchorSkipping(taskIds) {
-    if (!els.taskList) return null;
-    const rootTop = els.taskList.getBoundingClientRect().top;
-    for (const card of historyTaskCards(els.taskList)) {
+    if (!els8.taskList) return null;
+    const rootTop = els8.taskList.getBoundingClientRect().top;
+    for (const card of historyTaskCards(els8.taskList)) {
       const taskId = String(card.dataset.historyTaskCardId || "");
       if (!taskId || taskIds.has(taskId)) continue;
       const rect = card.getBoundingClientRect();
@@ -15783,19 +24447,19 @@
     return null;
   }
   function refreshHistoryWindowAfterMutation(mutate, options = {}) {
-    if (!els.taskList) {
+    if (!els8.taskList) {
       mutate();
       return;
     }
     const removedTaskIds = new Set(options.removedTaskIds || []);
-    const currentAnchor = captureHistoryScrollAnchor(els.taskList);
+    const currentAnchor = captureHistoryScrollAnchor(els8.taskList);
     const anchor = currentAnchor && !removedTaskIds.has(currentAnchor.taskId) ? currentAnchor : captureHistoryScrollAnchorSkipping(removedTaskIds);
     mutate();
-    if (!els.taskList.querySelector(".history-task-card")) {
+    if (!els8.taskList.querySelector(".history-task-card")) {
       renderTaskListMessage("history-empty", translate("history.noMatches"));
     }
     layoutJustifiedHistoryGrid();
-    restoreHistoryScrollAnchor(els.taskList, anchor);
+    restoreHistoryScrollAnchor(els8.taskList, anchor);
     updateTaskSelectionVisuals();
     window.requestAnimationFrame(maybeLoadMoreFromScroll);
   }
@@ -15814,11 +24478,82 @@
       if (idSet.has(historyState.selectedTaskId)) {
         historyState.selectedTaskId = "";
         historyState.detailTask = null;
-        els.page?.classList.remove("history-detail-open");
+        els8.page?.classList.remove("history-detail-open");
         updateHistoryUrl();
         renderDetailShell(translate("history.detailEmpty"));
       }
     }, { removedTaskIds: ids });
+  }
+  function applyHistoryOrganizations(organizations) {
+    const entries = Object.entries(organizations);
+    if (!entries.length) return;
+    const removedTaskIds = entries.filter(([taskId, organization]) => {
+      const task = historyState.loadedTaskSummaries.get(taskId);
+      return Boolean(
+        task && !taskMatchesHistoryOrganizationFilters(
+          organization,
+          historyOrganizationFilters
+        )
+      );
+    }).map(([taskId]) => taskId);
+    const removedSet = new Set(removedTaskIds);
+    refreshHistoryWindowAfterMutation(() => {
+      for (const [taskId, organization] of entries) {
+        const task = historyState.loadedTaskSummaries.get(taskId);
+        if (!task) continue;
+        Object.assign(task, organization);
+        if (removedSet.has(taskId)) {
+          historyState.loadedTaskIds.delete(taskId);
+          historyState.loadedTaskSummaries.delete(taskId);
+          historyState.selectedTaskIds.delete(taskId);
+          historyTaskCardElement(taskId)?.remove();
+          continue;
+        }
+        const card = historyTaskCardElement(taskId);
+        if (!card) continue;
+        const template = document.createElement("template");
+        template.innerHTML = taskCardHtml(task).trim();
+        const nextCard = template.content.firstElementChild;
+        if (nextCard) card.replaceWith(nextCard);
+      }
+    }, { removedTaskIds });
+    const detailTaskId = String(
+      historyState.detailTask?.task_id || ""
+    );
+    const detailOrganization = organizations[detailTaskId];
+    if (detailOrganization) {
+      Object.assign(historyState.detailTask, detailOrganization);
+      if (removedSet.has(detailTaskId)) {
+        historyState.selectedTaskId = "";
+        historyState.detailTask = null;
+        els8.page?.classList.remove("history-detail-open");
+        updateHistoryUrl();
+        renderDetailShell(translate("history.detailEmpty"));
+      } else {
+        renderTaskDetail(historyState.detailTask);
+      }
+    }
+    renderBulkToolbar();
+  }
+  async function organizeHistoryTaskIds(taskIds, change) {
+    const ids = [...new Set(taskIds.filter(Boolean))];
+    if (!ids.length) return;
+    try {
+      const organizations = await organizeHistoryTasks({
+        task_ids: ids,
+        ...change
+      });
+      applyHistoryOrganizations(organizations);
+      await loadSummary();
+    } catch (error) {
+      setText(
+        els8.resultSummary,
+        errorMessage2(
+          error,
+          translate("history.organizationFailed")
+        )
+      );
+    }
   }
   function historyTaskMatchesCurrentArchiveFilter(task) {
     if (historyState.archived === "true") return historyTaskArchived(task);
@@ -15852,7 +24587,9 @@
       failed_count: positiveInt2(source.failed_count) ?? previous?.failed_count ?? 0,
       total_count: totalCount || 0,
       thumbnail_url: String(source.thumbnail_url || previous?.thumbnail_url || ""),
-      prompt_preview: String(source.prompt_preview || source.prompt || previous?.prompt_preview || "")
+      prompt_preview: String(source.prompt_preview || source.prompt || previous?.prompt_preview || ""),
+      favorite: Boolean(source.favorite ?? previous?.favorite),
+      tags: Array.isArray(source.tags) ? source.tags : previous?.tags || []
     };
   }
   function upsertHistoryTaskSummaryCard(taskId, task) {
@@ -15874,12 +24611,12 @@
     });
   }
   function renderTaskListMessage(className, message) {
-    if (!els.taskList) return;
-    els.taskList.innerHTML = `<div class="${className}">${escapeHtml2(message)}</div>`;
+    if (!els8.taskList) return;
+    els8.taskList.innerHTML = `<div class="${className}">${escapeHtml4(message)}</div>`;
   }
   function trimMountedTaskCards(edge) {
-    if (!els.taskList) return;
-    const cards = historyTaskCards(els.taskList);
+    if (!els8.taskList) return;
+    const cards = historyTaskCards(els8.taskList);
     const overflow = cards.length - MAX_MOUNTED_TASK_CARDS;
     if (overflow <= 0) return;
     const removedCards = edge === "bottom" ? cards.slice(cards.length - overflow) : cards.slice(0, overflow);
@@ -15895,24 +24632,36 @@
       historyState.newerExhausted = false;
     } else {
       historyState.exhausted = false;
-      historyState.nextCursor = historyWindowEdgeCursor(els.taskList, "bottom") || historyState.nextCursor;
+      historyState.nextCursor = historyWindowEdgeCursor(els8.taskList, "bottom") || historyState.nextCursor;
     }
-    els.taskList.querySelector(".history-window-notice")?.remove();
+    els8.taskList.querySelector(".history-window-notice")?.remove();
   }
   function taskCardHtml(task) {
-    const taskId = escapeHtml2(task.task_id);
+    const taskId = escapeHtml4(task.task_id);
     const thumbnailUrl = historyThumbnailUrl(task);
     const ratioStyle = historyThumbnailRatioStyle(task);
     const imageCount = historyTaskGeneratedCount(task);
     const stackDepth = historyTaskStackDepth(imageCount);
     const stackLayers = historyTaskStackLayers(stackDepth);
-    const thumb = thumbnailUrl ? `<img src="${escapeHtml2(thumbnailUrl)}" alt="" loading="lazy" decoding="async" draggable="false">` : "";
+    const thumb = thumbnailUrl ? `<img src="${escapeHtml4(thumbnailUrl)}" alt="" loading="lazy" decoding="async" draggable="false">` : "";
     const counts = `${task.generated_count || 0}/${task.total_count || 0}`;
     const selected = historyState.selectedTaskIds.has(task.task_id);
     const active = historyState.selectedTaskId === task.task_id;
     const source = historyTaskSourceLabel(task);
     const promptMode = facetDisplayValue("prompt_mode", task.prompt_mode || "");
     const quality = facetDisplayValue("quality", task.quality || "");
+    const favoriteButton = historyFavoriteButtonHtml(
+      task.task_id,
+      Boolean(task.favorite),
+      escapeHtml4,
+      translate(
+        task.favorite ? "history.unfavoriteTask" : "history.favoriteTask"
+      )
+    );
+    const tagChips = historyCardTagsHtml(
+      Array.isArray(task.tags) ? task.tags : [],
+      escapeHtml4
+    );
     const metaItems = [
       { kind: "date", value: formatDate(task.created_at) },
       { kind: "status", value: task.status },
@@ -15926,25 +24675,27 @@
     <article
       class="history-task-card${active ? " active" : ""}${selected ? " selected" : ""}"
       data-history-task-card-id="${taskId}"
-      data-history-created-at="${escapeHtml2(task.created_at)}"
+      data-history-created-at="${escapeHtml4(task.created_at)}"
       data-history-image-count="${String(imageCount)}"
       data-history-stack-depth="${String(stackDepth)}"
       role="option"
       aria-selected="${active ? "true" : "false"}"
       ${ratioStyle}
     >
-      <label class="history-task-select" aria-label="${escapeHtml2(translate("history.selectTask"))}">
+      <label class="history-task-select" aria-label="${escapeHtml4(translate("history.selectTask"))}">
         <input type="checkbox" data-history-task-select="${taskId}" ${selected ? "checked" : ""}>
       </label>
+      ${favoriteButton}
       <button class="history-task-open" type="button" data-history-task-id="${taskId}">
         <span class="history-task-thumb">
           ${stackLayers}
           <span class="history-task-thumb-frame">${thumb}</span>
         </span>
         <span class="history-task-copy">
-          <span class="history-task-title">${escapeHtml2(task.prompt_preview || task.mode || task.task_id)}</span>
+          <span class="history-task-title">${escapeHtml4(task.prompt_preview || task.mode || task.task_id)}</span>
+          ${tagChips}
           <span class="history-task-meta">
-            ${metaItems.map((item) => `<span data-history-meta-kind="${escapeHtml2(item.kind)}">${escapeHtml2(item.value)}</span>`).join("")}
+            ${metaItems.map((item) => `<span data-history-meta-kind="${escapeHtml4(item.kind)}">${escapeHtml4(item.value)}</span>`).join("")}
           </span>
         </span>
       </button>
@@ -16023,7 +24774,7 @@
   }
   function updateTaskSelectionVisuals(taskId = historyState.selectedTaskId) {
     const batchSelecting = historyState.selectedTaskIds.size > 0;
-    els.taskList?.querySelectorAll(".history-task-card").forEach((card) => {
+    els8.taskList?.querySelectorAll(".history-task-card").forEach((card) => {
       const cardTaskId = card.dataset.historyTaskCardId || "";
       const active = Boolean(!batchSelecting && taskId && cardTaskId === taskId);
       const selected = historyState.selectedTaskIds.has(cardTaskId);
@@ -16035,7 +24786,7 @@
     });
   }
   function visibleHistoryTaskIds() {
-    return Array.from(els.taskList?.querySelectorAll(".history-task-card[data-history-task-card-id]") || []).map((card) => String(card.dataset.historyTaskCardId || "")).filter(Boolean);
+    return Array.from(els8.taskList?.querySelectorAll(".history-task-card[data-history-task-card-id]") || []).map((card) => String(card.dataset.historyTaskCardId || "")).filter(Boolean);
   }
   function focusHistoryTaskButton(taskId) {
     const card = historyTaskCardElement(taskId);
@@ -16049,9 +24800,9 @@
     if (event.altKey || event.metaKey || event.ctrlKey) return false;
     const target = event.target;
     const taskButton = target?.closest("[data-history-task-id]");
-    if (!taskButton || !els.taskList?.contains(taskButton)) return false;
+    if (!taskButton || !els8.taskList?.contains(taskButton)) return false;
     const taskId = taskButton.dataset.historyTaskId || "";
-    const nextCard = historyTaskArrowTargetCard(els.taskList, taskId, event.key, historyState.view);
+    const nextCard = historyTaskArrowTargetCard(els8.taskList, taskId, event.key, historyState.view);
     if (!nextCard && historyState.view === "list" && (event.key === "ArrowLeft" || event.key === "ArrowRight")) return false;
     event.preventDefault();
     event.stopPropagation();
@@ -16122,17 +24873,17 @@
   async function loadTaskDetail(taskId) {
     if (!taskId) return;
     const loadToken = ++historyDetailLoadToken;
-    const keepCurrentDetail = els.detail?.dataset.historyDetailMode === "task" && Boolean(historyState.detailTask?.task_id);
+    const keepCurrentDetail = els8.detail?.dataset.historyDetailMode === "task" && Boolean(historyState.detailTask?.task_id);
     historyState.selectedTaskId = taskId;
     clearHistoryDeleteConfirmation();
     historyState.deleteConfirmTaskId = "";
     historyState.deleteUnselectedConfirmTaskId = "";
     updateHistoryUrl();
     updateTaskSelectionVisuals(taskId);
-    els.page?.classList.add("history-detail-open");
+    els8.page?.classList.add("history-detail-open");
     if (keepCurrentDetail) {
-      els.detail?.classList.add("history-detail-pending");
-      els.detail?.setAttribute("aria-busy", "true");
+      els8.detail?.classList.add("history-detail-pending");
+      els8.detail?.setAttribute("aria-busy", "true");
     } else {
       renderDetailShell(translate("history.loadingDetail"));
     }
@@ -16146,11 +24897,11 @@
       renderTaskDetail(detail);
     } catch (error) {
       if (!isCurrentHistoryDetailLoad(loadToken, taskId)) return;
-      renderDetailShell(errorMessage(error, translate("history.detailFailed")), "history-error");
+      renderDetailShell(errorMessage2(error, translate("history.detailFailed")), "history-error");
     } finally {
       if (isCurrentHistoryDetailLoad(loadToken, taskId)) {
-        els.detail?.classList.remove("history-detail-pending");
-        els.detail?.removeAttribute("aria-busy");
+        els8.detail?.classList.remove("history-detail-pending");
+        els8.detail?.removeAttribute("aria-busy");
       }
     }
   }
@@ -16158,7 +24909,10 @@
     const response = await fetch(`/api/tasks/${encodeURIComponent(taskId)}`);
     const data = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(data.detail || translate("history.detailFailed"));
-    return data.task || {};
+    return {
+      ...data.task || {},
+      ...data.organization || {}
+    };
   }
   function isCurrentHistoryDetailLoad(loadToken, taskId) {
     return loadToken === historyDetailLoadToken && historyState.selectedTaskId === taskId;
@@ -16188,50 +24942,50 @@
     });
   }
   function renderDetailShell(message, className = "history-detail-empty") {
-    if (!els.detail) return;
-    els.detail.dataset.historyDetailMode = "empty";
+    if (!els8.detail) return;
+    els8.detail.dataset.historyDetailMode = "empty";
     historyState.detailTask = null;
-    els.detail.innerHTML = `
+    els8.detail.innerHTML = `
     <div class="history-detail-header">
       <div>
-        <h2 class="history-detail-title history-detail-empty-title">${escapeHtml2(translate("history.detail"))}</h2>
+        <h2 class="history-detail-title history-detail-empty-title">${escapeHtml4(translate("history.detail"))}</h2>
       </div>
-      <button id="historyDetailClose" class="drawer-close-button history-detail-close" type="button" data-history-detail-close aria-label="${escapeHtml2(translate("history.closeDetail"))}">\xD7</button>
+      <button id="historyDetailClose" class="drawer-close-button history-detail-close" type="button" data-history-detail-close aria-label="${escapeHtml4(translate("history.closeDetail"))}">\xD7</button>
     </div>
-    <div class="${className}">${escapeHtml2(message)}</div>
+    <div class="${className}">${escapeHtml4(message)}</div>
   `;
   }
   function renderSelectionDetail() {
-    if (!els.detail) return;
+    if (!els8.detail) return;
     const count = historyState.selectedTaskIds.size;
     if (!count) return;
-    els.detail.dataset.historyDetailMode = "selection";
-    els.detail.innerHTML = `
+    els8.detail.dataset.historyDetailMode = "selection";
+    els8.detail.innerHTML = `
     <div class="history-detail-header">
       <div>
-        <p class="history-detail-kicker">${escapeHtml2(translate("history.detail"))}</p>
-        <h2 class="history-detail-title">${escapeHtml2(formatTranslation("history.selectedCount", { count }))}</h2>
+        <p class="history-detail-kicker">${escapeHtml4(translate("history.detail"))}</p>
+        <h2 class="history-detail-title">${escapeHtml4(formatTranslation("history.selectedCount", { count }))}</h2>
       </div>
-      <button id="historyDetailClose" class="drawer-close-button history-detail-close" type="button" data-history-detail-close aria-label="${escapeHtml2(translate("history.closeDetail"))}">\xD7</button>
+      <button id="historyDetailClose" class="drawer-close-button history-detail-close" type="button" data-history-detail-close aria-label="${escapeHtml4(translate("history.closeDetail"))}">\xD7</button>
     </div>
     <div class="history-selection-detail">
-      <div class="history-detail-empty">${escapeHtml2(formatTranslation("history.selectedCount", { count }))}</div>
+      <div class="history-detail-empty">${escapeHtml4(formatTranslation("history.selectedCount", { count }))}</div>
       <div class="history-detail-actions history-selection-actions">
-        <button class="ghost-button text-sm" type="button" data-history-bulk-archive>${escapeHtml2(translate("action.archive"))}</button>
-        <button class="ghost-button text-sm" type="button" data-history-bulk-restore>${escapeHtml2(translate("archive.restore"))}</button>
-        <button class="ghost-button text-sm danger-button" type="button" data-history-bulk-delete>${escapeHtml2(historyState.deleteConfirming ? translate("history.confirmDeleteSelected") : translate("action.delete"))}</button>
-        <button class="ghost-button text-sm" type="button" data-history-bulk-clear>${escapeHtml2(translate("action.cancel"))}</button>
+        <button class="ghost-button text-sm" type="button" data-history-bulk-archive>${escapeHtml4(translate("action.archive"))}</button>
+        <button class="ghost-button text-sm" type="button" data-history-bulk-restore>${escapeHtml4(translate("archive.restore"))}</button>
+        <button class="ghost-button text-sm danger-button" type="button" data-history-bulk-delete>${escapeHtml4(historyState.deleteConfirming ? translate("history.confirmDeleteSelected") : translate("action.delete"))}</button>
+        <button class="ghost-button text-sm" type="button" data-history-bulk-clear>${escapeHtml4(translate("action.cancel"))}</button>
       </div>
     </div>
   `;
   }
   function syncHistorySelectionDetail() {
-    if (!els.detail) return;
+    if (!els8.detail) return;
     if (historyState.selectedTaskIds.size) {
       renderSelectionDetail();
       return;
     }
-    if (els.detail.dataset.historyDetailMode === "selection") {
+    if (els8.detail.dataset.historyDetailMode === "selection") {
       renderDetailShell(translate("history.detailEmpty"));
     }
   }
@@ -16242,9 +24996,9 @@
     return value || translate("history.detail");
   }
   function renderTaskDetail(task) {
-    if (!els.detail) return;
+    if (!els8.detail) return;
     historyState.detailTask = task;
-    els.detail.dataset.historyDetailMode = "task";
+    els8.detail.dataset.historyDetailMode = "task";
     const taskId = String(task.task_id || historyState.selectedTaskId || "");
     const urls = taskOutputRecords(task);
     const selectedCount = taskSelectedOutputIndexes(task).size;
@@ -16262,39 +25016,64 @@
     const confirmingDeleteTask = historyState.deleteConfirmTaskId === taskId;
     const deleteBlocked = historyTaskDeleteBlocked(task);
     const title = detailTitle(task);
-    els.detail.innerHTML = `
+    const favorite = Boolean(task.favorite);
+    const detailFavoriteButton = historyFavoriteButtonHtml(
+      taskId,
+      favorite,
+      escapeHtml4,
+      translate(
+        favorite ? "history.unfavoriteTask" : "history.favoriteTask"
+      )
+    );
+    const detailTags = historyDetailTagsHtml(
+      Array.isArray(task.tags) ? task.tags : [],
+      escapeHtml4
+    );
+    els8.detail.innerHTML = `
     <div class="history-detail-header">
       <div>
-        <p class="history-detail-kicker">${escapeHtml2(historyTaskModeLabel(task.mode))}</p>
-        <h2 class="history-detail-title" title="${escapeHtml2(task.prompt || title)}">${escapeHtml2(title)}</h2>
+        <p class="history-detail-kicker">${escapeHtml4(historyTaskModeLabel(task.mode))}</p>
+        <h2 class="history-detail-title" title="${escapeHtml4(task.prompt || title)}">${escapeHtml4(title)}</h2>
       </div>
-      <button id="historyDetailClose" class="drawer-close-button history-detail-close" type="button" data-history-detail-close aria-label="${escapeHtml2(translate("history.closeDetail"))}">\xD7</button>
+      <button id="historyDetailClose" class="drawer-close-button history-detail-close" type="button" data-history-detail-close aria-label="${escapeHtml4(translate("history.closeDetail"))}">\xD7</button>
+    </div>
+    <div class="history-detail-organization">
+      ${detailFavoriteButton}
+      <div class="history-detail-tags">
+        ${detailTags || `<span class="history-tag-empty">${escapeHtml4(translate("history.noTags"))}</span>`}
+      </div>
+      <button
+        class="ghost-button text-sm"
+        type="button"
+        data-history-open-tag-picker="detail"
+      >${escapeHtml4(translate("history.addTag"))}</button>
     </div>
     <div class="history-detail-meta">
-      <span>${escapeHtml2(formatDate(task.created_at || ""))}</span>
-      <span>${escapeHtml2(task.status || "")}</span>
-      <span>${escapeHtml2(task.params?.size || task.output_size || "")}</span>
-      <span>${escapeHtml2(facetDisplayValue("prompt_mode", task.params?.prompt_fidelity || ""))}</span>
-      <span>${escapeHtml2(facetDisplayValue("quality", task.params?.quality || task.quality || ""))}</span>
-      <span>${escapeHtml2(historyTaskSourceLabel(task))}</span>
+      <span>${escapeHtml4(formatDate(task.created_at || ""))}</span>
+      <span>${escapeHtml4(task.status || "")}</span>
+      <span>${escapeHtml4(task.params?.size || task.output_size || "")}</span>
+      <span>${escapeHtml4(facetDisplayValue("prompt_mode", task.params?.prompt_fidelity || ""))}</span>
+      <span>${escapeHtml4(facetDisplayValue("quality", task.params?.quality || task.quality || ""))}</span>
+      <span>${escapeHtml4(historyTaskSourceLabel(task))}</span>
     </div>
     <div class="history-detail-actions">
       <div class="history-detail-actions-primary">
-        <button class="ghost-button text-sm" type="button" data-history-reuse-task="${escapeHtml2(taskId)}">${escapeHtml2(translate("history.reuseTask"))}</button>
-        <button class="ghost-button text-sm" type="button" data-history-archive-task="${escapeHtml2(taskId)}" data-history-archive-value="${archived ? "false" : "true"}">${escapeHtml2(archived ? translate("archive.restore") : translate("action.archive"))}</button>
-        ${hasSelectedOutputs ? `<button class="ghost-button text-sm danger-button" type="button" ${canDeleteUnselected && !deleteBlocked ? `data-history-delete-unselected="${escapeHtml2(taskId)}"` : "disabled"}>${escapeHtml2(confirmingDeleteUnselected ? translate("history.confirmDeleteUnselected") : translate("history.deleteUnselected"))}</button>` : `<button class="ghost-button text-sm danger-button" type="button" data-history-delete-task="${escapeHtml2(taskId)}" ${deleteBlocked ? "disabled" : ""}>${escapeHtml2(confirmingDeleteTask ? translate("history.confirmDelete") : translate("action.delete"))}</button>`}
+        <button class="ghost-button text-sm" type="button" data-history-reuse-task="${escapeHtml4(taskId)}">${escapeHtml4(translate("history.reuseTask"))}</button>
+        <button class="ghost-button text-sm" type="button" data-history-open-export="${escapeHtml4(taskId)}">${escapeHtml4(translate("history.export"))}</button>
+        <button class="ghost-button text-sm" type="button" data-history-archive-task="${escapeHtml4(taskId)}" data-history-archive-value="${archived ? "false" : "true"}">${escapeHtml4(archived ? translate("archive.restore") : translate("action.archive"))}</button>
+        ${hasSelectedOutputs ? `<button class="ghost-button text-sm danger-button" type="button" ${canDeleteUnselected && !deleteBlocked ? `data-history-delete-unselected="${escapeHtml4(taskId)}"` : "disabled"}>${escapeHtml4(confirmingDeleteUnselected ? translate("history.confirmDeleteUnselected") : translate("history.deleteUnselected"))}</button>` : `<button class="ghost-button text-sm danger-button" type="button" data-history-delete-task="${escapeHtml4(taskId)}" ${deleteBlocked ? "disabled" : ""}>${escapeHtml4(confirmingDeleteTask ? translate("history.confirmDelete") : translate("action.delete"))}</button>`}
       </div>
       <div class="history-detail-actions-output">
-        ${selectedCount > 1 ? `<a class="ghost-button text-sm" href="${escapeHtml2(zipHref)}?selected=1" download>${escapeHtml2(translate("history.downloadSelected"))}</a>` : canZip ? `<a class="ghost-button text-sm" href="${escapeHtml2(zipHref)}" download>${escapeHtml2(translate("history.downloadAll"))}</a>` : singleDownloadHref ? `<a class="ghost-button text-sm" href="${escapeHtml2(singleDownloadHref)}" download>${escapeHtml2(translate("history.downloadImage"))}</a>` : ""}
+        ${selectedCount > 1 ? `<a class="ghost-button text-sm" href="${escapeHtml4(zipHref)}?selected=1" download>${escapeHtml4(translate("history.downloadSelected"))}</a>` : canZip ? `<a class="ghost-button text-sm" href="${escapeHtml4(zipHref)}" download>${escapeHtml4(translate("history.downloadAll"))}</a>` : singleDownloadHref ? `<a class="ghost-button text-sm" href="${escapeHtml4(singleDownloadHref)}" download>${escapeHtml4(translate("history.downloadImage"))}</a>` : ""}
       </div>
     </div>
-    <div class="history-detail-images${imageLayoutClass}">${images || `<div class="history-detail-empty">${escapeHtml2(translate("history.noPreview"))}</div>`}</div>
+    <div class="history-detail-images${imageLayoutClass}">${images || `<div class="history-detail-empty">${escapeHtml4(translate("history.noPreview"))}</div>`}</div>
     ${inputReferences}
     ${referenceFiles}
     ${promptCompareHtml(task)}
   `;
     const grounding = createGroundingAttribution(task);
-    const imageGrid = els.detail.querySelector(".history-detail-images");
+    const imageGrid = els8.detail.querySelector(".history-detail-images");
     if (grounding && imageGrid) imageGrid.insertAdjacentElement("afterend", grounding);
   }
   function detailTitle(task) {
@@ -16342,9 +25121,9 @@
       addPanel("submitted", translate("history.promptSubmitted"), submittedPrompt);
     }
     if (hasDistinctOutputPrompts) {
-      panels.push(`<p class="history-prompt-note">${escapeHtml2(translate("history.outputRevisedPromptNotice"))}</p>`);
+      panels.push(`<p class="history-prompt-note">${escapeHtml4(translate("history.outputRevisedPromptNotice"))}</p>`);
     }
-    return panels.length ? `<section class="history-prompt-compare" aria-label="${escapeHtml2(translate("history.promptCompare"))}">${panels.join("")}</section>` : "";
+    return panels.length ? `<section class="history-prompt-compare" aria-label="${escapeHtml4(translate("history.promptCompare"))}">${panels.join("")}</section>` : "";
   }
   function promptTextValue(value) {
     return String(value || "").trim();
@@ -16385,15 +25164,15 @@
     return `
     <article class="history-prompt-panel">
       <div class="history-prompt-panel-header">
-        <h3>${escapeHtml2(title)}</h3>
+        <h3>${escapeHtml4(title)}</h3>
         <button
           class="ghost-button text-sm history-prompt-copy"
           type="button"
-          data-history-copy-prompt-kind="${escapeHtml2(kind)}"
-          aria-label="${escapeHtml2(formatTranslation("history.copyPromptPanel", { title }))}"
-        >${escapeHtml2(translate("history.copyPromptShort"))}</button>
+          data-history-copy-prompt-kind="${escapeHtml4(kind)}"
+          aria-label="${escapeHtml4(formatTranslation("history.copyPromptPanel", { title }))}"
+        >${escapeHtml4(translate("history.copyPromptShort"))}</button>
       </div>
-      <div class="history-detail-prompt">${escapeHtml2(text || translate("history.promptEmpty"))}</div>
+      <div class="history-detail-prompt">${escapeHtml4(text || translate("history.promptEmpty"))}</div>
     </article>
   `;
   }
@@ -16413,18 +25192,18 @@
     void loadTasks({ reset: true });
   }
   function renderBulkToolbar() {
-    if (!els.bulkToolbar || !els.bulkCount) return;
+    if (!els8.bulkToolbar || !els8.bulkCount) return;
     const count = historyState.selectedTaskIds.size;
-    els.page?.classList.toggle("history-bulk-selecting", count > 0);
-    els.bulkToolbar.classList.toggle("hidden", count === 0);
-    els.bulkToolbar.toggleAttribute("hidden", count === 0);
-    els.bulkCount.textContent = count ? formatTranslation("history.selectedCount", { count }) : "";
-    if (els.bulkDelete) {
-      els.bulkDelete.textContent = historyState.deleteConfirming ? translate("history.confirmDelete") : translate("action.delete");
-      els.bulkDelete.classList.toggle("danger-button", historyState.deleteConfirming);
+    els8.page?.classList.toggle("history-bulk-selecting", count > 0);
+    els8.bulkToolbar.classList.toggle("hidden", count === 0);
+    els8.bulkToolbar.toggleAttribute("hidden", count === 0);
+    els8.bulkCount.textContent = count ? formatTranslation("history.selectedCount", { count }) : "";
+    if (els8.bulkDelete) {
+      els8.bulkDelete.textContent = historyState.deleteConfirming ? translate("history.confirmDelete") : translate("action.delete");
+      els8.bulkDelete.classList.toggle("danger-button", historyState.deleteConfirming);
     }
-    els.bulkDeleteCancel?.classList.toggle("hidden", !historyState.deleteConfirming);
-    if (count && els.detail?.dataset.historyDetailMode === "selection") renderSelectionDetail();
+    els8.bulkDeleteCancel?.classList.toggle("hidden", !historyState.deleteConfirming);
+    if (count && els8.detail?.dataset.historyDetailMode === "selection") renderSelectionDetail();
   }
   function clearHistoryDeleteConfirmation() {
     historyState.deleteConfirming = false;
@@ -16446,7 +25225,7 @@
   }
   async function archiveHistoryTaskIds(ids, archived) {
     if (!ids.length) return;
-    setText(els.resultSummary, archived ? translate("archive.archiving") : translate("archive.restoring"));
+    setText(els8.resultSummary, archived ? translate("archive.archiving") : translate("archive.restoring"));
     try {
       const tasks = await Promise.all(ids.map((taskId) => setTaskArchiveState(taskId, archived)));
       ids.forEach((taskId) => historyState.selectedTaskIds.delete(taskId));
@@ -16460,9 +25239,9 @@
         }
       });
       await loadSummary();
-      setText(els.resultSummary, archived ? formatTranslation("batch.archivedCount", { count: ids.length }) : formatTranslation("archive.restoredCount", { count: ids.length }));
+      setText(els8.resultSummary, archived ? formatTranslation("batch.archivedCount", { count: ids.length }) : formatTranslation("archive.restoredCount", { count: ids.length }));
     } catch (error) {
-      setText(els.resultSummary, errorMessage(error, archived ? translate("taskActions.archiveFailed") : translate("archive.restoreFailed")));
+      setText(els8.resultSummary, errorMessage2(error, archived ? translate("taskActions.archiveFailed") : translate("archive.restoreFailed")));
     } finally {
       renderBulkToolbar();
       syncHistorySelectionDetail();
@@ -16470,7 +25249,7 @@
   }
   async function archiveSingleTask(taskId, archived) {
     if (!taskId) return;
-    setText(els.resultSummary, archived ? translate("archive.archiving") : translate("archive.restoring"));
+    setText(els8.resultSummary, archived ? translate("archive.archiving") : translate("archive.restoring"));
     try {
       const task = await setTaskArchiveState(taskId, archived);
       historyState.deleteConfirmTaskId = "";
@@ -16481,9 +25260,9 @@
       }
       upsertHistoryTaskSummaryCard(taskId, task);
       await loadSummary();
-      setText(els.resultSummary, archived ? translate("taskActions.archived") : translate("archive.restored"));
+      setText(els8.resultSummary, archived ? translate("taskActions.archived") : translate("archive.restored"));
     } catch (error) {
-      setText(els.resultSummary, errorMessage(error, archived ? translate("taskActions.archiveFailed") : translate("archive.restoreFailed")));
+      setText(els8.resultSummary, errorMessage2(error, archived ? translate("taskActions.archiveFailed") : translate("archive.restoreFailed")));
     }
   }
   async function deleteSelectedTasks() {
@@ -16500,7 +25279,7 @@
       renderBulkToolbar();
       return;
     }
-    setText(els.resultSummary, translate("archive.deleting"));
+    setText(els8.resultSummary, translate("archive.deleting"));
     try {
       const results = await Promise.allSettled(ids.map(async (taskId) => {
         const response = await fetch(`/api/tasks/${encodeURIComponent(taskId)}`, { method: "DELETE" });
@@ -16517,12 +25296,12 @@
       await loadSummary();
       if (deletedIds.length) {
         const skipped = failedIds.length ? ` \xB7 ${translate("taskActions.deleteFailed")} ${failedIds.length}` : "";
-        setText(els.resultSummary, formatTranslation("batch.deletedCount", { count: deletedIds.length, skipped }));
+        setText(els8.resultSummary, formatTranslation("batch.deletedCount", { count: deletedIds.length, skipped }));
       } else {
-        setText(els.resultSummary, translate("taskActions.deleteFailed"));
+        setText(els8.resultSummary, translate("taskActions.deleteFailed"));
       }
     } catch (error) {
-      setText(els.resultSummary, errorMessage(error, translate("taskActions.deleteFailed")));
+      setText(els8.resultSummary, errorMessage2(error, translate("taskActions.deleteFailed")));
     } finally {
       updateTaskSelectionVisuals();
       renderBulkToolbar();
@@ -16540,7 +25319,7 @@
       if (confirmInMenu) rerenderHistoryContextMenu();
       return false;
     }
-    setText(els.resultSummary, translate("archive.deleting"));
+    setText(els8.resultSummary, translate("archive.deleting"));
     try {
       const response = await fetch(`/api/tasks/${encodeURIComponent(taskId)}`, { method: "DELETE" });
       const data = await response.json().catch(() => ({}));
@@ -16552,10 +25331,10 @@
       historyState.contextMenuDeleteConfirmKey = "";
       removeHistoryTaskIdsFromWindow([taskId]);
       await loadSummary();
-      setText(els.resultSummary, translate("taskActions.deleted"));
+      setText(els8.resultSummary, translate("taskActions.deleted"));
       return true;
     } catch (error) {
-      setText(els.resultSummary, errorMessage(error, translate("taskActions.deleteFailed")));
+      setText(els8.resultSummary, errorMessage2(error, translate("taskActions.deleteFailed")));
       return false;
     } finally {
       renderBulkToolbar();
@@ -16578,7 +25357,7 @@
       historyState.deleteUnselectedConfirmTaskId = "";
       renderTaskDetail(data.task || {});
     } catch (error) {
-      setText(els.resultSummary, errorMessage(error, translate("taskContext.actionFailed")));
+      setText(els8.resultSummary, errorMessage2(error, translate("taskContext.actionFailed")));
     }
   }
   async function deleteUnselectedOutputs(taskId) {
@@ -16596,7 +25375,7 @@
       renderTaskDetail(data.task || {});
       upsertHistoryTaskSummaryCard(taskId, data.task || {});
     } catch (error) {
-      setText(els.resultSummary, errorMessage(error, translate("taskActions.deleteFailed")));
+      setText(els8.resultSummary, errorMessage2(error, translate("taskActions.deleteFailed")));
     }
   }
   function promptTextForKind(kind) {
@@ -16648,17 +25427,17 @@
       if (button) {
         setPromptCopyButtonFeedback(button, translate("history.noPromptShort"));
       } else {
-        setText(els.resultSummary, translate("history.noPrompt"));
+        setText(els8.resultSummary, translate("history.noPrompt"));
       }
       return;
     }
     try {
       await writeClipboardText(text);
       if (button) setPromptCopyButtonFeedback(button, translate("history.promptCopiedShort"));
-      setText(els.resultSummary, translate("history.promptCopied"));
+      setText(els8.resultSummary, translate("history.promptCopied"));
     } catch (error) {
       if (button) setPromptCopyButtonFeedback(button, translate("history.promptCopyFailedShort"));
-      setText(els.resultSummary, errorMessage(error, translate("history.promptCopyFailed")));
+      setText(els8.resultSummary, errorMessage2(error, translate("history.promptCopyFailed")));
     }
   }
   async function copyOutputPromptToClipboard(outputIndex, button) {
@@ -16667,17 +25446,17 @@
       if (button) {
         setPromptCopyButtonFeedback(button, translate("history.noPromptShort"));
       } else {
-        setText(els.resultSummary, translate("history.noPrompt"));
+        setText(els8.resultSummary, translate("history.noPrompt"));
       }
       return;
     }
     try {
       await writeClipboardText(text);
       if (button) setPromptCopyButtonFeedback(button, translate("history.promptCopiedShort"));
-      setText(els.resultSummary, translate("history.promptCopied"));
+      setText(els8.resultSummary, translate("history.promptCopied"));
     } catch (error) {
       if (button) setPromptCopyButtonFeedback(button, translate("history.promptCopyFailedShort"));
-      setText(els.resultSummary, errorMessage(error, translate("history.promptCopyFailed")));
+      setText(els8.resultSummary, errorMessage2(error, translate("history.promptCopyFailed")));
     }
   }
   function reuseHistoryTask(taskId) {
@@ -16692,7 +25471,7 @@
       }));
       window.location.href = "/";
     } catch (error) {
-      setText(els.resultSummary, errorMessage(error, translate("taskContext.actionFailed")));
+      setText(els8.resultSummary, errorMessage2(error, translate("taskContext.actionFailed")));
     }
   }
   async function copyHistoryTaskId(taskIds) {
@@ -16700,9 +25479,9 @@
     if (!ids.length) return;
     try {
       await writeClipboardText(ids.join("\n"));
-      setText(els.resultSummary, ids.length > 1 ? formatTranslation("history.taskIdsCopied", { count: ids.length }) : translate("taskContext.idCopied"));
+      setText(els8.resultSummary, ids.length > 1 ? formatTranslation("history.taskIdsCopied", { count: ids.length }) : translate("taskContext.idCopied"));
     } catch (error) {
-      setText(els.resultSummary, errorMessage(error, translate("taskContext.actionFailed")));
+      setText(els8.resultSummary, errorMessage2(error, translate("taskContext.actionFailed")));
     }
   }
   async function copyHistoryTaskPrompts(taskIds) {
@@ -16718,14 +25497,14 @@
       }
     }
     if (!prompts.length) {
-      setText(els.resultSummary, translate("history.noPrompt"));
+      setText(els8.resultSummary, translate("history.noPrompt"));
       return;
     }
     try {
       await writeClipboardText(prompts.join("\n\n---\n\n"));
-      setText(els.resultSummary, taskIds.length > 1 ? formatTranslation("history.promptsCopied", { count: prompts.length }) : translate("history.promptCopied"));
+      setText(els8.resultSummary, taskIds.length > 1 ? formatTranslation("history.promptsCopied", { count: prompts.length }) : translate("history.promptCopied"));
     } catch (error) {
-      setText(els.resultSummary, errorMessage(error, translate("history.promptCopyFailed")));
+      setText(els8.resultSummary, errorMessage2(error, translate("history.promptCopyFailed")));
     }
   }
   function triggerHistoryDownload(url, filename = "") {
@@ -16762,7 +25541,7 @@
       }
     }
     setText(
-      els.resultSummary,
+      els8.resultSummary,
       downloaded > 1 ? formatTranslation("history.batchDownloadStarted", { count: downloaded }) : downloaded === 1 ? translate("history.downloadStarted") : translate("history.noDownloadableOutputs")
     );
   }
@@ -16853,7 +25632,7 @@
   function historyContextButton(action, label, disabled = false, danger = false) {
     const disabledAttr = disabled ? " disabled" : "";
     const dangerClass = danger ? " danger" : "";
-    return `<button class="history-context-menu-button${dangerClass}" type="button" role="menuitem" data-history-context-action="${escapeHtml2(action)}"${disabledAttr}>${escapeHtml2(label)}</button>`;
+    return `<button class="history-context-menu-button${dangerClass}" type="button" role="menuitem" data-history-context-action="${escapeHtml4(action)}"${disabledAttr}>${escapeHtml4(label)}</button>`;
   }
   function bindHistoryContextMenuActionEvents(menu) {
     menu.querySelectorAll("[data-history-context-action]").forEach((button) => {
@@ -16907,7 +25686,7 @@
         await archiveHistoryTaskIds(taskIds, false);
       }
     } catch (error) {
-      setText(els.resultSummary, errorMessage(error, translate("taskContext.actionFailed")));
+      setText(els8.resultSummary, errorMessage2(error, translate("taskContext.actionFailed")));
     }
   }
   async function deleteHistoryContextSelectedTasks(taskIds) {
@@ -17001,7 +25780,7 @@
     historyState.deleteConfirmTaskId = "";
     historyState.deleteUnselectedConfirmTaskId = "";
     historyState.detailTask = detail;
-    els.page?.classList.add("history-detail-open");
+    els8.page?.classList.add("history-detail-open");
     updateHistoryUrl();
     updateTaskSelectionVisuals(taskId);
     ensureHistoryTaskCardVisible(taskId);
@@ -17023,11 +25802,11 @@
         nextTaskId = historyAdjacentTaskId(cursorTaskId, direction);
       }
       if (!nextTaskId) {
-        setText(els.resultSummary, translate("history.noMore"));
+        setText(els8.resultSummary, translate("history.noMore"));
         return;
       }
       if (visitedTaskIds.has(nextTaskId)) {
-        setText(els.resultSummary, translate("history.noMore"));
+        setText(els8.resultSummary, translate("history.noMore"));
         return;
       }
       visitedTaskIds.add(nextTaskId);
@@ -17044,7 +25823,7 @@
         });
         return;
       } catch (error) {
-        setText(els.resultSummary, errorMessage(error, translate("history.detailFailed")));
+        setText(els8.resultSummary, errorMessage2(error, translate("history.detailFailed")));
         return;
       }
     }
@@ -17060,7 +25839,7 @@
         onTaskNavigate: openHistoryTaskLightboxByDirection
       });
     } catch (error) {
-      setText(els.resultSummary, errorMessage(error, translate("history.detailFailed")));
+      setText(els8.resultSummary, errorMessage2(error, translate("history.detailFailed")));
     }
   }
   function closeDetail() {
@@ -17069,38 +25848,312 @@
       return;
     }
     historyState.selectedTaskId = "";
-    els.page?.classList.remove("history-detail-open");
+    els8.page?.classList.remove("history-detail-open");
     updateHistoryUrl();
     updateTaskSelectionVisuals("");
     renderDetailShell(translate("history.detailEmpty"));
   }
+  function closeHistoryTagPicker({ restoreFocus = true } = {}) {
+    historyTagPickerEl?.remove();
+    historyTagPickerEl = null;
+    if (restoreFocus) historyTagPickerTrigger?.focus();
+    historyTagPickerTrigger = null;
+    historyTagPickerTaskIds = [];
+  }
+  function openHistoryTagPicker(trigger, mode, taskIds) {
+    closeHistoryTagPicker({ restoreFocus: false });
+    historyTagPickerTrigger = trigger;
+    historyTagPickerMode = mode;
+    historyTagPickerTaskIds = [
+      ...new Set(taskIds.filter(Boolean))
+    ];
+    const selectedTagIds = mode === "detail" && String(historyState.detailTask?.task_id || "") === historyTagPickerTaskIds[0] ? (historyState.detailTask?.tags || []).map(
+      (tag) => tag.tag_id
+    ) : [];
+    const picker = document.createElement("div");
+    picker.className = "history-tag-picker";
+    picker.setAttribute("role", "dialog");
+    picker.setAttribute(
+      "aria-label",
+      translate(
+        mode === "remove" ? "history.removeTag" : "history.addTag"
+      )
+    );
+    picker.innerHTML = `
+    <div class="history-tag-picker-header">
+      <strong>${escapeHtml4(translate("history.tags"))}</strong>
+      <button
+        class="drawer-close-button"
+        type="button"
+        data-history-close-tag-picker
+        aria-label="${escapeHtml4(translate("action.close"))}"
+      >\xD7</button>
+    </div>
+    <div class="history-tag-picker-list">
+      ${historyTags.length ? historyTagPickerHtml(
+      historyTags,
+      selectedTagIds,
+      escapeHtml4
+    ) : `<div class="history-tag-manager-empty">${escapeHtml4(translate("history.noTags"))}</div>`}
+    </div>
+    ${mode === "remove" ? "" : historyTagPickerCreateHtml(escapeHtml4, {
+      placeholder: translate("history.createTag"),
+      submitLabel: translate("history.createTag")
+    })}
+  `;
+    document.body.append(picker);
+    historyTagPickerEl = picker;
+    picker.querySelector(
+      "[data-history-tag-create-inline]"
+    )?.addEventListener("submit", (event) => {
+      event.preventDefault();
+      void createHistoryTagFromPicker();
+    });
+    const rect = trigger.getBoundingClientRect();
+    const pickerRect = picker.getBoundingClientRect();
+    const left = Math.max(
+      12,
+      Math.min(
+        window.innerWidth - pickerRect.width - 12,
+        rect.left
+      )
+    );
+    const top = Math.max(
+      12,
+      Math.min(
+        window.innerHeight - pickerRect.height - 12,
+        rect.bottom + 8
+      )
+    );
+    picker.style.left = `${left}px`;
+    picker.style.top = `${top}px`;
+    picker.querySelector(
+      ".history-tag-picker-list input, [data-history-tag-create-name], button"
+    )?.focus();
+  }
+  async function createHistoryTagFromPicker() {
+    const picker = historyTagPickerEl;
+    if (!picker || historyTagPickerCreatePending) return;
+    const input = picker.querySelector(
+      "[data-history-tag-create-name]"
+    );
+    const submit = picker.querySelector(
+      "[data-history-tag-create-submit]"
+    );
+    const status = picker.querySelector(
+      "[data-history-tag-create-status]"
+    );
+    const name = input?.value.trim() || "";
+    if (!name) {
+      input?.focus();
+      return;
+    }
+    const taskIds = historyTagPickerTaskIds.slice();
+    if (!taskIds.length) return;
+    historyTagPickerCreatePending = true;
+    if (input) input.disabled = true;
+    if (submit) submit.disabled = true;
+    setText(status, "");
+    try {
+      const result = await createHistoryTagForTasks(
+        name,
+        taskIds
+      );
+      closeHistoryTagPicker({ restoreFocus: false });
+      applyHistoryOrganizations(result.organizations);
+      await loadSummary();
+      setText(
+        els8.resultSummary,
+        `${translate("history.createTag")}\uFF1A${result.tag.name}`
+      );
+    } catch (error) {
+      const message = historyTagCreateErrorMessage(error);
+      setText(status, message);
+      setText(els8.resultSummary, message);
+      if (input) input.disabled = false;
+      if (submit) submit.disabled = false;
+      input?.focus();
+      input?.select();
+    } finally {
+      historyTagPickerCreatePending = false;
+      if (historyTagPickerEl === picker) {
+        if (input) input.disabled = false;
+        if (submit) submit.disabled = false;
+      }
+    }
+  }
+  async function applyHistoryTagPickerChange(input) {
+    const tagId = input.value;
+    const ids = historyTagPickerTaskIds.slice();
+    if (!tagId || !ids.length) return;
+    const remove = historyTagPickerMode === "remove" || historyTagPickerMode === "detail" && !input.checked;
+    closeHistoryTagPicker();
+    await organizeHistoryTaskIds(
+      ids,
+      remove ? { remove_tag_ids: [tagId] } : { add_tag_ids: [tagId] }
+    );
+  }
+  function closeHistoryExportPicker({ restoreFocus = true } = {}) {
+    historyExportPickerEl?.remove();
+    historyExportPickerEl = null;
+    if (restoreFocus) historyExportTrigger?.focus();
+    historyExportTrigger = null;
+    historyExportTaskIds = [];
+  }
+  function openHistoryExportPicker(trigger, taskIds) {
+    const frozenTaskIds = [
+      ...new Set(taskIds.filter(Boolean))
+    ];
+    if (!frozenTaskIds.length) return;
+    closeHistoryExportPicker({ restoreFocus: false });
+    historyExportTrigger = trigger;
+    historyExportTaskIds = frozenTaskIds;
+    const picker = document.createElement("div");
+    picker.className = "history-export-picker";
+    picker.setAttribute("role", "dialog");
+    picker.setAttribute(
+      "aria-label",
+      translate("history.export")
+    );
+    picker.innerHTML = `
+    <div class="history-export-picker-header">
+      <div>
+        <strong>${escapeHtml4(translate("history.export"))}</strong>
+        <span>${escapeHtml4(formatTranslation("history.selectedCount", { count: frozenTaskIds.length }))}</span>
+      </div>
+      <button
+        class="drawer-close-button"
+        type="button"
+        data-history-close-export
+        aria-label="${escapeHtml4(translate("history.closeExport"))}"
+      >\xD7</button>
+    </div>
+    <div class="history-export-picker-actions">
+      <button
+        class="history-export-mode-button"
+        type="button"
+        data-history-export-mode="images_only"
+      >${escapeHtml4(translate("history.exportImagesOnly"))}</button>
+      <button
+        class="history-export-mode-button"
+        type="button"
+        data-history-export-mode="images_with_prompts"
+      >${escapeHtml4(translate("history.exportImagesWithPrompts"))}</button>
+    </div>
+    <div class="history-export-picker-status" data-history-export-status></div>
+  `;
+    document.body.append(picker);
+    historyExportPickerEl = picker;
+    const rect = trigger.getBoundingClientRect();
+    const pickerRect = picker.getBoundingClientRect();
+    picker.style.left = `${Math.max(
+      12,
+      Math.min(
+        window.innerWidth - pickerRect.width - 12,
+        rect.left
+      )
+    )}px`;
+    picker.style.top = `${Math.max(
+      12,
+      Math.min(
+        window.innerHeight - pickerRect.height - 12,
+        rect.bottom + 8
+      )
+    )}px`;
+    picker.querySelector(
+      "[data-history-export-mode]"
+    )?.focus();
+  }
+  async function runHistoryExport(mode) {
+    if (historyExportPending) return;
+    const taskIds = historyExportTaskIds.slice();
+    if (!taskIds.length) return;
+    historyExportPending = true;
+    historyExportPickerEl?.querySelectorAll("button").forEach((button) => {
+      button.disabled = true;
+    });
+    setText(
+      historyExportPickerEl?.querySelector(
+        "[data-history-export-status]"
+      ) || null,
+      translate("history.exportPreparing")
+    );
+    try {
+      const result = await createHistoryExport(taskIds, mode);
+      triggerHistoryExportDownload(result);
+      setText(
+        els8.resultSummary,
+        `${translate("history.exportStarted")} \xB7 ${formatTranslation(
+          "history.exportSummary",
+          {
+            taskCount: result.task_count,
+            imageCount: result.image_count
+          }
+        )}`
+      );
+      closeHistoryExportPicker();
+    } catch (error) {
+      const message = errorMessage2(
+        error,
+        translate("history.exportFailed")
+      );
+      setText(
+        historyExportPickerEl?.querySelector(
+          "[data-history-export-status]"
+        ) || null,
+        message
+      );
+      setText(els8.resultSummary, message);
+    } finally {
+      historyExportPending = false;
+      historyExportPickerEl?.querySelectorAll("button").forEach((button) => {
+        button.disabled = false;
+      });
+    }
+  }
   function bindEvents() {
     bindHistoryResizerEvents();
+    els8.tagManager?.querySelector(
+      "[data-history-tag-create]"
+    )?.addEventListener("submit", (event) => {
+      event.preventDefault();
+      void createHistoryTagFromManager();
+    });
     let searchTimer = 0;
-    els.search?.addEventListener("input", () => {
+    els8.search?.addEventListener("input", () => {
+      syncHistorySearchClear();
       window.clearTimeout(searchTimer);
       searchTimer = window.setTimeout(() => {
-        historyState.q = els.search?.value.trim() || "";
+        historyState.q = els8.search?.value.trim() || "";
         historyState.selectedTaskId = "";
         updateHistoryUrl();
         void loadTasks({ reset: true });
       }, 180);
     });
-    els.searchClear?.addEventListener("click", () => {
-      if (els.search) els.search.value = "";
+    els8.searchClear?.addEventListener("click", () => {
+      if (els8.search) els8.search.value = "";
+      syncHistorySearchClear();
+      els8.search?.focus();
       historyState.q = "";
       historyState.selectedTaskId = "";
       updateHistoryUrl();
       void loadTasks({ reset: true });
     });
-    els.sortToggle?.addEventListener("click", (event) => {
+    els8.sortToggle?.addEventListener("click", (event) => {
       const target = event.target;
       const button = target?.closest("[data-history-sort]");
-      if (!button || !els.sortToggle?.contains(button)) return;
+      if (!button || !els8.sortToggle?.contains(button)) return;
       applyHistorySort(button.dataset.historySort || "newest");
     });
     document.addEventListener("change", (event) => {
       const target = event.target;
+      const tagPickerInput = target?.closest(
+        ".history-tag-picker input[type=checkbox]"
+      );
+      if (tagPickerInput && historyTagPickerEl?.contains(tagPickerInput)) {
+        void applyHistoryTagPickerChange(tagPickerInput);
+        return;
+      }
       const checkbox = target?.closest("[data-history-task-select]");
       if (!checkbox) return;
       const taskId = checkbox.dataset.historyTaskSelect || "";
@@ -17117,6 +26170,119 @@
     });
     document.addEventListener("click", (event) => {
       const target = event.target;
+      if (target?.closest("[data-history-close-export]")) {
+        closeHistoryExportPicker();
+        return;
+      }
+      const exportModeButton = target?.closest(
+        "[data-history-export-mode]"
+      );
+      if (exportModeButton) {
+        const mode = exportModeButton.dataset.historyExportMode === "images_with_prompts" ? "images_with_prompts" : "images_only";
+        void runHistoryExport(mode);
+        return;
+      }
+      const exportButton = target?.closest(
+        "[data-history-open-export]"
+      );
+      if (exportButton) {
+        const taskId = exportButton.dataset.historyOpenExport || "";
+        openHistoryExportPicker(
+          exportButton,
+          taskId ? [taskId] : [...historyState.selectedTaskIds]
+        );
+        return;
+      }
+      if (target?.closest("[data-history-close-tag-picker]")) {
+        closeHistoryTagPicker();
+        return;
+      }
+      const tagManageToggle = target?.closest(
+        "#historyTagManageToggle"
+      );
+      if (tagManageToggle) {
+        const opening = Boolean(els8.tagManager?.hidden);
+        if (els8.tagManager) {
+          els8.tagManager.hidden = !opening;
+          els8.tagManager.classList.toggle("hidden", !opening);
+        }
+        els8.tagManageToggle?.setAttribute(
+          "aria-expanded",
+          opening ? "true" : "false"
+        );
+        if (opening) els8.tagNameInput?.focus();
+        return;
+      }
+      const renameTagButton = target?.closest(
+        "[data-history-rename-tag]"
+      );
+      if (renameTagButton) {
+        void renameHistoryTagFromManager(
+          renameTagButton.dataset.historyRenameTag || ""
+        );
+        return;
+      }
+      const deleteTagButton = target?.closest(
+        "[data-history-delete-tag]"
+      );
+      if (deleteTagButton) {
+        void deleteHistoryTagFromManager(
+          deleteTagButton.dataset.historyDeleteTag || ""
+        );
+        return;
+      }
+      if (target?.closest("[data-history-favorite-filter]")) {
+        applyHistoryOrganizationFilterChange({
+          ...historyOrganizationFilters,
+          favorite: !historyOrganizationFilters.favorite
+        });
+        return;
+      }
+      if (target?.closest("[data-history-untagged-filter]")) {
+        applyHistoryOrganizationFilterChange(
+          withHistoryUntaggedFilter(
+            historyOrganizationFilters,
+            !historyOrganizationFilters.untagged
+          )
+        );
+        return;
+      }
+      const tagFilterButton = target?.closest(
+        "[data-history-tag-filter]"
+      );
+      if (tagFilterButton) {
+        const tagId = tagFilterButton.dataset.historyTagFilter || "";
+        applyHistoryOrganizationFilterChange(
+          withHistoryTagFilter(
+            historyOrganizationFilters,
+            tagId,
+            !historyOrganizationFilters.tagIds.includes(tagId)
+          )
+        );
+        return;
+      }
+      const favoriteTaskButton = target?.closest(
+        "[data-history-favorite-task]"
+      );
+      if (favoriteTaskButton) {
+        const taskId = favoriteTaskButton.dataset.historyFavoriteTask || "";
+        const task = historyState.loadedTaskSummaries.get(taskId) || (String(historyState.detailTask?.task_id || "") === taskId ? historyState.detailTask : null);
+        void organizeHistoryTaskIds(
+          [taskId],
+          { favorite: !Boolean(task?.favorite) }
+        );
+        return;
+      }
+      const tagPickerButton = target?.closest(
+        "[data-history-open-tag-picker]"
+      );
+      if (tagPickerButton) {
+        const rawMode = tagPickerButton.dataset.historyOpenTagPicker || "add";
+        const mode = rawMode === "remove" || rawMode === "detail" ? rawMode : "add";
+        const taskIds = mode === "detail" ? [String(historyState.detailTask?.task_id || "")] : [...historyState.selectedTaskIds];
+        openHistoryTagPicker(tagPickerButton, mode, taskIds);
+        return;
+      }
       const historySelect = target?.closest("[data-history-task-select]");
       if (historySelect) {
         if (handleHistoryTaskShortcutSelection(historySelect.dataset.historyTaskSelect || "", event)) return;
@@ -17235,55 +26401,73 @@
         }
       }
     });
-    els.taskList?.addEventListener("contextmenu", (event) => {
+    els8.taskList?.addEventListener("contextmenu", (event) => {
       const target = event.target;
       const card = target?.closest(".history-task-card[data-history-task-card-id]");
-      if (!card || !els.taskList?.contains(card)) return;
+      if (!card || !els8.taskList?.contains(card)) return;
       event.preventDefault();
       event.stopPropagation();
       openHistoryContextMenu(card.dataset.historyTaskCardId || "", event.clientX, event.clientY);
     });
-    els.taskList?.addEventListener("dblclick", (event) => {
+    els8.taskList?.addEventListener("dblclick", (event) => {
       const target = event.target;
       if (target?.closest("[data-history-task-select]")) return;
       const card = target?.closest(".history-task-card[data-history-task-card-id]");
-      if (!card || !els.taskList?.contains(card)) return;
+      if (!card || !els8.taskList?.contains(card)) return;
       event.preventDefault();
       event.stopPropagation();
       void openHistoryTaskLightbox(card.dataset.historyTaskCardId || "");
     });
-    els.taskList?.addEventListener("keydown", (event) => {
+    els8.taskList?.addEventListener("keydown", (event) => {
       if (handleHistoryTaskArrowNavigation(event)) return;
       if (event.key !== "ContextMenu" && !(event.shiftKey && event.key === "F10")) return;
       const target = event.target;
       const card = target?.closest(".history-task-card[data-history-task-card-id]");
-      if (!card || !els.taskList?.contains(card)) return;
+      if (!card || !els8.taskList?.contains(card)) return;
       event.preventDefault();
       const rect = card.getBoundingClientRect();
       openHistoryContextMenu(card.dataset.historyTaskCardId || "", rect.left + 18, rect.top + 18);
     });
     document.addEventListener("click", (event) => {
-      if (!historyContextMenuEl || historyContextMenuEl.classList.contains("hidden")) return;
       const target = event.target;
+      if (historyExportPickerEl && target && !historyExportPickerEl.contains(target) && !historyExportTrigger?.contains(target)) {
+        closeHistoryExportPicker();
+      }
+      if (historyTagPickerEl && target && !historyTagPickerEl.contains(target) && !historyTagPickerTrigger?.contains(target)) {
+        closeHistoryTagPicker();
+      }
+      if (!historyContextMenuEl || historyContextMenuEl.classList.contains("hidden")) return;
       if (target && historyContextMenuEl.contains(target)) return;
       closeHistoryContextMenu();
     }, true);
-    els.bulkArchive?.addEventListener("click", () => void archiveSelectedTasks(true));
-    els.bulkRestore?.addEventListener("click", () => void archiveSelectedTasks(false));
-    els.bulkDelete?.addEventListener("click", () => void deleteSelectedTasks());
-    els.bulkDeleteCancel?.addEventListener("click", () => {
+    els8.bulkArchive?.addEventListener("click", () => void archiveSelectedTasks(true));
+    els8.bulkRestore?.addEventListener("click", () => void archiveSelectedTasks(false));
+    els8.bulkFavorite?.addEventListener("click", () => {
+      void organizeHistoryTaskIds(
+        [...historyState.selectedTaskIds],
+        { favorite: true }
+      );
+    });
+    els8.bulkUnfavorite?.addEventListener("click", () => {
+      void organizeHistoryTaskIds(
+        [...historyState.selectedTaskIds],
+        { favorite: false }
+      );
+    });
+    els8.bulkDelete?.addEventListener("click", () => void deleteSelectedTasks());
+    els8.bulkDeleteCancel?.addEventListener("click", () => {
       clearHistoryDeleteConfirmation();
       renderBulkToolbar();
     });
-    els.refresh?.addEventListener("click", () => {
+    els8.refresh?.addEventListener("click", () => {
       void loadSummary();
       void loadTasks({ reset: true });
     });
-    els.taskList?.addEventListener("dragstart", (event) => {
+    els8.taskList?.addEventListener("dragstart", (event) => {
       const target = event.target;
       if (target?.closest(".history-task-thumb img")) event.preventDefault();
     });
-    els.taskList?.addEventListener("scroll", () => {
+    els8.taskList?.addEventListener("scroll", () => {
       closeHistoryContextMenu();
       maybeLoadMoreFromScroll();
     }, { passive: true });
@@ -17294,6 +26478,8 @@
     }, { passive: true });
     document.addEventListener(LOCALE_CHANGE_EVENT, () => {
       document.title = historyDocumentTitle();
+      renderHistoryOrganizationFilters();
+      renderHistoryTagManager();
       syncHistoryViewMode();
       syncArchiveButtons();
       if (historyState.detailTask) {
@@ -17310,6 +26496,14 @@
     });
     window.addEventListener("keydown", (event) => {
       if (event.key !== "Escape") return;
+      if (historyExportPickerEl) {
+        closeHistoryExportPicker();
+        return;
+      }
+      if (historyTagPickerEl) {
+        closeHistoryTagPicker();
+        return;
+      }
       if (historyContextMenuEl && !historyContextMenuEl.classList.contains("hidden")) {
         closeHistoryContextMenu();
         return;
@@ -17321,16 +26515,22 @@
       if (historyState.selectedTaskId) closeDetail();
     });
   }
-  function errorMessage(error, fallback) {
+  function errorMessage2(error, fallback) {
     return error instanceof Error && error.message ? error.message : fallback;
   }
   async function bootHistoryPage() {
-    restoreHistoryThemePreference();
-    bindHistoryThemePreference();
+    initializeHistoryShell({
+      selectHistoryTask: loadTaskDetail,
+      refreshHistoryTasks: async () => {
+        await Promise.all([
+          loadSummary(),
+          loadTasks({ reset: true })
+        ]);
+      }
+    });
     applyHistoryLocale();
     restoreHistoryLayoutPreference();
     syncStateFromUrl();
-    initSegmentedIndicatorFeature();
     renderDetailShell(translate("history.detailEmpty"));
     bindEvents();
     await loadSummary();

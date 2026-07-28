@@ -140,7 +140,7 @@ class OutputSettingsLockFrontendContractTests(WebUIStaticTestCase):
             for path in locale_dir.glob("*.ts")
             if path.name not in {"dictionaries.ts", "index.ts", "types.ts"}
         )
-        self.assertEqual(13, len(locale_files))
+        self.assertEqual(14, len(locale_files))
         required_keys = (
             "output.lock.lock",
             "output.lock.unlock",

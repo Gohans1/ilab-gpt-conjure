@@ -2,9 +2,17 @@
 import { getLegacyBridge } from "./state";
 import { formatTranslation, LOCALE_CHANGE_EVENT, translate } from "./i18n";
 import { webAppDocumentTitle } from "./web-app-title";
+import {
+  applyDocumentTheme,
+  bindSystemThemePreference,
+  bindThemeSwitcher,
+  normalizeThemePreference as normalizeSharedThemePreference,
+  persistThemePreference,
+  readThemePreference,
+  resolveEffectiveTheme as resolveSharedEffectiveTheme,
+  syncThemeSwitcher,
+} from "./theme-preference";
 
-const THEME_STORAGE_KEY = "codex-image-theme-preference";
-const THEME_OPTIONS = new Set(["system", "light", "dark"]);
 const SIDEBAR_WIDTH_STORAGE_KEY = "codex-image-sidebar-width";
 const SIDEBAR_MIN_WIDTH = 280;
 const SIDEBAR_MAX_WIDTH = 520;
@@ -19,7 +27,6 @@ let shellUiInitialized = false;
 let shellUiEventsBound = false;
 let sidebarResizeFrameId = null;
 let sidebarResizePendingWidth = null;
-let themeTransitionLockFrameId = null;
 
 function legacyMethod(name, ...args) {
   const method = getLegacyBridge().methods[name];
@@ -65,13 +72,11 @@ function handleShellLocaleChange() {
 function bindShellUiEvents() {
   if (shellUiEventsBound) return;
   shellUiEventsBound = true;
-  els.themeSwitcher?.addEventListener("click", (event) => {
-    const button = event.target.closest("[data-theme-option]");
-    if (!button) return;
-    applyThemePreference(button.dataset.themeOption || "system");
-  });
-  state.themeSystemQuery = window.matchMedia?.("(prefers-color-scheme: dark)");
-  state.themeSystemQuery?.addEventListener?.("change", handleThemeSystemChange);
+  bindThemeSwitcher(
+    els.themeSwitcher,
+    (preference) => applyThemePreference(preference),
+  );
+  bindSystemThemePreference(handleThemeSystemChange);
   document.addEventListener(LOCALE_CHANGE_EVENT, handleShellLocaleChange);
   if (els.copyJsonButton) {
     els.copyJsonButton.addEventListener("click", copyJson);
@@ -84,61 +89,36 @@ function bindShellUiEvents() {
 }
 
 function normalizeThemePreference(value) {
-  return THEME_OPTIONS.has(value) ? value : "system";
+  return normalizeSharedThemePreference(value);
 }
 
 function resolveEffectiveTheme(preference = state.themePreference) {
-  if (preference === "dark" || preference === "light") return preference;
-  return window.matchMedia?.("(prefers-color-scheme: dark)")?.matches ? "dark" : "light";
+  return resolveSharedEffectiveTheme(
+    normalizeThemePreference(preference),
+  );
 }
 
 function updateThemeSwitcher() {
-  els.themeSwitcher?.querySelectorAll("[data-theme-option]").forEach((button) => {
-    const active = button.dataset.themeOption === state.themePreference;
-    button.classList.toggle("active", active);
-    button.setAttribute("aria-pressed", active ? "true" : "false");
-  });
-}
-
-function lockThemeTransitions() {
-  document.documentElement.classList.add("theme-transition-lock");
-  if (themeTransitionLockFrameId !== null) {
-    cancelAnimationFrame(themeTransitionLockFrameId);
-  }
-  themeTransitionLockFrameId = requestAnimationFrame(() => {
-    themeTransitionLockFrameId = requestAnimationFrame(() => {
-      document.documentElement.classList.remove("theme-transition-lock");
-      themeTransitionLockFrameId = null;
-    });
-  });
+  syncThemeSwitcher(
+    els.themeSwitcher,
+    state.themePreference,
+  );
 }
 
 function applyThemePreference(preference, { persist = true } = {}) {
   state.themePreference = normalizeThemePreference(preference);
-  const effectiveTheme = resolveEffectiveTheme(state.themePreference);
-  if (document.documentElement.dataset.theme !== effectiveTheme) {
-    lockThemeTransitions();
-  }
-  document.documentElement.dataset.theme = effectiveTheme;
-  document.documentElement.dataset.themePreference = state.themePreference;
+  applyDocumentTheme(state.themePreference);
   if (persist) {
-    try {
-      localStorage.setItem(THEME_STORAGE_KEY, state.themePreference);
-    } catch {
-      // Browser storage may be unavailable in restricted contexts.
-    }
+    persistThemePreference(state.themePreference);
   }
   updateThemeSwitcher();
 }
 
 function restoreThemePreference() {
-  let saved = "system";
-  try {
-    saved = localStorage.getItem(THEME_STORAGE_KEY) || "system";
-  } catch {
-    saved = "system";
-  }
-  applyThemePreference(saved, { persist: false });
+  applyThemePreference(
+    readThemePreference(),
+    { persist: false },
+  );
 }
 
 function handleThemeSystemChange() {

@@ -1,4 +1,5 @@
-import { LOCALE_CHANGE_EVENT, formatTranslation, restoreLocalePreference, translate } from "./i18n";
+import { LOCALE_CHANGE_EVENT, formatTranslation, translate } from "./i18n";
+import { initializeHistoryShell } from "./history-shell";
 import {
   historyDetailImagesHtml,
   historyDetailImagesLayoutClass,
@@ -27,15 +28,46 @@ import {
   type HistoryLightboxTaskDirection,
   type HistoryLightboxTaskNavigationContext,
 } from "./history-lightbox";
-import { initSegmentedIndicatorFeature } from "./segmented-indicator";
 import { webAppDocumentTitle } from "./web-app-title";
 import { createGroundingAttribution } from "./grounding-attribution";
+import {
+  createHistoryExport,
+  triggerHistoryExportDownload,
+  type HistoryExportMode,
+} from "./history-export";
+import {
+  appendHistoryOrganizationQuery,
+  createHistoryTag,
+  createHistoryTagForTasks,
+  deleteHistoryTag,
+  historyCardTagsHtml,
+  historyDetailTagsHtml,
+  historyFavoriteButtonHtml,
+  historyOrganizationSummarySupported,
+  historyTagPickerCreateHtml,
+  historyTagPickerHtml,
+  historyTaskRowsSupportOrganization,
+  HistoryOrganizationRequestError,
+  organizeHistoryTasks,
+  readHistoryOrganizationFilters,
+  renameHistoryTag,
+  taskMatchesHistoryOrganizationFilters,
+  type HistoryOrganization,
+  type HistoryOrganizationFilters,
+  type HistoryTag,
+  withHistoryTagFilter,
+  withHistoryUntaggedFilter,
+  writeHistoryOrganizationFilters,
+} from "./history-organization";
 
 type HistoryFacet = { value: string; count: number };
 type HistoryMonth = { month: string; count: number };
 type HistorySummary = {
   total: number;
   archived_total: number;
+  favorite_total: number;
+  untagged_total: number;
+  tags: HistoryTag[];
   months: HistoryMonth[];
   modes: HistoryFacet[];
   prompt_modes: HistoryFacet[];
@@ -45,7 +77,7 @@ type HistorySummary = {
   backends: HistoryFacet[];
   providers: HistoryFacet[];
 };
-type HistoryTask = {
+type HistoryTask = HistoryOrganization & {
   task_id: string;
   created_at: string;
   updated_at: string;
@@ -72,6 +104,11 @@ type HistoryRenderPosition = "replace" | "append" | "prepend";
 type HistoryTaskPage = { tasks: HistoryTask[]; next_cursor: string | null; previous_cursor?: string | null; detail?: string };
 type HistoryContextMenuMode = "single" | "multi";
 type HistoryResizerSide = "left" | "right";
+type HistoryOrganizationChange = {
+  favorite?: boolean | null;
+  add_tag_ids?: string[];
+  remove_tag_ids?: string[];
+};
 
 const HISTORY_FILTER_KEYS: HistoryFilterKey[] = ["mode", "month", "prompt_mode", "quality", "ratio", "orientation", "backend", "provider", "archived"];
 const HISTORY_RATIO_OTHER_VALUE = "__other__";
@@ -79,7 +116,6 @@ const HISTORY_PAGE_LIMIT = 50;
 const MAX_MOUNTED_TASK_CARDS = 300;
 const HISTORY_REFERENCE_HANDOFF_KEY = "codex-image-history-reference-handoff";
 const HISTORY_TASK_REUSE_HANDOFF_KEY = "codex-image-history-task-reuse-handoff";
-const HISTORY_THEME_STORAGE_KEY = "codex-image-theme-preference";
 const HISTORY_THUMBNAIL_CACHE_VERSION = "thumb-768-fit";
 const HISTORY_GRID_DEFAULT_GAP = 14;
 const HISTORY_LAYOUT_STORAGE_KEY = "codex-image-history-layout";
@@ -97,6 +133,21 @@ type HistoryGridLayoutSettings = {
   minWidth: number;
   maxWidth: number;
 };
+type HistoryGridLayoutItem = {
+  card: HTMLElement;
+  ratio: number;
+};
+type HistoryGridLayoutSnapshot = {
+  items: HistoryGridLayoutItem[];
+  availableWidth: number;
+  gap: number;
+  settings: HistoryGridLayoutSettings;
+};
+type HistoryGridLayoutOptions = {
+  snapshot?: HistoryGridLayoutSnapshot | null;
+  availableWidth?: number | undefined;
+};
+const EMPTY_HISTORY_GRID_LAYOUT_OPTIONS: HistoryGridLayoutOptions = {};
 
 const historyState = {
   q: "",
@@ -141,6 +192,25 @@ let pendingHistoryGridKeepTaskId = "";
 let historyResizeFrame = 0;
 let historyDetailLoadToken = 0;
 let historyContextMenuEl: HTMLElement | null = null;
+let historyTags: HistoryTag[] = [];
+let historySummary: HistorySummary | null = null;
+let historyOrganizationFilters: HistoryOrganizationFilters = {
+  favorite: false,
+  tagIds: [],
+  untagged: false,
+};
+let historyTagDeleteConfirmId = "";
+let historyTagPickerEl: HTMLElement | null = null;
+let historyTagPickerTrigger: HTMLElement | null = null;
+let historyTagPickerMode: "add" | "remove" | "detail" = "add";
+let historyTagPickerTaskIds: string[] = [];
+let historyTagPickerCreatePending = false;
+let historyTagManagerCreatePending = false;
+let historyOrganizationApiSupported: boolean | null = null;
+let historyExportPickerEl: HTMLElement | null = null;
+let historyExportTrigger: HTMLElement | null = null;
+let historyExportTaskIds: string[] = [];
+let historyExportPending = false;
 let activeHistoryResizer: {
   side: HistoryResizerSide;
   pointerId: number;
@@ -149,6 +219,7 @@ let activeHistoryResizer: {
   startLeft: number;
   startRight: number;
   maxCombinedWidth: number;
+  gridLayoutSnapshot: HistoryGridLayoutSnapshot | null;
   element: HTMLElement;
 } | null = null;
 
@@ -160,6 +231,13 @@ const els = {
   total: document.querySelector<HTMLElement>("#historyTotal"),
   search: document.querySelector<HTMLInputElement>("#historySearch"),
   searchClear: document.querySelector<HTMLButtonElement>("#historySearchClear"),
+  favoriteList: document.querySelector<HTMLElement>("#historyFavoriteList"),
+  tagFilterList: document.querySelector<HTMLElement>("#historyTagFilterList"),
+  tagManageToggle: document.querySelector<HTMLButtonElement>("#historyTagManageToggle"),
+  tagManager: document.querySelector<HTMLElement>("#historyTagManager"),
+  tagManagerList: document.querySelector<HTMLElement>("#historyTagManagerList"),
+  tagManagerStatus: document.querySelector<HTMLElement>("#historyTagManagerStatus"),
+  tagNameInput: document.querySelector<HTMLInputElement>("#historyTagNameInput"),
   modeList: document.querySelector<HTMLElement>("#historyModeList"),
   monthList: document.querySelector<HTMLElement>("#historyMonthList"),
   promptModeList: document.querySelector<HTMLElement>("#historyPromptModeList"),
@@ -174,6 +252,11 @@ const els = {
   resultSummary: document.querySelector<HTMLElement>("#historyResultSummary"),
   bulkToolbar: document.querySelector<HTMLElement>("#historyBulkToolbar"),
   bulkCount: document.querySelector<HTMLElement>("#historyBulkCount"),
+  bulkFavorite: document.querySelector<HTMLButtonElement>("#historyBulkFavoriteButton"),
+  bulkUnfavorite: document.querySelector<HTMLButtonElement>("#historyBulkUnfavoriteButton"),
+  bulkAddTag: document.querySelector<HTMLButtonElement>("#historyBulkAddTagButton"),
+  bulkRemoveTag: document.querySelector<HTMLButtonElement>("#historyBulkRemoveTagButton"),
+  bulkExport: document.querySelector<HTMLButtonElement>("#historyBulkExportButton"),
   bulkArchive: document.querySelector<HTMLButtonElement>("#historyBulkArchiveButton"),
   bulkRestore: document.querySelector<HTMLButtonElement>("#historyBulkRestoreButton"),
   bulkDelete: document.querySelector<HTMLButtonElement>("#historyBulkDeleteButton"),
@@ -204,37 +287,7 @@ function setText(element: HTMLElement | null, text: string): void {
   if (element) element.textContent = text;
 }
 
-function normalizeHistoryThemePreference(value: unknown): "system" | "light" | "dark" {
-  return value === "light" || value === "dark" ? value : "system";
-}
-
-function resolveHistoryTheme(preference: "system" | "light" | "dark"): "light" | "dark" {
-  if (preference === "light" || preference === "dark") return preference;
-  return window.matchMedia?.("(prefers-color-scheme: dark)")?.matches ? "dark" : "light";
-}
-
-function restoreHistoryThemePreference(): void {
-  let saved = "system";
-  try {
-    saved = localStorage.getItem(HISTORY_THEME_STORAGE_KEY) || "system";
-  } catch {
-    saved = "system";
-  }
-  const preference = normalizeHistoryThemePreference(saved);
-  document.documentElement.dataset.themePreference = preference;
-  document.documentElement.dataset.theme = resolveHistoryTheme(preference);
-}
-
-function bindHistoryThemePreference(): void {
-  window.matchMedia?.("(prefers-color-scheme: dark)")?.addEventListener?.("change", () => {
-    if (document.documentElement.dataset.themePreference === "system") {
-      restoreHistoryThemePreference();
-    }
-  });
-}
-
 function applyHistoryLocale(): void {
-  restoreLocalePreference();
   document.title = historyDocumentTitle();
 }
 
@@ -306,6 +359,8 @@ function historyFilterButtonLabelHtml(key: HistoryFilterKey, label: string, valu
 
 function syncStateFromUrl(): void {
   const params = new URLSearchParams(window.location.search);
+  historyOrganizationFilters =
+    readHistoryOrganizationFilters(params);
   historyState.q = params.get("q") || "";
   historyState.sort = params.get("sort") === "oldest" ? "oldest" : "newest";
   historyState.view = params.get("view") === "list" ? "list" : "grid";
@@ -318,8 +373,15 @@ function syncStateFromUrl(): void {
   }
   historyState.selectedTaskId = params.get("task") || "";
   if (els.search) els.search.value = historyState.q;
+  syncHistorySearchClear();
   syncHistorySortMode();
   syncHistoryViewMode();
+}
+
+function syncHistorySearchClear(): void {
+  const hasQuery = Boolean(els.search?.value.trim());
+  els.searchClear?.classList.toggle("hidden", !hasQuery);
+  els.searchClear?.toggleAttribute("hidden", !hasQuery);
 }
 
 function updateHistoryUrl(): void {
@@ -330,6 +392,10 @@ function updateHistoryUrl(): void {
   for (const key of HISTORY_FILTER_KEYS) {
     if (historyState[key]) params.set(key, historyState[key]);
   }
+  writeHistoryOrganizationFilters(
+    params,
+    historyOrganizationFilters,
+  );
   if (historyState.selectedTaskId) params.set("task", historyState.selectedTaskId);
   const query = params.toString();
   const nextUrl = query ? `${window.location.pathname}?${query}` : window.location.pathname;
@@ -341,7 +407,18 @@ async function loadSummary(): Promise<void> {
     const response = await fetch("/api/task-history/summary");
     const summary = await response.json() as HistorySummary;
     if (!response.ok) throw new Error((summary as any).detail || translate("history.summaryFailed"));
+    if (!historyOrganizationSummarySupported(summary)) {
+      historyOrganizationApiSupported = false;
+      throw new Error(
+        translate("history.backendRestartRequired"),
+      );
+    }
+    historyOrganizationApiSupported = true;
+    historySummary = summary;
+    historyTags = Array.isArray(summary.tags) ? summary.tags : [];
     setText(els.total, formatTranslation("history.total", { total: summary.total, archived: summary.archived_total }));
+    renderHistoryOrganizationFilters(summary);
+    renderHistoryTagManager();
     renderFacetButtons(els.modeList, "mode", summary.modes || [], translate("history.allTypes"));
     renderFacetButtons(els.monthList, "month", summary.months.map((item) => ({ value: item.month, count: item.count })), translate("history.allMonths"));
     renderFacetButtons(els.promptModeList, "prompt_mode", summary.prompt_modes || [], translate("history.allPromptModes"));
@@ -352,7 +429,283 @@ async function loadSummary(): Promise<void> {
     renderFacetButtons(els.providerList, "provider", summary.providers || [], translate("history.allProviders"));
     syncArchiveButtons();
   } catch (error) {
-    setText(els.total, errorMessage(error, translate("history.summaryFailed")));
+    const message = errorMessage(
+      error,
+      translate("history.summaryFailed"),
+    );
+    setText(els.total, message);
+    if (historyOrganizationApiSupported === false) {
+      setText(els.resultSummary, message);
+    }
+  }
+}
+
+function renderHistoryOrganizationFilters(
+  summary?: Partial<HistorySummary>,
+): void {
+  const counts = summary || historySummary || {};
+  if (els.favoriteList) {
+    const active = historyOrganizationFilters.favorite;
+    els.favoriteList.innerHTML = `
+      <button
+        class="history-filter-button${active ? " active" : ""}"
+        type="button"
+        data-history-favorite-filter
+        aria-pressed="${active ? "true" : "false"}"
+      >
+        <span>${escapeHtml(translate("history.onlyFavorites"))}</span>
+        <span class="history-filter-count">${Number(counts.favorite_total || 0)}</span>
+      </button>
+    `;
+  }
+  if (!els.tagFilterList) return;
+  const selected = new Set(historyOrganizationFilters.tagIds);
+  const untaggedActive = historyOrganizationFilters.untagged;
+  els.tagFilterList.innerHTML = [
+    `
+      <button
+        class="history-filter-button${untaggedActive ? " active" : ""}"
+        type="button"
+        data-history-untagged-filter
+        aria-pressed="${untaggedActive ? "true" : "false"}"
+      >
+        <span>${escapeHtml(translate("history.untagged"))}</span>
+        <span class="history-filter-count">${Number(counts.untagged_total || 0)}</span>
+      </button>
+    `,
+    ...historyTags.map((tag) => {
+      const active = selected.has(tag.tag_id);
+      return `
+        <button
+          class="history-filter-button${active ? " active" : ""}"
+          type="button"
+          data-history-tag-filter="${escapeHtml(tag.tag_id)}"
+          aria-pressed="${active ? "true" : "false"}"
+        >
+          <span>${escapeHtml(tag.name)}</span>
+          <span class="history-filter-count">${Number(tag.count || 0)}</span>
+        </button>
+      `;
+    }),
+  ].join("");
+}
+
+function renderHistoryTagManager(): void {
+  if (!els.tagManagerList) return;
+  if (!historyTags.length) {
+    els.tagManagerList.innerHTML = `
+      <div class="history-tag-manager-empty">
+        ${escapeHtml(translate("history.noTags"))}
+      </div>
+    `;
+    return;
+  }
+  els.tagManagerList.innerHTML = historyTags
+    .map((tag) => {
+      const confirming =
+        historyTagDeleteConfirmId === tag.tag_id;
+      const affectedDeleteLabel = formatTranslation(
+        "history.deleteTagAffected",
+        {
+          count: Number(tag.count || 0),
+        },
+      );
+      const deleteLabel = confirming
+        ? translate("history.confirmDelete")
+        : translate("history.deleteTag");
+      const deleteAriaLabel = confirming
+        ? affectedDeleteLabel
+        : deleteLabel;
+      return `
+        <div class="history-tag-manager-row" data-history-tag-row="${escapeHtml(tag.tag_id)}">
+          <div class="history-tag-manager-row-field">
+            <input
+              class="control"
+              type="text"
+              maxlength="40"
+              value="${escapeHtml(tag.name)}"
+              data-history-tag-name="${escapeHtml(tag.tag_id)}"
+              aria-label="${escapeHtml(translate("history.renameTag"))}"
+            />
+            <span class="history-filter-count">${Number(tag.count || 0)}</span>
+          </div>
+          <div class="history-tag-manager-row-actions">
+            <button
+              class="ghost-button text-sm"
+              type="button"
+              data-history-rename-tag="${escapeHtml(tag.tag_id)}"
+            >${escapeHtml(translate("history.renameTag"))}</button>
+            <button
+              class="ghost-button text-sm${confirming ? " danger-button" : ""}"
+              type="button"
+              data-history-delete-tag="${escapeHtml(tag.tag_id)}"
+              aria-label="${escapeHtml(deleteAriaLabel)}"
+              title="${escapeHtml(deleteAriaLabel)}"
+            >${escapeHtml(deleteLabel)}</button>
+          </div>
+        </div>
+      `;
+    })
+    .join("");
+}
+
+function applyHistoryOrganizationFilterChange(
+  filters: HistoryOrganizationFilters,
+): void {
+  if (historyOrganizationApiSupported === false) {
+    setText(
+      els.resultSummary,
+      translate("history.backendRestartRequired"),
+    );
+    return;
+  }
+  historyOrganizationFilters = filters;
+  historyState.selectedTaskId = "";
+  clearHistoryDeleteConfirmation();
+  renderHistoryOrganizationFilters();
+  updateHistoryUrl();
+  void loadTasks({ reset: true });
+}
+
+function historyTagMutationErrorMessage(
+  error: unknown,
+): string {
+  if (
+    error instanceof HistoryOrganizationRequestError &&
+    error.status === 409
+  ) {
+    return translate("history.tagNameConflict");
+  }
+  return errorMessage(
+    error,
+    translate("history.organizationFailed"),
+  );
+}
+
+function historyTagCreateErrorMessage(
+  error: unknown,
+): string {
+  if (
+    error instanceof HistoryOrganizationRequestError &&
+    error.status === 404
+  ) {
+    return translate("history.backendRestartRequired");
+  }
+  return historyTagMutationErrorMessage(error);
+}
+
+async function createHistoryTagFromManager(): Promise<void> {
+  if (historyTagManagerCreatePending) return;
+  const name = els.tagNameInput?.value.trim() || "";
+  if (!name) {
+    els.tagNameInput?.focus();
+    return;
+  }
+  const form = els.tagManager?.querySelector<HTMLFormElement>(
+    "[data-history-tag-create]",
+  );
+  const controls = form?.querySelectorAll<
+    HTMLInputElement | HTMLButtonElement
+  >("input, button");
+  historyTagManagerCreatePending = true;
+  controls?.forEach((control) => {
+    control.disabled = true;
+  });
+  setText(els.tagManagerStatus, "");
+  try {
+    const tag = await createHistoryTag(name);
+    if (els.tagNameInput) els.tagNameInput.value = "";
+    await loadSummary();
+    setText(
+      els.tagManagerStatus,
+      `${translate("history.createTag")}：${tag.name}`,
+    );
+  } catch (error) {
+    const message = historyTagCreateErrorMessage(error);
+    setText(els.tagManagerStatus, message);
+    setText(
+      els.resultSummary,
+      message,
+    );
+  } finally {
+    historyTagManagerCreatePending = false;
+    controls?.forEach((control) => {
+      control.disabled = false;
+    });
+  }
+}
+
+async function renameHistoryTagFromManager(
+  tagId: string,
+): Promise<void> {
+  const input = els.tagManagerList?.querySelector<HTMLInputElement>(
+    `[data-history-tag-name="${CSS.escape(tagId)}"]`,
+  );
+  const name = input?.value.trim() || "";
+  if (!name) return;
+  try {
+    const tag = await renameHistoryTag(tagId, name);
+    const organizations: Record<string, HistoryOrganization> = {};
+    for (const [taskId, task] of historyState.loadedTaskSummaries) {
+      if (!task.tags.some((item) => item.tag_id === tagId)) {
+        continue;
+      }
+      organizations[taskId] = {
+        favorite: task.favorite,
+        tags: task.tags.map((item) =>
+          item.tag_id === tagId
+            ? { ...item, name: tag.name }
+            : item
+        ),
+      };
+    }
+    applyHistoryOrganizations(organizations);
+    await loadSummary();
+  } catch (error) {
+    setText(
+      els.resultSummary,
+      historyTagMutationErrorMessage(error),
+    );
+  }
+}
+
+async function deleteHistoryTagFromManager(
+  tagId: string,
+): Promise<void> {
+  if (historyTagDeleteConfirmId !== tagId) {
+    historyTagDeleteConfirmId = tagId;
+    renderHistoryTagManager();
+    return;
+  }
+  try {
+    await deleteHistoryTag(tagId);
+    historyTagDeleteConfirmId = "";
+    historyOrganizationFilters = {
+      ...historyOrganizationFilters,
+      tagIds: historyOrganizationFilters.tagIds.filter(
+        (value) => value !== tagId,
+      ),
+    };
+    const organizations: Record<string, HistoryOrganization> = {};
+    for (const [taskId, task] of historyState.loadedTaskSummaries) {
+      organizations[taskId] = {
+        favorite: task.favorite,
+        tags: task.tags.filter(
+          (item) => item.tag_id !== tagId,
+        ),
+      };
+    }
+    applyHistoryOrganizations(organizations);
+    updateHistoryUrl();
+    await loadSummary();
+  } catch (error) {
+    setText(
+      els.resultSummary,
+      errorMessage(
+        error,
+        translate("history.organizationFailed"),
+      ),
+    );
   }
 }
 
@@ -405,6 +758,10 @@ function queryParams(cursor?: string | null, direction: HistoryWindowDirection =
   for (const key of HISTORY_FILTER_KEYS) {
     if (historyState[key]) params.set(key, historyState[key]);
   }
+  appendHistoryOrganizationQuery(
+    params,
+    historyOrganizationFilters,
+  );
   return params.toString();
 }
 
@@ -586,7 +943,15 @@ function applyPendingHistoryResize(): void {
   els.page.style.setProperty("--history-detail-width", `${widths.right}px`);
   els.leftResizer?.setAttribute("aria-valuenow", String(widths.left));
   els.rightResizer?.setAttribute("aria-valuenow", String(widths.right));
-  layoutJustifiedHistoryGrid();
+  const availableWidth = resize.gridLayoutSnapshot
+    ? resize.gridLayoutSnapshot.availableWidth
+      + resize.startLeft + resize.startRight
+      - widths.left - widths.right
+    : undefined;
+  layoutJustifiedHistoryGrid({
+    snapshot: resize.gridLayoutSnapshot,
+    availableWidth,
+  });
 }
 
 function restoreHistoryLayoutPreference(): void {
@@ -640,6 +1005,7 @@ function startHistoryResize(side: HistoryResizerSide, event: PointerEvent, eleme
     startLeft: widths.left,
     startRight: widths.right,
     maxCombinedWidth: historyLayoutMaxCombinedWidth(),
+    gridLayoutSnapshot: captureHistoryGridLayoutSnapshot(),
     element,
   };
   closeHistoryContextMenu();
@@ -702,8 +1068,26 @@ function historyTaskCardRatio(card: HTMLElement): number {
   return Number.isFinite(ratio) && ratio > 0 ? clampNumber(ratio, 0.42, 3.2) : 1;
 }
 
+function captureHistoryGridLayoutSnapshot(): HistoryGridLayoutSnapshot | null {
+  const root = els.taskList;
+  if (!root || historyState.view !== "grid" || !root.classList.contains("history-view-grid")) return null;
+  const cards = historyTaskCards(root);
+  if (!cards.length) return null;
+  const rootStyle = window.getComputedStyle(root);
+  const availableWidth = root.clientWidth
+    - parseCssPixels(rootStyle.paddingLeft)
+    - parseCssPixels(rootStyle.paddingRight);
+  if (availableWidth < 80) return null;
+  return {
+    items: cards.map((card) => ({ card, ratio: historyTaskCardRatio(card) })),
+    availableWidth,
+    gap: parseCssPixels(rootStyle.columnGap || rootStyle.gap) || HISTORY_GRID_DEFAULT_GAP,
+    settings: historyGridLayoutSettings(),
+  };
+}
+
 function applyHistoryGridRowLayout(
-  row: Array<{ card: HTMLElement; ratio: number }>,
+  row: HistoryGridLayoutItem[],
   options: { fillRow: boolean; availableWidth: number; gap: number; settings: HistoryGridLayoutSettings },
 ): void {
   if (!row.length) return;
@@ -735,25 +1119,22 @@ function applyHistoryGridRowLayout(
   });
 }
 
-function layoutJustifiedHistoryGrid(): void {
-  const root = els.taskList;
-  if (!root || historyState.view !== "grid" || !root.classList.contains("history-view-grid")) return;
-  const cards = historyTaskCards(root);
-  if (!cards.length) return;
-  const rootStyle = window.getComputedStyle(root);
-  const availableWidth = root.clientWidth
-    - parseCssPixels(rootStyle.paddingLeft)
-    - parseCssPixels(rootStyle.paddingRight);
+function layoutJustifiedHistoryGrid(
+  options: HistoryGridLayoutOptions = EMPTY_HISTORY_GRID_LAYOUT_OPTIONS,
+): void {
+  const snapshot = options.snapshot === undefined
+    ? captureHistoryGridLayoutSnapshot()
+    : options.snapshot;
+  if (!snapshot) return;
+  const availableWidth = options.availableWidth ?? snapshot.availableWidth;
   if (availableWidth < 80) return;
-  const gap = parseCssPixels(rootStyle.columnGap || rootStyle.gap) || HISTORY_GRID_DEFAULT_GAP;
-  const settings = historyGridLayoutSettings();
-  let row: Array<{ card: HTMLElement; ratio: number }> = [];
+  const { gap, settings } = snapshot;
+  let row: HistoryGridLayoutItem[] = [];
   let rowRatioTotal = 0;
 
-  for (const card of cards) {
-    const ratio = historyTaskCardRatio(card);
-    row.push({ card, ratio });
-    rowRatioTotal += ratio;
+  for (const item of snapshot.items) {
+    row.push(item);
+    rowRatioTotal += item.ratio;
     const projectedWidth = (rowRatioTotal * settings.targetHeight) + (gap * Math.max(0, row.length - 1));
     if (row.length > 1 && projectedWidth >= availableWidth) {
       applyHistoryGridRowLayout(row, { fillRow: true, availableWidth, gap, settings });
@@ -809,11 +1190,32 @@ async function loadTasks({ reset = false, direction = "next" }: { reset?: boolea
   }
   setLoadMoreState(translate("history.loadingMore"), { busy: true });
   try {
+    const organizationFilterActive =
+      historyOrganizationFilters.favorite ||
+      historyOrganizationFilters.untagged ||
+      historyOrganizationFilters.tagIds.length > 0;
+    if (
+      organizationFilterActive &&
+      historyOrganizationApiSupported === false
+    ) {
+      throw new Error(
+        translate("history.backendRestartRequired"),
+      );
+    }
     const response = await fetch(`/api/task-history/tasks?${queryParams(cursor, direction)}`);
     const data = await response.json() as HistoryTaskPage;
     if (!response.ok) throw new Error(data.detail || translate("history.tasksFailed"));
     if (requestId !== historyState.requestId) return;
     const tasks = data.tasks || [];
+    if (
+      organizationFilterActive &&
+      !historyTaskRowsSupportOrganization(tasks)
+    ) {
+      historyOrganizationApiSupported = false;
+      throw new Error(
+        translate("history.backendRestartRequired"),
+      );
+    }
     renderTasks(tasks, { position: reset ? "replace" : direction === "previous" ? "prepend" : "append" });
     if (direction === "previous") {
       historyState.newerExhausted = !data.previous_cursor || !tasks.length;
@@ -942,6 +1344,93 @@ function removeHistoryTaskIdsFromWindow(taskIds: string[]): void {
   }, { removedTaskIds: ids });
 }
 
+function removeHistoryTaskCardPreservingAnchor(
+  taskId: string,
+): void {
+  removeHistoryTaskIdsFromWindow([taskId]);
+}
+
+function applyHistoryOrganizations(
+  organizations: Record<string, HistoryOrganization>,
+): void {
+  const entries = Object.entries(organizations);
+  if (!entries.length) return;
+  const removedTaskIds = entries
+    .filter(([taskId, organization]) => {
+      const task = historyState.loadedTaskSummaries.get(taskId);
+      return Boolean(
+        task &&
+          !taskMatchesHistoryOrganizationFilters(
+            organization,
+            historyOrganizationFilters,
+          ),
+      );
+    })
+    .map(([taskId]) => taskId);
+  const removedSet = new Set(removedTaskIds);
+  refreshHistoryWindowAfterMutation(() => {
+    for (const [taskId, organization] of entries) {
+      const task = historyState.loadedTaskSummaries.get(taskId);
+      if (!task) continue;
+      Object.assign(task, organization);
+      if (removedSet.has(taskId)) {
+        historyState.loadedTaskIds.delete(taskId);
+        historyState.loadedTaskSummaries.delete(taskId);
+        historyState.selectedTaskIds.delete(taskId);
+        historyTaskCardElement(taskId)?.remove();
+        continue;
+      }
+      const card = historyTaskCardElement(taskId);
+      if (!card) continue;
+      const template = document.createElement("template");
+      template.innerHTML = taskCardHtml(task).trim();
+      const nextCard = template.content.firstElementChild;
+      if (nextCard) card.replaceWith(nextCard);
+    }
+  }, { removedTaskIds });
+  const detailTaskId = String(
+    historyState.detailTask?.task_id || "",
+  );
+  const detailOrganization = organizations[detailTaskId];
+  if (detailOrganization) {
+    Object.assign(historyState.detailTask, detailOrganization);
+    if (removedSet.has(detailTaskId)) {
+      historyState.selectedTaskId = "";
+      historyState.detailTask = null;
+      els.page?.classList.remove("history-detail-open");
+      updateHistoryUrl();
+      renderDetailShell(translate("history.detailEmpty"));
+    } else {
+      renderTaskDetail(historyState.detailTask);
+    }
+  }
+  renderBulkToolbar();
+}
+
+async function organizeHistoryTaskIds(
+  taskIds: string[],
+  change: HistoryOrganizationChange,
+): Promise<void> {
+  const ids = [...new Set(taskIds.filter(Boolean))];
+  if (!ids.length) return;
+  try {
+    const organizations = await organizeHistoryTasks({
+      task_ids: ids,
+      ...change,
+    });
+    applyHistoryOrganizations(organizations);
+    await loadSummary();
+  } catch (error) {
+    setText(
+      els.resultSummary,
+      errorMessage(
+        error,
+        translate("history.organizationFailed"),
+      ),
+    );
+  }
+}
+
 function historyTaskMatchesCurrentArchiveFilter(task: any): boolean {
   if (historyState.archived === "true") return historyTaskArchived(task);
   if (historyState.archived === "false") return !historyTaskArchived(task);
@@ -976,6 +1465,10 @@ function historyTaskSummaryFromDetail(taskId: string, task: any): HistoryTask | 
     total_count: totalCount || 0,
     thumbnail_url: String(source.thumbnail_url || previous?.thumbnail_url || ""),
     prompt_preview: String(source.prompt_preview || source.prompt || previous?.prompt_preview || ""),
+    favorite: Boolean(source.favorite ?? previous?.favorite),
+    tags: Array.isArray(source.tags)
+      ? source.tags
+      : previous?.tags || [],
   };
 }
 
@@ -1042,6 +1535,20 @@ function taskCardHtml(task: HistoryTask): string {
   const source = historyTaskSourceLabel(task);
   const promptMode = facetDisplayValue("prompt_mode", task.prompt_mode || "");
   const quality = facetDisplayValue("quality", task.quality || "");
+  const favoriteButton = historyFavoriteButtonHtml(
+    task.task_id,
+    Boolean(task.favorite),
+    escapeHtml,
+    translate(
+      task.favorite
+        ? "history.unfavoriteTask"
+        : "history.favoriteTask",
+    ),
+  );
+  const tagChips = historyCardTagsHtml(
+    Array.isArray(task.tags) ? task.tags : [],
+    escapeHtml,
+  );
   const metaItems = [
     { kind: "date", value: formatDate(task.created_at) },
     { kind: "status", value: task.status },
@@ -1065,6 +1572,7 @@ function taskCardHtml(task: HistoryTask): string {
       <label class="history-task-select" aria-label="${escapeHtml(translate("history.selectTask"))}">
         <input type="checkbox" data-history-task-select="${taskId}" ${selected ? "checked" : ""}>
       </label>
+      ${favoriteButton}
       <button class="history-task-open" type="button" data-history-task-id="${taskId}">
         <span class="history-task-thumb">
           ${stackLayers}
@@ -1072,6 +1580,7 @@ function taskCardHtml(task: HistoryTask): string {
         </span>
         <span class="history-task-copy">
           <span class="history-task-title">${escapeHtml(task.prompt_preview || task.mode || task.task_id)}</span>
+          ${tagChips}
           <span class="history-task-meta">
             ${metaItems.map((item) => `<span data-history-meta-kind="${escapeHtml(item.kind)}">${escapeHtml(item.value)}</span>`).join("")}
           </span>
@@ -1315,7 +1824,10 @@ async function fetchHistoryTaskDetail(taskId: string): Promise<any> {
   const response = await fetch(`/api/tasks/${encodeURIComponent(taskId)}`);
   const data = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(data.detail || translate("history.detailFailed"));
-  return data.task || {};
+  return {
+    ...(data.task || {}),
+    ...(data.organization || {}),
+  };
 }
 
 function isCurrentHistoryDetailLoad(loadToken: number, taskId: string): boolean {
@@ -1431,6 +1943,21 @@ function renderTaskDetail(task: any): void {
   const confirmingDeleteTask = historyState.deleteConfirmTaskId === taskId;
   const deleteBlocked = historyTaskDeleteBlocked(task);
   const title = detailTitle(task);
+  const favorite = Boolean(task.favorite);
+  const detailFavoriteButton = historyFavoriteButtonHtml(
+    taskId,
+    favorite,
+    escapeHtml,
+    translate(
+      favorite
+        ? "history.unfavoriteTask"
+        : "history.favoriteTask",
+    ),
+  );
+  const detailTags = historyDetailTagsHtml(
+    Array.isArray(task.tags) ? task.tags : [],
+    escapeHtml,
+  );
   els.detail.innerHTML = `
     <div class="history-detail-header">
       <div>
@@ -1438,6 +1965,17 @@ function renderTaskDetail(task: any): void {
         <h2 class="history-detail-title" title="${escapeHtml(task.prompt || title)}">${escapeHtml(title)}</h2>
       </div>
       <button id="historyDetailClose" class="drawer-close-button history-detail-close" type="button" data-history-detail-close aria-label="${escapeHtml(translate("history.closeDetail"))}">×</button>
+    </div>
+    <div class="history-detail-organization">
+      ${detailFavoriteButton}
+      <div class="history-detail-tags">
+        ${detailTags || `<span class="history-tag-empty">${escapeHtml(translate("history.noTags"))}</span>`}
+      </div>
+      <button
+        class="ghost-button text-sm"
+        type="button"
+        data-history-open-tag-picker="detail"
+      >${escapeHtml(translate("history.addTag"))}</button>
     </div>
     <div class="history-detail-meta">
       <span>${escapeHtml(formatDate(task.created_at || ""))}</span>
@@ -1450,6 +1988,7 @@ function renderTaskDetail(task: any): void {
     <div class="history-detail-actions">
       <div class="history-detail-actions-primary">
         <button class="ghost-button text-sm" type="button" data-history-reuse-task="${escapeHtml(taskId)}">${escapeHtml(translate("history.reuseTask"))}</button>
+        <button class="ghost-button text-sm" type="button" data-history-open-export="${escapeHtml(taskId)}">${escapeHtml(translate("history.export"))}</button>
         <button class="ghost-button text-sm" type="button" data-history-archive-task="${escapeHtml(taskId)}" data-history-archive-value="${archived ? "false" : "true"}">${escapeHtml(archived ? translate("archive.restore") : translate("action.archive"))}</button>
         ${hasSelectedOutputs
           ? `<button class="ghost-button text-sm danger-button" type="button" ${canDeleteUnselected && !deleteBlocked ? `data-history-delete-unselected="${escapeHtml(taskId)}"` : "disabled"}>${escapeHtml(confirmingDeleteUnselected ? translate("history.confirmDeleteUnselected") : translate("history.deleteUnselected"))}</button>`
@@ -2332,10 +2871,327 @@ function closeDetail(): void {
   renderDetailShell(translate("history.detailEmpty"));
 }
 
+function closeHistoryTagPicker(
+  { restoreFocus = true }: { restoreFocus?: boolean } = {},
+): void {
+  historyTagPickerEl?.remove();
+  historyTagPickerEl = null;
+  if (restoreFocus) historyTagPickerTrigger?.focus();
+  historyTagPickerTrigger = null;
+  historyTagPickerTaskIds = [];
+}
+
+function openHistoryTagPicker(
+  trigger: HTMLElement,
+  mode: "add" | "remove" | "detail",
+  taskIds: string[],
+): void {
+  closeHistoryTagPicker({ restoreFocus: false });
+  historyTagPickerTrigger = trigger;
+  historyTagPickerMode = mode;
+  historyTagPickerTaskIds = [
+    ...new Set(taskIds.filter(Boolean)),
+  ];
+  const selectedTagIds =
+    mode === "detail" &&
+    String(historyState.detailTask?.task_id || "") ===
+      historyTagPickerTaskIds[0]
+      ? (historyState.detailTask?.tags || []).map(
+          (tag: HistoryTag) => tag.tag_id,
+        )
+      : [];
+  const picker = document.createElement("div");
+  picker.className = "history-tag-picker";
+  picker.setAttribute("role", "dialog");
+  picker.setAttribute(
+    "aria-label",
+    translate(
+      mode === "remove"
+        ? "history.removeTag"
+        : "history.addTag",
+    ),
+  );
+  picker.innerHTML = `
+    <div class="history-tag-picker-header">
+      <strong>${escapeHtml(translate("history.tags"))}</strong>
+      <button
+        class="drawer-close-button"
+        type="button"
+        data-history-close-tag-picker
+        aria-label="${escapeHtml(translate("action.close"))}"
+      >×</button>
+    </div>
+    <div class="history-tag-picker-list">
+      ${
+        historyTags.length
+          ? historyTagPickerHtml(
+              historyTags,
+              selectedTagIds,
+              escapeHtml,
+            )
+          : `<div class="history-tag-manager-empty">${escapeHtml(translate("history.noTags"))}</div>`
+      }
+    </div>
+    ${
+      mode === "remove"
+        ? ""
+        : historyTagPickerCreateHtml(escapeHtml, {
+            placeholder: translate("history.createTag"),
+            submitLabel: translate("history.createTag"),
+          })
+    }
+  `;
+  document.body.append(picker);
+  historyTagPickerEl = picker;
+  picker
+    .querySelector<HTMLFormElement>(
+      "[data-history-tag-create-inline]",
+    )
+    ?.addEventListener("submit", (event) => {
+      event.preventDefault();
+      void createHistoryTagFromPicker();
+    });
+  const rect = trigger.getBoundingClientRect();
+  const pickerRect = picker.getBoundingClientRect();
+  const left = Math.max(
+    12,
+    Math.min(
+      window.innerWidth - pickerRect.width - 12,
+      rect.left,
+    ),
+  );
+  const top = Math.max(
+    12,
+    Math.min(
+      window.innerHeight - pickerRect.height - 12,
+      rect.bottom + 8,
+    ),
+  );
+  picker.style.left = `${left}px`;
+  picker.style.top = `${top}px`;
+  picker
+    .querySelector<HTMLElement>(
+      ".history-tag-picker-list input, "
+        + "[data-history-tag-create-name], button",
+    )
+    ?.focus();
+}
+
+async function createHistoryTagFromPicker(): Promise<void> {
+  const picker = historyTagPickerEl;
+  if (!picker || historyTagPickerCreatePending) return;
+  const input = picker.querySelector<HTMLInputElement>(
+    "[data-history-tag-create-name]",
+  );
+  const submit = picker.querySelector<HTMLButtonElement>(
+    "[data-history-tag-create-submit]",
+  );
+  const status = picker.querySelector<HTMLElement>(
+    "[data-history-tag-create-status]",
+  );
+  const name = input?.value.trim() || "";
+  if (!name) {
+    input?.focus();
+    return;
+  }
+  const taskIds = historyTagPickerTaskIds.slice();
+  if (!taskIds.length) return;
+  historyTagPickerCreatePending = true;
+  if (input) input.disabled = true;
+  if (submit) submit.disabled = true;
+  setText(status, "");
+  try {
+    const result = await createHistoryTagForTasks(
+      name,
+      taskIds,
+    );
+    closeHistoryTagPicker({ restoreFocus: false });
+    applyHistoryOrganizations(result.organizations);
+    await loadSummary();
+    setText(
+      els.resultSummary,
+      `${translate("history.createTag")}：${result.tag.name}`,
+    );
+  } catch (error) {
+    const message = historyTagCreateErrorMessage(error);
+    setText(status, message);
+    setText(els.resultSummary, message);
+    if (input) input.disabled = false;
+    if (submit) submit.disabled = false;
+    input?.focus();
+    input?.select();
+  } finally {
+    historyTagPickerCreatePending = false;
+    if (historyTagPickerEl === picker) {
+      if (input) input.disabled = false;
+      if (submit) submit.disabled = false;
+    }
+  }
+}
+
+async function applyHistoryTagPickerChange(
+  input: HTMLInputElement,
+): Promise<void> {
+  const tagId = input.value;
+  const ids = historyTagPickerTaskIds.slice();
+  if (!tagId || !ids.length) return;
+  const remove =
+    historyTagPickerMode === "remove" ||
+    (historyTagPickerMode === "detail" && !input.checked);
+  closeHistoryTagPicker();
+  await organizeHistoryTaskIds(
+    ids,
+    remove
+      ? { remove_tag_ids: [tagId] }
+      : { add_tag_ids: [tagId] },
+  );
+}
+
+function closeHistoryExportPicker(
+  { restoreFocus = true }: { restoreFocus?: boolean } = {},
+): void {
+  historyExportPickerEl?.remove();
+  historyExportPickerEl = null;
+  if (restoreFocus) historyExportTrigger?.focus();
+  historyExportTrigger = null;
+  historyExportTaskIds = [];
+}
+
+function openHistoryExportPicker(
+  trigger: HTMLElement,
+  taskIds: string[],
+): void {
+  const frozenTaskIds = [
+    ...new Set(taskIds.filter(Boolean)),
+  ];
+  if (!frozenTaskIds.length) return;
+  closeHistoryExportPicker({ restoreFocus: false });
+  historyExportTrigger = trigger;
+  historyExportTaskIds = frozenTaskIds;
+  const picker = document.createElement("div");
+  picker.className = "history-export-picker";
+  picker.setAttribute("role", "dialog");
+  picker.setAttribute(
+    "aria-label",
+    translate("history.export"),
+  );
+  picker.innerHTML = `
+    <div class="history-export-picker-header">
+      <div>
+        <strong>${escapeHtml(translate("history.export"))}</strong>
+        <span>${escapeHtml(formatTranslation("history.selectedCount", { count: frozenTaskIds.length }))}</span>
+      </div>
+      <button
+        class="drawer-close-button"
+        type="button"
+        data-history-close-export
+        aria-label="${escapeHtml(translate("history.closeExport"))}"
+      >×</button>
+    </div>
+    <div class="history-export-picker-actions">
+      <button
+        class="history-export-mode-button"
+        type="button"
+        data-history-export-mode="images_only"
+      >${escapeHtml(translate("history.exportImagesOnly"))}</button>
+      <button
+        class="history-export-mode-button"
+        type="button"
+        data-history-export-mode="images_with_prompts"
+      >${escapeHtml(translate("history.exportImagesWithPrompts"))}</button>
+    </div>
+    <div class="history-export-picker-status" data-history-export-status></div>
+  `;
+  document.body.append(picker);
+  historyExportPickerEl = picker;
+  const rect = trigger.getBoundingClientRect();
+  const pickerRect = picker.getBoundingClientRect();
+  picker.style.left = `${Math.max(
+    12,
+    Math.min(
+      window.innerWidth - pickerRect.width - 12,
+      rect.left,
+    ),
+  )}px`;
+  picker.style.top = `${Math.max(
+    12,
+    Math.min(
+      window.innerHeight - pickerRect.height - 12,
+      rect.bottom + 8,
+    ),
+  )}px`;
+  picker
+    .querySelector<HTMLElement>(
+      "[data-history-export-mode]",
+    )
+    ?.focus();
+}
+
+async function runHistoryExport(
+  mode: HistoryExportMode,
+): Promise<void> {
+  if (historyExportPending) return;
+  const taskIds = historyExportTaskIds.slice();
+  if (!taskIds.length) return;
+  historyExportPending = true;
+  historyExportPickerEl
+    ?.querySelectorAll<HTMLButtonElement>("button")
+    .forEach((button) => {
+      button.disabled = true;
+    });
+  setText(
+    historyExportPickerEl?.querySelector<HTMLElement>(
+      "[data-history-export-status]",
+    ) || null,
+    translate("history.exportPreparing"),
+  );
+  try {
+    const result = await createHistoryExport(taskIds, mode);
+    triggerHistoryExportDownload(result);
+    setText(
+      els.resultSummary,
+      `${translate("history.exportStarted")} · ${formatTranslation(
+        "history.exportSummary",
+        {
+          taskCount: result.task_count,
+          imageCount: result.image_count,
+        },
+      )}`,
+    );
+    closeHistoryExportPicker();
+  } catch (error) {
+    const message = errorMessage(
+      error,
+      translate("history.exportFailed"),
+    );
+    setText(
+      historyExportPickerEl?.querySelector<HTMLElement>(
+        "[data-history-export-status]",
+      ) || null,
+      message,
+    );
+    setText(els.resultSummary, message);
+  } finally {
+    historyExportPending = false;
+    historyExportPickerEl
+      ?.querySelectorAll<HTMLButtonElement>("button")
+      .forEach((button) => {
+        button.disabled = false;
+      });
+  }
+}
+
 function bindEvents(): void {
   bindHistoryResizerEvents();
+  els.tagManager?.querySelector<HTMLFormElement>(
+    "[data-history-tag-create]",
+  )?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    void createHistoryTagFromManager();
+  });
   let searchTimer = 0;
   els.search?.addEventListener("input", () => {
+    syncHistorySearchClear();
     window.clearTimeout(searchTimer);
     searchTimer = window.setTimeout(() => {
       historyState.q = els.search?.value.trim() || "";
@@ -2346,6 +3202,8 @@ function bindEvents(): void {
   });
   els.searchClear?.addEventListener("click", () => {
     if (els.search) els.search.value = "";
+    syncHistorySearchClear();
+    els.search?.focus();
     historyState.q = "";
     historyState.selectedTaskId = "";
     updateHistoryUrl();
@@ -2359,6 +3217,17 @@ function bindEvents(): void {
   });
   document.addEventListener("change", (event) => {
     const target = event.target as HTMLElement | null;
+    const tagPickerInput =
+      target?.closest<HTMLInputElement>(
+        ".history-tag-picker input[type=checkbox]",
+      );
+    if (
+      tagPickerInput &&
+      historyTagPickerEl?.contains(tagPickerInput)
+    ) {
+      void applyHistoryTagPickerChange(tagPickerInput);
+      return;
+    }
     const checkbox = target?.closest<HTMLInputElement>("[data-history-task-select]");
     if (!checkbox) return;
     const taskId = checkbox.dataset.historyTaskSelect || "";
@@ -2375,6 +3244,140 @@ function bindEvents(): void {
   });
   document.addEventListener("click", (event) => {
     const target = event.target as HTMLElement | null;
+    if (target?.closest("[data-history-close-export]")) {
+      closeHistoryExportPicker();
+      return;
+    }
+    const exportModeButton = target?.closest<HTMLElement>(
+      "[data-history-export-mode]",
+    );
+    if (exportModeButton) {
+      const mode =
+        exportModeButton.dataset.historyExportMode ===
+        "images_with_prompts"
+          ? "images_with_prompts"
+          : "images_only";
+      void runHistoryExport(mode);
+      return;
+    }
+    const exportButton = target?.closest<HTMLElement>(
+      "[data-history-open-export]",
+    );
+    if (exportButton) {
+      const taskId =
+        exportButton.dataset.historyOpenExport || "";
+      openHistoryExportPicker(
+        exportButton,
+        taskId
+          ? [taskId]
+          : [...historyState.selectedTaskIds],
+      );
+      return;
+    }
+    if (target?.closest("[data-history-close-tag-picker]")) {
+      closeHistoryTagPicker();
+      return;
+    }
+    const tagManageToggle = target?.closest<HTMLElement>(
+      "#historyTagManageToggle",
+    );
+    if (tagManageToggle) {
+      const opening = Boolean(els.tagManager?.hidden);
+      if (els.tagManager) {
+        els.tagManager.hidden = !opening;
+        els.tagManager.classList.toggle("hidden", !opening);
+      }
+      els.tagManageToggle?.setAttribute(
+        "aria-expanded",
+        opening ? "true" : "false",
+      );
+      if (opening) els.tagNameInput?.focus();
+      return;
+    }
+    const renameTagButton = target?.closest<HTMLElement>(
+      "[data-history-rename-tag]",
+    );
+    if (renameTagButton) {
+      void renameHistoryTagFromManager(
+        renameTagButton.dataset.historyRenameTag || "",
+      );
+      return;
+    }
+    const deleteTagButton = target?.closest<HTMLElement>(
+      "[data-history-delete-tag]",
+    );
+    if (deleteTagButton) {
+      void deleteHistoryTagFromManager(
+        deleteTagButton.dataset.historyDeleteTag || "",
+      );
+      return;
+    }
+    if (target?.closest("[data-history-favorite-filter]")) {
+      applyHistoryOrganizationFilterChange({
+        ...historyOrganizationFilters,
+        favorite: !historyOrganizationFilters.favorite,
+      });
+      return;
+    }
+    if (target?.closest("[data-history-untagged-filter]")) {
+      applyHistoryOrganizationFilterChange(
+        withHistoryUntaggedFilter(
+          historyOrganizationFilters,
+          !historyOrganizationFilters.untagged,
+        ),
+      );
+      return;
+    }
+    const tagFilterButton = target?.closest<HTMLElement>(
+      "[data-history-tag-filter]",
+    );
+    if (tagFilterButton) {
+      const tagId =
+        tagFilterButton.dataset.historyTagFilter || "";
+      applyHistoryOrganizationFilterChange(
+        withHistoryTagFilter(
+          historyOrganizationFilters,
+          tagId,
+          !historyOrganizationFilters.tagIds.includes(tagId),
+        ),
+      );
+      return;
+    }
+    const favoriteTaskButton = target?.closest<HTMLElement>(
+      "[data-history-favorite-task]",
+    );
+    if (favoriteTaskButton) {
+      const taskId =
+        favoriteTaskButton.dataset.historyFavoriteTask || "";
+      const task =
+        historyState.loadedTaskSummaries.get(taskId) ||
+        (String(historyState.detailTask?.task_id || "") ===
+        taskId
+          ? historyState.detailTask
+          : null);
+      void organizeHistoryTaskIds(
+        [taskId],
+        { favorite: !Boolean(task?.favorite) },
+      );
+      return;
+    }
+    const tagPickerButton = target?.closest<HTMLElement>(
+      "[data-history-open-tag-picker]",
+    );
+    if (tagPickerButton) {
+      const rawMode =
+        tagPickerButton.dataset.historyOpenTagPicker || "add";
+      const mode =
+        rawMode === "remove" || rawMode === "detail"
+          ? rawMode
+          : "add";
+      const taskIds =
+        mode === "detail"
+          ? [String(historyState.detailTask?.task_id || "")]
+          : [...historyState.selectedTaskIds];
+      openHistoryTagPicker(tagPickerButton, mode, taskIds);
+      return;
+    }
     const historySelect = target?.closest<HTMLElement>("[data-history-task-select]");
     if (historySelect) {
       if (handleHistoryTaskShortcutSelection(historySelect.dataset.historyTaskSelect || "", event)) return;
@@ -2521,13 +3524,41 @@ function bindEvents(): void {
     openHistoryContextMenu(card.dataset.historyTaskCardId || "", rect.left + 18, rect.top + 18);
   });
   document.addEventListener("click", (event) => {
-    if (!historyContextMenuEl || historyContextMenuEl.classList.contains("hidden")) return;
     const target = event.target as HTMLElement | null;
+    if (
+      historyExportPickerEl &&
+      target &&
+      !historyExportPickerEl.contains(target) &&
+      !historyExportTrigger?.contains(target)
+    ) {
+      closeHistoryExportPicker();
+    }
+    if (
+      historyTagPickerEl &&
+      target &&
+      !historyTagPickerEl.contains(target) &&
+      !historyTagPickerTrigger?.contains(target)
+    ) {
+      closeHistoryTagPicker();
+    }
+    if (!historyContextMenuEl || historyContextMenuEl.classList.contains("hidden")) return;
     if (target && historyContextMenuEl.contains(target)) return;
     closeHistoryContextMenu();
   }, true);
   els.bulkArchive?.addEventListener("click", () => void archiveSelectedTasks(true));
   els.bulkRestore?.addEventListener("click", () => void archiveSelectedTasks(false));
+  els.bulkFavorite?.addEventListener("click", () => {
+    void organizeHistoryTaskIds(
+      [...historyState.selectedTaskIds],
+      { favorite: true },
+    );
+  });
+  els.bulkUnfavorite?.addEventListener("click", () => {
+    void organizeHistoryTaskIds(
+      [...historyState.selectedTaskIds],
+      { favorite: false },
+    );
+  });
   els.bulkDelete?.addEventListener("click", () => void deleteSelectedTasks());
   els.bulkDeleteCancel?.addEventListener("click", () => {
     clearHistoryDeleteConfirmation();
@@ -2552,6 +3583,8 @@ function bindEvents(): void {
   }, { passive: true });
   document.addEventListener(LOCALE_CHANGE_EVENT, () => {
     document.title = historyDocumentTitle();
+    renderHistoryOrganizationFilters();
+    renderHistoryTagManager();
     syncHistoryViewMode();
     syncArchiveButtons();
     if (historyState.detailTask) {
@@ -2572,6 +3605,14 @@ function bindEvents(): void {
   });
   window.addEventListener("keydown", (event) => {
     if (event.key !== "Escape") return;
+    if (historyExportPickerEl) {
+      closeHistoryExportPicker();
+      return;
+    }
+    if (historyTagPickerEl) {
+      closeHistoryTagPicker();
+      return;
+    }
     if (historyContextMenuEl && !historyContextMenuEl.classList.contains("hidden")) {
       closeHistoryContextMenu();
       return;
@@ -2589,12 +3630,18 @@ function errorMessage(error: unknown, fallback: string): string {
 }
 
 async function bootHistoryPage(): Promise<void> {
-  restoreHistoryThemePreference();
-  bindHistoryThemePreference();
+  initializeHistoryShell({
+    selectHistoryTask: loadTaskDetail,
+    refreshHistoryTasks: async () => {
+      await Promise.all([
+        loadSummary(),
+        loadTasks({ reset: true }),
+      ]);
+    },
+  });
   applyHistoryLocale();
   restoreHistoryLayoutPreference();
   syncStateFromUrl();
-  initSegmentedIndicatorFeature();
   renderDetailShell(translate("history.detailEmpty"));
   bindEvents();
   await loadSummary();

@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import base64
 import json
 import sqlite3
 from contextlib import closing
@@ -8,6 +7,13 @@ from datetime import UTC, datetime, timedelta
 from math import gcd
 from pathlib import Path
 from typing import Any
+
+from .history_organizer import HistoryOrganizer
+from .history_query import (
+    HistoryQueryService,
+    RATIO_OTHER_VALUE,
+    encode_history_cursor as _encode_cursor,
+)
 
 
 SUMMARY_KEYS = {
@@ -83,7 +89,6 @@ SUMMARY_KEYS = {
 TASK_INDEX_SCHEMA_VERSION = 9
 TERMINAL_TASK_STATUSES = frozenset({"completed", "failed", "partial_failed"})
 TASK_CARD_PARAMETER_KEYS = ("canvas.aspect_ratio", "canvas.resolution")
-RATIO_OTHER_VALUE = "__other__"
 KNOWN_RATIO_ORIENTATIONS = {
     "1:1": "square",
     "4:5": "portrait",
@@ -209,6 +214,10 @@ class SQLiteTaskIndex:
                 connection.execute(f"alter table task_index add column {name} {definition}")
 
     def _ensure_structured_indexes(self, connection: sqlite3.Connection) -> None:
+        connection.execute(
+            "create index if not exists idx_task_index_history_cursor "
+            "on task_index(created_at desc, task_id desc)"
+        )
         connection.execute("create index if not exists idx_task_index_month_created on task_index(month_key, created_at desc, task_id desc)")
         connection.execute("create index if not exists idx_task_index_status on task_index(status)")
         connection.execute("create index if not exists idx_task_index_archived on task_index(archived_at)")
@@ -378,6 +387,28 @@ class SQLiteTaskIndex:
             with connection:
                 connection.execute("delete from task_index where task_id = ?", (task_id,))
                 self._delete_fts_row(connection, task_id)
+
+    def existing_task_ids(self, task_ids: list[str]) -> set[str]:
+        normalized = list(
+            dict.fromkeys(
+                task_id
+                for value in task_ids
+                if (task_id := str(value or "").strip())
+            )
+        )
+        if not normalized:
+            return set()
+        placeholders = ", ".join("?" for _ in normalized)
+        with closing(self._connect()) as connection:
+            rows = connection.execute(
+                f"""
+                select task_id
+                from task_index
+                where task_id in ({placeholders})
+                """,
+                tuple(normalized),
+            ).fetchall()
+        return {str(row["task_id"]) for row in rows}
 
     def list_summaries(self, *, limit: int | None = None) -> list[dict[str, Any]]:
         with closing(self._connect()) as connection:
@@ -586,156 +617,42 @@ class SQLiteTaskIndex:
         backend: str = "",
         provider: str = "",
         archived: bool | None = None,
+        favorite: bool | None = None,
+        tag_ids: list[str] | None = None,
+        untagged: bool = False,
         sort: str = "newest",
         direction: str = "next",
     ) -> dict[str, Any]:
-        safe_limit = min(100, max(1, int(limit or 50)))
-        sort_order = "oldest" if sort == "oldest" else "newest"
-        page_direction = "previous" if direction == "previous" else "next"
-        where: list[str] = []
-        params: list[Any] = []
-        if month:
-            where.append("month_key = ?")
-            params.append(month)
-        if mode == "generate":
-            where.append("mode = 'generate'")
-        elif mode == "edit":
-            where.append("mode != '' and mode != 'generate'")
-        elif mode:
-            where.append("mode = ?")
-            params.append(mode)
-        if status:
-            where.append("status = ?")
-            params.append(status)
-        if prompt_mode:
-            where.append("prompt_mode = ?")
-            params.append(prompt_mode)
-        if size:
-            where.append("size = ?")
-            params.append(size)
-        if quality:
-            where.append("quality = ?")
-            params.append(quality)
-        if ratio:
-            if ratio == RATIO_OTHER_VALUE:
-                where.append("ratio = ''")
-            else:
-                where.append("ratio = ?")
-                params.append(ratio)
-        if orientation:
-            where.append("orientation = ?")
-            params.append(orientation)
-        if backend:
-            where.append("backend = ?")
-            params.append(backend)
-        if provider:
-            where.append("provider = ?")
-            params.append(provider)
-        if archived is True:
-            where.append("archived_at != ''")
-        elif archived is False:
-            where.append("archived_at = ''")
-        cursor_values = _decode_cursor(cursor)
-        if cursor_values is not None:
-            cursor_created_at, cursor_task_id = cursor_values
-            if page_direction == "previous":
-                if sort_order == "oldest":
-                    where.append("(created_at < ? or (created_at = ? and task_id < ?))")
-                else:
-                    where.append("(created_at > ? or (created_at = ? and task_id > ?))")
-            elif sort_order == "oldest":
-                where.append("(created_at > ? or (created_at = ? and task_id > ?))")
-            else:
-                where.append("(created_at < ? or (created_at = ? and task_id < ?))")
-            params.extend([cursor_created_at, cursor_created_at, cursor_task_id])
-        clean_query = q.strip()
-        search_param_count = 0
-        if clean_query:
-            search_like = f"%{clean_query}%"
-            if self.fts_enabled:
-                where.append(
-                    "(task_id like ? or search_text like ? or "
-                    "task_id in (select task_id from task_index_fts where task_index_fts match ?))"
-                )
-                params.extend([search_like, search_like, _fts_query(clean_query)])
-                search_param_count = 3
-            else:
-                where.append("(task_id like ? or search_text like ?)")
-                params.extend([search_like, search_like])
-                search_param_count = 2
-        sql = (
-            "select task_id, created_at, updated_at, completed_at, terminal_at, status, mode, size, quality, prompt_mode, ratio, orientation, "
-            "backend, provider, archived_at, generated_count, failed_count, total_count, thumbnail_url, prompt_preview "
-            "from task_index"
+        return self._history_query_service().query(
+            limit=limit,
+            cursor=cursor,
+            q=q,
+            month=month,
+            mode=mode,
+            status=status,
+            prompt_mode=prompt_mode,
+            size=size,
+            quality=quality,
+            ratio=ratio,
+            orientation=orientation,
+            backend=backend,
+            provider=provider,
+            archived=archived,
+            favorite=favorite,
+            tag_ids=tag_ids,
+            untagged=untagged,
+            sort=sort,
+            direction=direction,
         )
-        if where:
-            sql += " where " + " and ".join(where)
-        if page_direction == "previous":
-            order_clause = " order by created_at desc, task_id desc limit ?" if sort_order == "oldest" else " order by created_at asc, task_id asc limit ?"
-        else:
-            order_clause = " order by created_at asc, task_id asc limit ?" if sort_order == "oldest" else " order by created_at desc, task_id desc limit ?"
-        sql += order_clause
-        params.append(safe_limit + 1)
-        try:
-            rows = self._history_rows(sql, params)
-        except sqlite3.OperationalError:
-            if not clean_query or not self.fts_enabled:
-                raise
-            where = [clause for clause in where if "task_index_fts" not in clause]
-            params_without_limit = params[:-1] if params else []
-            params = params_without_limit[:-search_param_count] if search_param_count else params_without_limit
-            search_like = f"%{clean_query}%"
-            where.append("(task_id like ? or search_text like ?)")
-            params.extend([search_like, search_like])
-            params.append(safe_limit + 1)
-            fallback_sql = sql.split(" where ")[0]
-            fallback_sql += " where " + " and ".join(where)
-            fallback_sql += order_clause
-            rows = self._history_rows(fallback_sql, params)
-        has_more = len(rows) > safe_limit
-        page_rows = rows[:safe_limit]
-        if page_direction == "previous":
-            page_rows = list(reversed(page_rows))
-        next_cursor = _encode_cursor(str(page_rows[-1]["created_at"]), str(page_rows[-1]["task_id"])) if page_direction == "next" and has_more and page_rows else None
-        previous_cursor = _encode_cursor(str(page_rows[0]["created_at"]), str(page_rows[0]["task_id"])) if page_direction == "previous" and has_more and page_rows else None
-        return {
-            "tasks": [_history_row_response(row) for row in page_rows],
-            "next_cursor": next_cursor,
-            "previous_cursor": previous_cursor,
-        }
-
-    def _history_rows(self, sql: str, params: list[Any]) -> list[sqlite3.Row]:
-        with closing(self._connect()) as connection:
-            return connection.execute(sql, tuple(params)).fetchall()
 
     def history_summary(self) -> dict[str, Any]:
-        with closing(self._connect()) as connection:
-            total = int(connection.execute("select count(*) from task_index").fetchone()[0])
-            archived_total = int(connection.execute("select count(*) from task_index where archived_at != ''").fetchone()[0])
-            months = _count_rows(connection, "month_key", "month_key != ''", order_by="month_key desc")
-            modes = _mode_count_rows(connection)
-            statuses = _count_rows(connection, "status", "status != ''")
-            prompt_modes = _count_rows(connection, "prompt_mode", "prompt_mode != ''")
-            sizes = _count_rows(connection, "size", "size != ''")
-            qualities = _count_rows(connection, "quality", "quality != ''")
-            ratios = _ratio_count_rows(connection)
-            orientations = _count_rows(connection, "orientation", "orientation != ''")
-            backends = _count_rows(connection, "backend", "backend != ''")
-            providers = _count_rows(connection, "provider", "provider != ''")
-        return {
-            "total": total,
-            "archived_total": archived_total,
-            "months": [{"month": item["value"], "count": item["count"]} for item in months],
-            "modes": modes,
-            "statuses": statuses,
-            "prompt_modes": prompt_modes,
-            "sizes": sizes,
-            "qualities": qualities,
-            "ratios": ratios,
-            "orientations": orientations,
-            "backends": backends,
-            "providers": providers,
-        }
+        return self._history_query_service().summary()
+
+    def _history_query_service(self) -> HistoryQueryService:
+        organizer = HistoryOrganizer(
+            self.path.with_name("webui-history-organizer.db")
+        )
+        return HistoryQueryService(self, organizer)
 
     def _upsert_fts_row(self, connection: sqlite3.Connection, task_id: str, search_text: str) -> None:
         if not self.fts_enabled:
@@ -1094,81 +1011,3 @@ def _nonnegative_int(value: Any) -> int:
 def _truncate(value: str, limit: int) -> str:
     text = " ".join(value.split())
     return text if len(text) <= limit else text[: limit - 1].rstrip() + "…"
-
-
-def _encode_cursor(created_at: str, task_id: str) -> str:
-    raw = json.dumps({"created_at": created_at, "task_id": task_id}, ensure_ascii=False).encode("utf-8")
-    return base64.urlsafe_b64encode(raw).decode("ascii").rstrip("=")
-
-
-def _decode_cursor(cursor: str | None) -> tuple[str, str] | None:
-    if not cursor:
-        return None
-    try:
-        padded = cursor + "=" * (-len(cursor) % 4)
-        payload = json.loads(base64.urlsafe_b64decode(padded.encode("ascii")).decode("utf-8"))
-    except (ValueError, json.JSONDecodeError):
-        return None
-    if not isinstance(payload, dict):
-        return None
-    created_at = str(payload.get("created_at") or "")
-    task_id = str(payload.get("task_id") or "")
-    return (created_at, task_id) if created_at and task_id else None
-
-
-def _fts_query(query: str) -> str:
-    terms = [term.replace('"', '""') for term in query.split() if term.strip()]
-    return " AND ".join(f'"{term}"' for term in terms) if terms else '""'
-
-
-def _history_row_response(row: sqlite3.Row) -> dict[str, Any]:
-    return {
-        "task_id": str(row["task_id"]),
-        "created_at": str(row["created_at"]),
-        "updated_at": str(row["updated_at"]),
-        "completed_at": str(row["completed_at"]),
-        "terminal_at": str(row["terminal_at"]),
-        "status": str(row["status"]),
-        "mode": str(row["mode"]),
-        "size": str(row["size"]),
-        "quality": str(row["quality"]),
-        "prompt_mode": str(row["prompt_mode"]),
-        "ratio": str(row["ratio"]),
-        "orientation": str(row["orientation"]),
-        "backend": str(row["backend"]),
-        "provider": str(row["provider"]),
-        "archived": bool(str(row["archived_at"])),
-        "generated_count": int(row["generated_count"]),
-        "failed_count": int(row["failed_count"]),
-        "total_count": int(row["total_count"]),
-        "thumbnail_url": str(row["thumbnail_url"]),
-        "prompt_preview": str(row["prompt_preview"]),
-    }
-
-
-def _count_rows(connection: sqlite3.Connection, column: str, where: str, *, order_by: str = "count(*) desc, value") -> list[dict[str, Any]]:
-    rows = connection.execute(
-        f"select {column} as value, count(*) as count from task_index where {where} group by {column} order by {order_by}"
-    ).fetchall()
-    return [{"value": str(row["value"]), "count": int(row["count"])} for row in rows]
-
-
-def _mode_count_rows(connection: sqlite3.Connection) -> list[dict[str, Any]]:
-    rows = connection.execute(
-        """
-        select case when mode = 'generate' then 'generate' else 'edit' end as value, count(*) as count
-        from task_index
-        where mode != ''
-        group by value
-        order by case value when 'generate' then 0 else 1 end
-        """
-    ).fetchall()
-    return [{"value": str(row["value"]), "count": int(row["count"])} for row in rows]
-
-
-def _ratio_count_rows(connection: sqlite3.Connection) -> list[dict[str, Any]]:
-    rows = _count_rows(connection, "ratio", "ratio != ''")
-    other_count = int(connection.execute("select count(*) from task_index where ratio = ''").fetchone()[0])
-    if other_count:
-        rows.append({"value": RATIO_OTHER_VALUE, "count": other_count})
-    return rows
