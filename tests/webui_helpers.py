@@ -504,12 +504,14 @@ class SlowFourthImageClient(FakeImageClient):
     def __init__(self, delay_seconds: float = 0.2) -> None:
         super().__init__()
         self.delay_seconds = delay_seconds
+        self._generate_lock = threading.Lock()
 
     def generate_image(self, **kwargs: Any):
         from codex_image.client import ImageResult
 
-        self.generate_calls.append(kwargs)
-        call_number = len(self.generate_calls)
+        with self._generate_lock:
+            self.generate_calls.append(kwargs)
+            call_number = len(self.generate_calls)
         if call_number == 4:
             time.sleep(self.delay_seconds)
         return ImageResult(

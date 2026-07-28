@@ -842,10 +842,10 @@ class WebUIQueueTests(unittest.TestCase):
         from codex_image.webui.app import create_app
         from codex_image.webui.queue import QueueChannel
 
-        fake = SlowFourthImageClient(delay_seconds=0.2)
+        fake = SlowFourthImageClient(delay_seconds=2)
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            with patch.dict(os.environ, {"CODEX_IMAGE_REQUEST_TIMEOUT_SECONDS": "0.12"}):
+            with patch.dict(os.environ, {"CODEX_IMAGE_REQUEST_TIMEOUT_SECONDS": "1"}):
                 app = create_app(
                     output_root=root,
                     client_factory=lambda: fake,
@@ -876,7 +876,7 @@ class WebUIQueueTests(unittest.TestCase):
         self.assertEqual(first_task["generated_count"], 3)
         self.assertEqual(first_task["failed_count"], 1)
         self.assertEqual(first_task["total_count"], 4)
-        self.assertIn("Image request timed out after 0.12s", first_task["last_error"])
+        self.assertIn("Image request timed out after 1s", first_task["last_error"])
         self.assertEqual(
             [(item["index"], item["status"]) for item in first_task["outputs"]],
             [(1, "completed"), (2, "completed"), (3, "completed"), (4, "failed")],
