@@ -63,6 +63,16 @@ class WebUIQueueTests(unittest.TestCase):
         image.save(buffer, format="PNG")
         return buffer.getvalue()
 
+    def _cancel_testclient_background_task(
+        self,
+        task: asyncio.Task[Any],
+    ) -> None:
+        completed = threading.Event()
+        loop = task.get_loop()
+        loop.call_soon_threadsafe(task.add_done_callback, lambda _task: completed.set())
+        loop.call_soon_threadsafe(task.cancel)
+        self.assertTrue(completed.wait(2), "background task did not stop after cancellation")
+
     def test_queue_api_reports_waiting_tasks(self) -> None:
         from codex_image.webui.app import create_app
 
@@ -542,12 +552,7 @@ class WebUIQueueTests(unittest.TestCase):
             app = create_app(output_root=Path(tmp), client_factory=lambda: FakeImageClient(), auth_checker=lambda: True)
             with TestClient(app) as client:
                 original_worker = app.state.queue_worker_task
-                original_worker.cancel()
-                for _ in range(50):
-                    if original_worker.done():
-                        break
-                    time.sleep(0.02)
-                self.assertTrue(original_worker.done())
+                self._cancel_testclient_background_task(original_worker)
 
                 response = client.get("/api/queue")
                 restarted_worker = app.state.queue_worker_task
@@ -595,12 +600,7 @@ class WebUIQueueTests(unittest.TestCase):
             app = create_app(output_root=Path(tmp), client_factory=lambda: FakeImageClient(), auth_checker=lambda: True)
             with TestClient(app) as client:
                 original_worker = app.state.queue_worker_task
-                original_worker.cancel()
-                for _ in range(50):
-                    if original_worker.done():
-                        break
-                    time.sleep(0.02)
-                self.assertTrue(original_worker.done())
+                self._cancel_testclient_background_task(original_worker)
 
                 response = client.get("/api/events")
                 restarted_worker = app.state.queue_worker_task
