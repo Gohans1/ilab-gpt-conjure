@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 from typing import Any
 
+from .atomic_files import atomic_write_text
 from .color_settings import (
     DEFAULT_COLOR_FAVORITES,
     DEFAULT_COLOR_RECENT_LIMIT,
@@ -142,16 +143,22 @@ class WebUISettings:
         persisted: dict[str, str] = {key: str(value) for key, value in paths.items()}
         if locale:
             persisted["locale"] = locale
-        self.path.parent.mkdir(parents=True, exist_ok=True)
-        self.path.write_text(json.dumps(persisted, indent=2, ensure_ascii=False), encoding="utf-8")
+        atomic_write_text(
+            self.path,
+            json.dumps(persisted, indent=2, ensure_ascii=False),
+            mode=0o600,
+        )
         return paths
 
     def write_locale(self, locale: Any) -> str:
         normalized = _settings_locale(locale)
         payload = self._read_payload()
         payload["locale"] = normalized
-        self.path.parent.mkdir(parents=True, exist_ok=True)
-        self.path.write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
+        atomic_write_text(
+            self.path,
+            json.dumps(payload, indent=2, ensure_ascii=False),
+            mode=0o600,
+        )
         return normalized
 
 
@@ -231,8 +238,11 @@ class AuthSettings:
     def write_source(self, source: str) -> None:
         if source not in AUTH_SOURCES:
             raise ValueError(f"Unsupported auth source: {source}")
-        self.path.parent.mkdir(parents=True, exist_ok=True)
-        self.path.write_text(json.dumps({"source": source}, indent=2), encoding="utf-8")
+        atomic_write_text(
+            self.path,
+            json.dumps({"source": source}, indent=2),
+            mode=0o600,
+        )
 
 
 ApiSettings = ProviderSettings

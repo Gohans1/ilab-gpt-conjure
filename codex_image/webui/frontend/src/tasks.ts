@@ -54,7 +54,7 @@ async function applyTasksSnapshot(
 ) {
   const previousLocalPendingTasks = state.tasks.filter((task: any) => task?.local_pending);
   const pendingTask = state.pendingTaskId ? state.tasks.find((task: any) => task.task_id === state.pendingTaskId) : null;
-  state.tasks = Array.isArray(tasks) ? tasks : [];
+  state.tasks = mergeActiveQueueTaskDetails(Array.isArray(tasks) ? tasks : []);
   if (Array.isArray(taskGroups)) {
     state.taskSidebarGroupCounts = Object.fromEntries(
       taskGroups.map((group: any) => [String(group?.key || ""), Math.max(0, Number(group?.count || 0))]),
@@ -79,6 +79,29 @@ async function applyTasksSnapshot(
   renderArchiveButton();
   renderArchiveModal();
   await renderSelectedTaskPreview(requestSeq);
+}
+
+function mergeActiveQueueTaskDetails(tasks: any[]) {
+  const activeTasks = [
+    ...(Array.isArray(state.queue?.waiting) ? state.queue.waiting : []),
+    ...(Array.isArray(state.queue?.running) ? state.queue.running : []),
+  ];
+  const activeById = new Map(
+    activeTasks
+      .filter((task: any) => task?.task_id)
+      .map((task: any) => [String(task.task_id), task]),
+  );
+  const merged = tasks.map((task: any) => {
+    const taskId = String(task?.task_id || "");
+    const activeTask = activeById.get(taskId);
+    if (!activeTask) return task;
+    activeById.delete(taskId);
+    return { ...task, ...activeTask, summary_only: false };
+  });
+  activeById.forEach((task: any) => {
+    merged.push({ ...task, summary_only: false });
+  });
+  return merged;
 }
 
 async function loadMoreSidebarTaskGroup(groupKey: any) {

@@ -37,6 +37,19 @@ class PromptGuardTests(unittest.TestCase):
         self.assertIn("不得优化", instructions)
         self.assertIn("逐字使用", instructions)
 
+    def test_prompt_guard_rules_follow_submission_locale(self) -> None:
+        from codex_image.prompt_guard import build_prompt_guard_instructions
+
+        english = build_prompt_guard_instructions([], locale="en")
+        japanese = build_prompt_guard_instructions([], locale="ja")
+        chinese = build_prompt_guard_instructions([], locale="zh-CN")
+
+        self.assertIn("Prompt fidelity guidance", english)
+        self.assertIn("プロンプト忠実度ガイド", japanese)
+        self.assertIn("提示词保真规则", chinese)
+        self.assertNotIn("提示词保真规则", english)
+        self.assertNotIn("提示词保真规则", japanese)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -1,17 +1,21 @@
 from __future__ import annotations
 
-from io import BytesIO
+import os
 from pathlib import Path
 import subprocess
 import sys
+import tempfile
 from typing import Any
 import zipfile
 
 from fastapi import Body, FastAPI, HTTPException, Query, Request
-from fastapi.responses import FileResponse, StreamingResponse
+from fastapi.responses import FileResponse
 
 from codex_image.webui.context import WebUIContext
 from codex_image.webui.events import generation_page_payload
+from codex_image.webui.resource_limits import (
+    MAX_TASK_ARCHIVE_INPUT_BYTES,
+)
 from codex_image.webui.storage import utc_now
 from codex_image.webui.task_metadata import (
     _accept_partial_task_successes,
@@ -27,6 +31,86 @@ from codex_image.webui.task_metadata import (
 )
 from codex_image.webui.thumbnails import create_image_thumbnail, thumbnail_needs_refresh
 from .history import organization_payload
+
+
+class TaskArchiveTooLargeError(ValueError):
+    pass
+
+
+class OneTimeTaskArchiveResponse(FileResponse):
+    def __init__(self, path: Path, *, filename: str) -> None:
+        self._archive_path = path
+        super().__init__(
+            path,
+            media_type="application/zip",
+            filename=filename,
+        )
+
+    async def __call__(
+        self,
+        scope: dict[str, Any],
+        receive: Any,
+        send: Any,
+    ) -> None:
+        try:
+            await super().__call__(scope, receive, send)
+        finally:
+            self._archive_path.unlink(missing_ok=True)
+
+
+def _write_task_output_archive(
+    *,
+    task_id: str,
+    output_paths: list[Path],
+    temp_root: Path,
+    max_input_bytes: int = MAX_TASK_ARCHIVE_INPUT_BYTES,
+) -> Path:
+    total_size = 0
+    for path in output_paths:
+        total_size += path.stat().st_size
+        if total_size > max_input_bytes:
+            raise TaskArchiveTooLargeError(
+                "Task archive input exceeds the configured limit"
+            )
+
+    descriptor, temporary_name = tempfile.mkstemp(
+        prefix="ilab-conjure-task-output-",
+        suffix=".zip",
+        dir=temp_root,
+    )
+    os.close(descriptor)
+    temporary_path = Path(temporary_name)
+    try:
+        copied_size = 0
+        with zipfile.ZipFile(
+            temporary_path,
+            mode="w",
+            compression=zipfile.ZIP_DEFLATED,
+        ) as archive:
+            used_names: set[str] = set()
+            for index, path in enumerate(output_paths, start=1):
+                archive_name = path.name
+                if archive_name in used_names:
+                    archive_name = (
+                        f"{task_id}-image-{index}{path.suffix}"
+                    )
+                used_names.add(archive_name)
+                with path.open("rb") as source, archive.open(
+                    archive_name,
+                    mode="w",
+                    force_zip64=True,
+                ) as destination:
+                    while chunk := source.read(1024 * 1024):
+                        copied_size += len(chunk)
+                        if copied_size > max_input_bytes:
+                            raise TaskArchiveTooLargeError(
+                                "Task archive input exceeds the configured limit"
+                            )
+                        destination.write(chunk)
+    except Exception:
+        temporary_path.unlink(missing_ok=True)
+        raise
+    return temporary_path
 
 
 def register_task_routes(app: FastAPI, ctx: WebUIContext) -> None:
@@ -189,7 +273,10 @@ def register_task_routes(app: FastAPI, ctx: WebUIContext) -> None:
         }
 
     @app.get("/api/tasks/{task_id}/outputs.zip")
-    def download_task_outputs_zip(task_id: str, selected: bool = Query(False)) -> StreamingResponse:
+    def download_task_outputs_zip(
+        task_id: str,
+        selected: bool = Query(False),
+    ) -> OneTimeTaskArchiveResponse:
         try:
             metadata = ctx.storage.read_metadata(task_id)
             output_paths = _downloadable_output_paths(ctx.storage, metadata, selected_only=selected)
@@ -199,21 +286,40 @@ def register_task_routes(app: FastAPI, ctx: WebUIContext) -> None:
             detail = "Task has fewer than two selected outputs" if selected else "Task has fewer than two downloadable outputs"
             raise HTTPException(status_code=400, detail=detail)
 
-        buffer = BytesIO()
-        with zipfile.ZipFile(buffer, mode="w", compression=zipfile.ZIP_DEFLATED) as archive:
-            used_names: set[str] = set()
-            for index, path in enumerate(output_paths, start=1):
-                archive_name = path.name
-                if archive_name in used_names:
-                    archive_name = f"{task_id}-image-{index}{path.suffix}"
-                used_names.add(archive_name)
-                archive.write(path, archive_name)
-        buffer.seek(0)
-        return StreamingResponse(
-            buffer,
-            media_type="application/zip",
-            headers={"Content-Disposition": f'attachment; filename="{task_id}-images.zip"'},
-        )
+        try:
+            archive_path = _write_task_output_archive(
+                task_id=task_id,
+                output_paths=output_paths,
+                temp_root=ctx.history_export_service.temp_root,
+                max_input_bytes=MAX_TASK_ARCHIVE_INPUT_BYTES,
+            )
+        except TaskArchiveTooLargeError as exc:
+            raise HTTPException(
+                status_code=413,
+                detail={
+                    "code": "task_archive_too_large",
+                    "message": "The task outputs are too large to archive.",
+                    "max_input_bytes": MAX_TASK_ARCHIVE_INPUT_BYTES,
+                },
+            ) from exc
+        except FileNotFoundError as exc:
+            raise HTTPException(
+                status_code=404,
+                detail="Task output not found",
+            ) from exc
+        except OSError as exc:
+            raise HTTPException(
+                status_code=500,
+                detail="Task archive could not be created",
+            ) from exc
+        try:
+            return OneTimeTaskArchiveResponse(
+                archive_path,
+                filename=f"{task_id}-images.zip",
+            )
+        except Exception:
+            archive_path.unlink(missing_ok=True)
+            raise
 
     @app.post("/api/tasks/{task_id}/reveal-output")
     def reveal_task_output_directory(task_id: str, request: Request) -> dict[str, Any]:
@@ -406,7 +512,23 @@ def register_task_routes(app: FastAPI, ctx: WebUIContext) -> None:
             ctx.queue_manager.attempts.pop(task_id, None)
             ctx.queue_manager.failed_channels.pop(task_id, None)
         ctx.queue_storage.enqueue(task_id)
-        h["ensure_queue_worker_running"]()
+        if ctx.queue_manager is not None:
+            snapshot = (
+                metadata.get("generation_snapshot")
+                if isinstance(metadata.get("generation_snapshot"), dict)
+                else {}
+            )
+            source = (
+                "codex"
+                if str(snapshot.get("provider_id") or "") == "codex"
+                else "api"
+            )
+            channels = h["queue_channels_for_source"](source)
+            ctx.queue_manager.channels = channels
+            ctx.queue_manager.max_attempts = h["queue_max_attempts_for_channels"](
+                channels
+            )
+        h["wake_queue_worker"]()
         return {
             "task": _with_file_urls(
                 metadata,

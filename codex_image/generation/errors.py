@@ -16,6 +16,10 @@ _MESSAGES = {
     "asset_download_failed": "A generated asset could not be downloaded.",
     "request_timeout": "The provider request timed out.",
     "provider_credentials_missing": "The saved provider credentials are no longer available.",
+    "provider_credentials_origin_changed": (
+        "The provider address changed after this task was queued. Review the provider settings "
+        "and submit the task again."
+    ),
     "snapshot_manifest_incompatible": "The queued request is incompatible with the current model manifest.",
 }
 _ANSI_ESCAPE_RE = re.compile(r"\x1b(?:\[[0-?]*[ -/]*[@-~]|[@-_])")

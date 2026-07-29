@@ -144,7 +144,7 @@ metadata, SQLite databases, or debug logs.
 ## Requirements
 
 - Python 3.11 or newer.
-- WebUI dependencies from `requirements-webui.txt`.
+- WebUI dependencies are exactly pinned with package hashes in `requirements-webui.txt`.
 - Optional frontend tooling from `package.json` when editing TypeScript or CSS.
 
 ## Install
@@ -153,8 +153,16 @@ metadata, SQLite databases, or debug logs.
 git clone https://github.com/kadevin/ilab-conjure.git
 cd ilab-conjure
 python3 -m venv .venv
-.venv/bin/python -m pip install -r requirements-webui.txt
+.venv/bin/python -m pip install --require-hashes -r requirements-webui.txt
 ```
+
+Close the old app before upgrading. Packaged builds already contain the matching
+dependencies and normally show no dependency prompt. A source or legacy
+portable install that reuses an older `.venv` may print `Installing WebUI
+dependencies...` once. If that step fails, keep the existing data and retry
+after checking network access or replace the full application package. Do not
+delete `data/`, `output/`, `source-data/`, gallery, or settings files: dependency
+installation never needs to reset them.
 
 ## Start the WebUI
 
@@ -173,7 +181,7 @@ Start WebUI.bat
 Manual:
 
 ```bash
-.venv/bin/python -m uvicorn codex_image.webui.app:app --host 127.0.0.1 --port 8787 --no-access-log
+.venv/bin/python -m codex_image.webui.server codex_image.webui.app:app --host 127.0.0.1 --port 8787 --no-access-log
 ```
 
 Then open:
@@ -185,15 +193,15 @@ http://127.0.0.1:8787/
 ## App packages
 
 Download the current packages from [Downloads / Releases](RELEASES.md), or open
-[GitHub Release v0.7.2](https://github.com/kadevin/ilab-conjure/releases/tag/v0.7.2)
+[GitHub Release v0.7.3](https://github.com/kadevin/ilab-conjure/releases/tag/v0.7.3)
 directly.
 
 New users should choose the standard packages:
 
-1. macOS: download `iLab-GPT-CONJURE-macos-arm64-0.7.2.dmg`
-   for Apple Silicon or `iLab-GPT-CONJURE-macos-x64-0.7.2.dmg`
+1. macOS: download `iLab-GPT-CONJURE-macos-arm64-0.7.3.dmg`
+   for Apple Silicon or `iLab-GPT-CONJURE-macos-x64-0.7.3.dmg`
    for Intel, then drag `iLab GPT CONJURE.app` to Applications.
-2. Windows: download `iLab-GPT-CONJURE-windows-x64_0.7.2.zip`,
+2. Windows: download `iLab-GPT-CONJURE-windows-x64_0.7.3.zip`,
    extract it into a normal user directory, and run `iLab GPT CONJURE.exe`.
 
 Standard packages store user data in `~/Library/Application Support/iLab GPT

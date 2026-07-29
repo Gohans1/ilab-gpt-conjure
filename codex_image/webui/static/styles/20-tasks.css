@@ -681,6 +681,7 @@
   -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #111 calc(100% - 2px));
   mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #111 calc(100% - 2px));
   animation: generation-relay-spin 1.3s linear infinite;
+  animation-delay: var(--task-spinner-outer-delay, 0ms);
   opacity: 0.96;
 }
 
@@ -696,7 +697,7 @@
   -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #111 calc(100% - 1px));
   mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #111 calc(100% - 1px));
   animation: generation-relay-spin-reverse 0.95s linear infinite;
-  animation-delay: -0.28s;
+  animation-delay: var(--task-spinner-inner-delay, -280ms);
   opacity: 0.9;
 }
 
@@ -795,6 +796,7 @@
   -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #111 calc(100% - 3px));
   mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #111 calc(100% - 3px));
   animation: generation-relay-spin 1.3s linear infinite;
+  animation-delay: var(--task-spinner-outer-delay, 0ms);
   opacity: 0.96;
 }
 
@@ -810,7 +812,7 @@
   -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #111 calc(100% - 2px));
   mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #111 calc(100% - 2px));
   animation: generation-relay-spin-reverse 0.95s linear infinite;
-  animation-delay: -0.28s;
+  animation-delay: var(--task-spinner-inner-delay, -280ms);
   opacity: 0.9;
 }
 
@@ -999,8 +1001,8 @@
 
 .task-action-icon {
   display: block;
-  width: 12px;
-  height: 12px;
+  width: 14px;
+  height: 14px;
   fill: none;
   stroke: currentColor;
   stroke-width: 2;
@@ -1036,6 +1038,12 @@
     opacity var(--motion-base),
     transform var(--motion-base),
     border-color var(--motion-base);
+}
+
+.task-queue-actions-running {
+  padding: 0;
+  border: 0;
+  background: transparent;
 }
 
 .task-card:hover .task-queue-actions,

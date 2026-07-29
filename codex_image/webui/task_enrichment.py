@@ -58,6 +58,8 @@ def _gallery_ref_response(item: dict[str, Any]) -> dict[str, Any]:
         "category_name": response.get("category_name"),
         "category_prompt_role": response.get("category_prompt_role"),
         "prompt_note": response.get("prompt_note", ""),
+        "sha256": response.get("sha256"),
+        "size_bytes": response.get("size_bytes"),
         "image_url": response.get("image_url"),
         "missing": False,
     }

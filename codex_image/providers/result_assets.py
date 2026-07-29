@@ -3,15 +3,19 @@ from __future__ import annotations
 import base64
 import binascii
 from dataclasses import dataclass
-from io import BytesIO
 from typing import Any, Callable, Mapping
 from urllib.parse import urljoin, urlsplit
 
 from codex_image.client_types import OPENAI_COMPATIBLE_USER_AGENT
 from codex_image.http import HTTPResponse, Transport
+from codex_image.raster_validation import (
+    MAX_RASTER_BYTES,
+    RasterValidationError,
+    inspect_raster_image,
+)
 
 
-MAX_ASSET_BYTES = 50 * 1024 * 1024
+MAX_ASSET_BYTES = MAX_RASTER_BYTES
 
 
 class AssetLoadError(RuntimeError):
@@ -41,33 +45,13 @@ def same_origin(left: str, right: str) -> bool:
 
 
 def sniff_image_mime(image_bytes: bytes) -> str | None:
-    if image_bytes.startswith(b"\x89PNG\r\n\x1a\n"):
-        return "image/png"
-    if image_bytes.startswith(b"\xff\xd8\xff"):
-        return "image/jpeg"
-    if image_bytes.startswith((b"GIF87a", b"GIF89a")):
-        return "image/gif"
-    if len(image_bytes) >= 12 and image_bytes[:4] == b"RIFF" and image_bytes[8:12] == b"WEBP":
-        return "image/webp"
-    if len(image_bytes) >= 12 and image_bytes[4:8] == b"ftyp" and image_bytes[8:12] in {
-        b"avif",
-        b"avis",
-    }:
-        return "image/avif"
-    return None
-
-
-def _dimensions(image_bytes: bytes) -> tuple[int | None, int | None]:
     try:
-        from PIL import Image
-
-        with Image.open(BytesIO(image_bytes)) as image:
-            width, height = image.size
-        if width > 0 and height > 0:
-            return int(width), int(height)
-    except Exception:
-        pass
-    return None, None
+        return inspect_raster_image(
+            image_bytes,
+            max_bytes=MAX_ASSET_BYTES,
+        ).mime_type
+    except (RasterValidationError, ValueError):
+        return None
 
 
 def _header(headers: Mapping[str, str], name: str) -> str:
@@ -81,19 +65,43 @@ def _header(headers: Mapping[str, str], name: str) -> str:
 def _validated_download(response: HTTPResponse) -> LoadedAsset:
     if not 200 <= response.status < 300:
         raise AssetLoadError(f"asset download failed with HTTP {response.status}")
-    image_bytes = bytes(response.body)
-    if not image_bytes:
-        raise AssetLoadError("asset download returned an empty body")
-    if len(image_bytes) > MAX_ASSET_BYTES:
-        raise AssetLoadError("asset download exceeded the 50 MiB limit")
-    sniffed = sniff_image_mime(image_bytes)
-    if sniffed is None:
-        raise AssetLoadError("asset download did not contain a recognized image")
     content_type = _header(response.headers, "content-type").split(";", 1)[0].strip().lower()
-    if content_type and content_type not in {"application/octet-stream", sniffed}:
-        raise AssetLoadError("asset content type does not match its image bytes")
-    width, height = _dimensions(image_bytes)
-    return LoadedAsset(image_bytes, sniffed, width, height)
+    return _validated_asset(
+        bytes(response.body),
+        declared_mime_types=(content_type,),
+        source="asset download",
+    )
+
+
+def _validated_asset(
+    image_bytes: bytes,
+    *,
+    declared_mime_types: tuple[str, ...] = (),
+    source: str = "generated asset",
+) -> LoadedAsset:
+    try:
+        inspection = inspect_raster_image(
+            image_bytes,
+            max_bytes=MAX_ASSET_BYTES,
+        )
+    except RasterValidationError as exc:
+        raise AssetLoadError(
+            f"{source} did not contain a valid raster image: {exc}"
+        ) from exc
+    for declared in declared_mime_types:
+        content_type = str(declared or "").split(";", 1)[0].strip().lower()
+        if not content_type or content_type == "application/octet-stream":
+            continue
+        if content_type != inspection.mime_type:
+            raise AssetLoadError(
+                f"{source} content type does not match its image bytes"
+            )
+    return LoadedAsset(
+        image_bytes=image_bytes,
+        mime_type=inspection.mime_type,
+        width=inspection.width,
+        height=inspection.height,
+    )
 
 
 def _download_headers(*, authorization: str | None = None) -> dict[str, str]:
@@ -112,6 +120,19 @@ def _authenticated_request(
     url: str,
     authorization: str,
 ) -> HTTPResponse:
+    bounded_guarded = getattr(
+        transport,
+        "request_same_origin_redirects_bounded",
+        None,
+    )
+    if callable(bounded_guarded):
+        return bounded_guarded(
+            method="GET",
+            url=url,
+            headers=_download_headers(authorization=authorization),
+            body=b"",
+            max_response_bytes=MAX_ASSET_BYTES,
+        )
     guarded = getattr(transport, "request_same_origin_redirects", None)
     if callable(guarded):
         return guarded(
@@ -139,12 +160,22 @@ def download_asset_url(
     if parsed.scheme.lower() not in {"http", "https"} or not parsed.netloc:
         raise AssetLoadError("generated asset URL must use HTTP or HTTPS")
 
-    response = transport.request(
-        method="GET",
-        url=url,
-        headers=_download_headers(),
-        body=b"",
-    )
+    bounded = getattr(transport, "request_bounded", None)
+    if callable(bounded):
+        response = bounded(
+            method="GET",
+            url=url,
+            headers=_download_headers(),
+            body=b"",
+            max_response_bytes=MAX_ASSET_BYTES,
+        )
+    else:
+        response = transport.request(
+            method="GET",
+            url=url,
+            headers=_download_headers(),
+            body=b"",
+        )
     if response.status in {401, 403} and authorization and same_origin(url, provider_base_url):
         response = _authenticated_request(
             transport,
@@ -160,6 +191,9 @@ def download_asset_url(
 
 
 def _decode_base64(value: str) -> bytes:
+    maximum_encoded_bytes = ((MAX_ASSET_BYTES + 2) // 3) * 4
+    if len(value) > maximum_encoded_bytes:
+        raise AssetLoadError("generated asset exceeded the 50 MiB limit")
     try:
         image_bytes = base64.b64decode(value, validate=True)
     except (binascii.Error, ValueError) as exc:
@@ -193,28 +227,34 @@ def load_response_asset(
             encoded_mime, image_bytes = _decode_data_url(encoded)
         else:
             encoded_mime, image_bytes = "", _decode_base64(encoded)
-        mime_type = declared_mime or encoded_mime or sniff_image_mime(image_bytes) or "image/png"
-        width, height = _dimensions(image_bytes)
-        return LoadedAsset(image_bytes, mime_type, width, height)
+        return _validated_asset(
+            image_bytes,
+            declared_mime_types=(declared_mime, encoded_mime),
+        )
 
     image_url = str(item.get("url") or "")
     if image_url.startswith("data:image/"):
-        mime_type, image_bytes = _decode_data_url(image_url)
-        width, height = _dimensions(image_bytes)
-        return LoadedAsset(image_bytes, declared_mime or mime_type, width, height)
+        encoded_mime, image_bytes = _decode_data_url(image_url)
+        return _validated_asset(
+            image_bytes,
+            declared_mime_types=(declared_mime, encoded_mime),
+        )
     parsed = urlsplit(image_url)
     if parsed.scheme.lower() in {"http", "https"} and parsed.netloc:
         if url_loader is None:
             raise AssetLoadError("generated asset URL has no downloader")
         loaded = url_loader(image_url)
         if isinstance(loaded, LoadedAsset):
-            return loaded
-        image_bytes = bytes(loaded)
-        if not image_bytes or len(image_bytes) > MAX_ASSET_BYTES:
-            raise AssetLoadError("generated asset download returned invalid bytes")
-        mime_type = declared_mime or sniff_image_mime(image_bytes) or "image/png"
-        width, height = _dimensions(image_bytes)
-        return LoadedAsset(image_bytes, mime_type, width, height)
+            return _validated_asset(
+                loaded.image_bytes,
+                declared_mime_types=(declared_mime, loaded.mime_type),
+                source="generated asset download",
+            )
+        return _validated_asset(
+            bytes(loaded),
+            declared_mime_types=(declared_mime,),
+            source="generated asset download",
+        )
     raise AssetLoadError("generated response completed without a supported image asset")
 
 

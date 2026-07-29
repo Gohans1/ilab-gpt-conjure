@@ -11,7 +11,12 @@ from unittest import mock
 from codex_image.client import ResponsesInputFile, ResponsesRequestError
 from codex_image.codex_responses_client import CodexImageClient
 from codex_image.openai_responses_client import OpenAIResponsesImageClient
-from tests.helpers import FakeResponse, FakeTransport, make_sse_completed_event
+from tests.helpers import (
+    FakeResponse,
+    FakeTransport,
+    TEST_PNG_BASE64,
+    make_sse_completed_event,
+)
 
 
 class ResponsesFilePayloadTests(unittest.TestCase):
@@ -78,7 +83,7 @@ class ResponsesFilePayloadTests(unittest.TestCase):
             [
                 FakeResponse(
                     status=200,
-                    body=make_sse_completed_event(image_b64=base64.b64encode(b"image").decode("ascii")),
+                    body=make_sse_completed_event(image_b64=TEST_PNG_BASE64),
                     headers={"Content-Type": "text/event-stream"},
                 )
             ]
@@ -111,7 +116,7 @@ class ResponsesFilePayloadTests(unittest.TestCase):
                     raw={},
                 ),
                 transport=FakeTransport(
-                    [FakeResponse(status=200, body=make_sse_completed_event(image_b64="aW1hZ2U="), headers={})]
+                    [FakeResponse(status=200, body=make_sse_completed_event(image_b64=TEST_PNG_BASE64), headers={})]
                 ),
             ),
             OpenAIResponsesImageClient(
@@ -119,7 +124,7 @@ class ResponsesFilePayloadTests(unittest.TestCase):
                 base_url="https://api.example.com/v1",
                 image_model="gpt-image-2",
                 transport=FakeTransport(
-                    [FakeResponse(status=200, body=make_sse_completed_event(image_b64="aW1hZ2U="), headers={})]
+                    [FakeResponse(status=200, body=make_sse_completed_event(image_b64=TEST_PNG_BASE64), headers={})]
                 ),
             ),
         ]

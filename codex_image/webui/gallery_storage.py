@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 import shutil
@@ -135,6 +136,8 @@ class GalleryStorage:
             "category": clean_category,
             "filename": safe_name,
             "mime_type": content_type or _guess_mime_type(safe_name),
+            "sha256": hashlib.sha256(data).hexdigest(),
+            "size_bytes": len(data),
             "prompt_note": _clean_gallery_prompt_note(prompt_note),
             "order": _clean_gallery_item_order(order, fallback=self._next_item_order(clean_category)),
             "created_at": now,
@@ -241,6 +244,8 @@ class GalleryStorage:
         image_path.write_bytes(data)
         metadata["filename"] = safe_name
         metadata["mime_type"] = content_type or _guess_mime_type(safe_name)
+        metadata["sha256"] = hashlib.sha256(data).hexdigest()
+        metadata["size_bytes"] = len(data)
         metadata["updated_at"] = utc_now()
         metadata.pop("category_name", None)
         metadata.pop("category_prompt_role", None)

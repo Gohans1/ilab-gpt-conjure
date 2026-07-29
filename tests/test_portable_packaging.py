@@ -24,28 +24,22 @@ class PortablePackagingTests(unittest.TestCase):
         launcher_text = Path("launcher/src/lib.rs").read_text(encoding="utf-8")
         self.assertIn('"webui-network-egress-settings.json"', launcher_text)
 
-    def test_github_workflows_use_node24_compatible_actions(self) -> None:
+    def test_github_workflows_pin_node24_compatible_actions(self) -> None:
         workflow_paths = [
             Path(".github/workflows/ci.yml"),
             Path(".github/workflows/release-portable.yml"),
         ]
-        deprecated_actions = [
-            "actions/checkout@v4",
-            "actions/setup-node@v4",
-            "actions/setup-python@v5",
-            "actions/upload-artifact@v4",
-            "actions/download-artifact@v4",
+        pinned_actions = [
+            "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1",
+            "actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0",
+            "actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0",
+            "actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0",
+            "actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1",
         ]
 
         combined = "\n".join(path.read_text(encoding="utf-8") for path in workflow_paths)
-        for deprecated_action in deprecated_actions:
-            self.assertNotIn(deprecated_action, combined)
-
-        self.assertIn("actions/checkout@v7", combined)
-        self.assertIn("actions/setup-node@v6", combined)
-        self.assertIn("actions/setup-python@v6", combined)
-        self.assertIn("actions/upload-artifact@v6", combined)
-        self.assertIn("actions/download-artifact@v8", combined)
+        for pinned_action in pinned_actions:
+            self.assertIn(pinned_action, combined)
 
     def test_ci_workflow_avoids_github_unsupported_job_hashfiles_if(self) -> None:
         workflow = Path(".github/workflows/ci.yml")
@@ -319,6 +313,7 @@ class PortablePackagingTests(unittest.TestCase):
         app_module_text = app_module.read_text(encoding="utf-8")
         self.assertIn("ILAB_CONJURE_DATA_DIR", app_module_text)
         self.assertIn("create_app", app_module_text)
+        self.assertIn("enforce_single_instance=True", app_module_text)
 
         readme_text = readme.read_text(encoding="utf-8")
         self.assertIn("Double-click", readme_text)
@@ -386,6 +381,7 @@ class PortablePackagingTests(unittest.TestCase):
         self.assertIn("iLab GPT CONJURE", app_module_text)
         self.assertIn("ILAB_CONJURE_DATA_DIR", app_module_text)
         self.assertIn("create_app", app_module_text)
+        self.assertIn("enforce_single_instance=True", app_module_text)
 
         readme_text = readme.read_text(encoding="utf-8")
         self.assertIn("Drag iLab GPT CONJURE.app to Applications", readme_text)
@@ -426,6 +422,7 @@ class PortablePackagingTests(unittest.TestCase):
         self.assertIn("iLab GPT CONJURE", app_module_text)
         self.assertIn("ILAB_CONJURE_DATA_DIR", app_module_text)
         self.assertIn("create_app", app_module_text)
+        self.assertIn("enforce_single_instance=True", app_module_text)
 
         readme_text = readme.read_text(encoding="utf-8")
         self.assertIn("%APPDATA%\\iLab GPT CONJURE", readme_text)

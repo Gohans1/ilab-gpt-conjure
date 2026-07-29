@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import base64
 import unittest
 from dataclasses import replace
 from types import MappingProxyType
@@ -270,9 +269,15 @@ class LegacyProviderAdapterTests(unittest.TestCase):
         self.assertEqual(converted.assets[0].image_bytes, b"image")
 
     def test_openai_adapters_execute_encoded_requests(self) -> None:
-        from tests.helpers import FakeResponse, FakeTransport, make_sse_completed_event
+        from tests.helpers import (
+            FakeResponse,
+            FakeTransport,
+            TEST_PNG_BASE64,
+            TEST_PNG_BYTES,
+            make_sse_completed_event,
+        )
 
-        image_body = base64.b64encode(b"direct").decode("ascii")
+        image_body = TEST_PNG_BASE64
         images_transport = FakeTransport(
             [FakeResponse(status=200, body=(f'{{"data":[{{"b64_json":"{image_body}"}}]}}').encode())]
         )
@@ -283,7 +288,7 @@ class LegacyProviderAdapterTests(unittest.TestCase):
             json_body={"model": "custom", "prompt": "draw", "n": 1, "output_format": "png"},
         )
         images_result = OpenAIImagesAdapter(transport=images_transport).execute(_plan(images_request))
-        self.assertEqual(images_result.assets[0].image_bytes, b"direct")
+        self.assertEqual(images_result.assets[0].image_bytes, TEST_PNG_BYTES)
 
         responses_transport = FakeTransport(
             [FakeResponse(status=200, body=make_sse_completed_event(image_b64=image_body))]
@@ -297,7 +302,7 @@ class LegacyProviderAdapterTests(unittest.TestCase):
         responses_result = OpenAIResponsesAdapter(transport=responses_transport).execute(
             _plan(responses_request, profile="openai_responses", codec="gpt_openai_responses")
         )
-        self.assertEqual(responses_result.assets[0].image_bytes, b"direct")
+        self.assertEqual(responses_result.assets[0].image_bytes, TEST_PNG_BYTES)
 
     def test_openai_images_client_and_adapter_share_identical_http_error_handling(self) -> None:
         from codex_image.openai_images_client import (

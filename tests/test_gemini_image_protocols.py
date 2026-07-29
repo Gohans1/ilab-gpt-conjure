@@ -10,6 +10,12 @@ from codex_image.generation.catalog import get_model_manifest
 from codex_image.generation.errors import GenerationProviderError
 from codex_image.generation.types import GeneratedAsset, GenerationCommand, GenerationResult, ImageInput
 from codex_image.providers.contracts import ExecutionPlan, ProviderConnection, ProviderModelBinding
+from tests.helpers import (
+    TEST_PNG_BASE64,
+    TEST_PNG_BYTES,
+    TEST_WEBP_BASE64,
+    TEST_WEBP_BYTES,
+)
 
 # Protocol baseline rechecked 2026-07-15:
 # https://ai.google.dev/gemini-api/docs/generate-content/image-generation
@@ -339,7 +345,7 @@ class GeminiGenerateContentAdapterTests(unittest.TestCase):
         )
         self.assertEqual(request["headers"]["x-goog-api-key"], "gemini-secret-key")
         self.assertNotIn("Authorization", request["headers"])
-        self.assertEqual([asset.image_bytes for asset in result.assets], [b"final-image"])
+        self.assertEqual([asset.image_bytes for asset in result.assets], [TEST_PNG_BYTES])
         self.assertEqual(result.text_parts, ("Here is the finished image.",))
         self.assertEqual(result.usage["totalTokenCount"], 46)
         self.assertEqual(
@@ -365,7 +371,7 @@ class GeminiGenerateContentAdapterTests(unittest.TestCase):
 
         result = Change2ProGeminiAdapter(transport=transport).execute(plan)
 
-        self.assertEqual(result.assets[0].image_bytes, b"final-image")
+        self.assertEqual(result.assets[0].image_bytes, TEST_PNG_BYTES)
         self.assertEqual(
             transport.requests[0]["url"],
             "https://api.change2pro.com/v1beta/models/vendor%2Fcustom-nano-pro:generateContent",
@@ -399,6 +405,31 @@ class GeminiGenerateContentAdapterTests(unittest.TestCase):
             self._execute(body=body)
         self.assertEqual(raised.exception.detail.code, "upstream_error")
 
+    def test_native_adapter_rejects_invalid_non_thought_image_bytes(self) -> None:
+        body = json.dumps(
+            {
+                "candidates": [
+                    {
+                        "content": {
+                            "parts": [
+                                {
+                                    "inlineData": {
+                                        "mimeType": "image/png",
+                                        "data": "bm90LWFuLWltYWdl",
+                                    },
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        ).encode()
+
+        with self.assertRaises(GenerationProviderError) as raised:
+            self._execute(body=body)
+
+        self.assertEqual(raised.exception.detail.code, "upstream_error")
+
     def test_image_config_relay_can_return_an_unauthenticated_file_url(self) -> None:
         from codex_image.providers.gemini import GeminiGenerateContentAdapter
         from tests.helpers import FakeResponse, FakeTransport
@@ -415,7 +446,7 @@ class GeminiGenerateContentAdapterTests(unittest.TestCase):
                 }
             }]
         }).encode()
-        png = b"\x89PNG\r\n\x1a\n" + b"test-image"
+        png = TEST_PNG_BYTES
         transport = FakeTransport([
             FakeResponse(status=200, body=body),
             FakeResponse(status=200, body=png, headers={"Content-Type": "image/png"}),
@@ -490,7 +521,7 @@ class GeminiOpenAIAdapterTests(unittest.TestCase):
             )
         )
 
-        self.assertEqual(result.assets[0].image_bytes, b"final-image")
+        self.assertEqual(result.assets[0].image_bytes, TEST_PNG_BYTES)
         self.assertEqual(len(transport.requests), 1)
         request = transport.requests[0]
         self.assertEqual(request["headers"]["Authorization"], "Bearer gemini-secret-key")
@@ -530,7 +561,16 @@ class GeminiOpenAIAdapterTests(unittest.TestCase):
         transport = FakeTransport([
             FakeResponse(
                 status=200,
-                body=b'{"data":[{"b64_json":"ZmluYWwtaW1hZ2U=","media_type":"image/webp"}]}',
+                body=json.dumps(
+                    {
+                        "data": [
+                            {
+                                "b64_json": TEST_WEBP_BASE64,
+                                "media_type": "image/webp",
+                            }
+                        ]
+                    }
+                ).encode(),
             )
         ])
         result = OpenAIImagesAdapter(transport=transport).execute(
@@ -541,7 +581,7 @@ class GeminiOpenAIAdapterTests(unittest.TestCase):
             )
         )
 
-        self.assertEqual(result.assets[0].image_bytes, b"final-image")
+        self.assertEqual(result.assets[0].image_bytes, TEST_WEBP_BYTES)
         self.assertEqual(result.assets[0].mime_type, "image/webp")
 
 
@@ -554,7 +594,11 @@ class GeminiT8AdapterTests(unittest.TestCase):
             FakeResponse(status=200, body=b'{"task_id":"task-123"}'),
             FakeResponse(
                 status=200,
-                body=b'{"data":{"status":"SUCCESS","data":{"data":[{"b64_json":"ZmluYWwtaW1hZ2U="}]}}}',
+                body=(
+                    '{"data":{"status":"SUCCESS","data":{"data":['
+                    f'{{"b64_json":"{TEST_PNG_BASE64}"}}'
+                    "]}}}"
+                ).encode(),
             ),
         ])
         plan = _plan(
@@ -569,7 +613,7 @@ class GeminiT8AdapterTests(unittest.TestCase):
             poll_attempts=2,
         ).execute(plan)
 
-        self.assertEqual(result.assets[0].image_bytes, b"final-image")
+        self.assertEqual(result.assets[0].image_bytes, TEST_PNG_BYTES)
         self.assertEqual(transport.requests[0]["url"], "https://ai.t8star.org/v1/images/generations?async=true")
         self.assertEqual(transport.requests[1]["method"], "GET")
         self.assertEqual(transport.requests[1]["url"], "https://ai.t8star.org/v1/images/tasks/task-123")
@@ -585,11 +629,11 @@ class GeminiT8AdapterTests(unittest.TestCase):
             FakeResponse(
                 status=200,
                 body=(
-                    b'{"code":"success","data":{"status":"SUCCESS","data":{"data":['
-                    b'{"url":"https://assets.example/final.png",'
-                    b'"b64_json":"data:image/png;base64,ZmluYWwtaW1hZ2U="}'
-                    b']}}}'
-                ),
+                    '{"code":"success","data":{"status":"SUCCESS","data":{"data":['
+                    '{"url":"https://assets.example/final.png",'
+                    f'"b64_json":"data:image/png;base64,{TEST_PNG_BASE64}"'
+                    "}]}}}"
+                ).encode(),
             ),
         ])
         result = T8ImagesAdapter(
@@ -604,7 +648,7 @@ class GeminiT8AdapterTests(unittest.TestCase):
             )
         )
 
-        self.assertEqual(result.assets[0].image_bytes, b"final-image")
+        self.assertEqual(result.assets[0].image_bytes, TEST_PNG_BYTES)
         self.assertEqual(result.assets[0].mime_type, "image/png")
         self.assertEqual(len(transport.requests), 2)
 

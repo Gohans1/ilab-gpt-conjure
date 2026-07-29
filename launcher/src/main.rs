@@ -68,6 +68,9 @@ fn main() {
     }
 }
 
+// winit 0.30 still supports this closure API; migrating to ApplicationHandler is a separate
+// behavioral refactor. Keep the exception local so CI can reject every other warning.
+#[allow(deprecated)]
 fn run() -> Result<()> {
     if let Some(manifest_path) = verify_manifest_arg()? {
         verify_update_manifest_file(Path::new(&manifest_path))?;

@@ -55,7 +55,10 @@ declare global {
     startRealtimeUpdates?: (options?: { migrateLegacyArchives?: boolean }) => boolean;
     closeRealtimeUpdates?: () => void;
     refreshQueue?: () => Promise<void>;
-    applyQueueState?: (queue: QueueState | null | undefined) => void;
+    applyQueueState?: (
+      queue: QueueState | null | undefined,
+      options?: { deferTaskListRender?: boolean },
+    ) => void;
     applyQueueTasks?: (queue: QueueState | null | undefined) => void;
     updateQueueElapsedDisplays?: () => void;
     openLightbox?: (url: string, urls?: string[], index?: number) => void;

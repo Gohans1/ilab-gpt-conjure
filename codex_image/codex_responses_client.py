@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import base64
 import json
 import re
 import uuid
@@ -343,7 +342,31 @@ class CodexImageClient:
                         set(sensitive_values or ()),
                     )
                 )
-            image_bytes = base64.b64decode(result["result"])
+            from codex_image.providers.result_assets import (
+                AssetLoadError,
+                load_response_asset,
+            )
+
+            output_format = str(result.get("output_format", "")).strip().lower()
+            declared_mime = {
+                "gif": "image/gif",
+                "jpeg": "image/jpeg",
+                "jpg": "image/jpeg",
+                "png": "image/png",
+                "webp": "image/webp",
+            }.get(output_format, "")
+            try:
+                loaded = load_response_asset(
+                    {
+                        "b64_json": result["result"],
+                        "mime_type": declared_mime,
+                    }
+                )
+            except AssetLoadError as exc:
+                raise RuntimeError(
+                    "Responses image generation returned invalid image data"
+                ) from exc
+            image_bytes = loaded.image_bytes
             usage: dict[str, Any] = {}
             tool_usage = response.get("tool_usage")
             full_tool_usage = dict(tool_usage) if isinstance(tool_usage, dict) else {}

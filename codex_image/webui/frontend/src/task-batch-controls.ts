@@ -249,6 +249,7 @@ async function cancelSelectedActiveTasks(taskIds: any[]) {
     const statusType = Number(summary.failed || 0) > 0 ? "error" : "ok";
     setStatus(formatTranslation("batch.cancelResult", {
       cancelled: Number(summary.cancelled || 0),
+      requested: Number(summary.cancellation_requested || 0),
       skipped: Number(summary.skipped || 0),
       failed: Number(summary.failed || 0),
     }), statusType);

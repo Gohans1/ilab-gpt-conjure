@@ -115,7 +115,7 @@ function rerenderTaskContextMenuForLocale() {
 
 function taskContextMenuHtml(task: any) {
   const hasOutput = taskHasOutput(task);
-  const blocked = Boolean(task.local_pending || task.status === "running" || task.status === "submitting" || task.status === "queued");
+  const blocked = Boolean(task.local_pending || task.status === "running" || task.status === "cancelling" || task.status === "submitting" || task.status === "queued");
   return `
     <div class="task-context-menu-section">
       ${taskContextButton("view", translate("taskContext.view"))}

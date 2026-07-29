@@ -1,8 +1,11 @@
 from __future__ import annotations
 
 import json
+import os
+import stat
 import tempfile
 import unittest
+from copy import deepcopy
 from dataclasses import replace
 from pathlib import Path
 from typing import Any
@@ -103,6 +106,12 @@ class ProviderSettingsV2Tests(unittest.TestCase):
         self.assertTrue(public["providers"][0]["api_key_set"])
         self.assertEqual(public["providers"][0]["api_key_masked"], "********")
 
+    @unittest.skipIf(os.name == "nt", "POSIX file modes are not available on Windows")
+    def test_provider_settings_are_written_with_user_only_permissions(self) -> None:
+        self.settings.write(self.v2_payload())
+
+        self.assertEqual(stat.S_IMODE(self.path.stat().st_mode), 0o600)
+
     def test_write_persists_v2_and_preserves_custom_remote_model_id(self) -> None:
         written = self.settings.write(self.v2_payload())
         persisted = json.loads(self.path.read_text(encoding="utf-8"))
@@ -112,6 +121,121 @@ class ProviderSettingsV2Tests(unittest.TestCase):
         self.assertNotIn("auth_scheme", written["providers"][0])
         self.assertNotIn("auth_scheme", persisted["providers"][0])
         self.assertNotIn("api_key", self.settings.public_settings()["providers"][0])
+
+    def test_same_origin_path_change_preserves_existing_api_key(self) -> None:
+        self.settings.write(
+            self.v2_payload(
+                providers=[
+                    self.provider(
+                        base_url="https://relay.example/v1",
+                        api_key="original-secret",
+                    )
+                ]
+            )
+        )
+        provider = self.provider(base_url="https://relay.example/v2")
+        provider.pop("api_key")
+
+        written = self.settings.write(self.v2_payload(providers=[provider]))
+
+        self.assertEqual(written["providers"][0]["base_url"], "https://relay.example/v2")
+        self.assertEqual(written["providers"][0]["api_key"], "original-secret")
+
+    def test_origin_change_without_new_api_key_clears_existing_key(self) -> None:
+        self.settings.write(
+            self.v2_payload(
+                providers=[
+                    self.provider(
+                        base_url="https://relay.example/v1",
+                        api_key="original-secret",
+                    )
+                ]
+            )
+        )
+        for base_url in (
+            "http://relay.example/v1",
+            "https://other.example/v1",
+            "https://relay.example:8443/v1",
+        ):
+            with self.subTest(base_url=base_url):
+                provider = self.provider(base_url=base_url)
+                provider.pop("api_key")
+
+                written = self.settings.write(self.v2_payload(providers=[provider]))
+
+                self.assertEqual(written["providers"][0]["api_key"], "")
+                self.settings.write(
+                    self.v2_payload(
+                        providers=[
+                            self.provider(
+                                base_url="https://relay.example/v1",
+                                api_key="original-secret",
+                            )
+                        ]
+                    )
+                )
+
+    def test_origin_change_with_explicit_new_api_key_stores_new_key(self) -> None:
+        self.settings.write(
+            self.v2_payload(
+                providers=[
+                    self.provider(
+                        base_url="https://relay.example/v1",
+                        api_key="original-secret",
+                    )
+                ]
+            )
+        )
+
+        written = self.settings.write(
+            self.v2_payload(
+                providers=[
+                    self.provider(
+                        base_url="https://other.example/v1",
+                        api_key="new-origin-secret",
+                    )
+                ]
+            )
+        )
+
+        self.assertEqual(written["providers"][0]["base_url"], "https://other.example/v1")
+        self.assertEqual(written["providers"][0]["api_key"], "new-origin-secret")
+
+    def test_cross_origin_api_key_source_copy_is_rejected_without_rewriting(self) -> None:
+        donor = self.provider(
+            id="donor",
+            name="Donor",
+            base_url="https://donor.example/v1",
+            api_key="donor-secret",
+        )
+        self.settings.write(
+            self.v2_payload(
+                active_provider_id="donor",
+                default_provider_by_model={"gpt-image-2": "donor"},
+                providers=[donor],
+            )
+        )
+        before = self.path.read_text(encoding="utf-8")
+        donor_without_key = deepcopy(donor)
+        donor_without_key.pop("api_key")
+        target = self.provider(
+            id="target",
+            name="Target",
+            base_url="https://target.example/v1",
+        )
+        target.pop("api_key")
+        target["api_key_source_provider_id"] = "donor"
+
+        with self.assertRaisesRegex(ValueError, "api_key_origin_mismatch"):
+            self.settings.write(
+                self.v2_payload(
+                    active_provider_id="target",
+                    default_provider_by_model={"gpt-image-2": "target"},
+                    providers=[donor_without_key, target],
+                )
+            )
+
+        self.assertEqual(self.path.read_text(encoding="utf-8"), before)
 
     def test_write_persists_optional_provider_icon_emoji(self) -> None:
         written = self.settings.write(self.v2_payload(providers=[self.provider(icon_emoji="🪄")]))

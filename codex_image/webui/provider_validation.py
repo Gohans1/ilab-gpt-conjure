@@ -100,6 +100,16 @@ def normalize_v2_base_url(value: Any) -> str:
     return urlunsplit((parsed.scheme.lower(), netloc, path, "", ""))
 
 
+def provider_url_origin(value: Any) -> tuple[str, str, int]:
+    parsed = urlsplit(normalize_v2_base_url(value))
+    scheme = parsed.scheme.lower()
+    return (
+        scheme,
+        (parsed.hostname or "").lower(),
+        parsed.port or (443 if scheme == "https" else 80),
+    )
+
+
 def normalize_v2_concurrency(value: Any) -> int:
     if isinstance(value, bool):
         raise ValueError("invalid_concurrency")
@@ -257,5 +267,6 @@ __all__ = (
     "normalize_slug",
     "normalize_v2_base_url",
     "normalize_v2_concurrency",
+    "provider_url_origin",
     "validate_v2_payload",
 )

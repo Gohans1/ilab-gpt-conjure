@@ -6,6 +6,8 @@ import shutil
 from pathlib import Path
 from typing import Any
 
+from .atomic_files import atomic_write_bytes
+from .cancellation import finalize_task_cancellation
 from .storage import QueueStorage, TaskStorage, utc_now
 from .task_enrichment import _dedupe_preserve_order, _input_sources, _input_urls
 from .task_outputs import _output_url, _positive_int
@@ -56,10 +58,18 @@ def _migrate_legacy_task_directories(storage: TaskStorage, legacy_roots: list[Pa
             storage.write_metadata(task_id, metadata)
             request_path = task_dir / "request.json"
             if request_path.exists():
-                storage.request_path(task_id).write_bytes(request_path.read_bytes())
+                atomic_write_bytes(
+                    storage.request_path(task_id),
+                    request_path.read_bytes(),
+                    mode=0o600,
+                )
             debug_path = task_dir / "debug-sse.jsonl"
             if debug_path.exists():
-                storage.debug_sse_path(task_id).write_bytes(debug_path.read_bytes())
+                atomic_write_bytes(
+                    storage.debug_sse_path(task_id),
+                    debug_path.read_bytes(),
+                    mode=0o600,
+                )
             try:
                 shutil.rmtree(task_dir)
             except OSError:
@@ -173,7 +183,7 @@ def _prune_duplicate_request_payloads(storage: TaskStorage) -> None:
             continue
         metadata.pop("request", None)
         try:
-            metadata_path.write_text(json.dumps(metadata, indent=2, ensure_ascii=False), encoding="utf-8")
+            storage.write_metadata(task_id, metadata)
         except OSError:
             continue
 
@@ -228,8 +238,14 @@ def _materialize_orphaned_running_failure(
 
 def _recover_queue_state(storage: TaskStorage, queue_storage: QueueStorage) -> None:
     state = queue_storage.read_state()
+    tasks = storage.read_tasks_from_metadata()
+    indexed_task_ids = storage.task_index.all_task_ids()
+    for task in tasks:
+        task_id = str(task.get("task_id") or "")
+        if task_id and task_id not in indexed_task_ids:
+            storage.task_index.upsert(task)
     queued_task_ids: list[str] = []
-    for task in storage.rebuild_task_index():
+    for task in tasks:
         task_id = str(task.get("task_id") or "")
         status = str(task.get("status") or "")
         if status in {"queued", "running"} and _recover_completed_outputs_from_disk(storage, task):
@@ -244,6 +260,8 @@ def _recover_queue_state(storage: TaskStorage, queue_storage: QueueStorage) -> N
             continue
         if status == "queued" and task_id:
             queued_task_ids.append(task_id)
+        if status == "cancelling" and task_id:
+            finalize_task_cancellation(storage, task_id)
         if status == "running" and task_id:
             task["status"] = "failed"
             task["updated_at"] = utc_now()

@@ -12,6 +12,21 @@ from urllib import error, request
 from urllib.parse import urlsplit
 
 DEFAULT_REQUEST_TIMEOUT_SECONDS = 600.0
+MAX_HTTP_RESPONSE_BYTES = 320 * 1024 * 1024
+MAX_HTTP_ERROR_BODY_BYTES = 2 * 1024 * 1024
+_CREDENTIAL_HEADER_NAMES = frozenset(
+    {
+        "authorization",
+        "proxy-authorization",
+        "x-goog-api-key",
+        "x-api-key",
+        "api-key",
+    }
+)
+
+
+class HTTPResponseTooLarge(RuntimeError):
+    pass
 
 
 def _request_timeout_seconds(value: float | None = None) -> float:
@@ -65,6 +80,42 @@ class Transport(Protocol):
     ) -> HTTPResponse: ...
 
 
+def _response_header(headers: object, name: str) -> str:
+    getter = getattr(headers, "get", None)
+    if callable(getter):
+        value = getter(name)
+        if value is None:
+            value = getter(name.lower())
+        return str(value or "")
+    return ""
+
+
+def _read_response_body(
+    response: object,
+    *,
+    status: int,
+    max_response_bytes: int,
+) -> bytes:
+    if max_response_bytes <= 0:
+        raise ValueError("max_response_bytes must be positive")
+    is_success = 200 <= status < 300
+    limit = max_response_bytes if is_success else MAX_HTTP_ERROR_BODY_BYTES
+    headers = getattr(response, "headers", {})
+    declared_length = _response_header(headers, "Content-Length").strip()
+    if is_success and declared_length.isdigit() and int(declared_length) > limit:
+        raise HTTPResponseTooLarge(
+            f"HTTP response exceeded the {limit}-byte limit"
+        )
+    payload = response.read(limit + 1)
+    if len(payload) <= limit:
+        return payload
+    if is_success:
+        raise HTTPResponseTooLarge(
+            f"HTTP response exceeded the {limit}-byte limit"
+        )
+    return payload[:limit]
+
+
 def _same_origin(left: str, right: str) -> bool:
     left_url = urlsplit(left)
     right_url = urlsplit(right)
@@ -104,6 +155,31 @@ class UrllibTransport:
         headers: dict[str, str],
         body: bytes,
     ) -> HTTPResponse:
+        return self.request_bounded(
+            method=method,
+            url=url,
+            headers=headers,
+            body=body,
+            max_response_bytes=MAX_HTTP_RESPONSE_BYTES,
+        )
+
+    def request_bounded(
+        self,
+        *,
+        method: str,
+        url: str,
+        headers: dict[str, str],
+        body: bytes,
+        max_response_bytes: int,
+    ) -> HTTPResponse:
+        if any(str(name).lower() in _CREDENTIAL_HEADER_NAMES for name in headers):
+            return self.request_same_origin_redirects_bounded(
+                method=method,
+                url=url,
+                headers=headers,
+                body=body,
+                max_response_bytes=max_response_bytes,
+            )
         req = request.Request(url=url, data=body, headers=headers, method=method)
         started_at = time.monotonic()
         try:
@@ -116,15 +192,24 @@ class UrllibTransport:
                     handlers.append(request.HTTPSHandler(context=context))
                 response_context = request.build_opener(*handlers).open(req, timeout=self.timeout)
             with response_context as response:
+                status = getattr(response, "status", response.getcode())
                 return HTTPResponse(
-                    status=getattr(response, "status", response.getcode()),
-                    body=response.read(),
+                    status=status,
+                    body=_read_response_body(
+                        response,
+                        status=status,
+                        max_response_bytes=max_response_bytes,
+                    ),
                     headers=dict(response.headers.items()),
                 )
         except error.HTTPError as exc:
             return HTTPResponse(
                 status=exc.code,
-                body=exc.read(),
+                body=_read_response_body(
+                    exc,
+                    status=exc.code,
+                    max_response_bytes=max_response_bytes,
+                ),
                 headers=dict(exc.headers.items()),
             )
         except socket.timeout as exc:
@@ -146,6 +231,23 @@ class UrllibTransport:
         headers: dict[str, str],
         body: bytes,
     ) -> HTTPResponse:
+        return self.request_same_origin_redirects_bounded(
+            method=method,
+            url=url,
+            headers=headers,
+            body=body,
+            max_response_bytes=MAX_HTTP_RESPONSE_BYTES,
+        )
+
+    def request_same_origin_redirects_bounded(
+        self,
+        *,
+        method: str,
+        url: str,
+        headers: dict[str, str],
+        body: bytes,
+        max_response_bytes: int,
+    ) -> HTTPResponse:
         req = request.Request(url=url, data=body, headers=headers, method=method)
         handlers: list[object] = []
         if self.proxy_map is not None:
@@ -158,15 +260,24 @@ class UrllibTransport:
         started_at = time.monotonic()
         try:
             with opener.open(req, timeout=self.timeout) as response:
+                status = getattr(response, "status", response.getcode())
                 return HTTPResponse(
-                    status=getattr(response, "status", response.getcode()),
-                    body=response.read(),
+                    status=status,
+                    body=_read_response_body(
+                        response,
+                        status=status,
+                        max_response_bytes=max_response_bytes,
+                    ),
                     headers=dict(response.headers.items()),
                 )
         except error.HTTPError as exc:
             return HTTPResponse(
                 status=exc.code,
-                body=exc.read(),
+                body=_read_response_body(
+                    exc,
+                    status=exc.code,
+                    max_response_bytes=max_response_bytes,
+                ),
                 headers=dict(exc.headers.items()),
             )
         except socket.timeout as exc:

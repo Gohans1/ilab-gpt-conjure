@@ -59,6 +59,7 @@ import {
   withHistoryUntaggedFilter,
   writeHistoryOrganizationFilters,
 } from "./history-organization";
+import { refreshHistoryForRealtimeTask } from "./history-realtime";
 
 type HistoryFacet = { value: string; count: number };
 type HistoryMonth = { month: string; count: number };
@@ -2024,7 +2025,7 @@ function historyTaskArchived(task: any): boolean {
 
 function historyTaskDeleteBlocked(task: any): boolean {
   const status = String(task?.status || "");
-  return Boolean(task?.local_pending || status === "running" || status === "submitting" || status === "queued");
+  return Boolean(task?.local_pending || status === "running" || status === "cancelling" || status === "submitting" || status === "queued");
 }
 
 function historyTaskGeneratedCount(task: any): number {
@@ -3632,11 +3633,14 @@ function errorMessage(error: unknown, fallback: string): string {
 async function bootHistoryPage(): Promise<void> {
   initializeHistoryShell({
     selectHistoryTask: loadTaskDetail,
-    refreshHistoryTasks: async () => {
-      await Promise.all([
-        loadSummary(),
-        loadTasks({ reset: true }),
-      ]);
+    refreshHistoryTasks: async (task) => {
+      await refreshHistoryForRealtimeTask({
+        task,
+        scroller: els.taskList,
+        loadSummary,
+        reloadNewestWindow: () => loadTasks({ reset: true }),
+        upsertTask: upsertHistoryTaskSummaryCard,
+      });
     },
   });
   applyHistoryLocale();

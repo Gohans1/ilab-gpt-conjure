@@ -28,4 +28,5 @@ app = create_app(
     color_settings_path=DATA_DIR / "webui-color-settings.json",
     prompt_snippets_path=DATA_DIR / "webui-prompt-snippets.json",
     prompt_templates_path=DATA_DIR / "webui-prompt-templates.json",
+    enforce_single_instance=True,
 )

@@ -51,6 +51,26 @@ class WebUIStaticI18nTests(WebUIStaticTestCase):
             "batch.cancelConfirm",
             "batch.cancelResult",
             "batch.cancelFailed",
+            "queue.cancellationPending",
+            "taskStatus.cancelling",
+        )
+        locale_paths = sorted(Path("codex_image/webui/frontend/src/i18n").glob("*.ts"))
+        locale_paths = [path for path in locale_paths if path.name not in {"types.ts", "dictionaries.ts"}]
+
+        self.assertEqual(14, len(locale_paths))
+        for path in locale_paths:
+            source = path.read_text(encoding="utf-8")
+            for key in required_keys:
+                self.assertIn(f'"{key}"', source, f"{path.name} is missing {key}")
+
+    def test_recent_asset_protection_copy_exists_in_every_locale(self) -> None:
+        required_keys = (
+            "recentAssets.inUse",
+            "recentAssets.hide",
+            "recentAssets.hideTitle",
+            "recentAssets.hideMessage",
+            "recentAssets.hideFailed",
+            "recentAssets.hidden",
         )
         locale_paths = sorted(Path("codex_image/webui/frontend/src/i18n").glob("*.ts"))
         locale_paths = [path for path in locale_paths if path.name not in {"types.ts", "dictionaries.ts"}]
@@ -545,7 +565,7 @@ class WebUIStaticI18nTests(WebUIStaticTestCase):
         en_entries = dictionary_entries("codex_image/webui/frontend/src/i18n/en.ts")
         vi_entries = dictionary_entries("codex_image/webui/frontend/src/i18n/vi.ts")
 
-        self.assertEqual(len(vi_entries), 1084)
+        self.assertEqual(len(vi_entries), 1092)
         self.assertEqual([key for key, _value in vi_entries], [key for key, _value in zh_entries])
         self.assertEqual([key for key, _value in vi_entries], [key for key, _value in en_entries])
 

@@ -63,9 +63,17 @@ def _direct_images_transport(auth_source: str, api_mode: str | None) -> bool:
     return auth_source in {"api", "codex"} and _normalize_api_mode(api_mode) == "images"
 
 
-def _prompt_for_transport(prompt: str, *, auth_source: str, api_mode: str | None, prompt_fidelity: str, instructions: str) -> str:
+def _prompt_for_transport(
+    prompt: str,
+    *,
+    auth_source: str,
+    api_mode: str | None,
+    prompt_fidelity: str,
+    instructions: str,
+    locale: str | None = None,
+) -> str:
     if _direct_images_transport(auth_source, api_mode) and _normalize_prompt_fidelity(prompt_fidelity) == "strict":
-        return build_guarded_prompt(prompt, instructions)
+        return build_guarded_prompt(prompt, instructions, locale=locale)
     return prompt
 
 
@@ -174,14 +182,21 @@ async def _call_image_client_once(
         return await call
     started_at = time.monotonic()
     try:
-        return await asyncio.wait_for(call, timeout=timeout_seconds)
+        return await asyncio.wait_for(asyncio.shield(call), timeout=timeout_seconds)
     except TimeoutError as exc:
         if call.done() and not call.cancelled():
             raise
         elapsed = _format_elapsed_seconds(time.monotonic() - started_at)
-        raise TimeoutError(
+        timeout_error = TimeoutError(
             f"Image request timed out after {elapsed}s (timeout limit {timeout_seconds:g}s)"
-        ) from exc
+        )
+        try:
+            await asyncio.shield(call)
+        except asyncio.CancelledError:
+            raise
+        except BaseException:
+            pass
+        raise timeout_error from exc
 
 
 async def _call_image_client(

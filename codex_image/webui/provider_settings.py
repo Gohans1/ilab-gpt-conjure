@@ -12,10 +12,12 @@ from codex_image.client_types import (
 )
 from codex_image.providers import ProviderConnection, ProviderModelBinding
 
+from .atomic_files import atomic_write_text
 from .provider_validation import (
     normalize_provider_icon_emoji as _normalize_provider_icon_emoji,
     normalize_remote_model_id as _normalize_remote_model_id,
     normalize_slug as _normalize_slug,
+    provider_url_origin,
     validate_v2_payload,
 )
 
@@ -128,8 +130,11 @@ class ProviderSettings:
             candidate = self._prepare_legacy_active_write(payload, current)
         settings = self._validate_v2(candidate)
         persisted = self._persisted(settings)
-        self.path.parent.mkdir(parents=True, exist_ok=True)
-        self.path.write_text(json.dumps(persisted, indent=2, ensure_ascii=False), encoding="utf-8")
+        atomic_write_text(
+            self.path,
+            json.dumps(persisted, indent=2, ensure_ascii=False),
+            mode=0o600,
+        )
         return self.read()
 
     def public_settings(self) -> dict[str, Any]:
@@ -278,19 +283,33 @@ class ProviderSettings:
             provider_id = _normalize_slug(raw.get("id"), fallback=f"provider-{index}")
             existing = current_by_id.get(provider_id)
             merged = dict(raw)
-            copied_api_key: str | None = None
+            target_base_url = (
+                _normalize_legacy_base_url(merged.get("base_url"))
+                if "base_url" in merged
+                else str((existing or {}).get("base_url") or DEFAULT_OPENAI_API_BASE_URL)
+            )
             if "api_key" not in merged:
+                copied_api_key = ""
                 source_id = _normalize_slug(
                     merged.get("api_key_source_provider_id"), fallback=""
                 )
                 source = current_by_id.get(source_id)
                 if source is not None:
+                    if provider_url_origin(source["base_url"]) != provider_url_origin(
+                        target_base_url
+                    ):
+                        raise ValueError("api_key_origin_mismatch")
                     copied_api_key = str(source["api_key"])
-                elif existing is not None:
+                elif existing is not None and provider_url_origin(
+                    existing["base_url"]
+                ) == provider_url_origin(target_base_url):
                     copied_api_key = str(existing["api_key"])
                 elif index == 1 and len(current["providers"]) == 1:
-                    copied_api_key = str(current["providers"][0]["api_key"])
-            if copied_api_key is not None:
+                    only_provider = current["providers"][0]
+                    if provider_url_origin(only_provider["base_url"]) == provider_url_origin(
+                        target_base_url
+                    ):
+                        copied_api_key = str(only_provider["api_key"])
                 merged["api_key"] = copied_api_key
             if existing is None:
                 providers.append(migrate_legacy_provider(merged))
@@ -400,7 +419,14 @@ class ProviderSettings:
             if "name" in payload:
                 provider["name"] = str(payload.get("name") or provider["id"]).strip() or provider["id"]
             if "base_url" in payload:
+                old_base_url = provider["base_url"]
                 provider["base_url"] = _normalize_legacy_base_url(payload.get("base_url"))
+                if (
+                    "api_key" not in payload
+                    and provider_url_origin(old_base_url)
+                    != provider_url_origin(provider["base_url"])
+                ):
+                    provider["api_key"] = ""
             if "api_key" in payload:
                 provider["api_key"] = str(payload.get("api_key") or "").strip()
             if "images_concurrency" in payload:
@@ -450,11 +476,25 @@ class ProviderSettings:
             if not isinstance(provider, dict) or "api_key" in provider:
                 continue
             provider_id = _normalize_slug(provider.get("id"), fallback="default")
+            raw_source_id = provider.pop("api_key_source_provider_id", None)
             source_id = _normalize_slug(
-                provider.pop("api_key_source_provider_id", None), fallback=""
+                raw_source_id, fallback=""
             )
-            source = current_by_id.get(source_id) or current_by_id.get(provider_id)
-            provider["api_key"] = str((source or {}).get("api_key") or "")
+            explicit_source = bool(str(raw_source_id or "").strip())
+            source = (
+                current_by_id.get(source_id)
+                if explicit_source
+                else current_by_id.get(provider_id)
+            )
+            if source is None:
+                provider["api_key"] = ""
+                continue
+            same_origin = provider_url_origin(source["base_url"]) == provider_url_origin(
+                provider.get("base_url")
+            )
+            if explicit_source and not same_origin:
+                raise ValueError("api_key_origin_mismatch")
+            provider["api_key"] = str(source.get("api_key") or "") if same_origin else ""
         return prepared
 
     @classmethod

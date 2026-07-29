@@ -73,6 +73,7 @@ SUMMARY_KEYS = {
     "last_error",
     "error",
     "cancel_requested",
+    "cancel_requested_at",
     "cancelled_at",
     "orphaned_running",
     "archived_at",
@@ -410,6 +411,11 @@ class SQLiteTaskIndex:
             ).fetchall()
         return {str(row["task_id"]) for row in rows}
 
+    def all_task_ids(self) -> set[str]:
+        with closing(self._connect()) as connection:
+            rows = connection.execute("select task_id from task_index").fetchall()
+        return {str(row["task_id"]) for row in rows}
+
     def list_summaries(self, *, limit: int | None = None) -> list[dict[str, Any]]:
         with closing(self._connect()) as connection:
             sql = "select summary_json from task_index order by created_at desc, task_id desc"
@@ -564,7 +570,7 @@ class SQLiteTaskIndex:
         local_start, local_end = _generation_sidebar_group_range(key, now)
         where = [
             "archived_at = ''",
-            "status not in ('submitting', 'queued', 'running')",
+            "status not in ('submitting', 'queued', 'running', 'cancelling')",
             "activity_at >= ?",
             "activity_at < ?",
         ]

@@ -34,10 +34,10 @@
     "batch.cancelSelected": "Cancel tasks",
     "batch.noActiveSelected": "The selected tasks are no longer running or waiting",
     "batch.cancelTitle": "Cancel {count} tasks?",
-    "batch.cancelMessage": "Running tasks will stop and waiting tasks will leave the queue. History will be kept.",
+    "batch.cancelMessage": "Waiting tasks will be cancelled immediately. Running provider calls may continue and may still be billed until they return. History will be kept.",
     "batch.cancelDetail": "Running {running} \xB7 waiting {waiting}",
     "batch.cancelConfirm": "Cancel tasks",
-    "batch.cancelResult": "Cancelled {cancelled}, skipped {skipped}, failed {failed}",
+    "batch.cancelResult": "Cancelled {cancelled}, cancellation requested {requested}, skipped {skipped}, failed {failed}",
     "batch.cancelFailed": "Batch cancellation failed",
     "action.archive": "Archive",
     "action.delete": "Delete",
@@ -86,8 +86,9 @@
     "queue.queuedDeleted": "Queued task deleted",
     "queue.cancelRunningConfirm": "Cancel task",
     "queue.cancelRunningTitleConfirm": "Cancel running task?",
-    "queue.cancelRunningMessage": "The current task will stop. History will be kept.",
+    "queue.cancelRunningMessage": "A cancellation request will be sent. The provider call may continue and may still be billed until it returns. History will be kept.",
     "queue.cancelRunningFailed": "Failed to cancel task",
+    "queue.cancellationPending": "Cancellation requested. This provider call may continue and may still be billed until it returns.",
     "queue.runningCancelled": "Task cancelled",
     "queue.reorderFailed": "Failed to reorder queue",
     "queue.realtimeUpdateFailed": "Failed to update live status",
@@ -99,6 +100,7 @@
     "taskStatus.submitting": "Submitting",
     "taskStatus.running": "Generating",
     "taskStatus.runningWithElapsed": "Generating \xB7 {elapsed}",
+    "taskStatus.cancelling": "Cancelling",
     "taskStatus.completed": "Completed",
     "taskStatus.partialFailed": "Partially failed",
     "taskStatus.failed": "Failed",
@@ -383,8 +385,14 @@
     "recentAssets.defaultName": "Recent upload",
     "recentAssets.use": "Use {name}",
     "recentAssets.delete": "Delete {name}",
+    "recentAssets.inUse": "Used by {count} tasks; it cannot be permanently deleted, but it can be hidden from Recent uploads",
+    "recentAssets.hide": "Hide {name} from Recent uploads",
+    "recentAssets.hideTitle": "Hide from Recent uploads?",
+    "recentAssets.hideMessage": "This image is used by {count} tasks and cannot be permanently deleted. Hiding removes it only from Recent uploads; the original, current input, and historical tasks are preserved.",
+    "recentAssets.hideFailed": "Failed to hide recent upload",
+    "recentAssets.hidden": "Hidden from Recent uploads; the original and historical tasks were preserved",
     "recentAssets.deleteTitle": "Delete recent upload?",
-    "recentAssets.deleteMessage": "This will remove the image from Recent uploads. If it is currently selected as an image input, it will be removed from the current input. Historical tasks that reference this recent upload will lose that input preview. The public gallery is not affected.",
+    "recentAssets.deleteMessage": "This image is not used by any task. Its original will be permanently deleted, and the same image will be removed from the current input. The public gallery is not affected.",
     "recentAssets.loadFailed": "Failed to load recent uploads",
     "recentAssets.deleteFailed": "Failed to delete recent upload",
     "recentAssets.deleted": "Recent upload deleted",
@@ -531,7 +539,7 @@
     "output.promptHelpTitle": "Prompt handling",
     "output.promptHelp.responsesChannel": "Responses \xB7 main model involved",
     "output.promptHelp.imagesChannel": "Images \xB7 direct generation",
-    "output.promptHelp.responses.original": "Sends your original text to the main model and asks the image tool to preserve it; the main model may still produce a revised prompt.",
+    "output.promptHelp.responses.original": "Sends your exact original text without app-added prompt rules; the provider may still return a revised prompt or interpret the result differently.",
     "output.promptHelp.responses.strict": "Lets the main model organize or expand the prompt, while preserving hard constraints such as subjects, text, colors, and composition.",
     "output.promptHelp.responses.automatic": "Adds no extra constraints, allowing the main model to interpret and optimize the prompt before calling the image tool.",
     "output.promptHelp.images.original": "Adds no app-level prompt rules and submits your original text directly to the image endpoint.",
@@ -1123,10 +1131,10 @@
     "batch.cancelSelected": "Aufgaben abbrechen",
     "batch.noActiveSelected": "Die ausgew\xE4hlten Aufgaben werden nicht mehr ausgef\xFChrt oder warten",
     "batch.cancelTitle": "{count} Aufgaben abbrechen?",
-    "batch.cancelMessage": "Laufende Aufgaben werden gestoppt und wartende Aufgaben verlassen die Warteschlange. Der Verlauf bleibt erhalten.",
+    "batch.cancelMessage": "Wartende Aufgaben werden sofort abgebrochen. Laufende Anbieteraufrufe k\xF6nnen bis zur R\xFCckgabe weiterlaufen und weiterhin Kosten verursachen. Der Verlauf bleibt erhalten.",
     "batch.cancelDetail": "Laufend {running} \xB7 wartend {waiting}",
     "batch.cancelConfirm": "Aufgaben abbrechen",
-    "batch.cancelResult": "Abgebrochen {cancelled}, \xFCbersprungen {skipped}, fehlgeschlagen {failed}",
+    "batch.cancelResult": "Abgebrochen {cancelled}, Abbruch angefordert {requested}, \xFCbersprungen {skipped}, fehlgeschlagen {failed}",
     "batch.cancelFailed": "Mehrfachabbruch fehlgeschlagen",
     "action.archive": "Archiv",
     "action.delete": "L\xF6schen",
@@ -1175,8 +1183,9 @@
     "queue.queuedDeleted": "Aufgabe in der Warteschlange gel\xF6scht",
     "queue.cancelRunningConfirm": "Aufgabe abbrechen",
     "queue.cancelRunningTitleConfirm": "Laufende Aufgabe abbrechen?",
-    "queue.cancelRunningMessage": "Die aktuelle Aufgabe wird gestoppt. Die Geschichte bleibt erhalten.",
+    "queue.cancelRunningMessage": "Ein Abbruch wird angefordert. Der Anbieteraufruf kann bis zur R\xFCckgabe weiterlaufen und weiterhin Kosten verursachen. Der Verlauf bleibt erhalten.",
     "queue.cancelRunningFailed": "Aufgabe konnte nicht abgebrochen werden",
+    "queue.cancellationPending": "Abbruch angefordert. Der Anbieteraufruf kann bis zur R\xFCckgabe weiterlaufen und weiterhin Kosten verursachen.",
     "queue.runningCancelled": "Aufgabe abgebrochen",
     "queue.reorderFailed": "Die Warteschlange konnte nicht neu angeordnet werden",
     "queue.realtimeUpdateFailed": "Der Live-Status konnte nicht aktualisiert werden",
@@ -1188,6 +1197,7 @@
     "taskStatus.submitting": "Einreichen",
     "taskStatus.running": "Generieren",
     "taskStatus.runningWithElapsed": "Generieren \xB7 {elapsed}",
+    "taskStatus.cancelling": "Abbruch l\xE4uft",
     "taskStatus.completed": "Abgeschlossen",
     "taskStatus.partialFailed": "Teilweise gescheitert",
     "taskStatus.failed": "Fehlgeschlagen",
@@ -1462,8 +1472,14 @@
     "recentAssets.defaultName": "K\xFCrzlich hochgeladen",
     "recentAssets.use": "Verwenden Sie {name}",
     "recentAssets.delete": "{name} l\xF6schen",
+    "recentAssets.inUse": "Von {count} Aufgaben verwendet; dauerhaftes L\xF6schen ist nicht m\xF6glich, aber der Eintrag kann aus den letzten Uploads ausgeblendet werden",
+    "recentAssets.hide": "{name} aus den letzten Uploads ausblenden",
+    "recentAssets.hideTitle": "Aus den letzten Uploads ausblenden?",
+    "recentAssets.hideMessage": "Dieses Bild wird von {count} Aufgaben verwendet und kann nicht dauerhaft gel\xF6scht werden. Beim Ausblenden wird es nur aus den letzten Uploads entfernt; Original, aktuelle Eingabe und historische Aufgaben bleiben erhalten.",
+    "recentAssets.hideFailed": "Der letzte Upload konnte nicht ausgeblendet werden",
+    "recentAssets.hidden": "Aus den letzten Uploads ausgeblendet; Original und historische Aufgaben bleiben erhalten",
     "recentAssets.deleteTitle": "Letzten Upload l\xF6schen?",
-    "recentAssets.deleteMessage": "Dadurch wird das Bild aus den letzten Uploads entfernt. Wenn es derzeit als Bildeingabe ausgew\xE4hlt ist, wird es aus der aktuellen Eingabe entfernt. Bei historischen Aufgaben, die auf diesen letzten Upload verweisen, geht die Eingabevorschau verloren. Die \xF6ffentliche Galerie ist nicht betroffen.",
+    "recentAssets.deleteMessage": "Dieses Bild wird von keiner Aufgabe verwendet. Das Original wird dauerhaft gel\xF6scht und dasselbe Bild aus der aktuellen Eingabe entfernt. Die \xF6ffentliche Galerie ist nicht betroffen.",
     "recentAssets.loadFailed": "Die letzten Uploads konnten nicht geladen werden",
     "recentAssets.deleteFailed": "Der letzte Upload konnte nicht gel\xF6scht werden",
     "recentAssets.deleted": "Letzter Upload gel\xF6scht",
@@ -1610,7 +1626,7 @@
     "output.promptHelpTitle": "Prompt-Verarbeitung",
     "output.promptHelp.responsesChannel": "Responses \xB7 Hauptmodell beteiligt",
     "output.promptHelp.imagesChannel": "Images \xB7 direkte Generierung",
-    "output.promptHelp.responses.original": "Sendet den Originaltext an das Hauptmodell und verlangt eine m\xF6glichst w\xF6rtliche Nutzung im Bildwerkzeug; ein revised prompt kann dennoch entstehen.",
+    "output.promptHelp.responses.original": "Sendet den exakten Originaltext ohne zus\xE4tzliche App-Regeln; der Anbieter kann dennoch einen revised prompt zur\xFCckgeben oder das Ergebnis anders interpretieren.",
     "output.promptHelp.responses.strict": "Das Hauptmodell darf ordnen oder erweitern, muss aber feste Vorgaben wie Motive, Text, Farben und Komposition erhalten.",
     "output.promptHelp.responses.automatic": "F\xFCgt keine zus\xE4tzlichen Vorgaben hinzu; das Hauptmodell interpretiert und optimiert vor dem Aufruf des Bildwerkzeugs.",
     "output.promptHelp.images.original": "F\xFCgt keine App-Regeln hinzu und sendet den Originaltext direkt an die Bild-API.",
@@ -2202,10 +2218,10 @@
     "batch.cancelSelected": "Cancelar tareas",
     "batch.noActiveSelected": "Las tareas seleccionadas ya no est\xE1n en ejecuci\xF3n ni en espera",
     "batch.cancelTitle": "\xBFCancelar {count} tareas?",
-    "batch.cancelMessage": "Las tareas en ejecuci\xF3n se detendr\xE1n y las que esperan saldr\xE1n de la cola. Se conservar\xE1 el historial.",
+    "batch.cancelMessage": "Las tareas en espera se cancelar\xE1n de inmediato. Las llamadas al proveedor en curso pueden continuar y seguir generando cargos hasta que respondan. Se conservar\xE1 el historial.",
     "batch.cancelDetail": "En ejecuci\xF3n {running} \xB7 en espera {waiting}",
     "batch.cancelConfirm": "Cancelar tareas",
-    "batch.cancelResult": "Canceladas {cancelled}, omitidas {skipped}, fallidas {failed}",
+    "batch.cancelResult": "Canceladas {cancelled}, cancelaci\xF3n solicitada {requested}, omitidas {skipped}, fallidas {failed}",
     "batch.cancelFailed": "Error en la cancelaci\xF3n por lotes",
     "action.archive": "Archivo",
     "action.delete": "Eliminar",
@@ -2254,8 +2270,9 @@
     "queue.queuedDeleted": "Tarea en cola eliminada",
     "queue.cancelRunningConfirm": "Cancelar tarea",
     "queue.cancelRunningTitleConfirm": "\xBFCancelar tarea en ejecuci\xF3n?",
-    "queue.cancelRunningMessage": "La tarea actual se detendr\xE1. La historia se mantendr\xE1.",
+    "queue.cancelRunningMessage": "Se solicitar\xE1 la cancelaci\xF3n. La llamada al proveedor puede continuar y seguir generando cargos hasta que responda. Se conservar\xE1 el historial.",
     "queue.cancelRunningFailed": "No se pudo cancelar la tarea",
+    "queue.cancellationPending": "Cancelaci\xF3n solicitada. La llamada al proveedor puede continuar y seguir generando cargos hasta que responda.",
     "queue.runningCancelled": "Tarea cancelada",
     "queue.reorderFailed": "No se pudo reordenar la cola",
     "queue.realtimeUpdateFailed": "No se pudo actualizar el estado en vivo",
@@ -2267,6 +2284,7 @@
     "taskStatus.submitting": "Presentando",
     "taskStatus.running": "generando",
     "taskStatus.runningWithElapsed": "Generando \xB7 {elapsed}",
+    "taskStatus.cancelling": "Cancelando",
     "taskStatus.completed": "Completado",
     "taskStatus.partialFailed": "Parcialmente fallido",
     "taskStatus.failed": "Fallido",
@@ -2541,8 +2559,14 @@
     "recentAssets.defaultName": "Carga reciente",
     "recentAssets.use": "Utilice {name}",
     "recentAssets.delete": "Eliminar {name}",
+    "recentAssets.inUse": "Usada por {count} tareas; no se puede eliminar de forma permanente, pero se puede ocultar de Cargas recientes",
+    "recentAssets.hide": "Ocultar {name} de Cargas recientes",
+    "recentAssets.hideTitle": "\xBFOcultar de Cargas recientes?",
+    "recentAssets.hideMessage": "Esta imagen se usa en {count} tareas y no se puede eliminar de forma permanente. Ocultarla solo la quita de Cargas recientes; se conservan el original, la entrada actual y las tareas hist\xF3ricas.",
+    "recentAssets.hideFailed": "No se pudo ocultar la carga reciente",
+    "recentAssets.hidden": "Ocultada de Cargas recientes; se conservaron el original y las tareas hist\xF3ricas",
     "recentAssets.deleteTitle": "\xBFEliminar carga reciente?",
-    "recentAssets.deleteMessage": "Esto eliminar\xE1 la imagen de Cargas recientes. Si actualmente est\xE1 seleccionado como entrada de imagen, se eliminar\xE1 de la entrada actual. Las tareas hist\xF3ricas que hacen referencia a esta carga reciente perder\xE1n esa vista previa de entrada. La galer\xEDa p\xFAblica no se ve afectada.",
+    "recentAssets.deleteMessage": "Ninguna tarea usa esta imagen. El original se eliminar\xE1 de forma permanente y la misma imagen se quitar\xE1 de la entrada actual. La galer\xEDa p\xFAblica no se ve afectada.",
     "recentAssets.loadFailed": "No se pudieron cargar las cargas recientes",
     "recentAssets.deleteFailed": "No se pudo eliminar la carga reciente",
     "recentAssets.deleted": "Carga reciente eliminada",
@@ -2689,7 +2713,7 @@
     "output.promptHelpTitle": "Tratamiento del prompt",
     "output.promptHelp.responsesChannel": "Responses \xB7 interviene el modelo principal",
     "output.promptHelp.imagesChannel": "Images \xB7 generaci\xF3n directa",
-    "output.promptHelp.responses.original": "Env\xEDa el texto original al modelo principal y pide conservarlo en la herramienta de imagen; aun as\xED puede generar un revised prompt.",
+    "output.promptHelp.responses.original": "Env\xEDa el texto original exacto sin reglas a\xF1adidas por la aplicaci\xF3n; el proveedor a\xFAn puede devolver un revised prompt o interpretar el resultado de otra forma.",
     "output.promptHelp.responses.strict": "Permite ordenar o ampliar el prompt, pero conserva restricciones como sujetos, texto, colores y composici\xF3n.",
     "output.promptHelp.responses.automatic": "No a\xF1ade restricciones; el modelo principal interpreta y optimiza antes de llamar a la herramienta de imagen.",
     "output.promptHelp.images.original": "No a\xF1ade reglas de la aplicaci\xF3n y env\xEDa el texto original directamente a la API de im\xE1genes.",
@@ -3281,10 +3305,10 @@
     "batch.cancelSelected": "Annuler les t\xE2ches",
     "batch.noActiveSelected": "Les t\xE2ches s\xE9lectionn\xE9es ne sont plus en cours ni en attente",
     "batch.cancelTitle": "Annuler {count} t\xE2ches ?",
-    "batch.cancelMessage": "Les t\xE2ches en cours seront arr\xEAt\xE9es et celles en attente quitteront la file. L\u2019historique sera conserv\xE9.",
+    "batch.cancelMessage": "Les t\xE2ches en attente seront annul\xE9es imm\xE9diatement. Les appels fournisseur en cours peuvent continuer et rester factur\xE9s jusqu\u2019\xE0 leur retour. L\u2019historique sera conserv\xE9.",
     "batch.cancelDetail": "En cours {running} \xB7 en attente {waiting}",
     "batch.cancelConfirm": "Annuler les t\xE2ches",
-    "batch.cancelResult": "Annul\xE9es {cancelled}, ignor\xE9es {skipped}, \xE9chou\xE9es {failed}",
+    "batch.cancelResult": "Annul\xE9es {cancelled}, annulation demand\xE9e {requested}, ignor\xE9es {skipped}, \xE9chou\xE9es {failed}",
     "batch.cancelFailed": "\xC9chec de l\u2019annulation par lot",
     "action.archive": "Archiver",
     "action.delete": "Supprimer",
@@ -3333,8 +3357,9 @@
     "queue.queuedDeleted": "T\xE2che en file d'attente supprim\xE9e",
     "queue.cancelRunningConfirm": "Annuler la t\xE2che",
     "queue.cancelRunningTitleConfirm": "Annuler la t\xE2che en cours?",
-    "queue.cancelRunningMessage": "La t\xE2che en cours s'arr\xEAtera. L'histoire sera conserv\xE9e.",
+    "queue.cancelRunningMessage": "Une annulation sera demand\xE9e. L\u2019appel au fournisseur peut continuer et rester factur\xE9 jusqu\u2019\xE0 son retour. L\u2019historique sera conserv\xE9.",
     "queue.cancelRunningFailed": "\xC9chec de l'annulation de la t\xE2che",
+    "queue.cancellationPending": "Annulation demand\xE9e. L\u2019appel au fournisseur peut continuer et rester factur\xE9 jusqu\u2019\xE0 son retour.",
     "queue.runningCancelled": "T\xE2che annul\xE9e",
     "queue.reorderFailed": "\xC9chec de la r\xE9organisation de la file d'attente",
     "queue.realtimeUpdateFailed": "\xC9chec de la mise \xE0 jour du statut en direct",
@@ -3346,6 +3371,7 @@
     "taskStatus.submitting": "Soumission",
     "taskStatus.running": "G\xE9n\xE9ration",
     "taskStatus.runningWithElapsed": "G\xE9n\xE9ration \xB7 {elapsed}",
+    "taskStatus.cancelling": "Annulation en cours",
     "taskStatus.completed": "Termin\xE9",
     "taskStatus.partialFailed": "Partiellement \xE9chou\xE9",
     "taskStatus.failed": "\xC9chec",
@@ -3620,8 +3646,14 @@
     "recentAssets.defaultName": "T\xE9l\xE9chargement r\xE9cent",
     "recentAssets.use": "Utilisez {name}",
     "recentAssets.delete": "Supprimer {name}",
+    "recentAssets.inUse": "Utilis\xE9e par {count} t\xE2ches\xA0; elle ne peut pas \xEAtre supprim\xE9e d\xE9finitivement, mais peut \xEAtre masqu\xE9e des t\xE9l\xE9chargements r\xE9cents",
+    "recentAssets.hide": "Masquer {name} des t\xE9l\xE9chargements r\xE9cents",
+    "recentAssets.hideTitle": "Masquer des t\xE9l\xE9chargements r\xE9cents\xA0?",
+    "recentAssets.hideMessage": "Cette image est utilis\xE9e par {count} t\xE2ches et ne peut pas \xEAtre supprim\xE9e d\xE9finitivement. La masquer la retire uniquement des t\xE9l\xE9chargements r\xE9cents\xA0; l\u2019original, l\u2019entr\xE9e actuelle et les t\xE2ches historiques sont conserv\xE9s.",
+    "recentAssets.hideFailed": "Impossible de masquer le t\xE9l\xE9chargement r\xE9cent",
+    "recentAssets.hidden": "Masqu\xE9e des t\xE9l\xE9chargements r\xE9cents\xA0; l\u2019original et les t\xE2ches historiques ont \xE9t\xE9 conserv\xE9s",
     "recentAssets.deleteTitle": "Supprimer le t\xE9l\xE9chargement r\xE9cent?",
-    "recentAssets.deleteMessage": "Cela supprimera l'image des t\xE9l\xE9chargements r\xE9cents. S'il est actuellement s\xE9lectionn\xE9 comme entr\xE9e d'image, il sera supprim\xE9 de l'entr\xE9e actuelle. Les t\xE2ches historiques qui font r\xE9f\xE9rence \xE0 ce t\xE9l\xE9chargement r\xE9cent perdront cet aper\xE7u d\u2019entr\xE9e. La galerie publique n\u2019est pas concern\xE9e.",
+    "recentAssets.deleteMessage": "Cette image n\u2019est utilis\xE9e par aucune t\xE2che. L\u2019original sera supprim\xE9 d\xE9finitivement et la m\xEAme image sera retir\xE9e de l\u2019entr\xE9e actuelle. La galerie publique n\u2019est pas concern\xE9e.",
     "recentAssets.loadFailed": "\xC9chec du chargement des t\xE9l\xE9chargements r\xE9cents",
     "recentAssets.deleteFailed": "\xC9chec de la suppression du t\xE9l\xE9chargement r\xE9cent",
     "recentAssets.deleted": "T\xE9l\xE9chargement r\xE9cent supprim\xE9",
@@ -3768,7 +3800,7 @@
     "output.promptHelpTitle": "Traitement du prompt",
     "output.promptHelp.responsesChannel": "Responses \xB7 mod\xE8le principal impliqu\xE9",
     "output.promptHelp.imagesChannel": "Images \xB7 g\xE9n\xE9ration directe",
-    "output.promptHelp.responses.original": "Envoie le texte original au mod\xE8le principal et demande \xE0 l\u2019outil d\u2019image de le conserver ; un revised prompt peut malgr\xE9 tout \xEAtre produit.",
+    "output.promptHelp.responses.original": "Envoie le texte original exact sans r\xE8gle ajout\xE9e par l\u2019application ; le fournisseur peut n\xE9anmoins renvoyer un revised prompt ou interpr\xE9ter le r\xE9sultat autrement.",
     "output.promptHelp.responses.strict": "Autorise le mod\xE8le principal \xE0 organiser ou d\xE9velopper le prompt tout en pr\xE9servant les contraintes de sujet, texte, couleur et composition.",
     "output.promptHelp.responses.automatic": "N\u2019ajoute aucune contrainte ; le mod\xE8le principal interpr\xE8te et optimise avant d\u2019appeler l\u2019outil d\u2019image.",
     "output.promptHelp.images.original": "N\u2019ajoute aucune r\xE8gle applicative et envoie le texte original directement \xE0 l\u2019API d\u2019images.",
@@ -4360,10 +4392,10 @@
     "batch.cancelSelected": "\u30BF\u30B9\u30AF\u3092\u30AD\u30E3\u30F3\u30BB\u30EB",
     "batch.noActiveSelected": "\u9078\u629E\u3057\u305F\u30BF\u30B9\u30AF\u306F\u5B9F\u884C\u4E2D\u307E\u305F\u306F\u5F85\u6A5F\u4E2D\u3067\u306F\u3042\u308A\u307E\u305B\u3093",
     "batch.cancelTitle": "{count} \u4EF6\u306E\u30BF\u30B9\u30AF\u3092\u30AD\u30E3\u30F3\u30BB\u30EB\u3057\u307E\u3059\u304B\uFF1F",
-    "batch.cancelMessage": "\u5B9F\u884C\u4E2D\u306E\u30BF\u30B9\u30AF\u306F\u505C\u6B62\u3057\u3001\u5F85\u6A5F\u4E2D\u306E\u30BF\u30B9\u30AF\u306F\u30AD\u30E5\u30FC\u304B\u3089\u5916\u308C\u307E\u3059\u3002\u5C65\u6B74\u306F\u4FDD\u6301\u3055\u308C\u307E\u3059\u3002",
+    "batch.cancelMessage": "\u5F85\u6A5F\u4E2D\u306E\u30BF\u30B9\u30AF\u306F\u76F4\u3061\u306B\u30AD\u30E3\u30F3\u30BB\u30EB\u3055\u308C\u307E\u3059\u3002\u5B9F\u884C\u4E2D\u306E\u30D7\u30ED\u30D0\u30A4\u30C0\u30FC\u547C\u3073\u51FA\u3057\u306F\u5FDC\u7B54\u3059\u308B\u307E\u3067\u7D99\u7D9A\u3057\u3001\u6599\u91D1\u304C\u767A\u751F\u3059\u308B\u5834\u5408\u304C\u3042\u308A\u307E\u3059\u3002\u5C65\u6B74\u306F\u4FDD\u6301\u3055\u308C\u307E\u3059\u3002",
     "batch.cancelDetail": "\u5B9F\u884C\u4E2D {running} \xB7 \u5F85\u6A5F\u4E2D {waiting}",
     "batch.cancelConfirm": "\u30AD\u30E3\u30F3\u30BB\u30EB\u3059\u308B",
-    "batch.cancelResult": "\u30AD\u30E3\u30F3\u30BB\u30EB {cancelled}\u3001\u30B9\u30AD\u30C3\u30D7 {skipped}\u3001\u5931\u6557 {failed}",
+    "batch.cancelResult": "\u30AD\u30E3\u30F3\u30BB\u30EB\u6E08\u307F {cancelled}\u3001\u30AD\u30E3\u30F3\u30BB\u30EB\u8981\u6C42\u6E08\u307F {requested}\u3001\u30B9\u30AD\u30C3\u30D7 {skipped}\u3001\u5931\u6557 {failed}",
     "batch.cancelFailed": "\u4E00\u62EC\u30AD\u30E3\u30F3\u30BB\u30EB\u306B\u5931\u6557\u3057\u307E\u3057\u305F",
     "action.archive": "\u30A2\u30FC\u30AB\u30A4\u30D6",
     "action.delete": "\u524A\u9664",
@@ -4412,8 +4444,9 @@
     "queue.queuedDeleted": "\u30AD\u30E5\u30FC\u306B\u767B\u9332\u3055\u308C\u305F\u30BF\u30B9\u30AF\u304C\u524A\u9664\u3055\u308C\u307E\u3057\u305F",
     "queue.cancelRunningConfirm": "\u30BF\u30B9\u30AF\u3092\u30AD\u30E3\u30F3\u30BB\u30EB",
     "queue.cancelRunningTitleConfirm": "\u5B9F\u884C\u4E2D\u306E\u30BF\u30B9\u30AF\u3092\u30AD\u30E3\u30F3\u30BB\u30EB\u3057\u307E\u3059\u304B?",
-    "queue.cancelRunningMessage": "\u73FE\u5728\u306E\u30BF\u30B9\u30AF\u306F\u505C\u6B62\u3057\u307E\u3059\u3002\u5C65\u6B74\u306F\u6B8B\u308A\u307E\u3059\u3002",
+    "queue.cancelRunningMessage": "\u30AD\u30E3\u30F3\u30BB\u30EB\u3092\u8981\u6C42\u3057\u307E\u3059\u3002\u30D7\u30ED\u30D0\u30A4\u30C0\u30FC\u306E\u547C\u3073\u51FA\u3057\u306F\u5FDC\u7B54\u3059\u308B\u307E\u3067\u7D99\u7D9A\u3057\u3001\u6599\u91D1\u304C\u767A\u751F\u3059\u308B\u5834\u5408\u304C\u3042\u308A\u307E\u3059\u3002\u5C65\u6B74\u306F\u4FDD\u6301\u3055\u308C\u307E\u3059\u3002",
     "queue.cancelRunningFailed": "\u30BF\u30B9\u30AF\u306E\u30AD\u30E3\u30F3\u30BB\u30EB\u306B\u5931\u6557\u3057\u307E\u3057\u305F",
+    "queue.cancellationPending": "\u30AD\u30E3\u30F3\u30BB\u30EB\u3092\u8981\u6C42\u3057\u307E\u3057\u305F\u3002\u30D7\u30ED\u30D0\u30A4\u30C0\u30FC\u306E\u547C\u3073\u51FA\u3057\u306F\u5FDC\u7B54\u3059\u308B\u307E\u3067\u7D99\u7D9A\u3057\u3001\u6599\u91D1\u304C\u767A\u751F\u3059\u308B\u5834\u5408\u304C\u3042\u308A\u307E\u3059\u3002",
     "queue.runningCancelled": "\u30BF\u30B9\u30AF\u304C\u30AD\u30E3\u30F3\u30BB\u30EB\u3055\u308C\u307E\u3057\u305F",
     "queue.reorderFailed": "\u30AD\u30E5\u30FC\u306E\u4E26\u3079\u66FF\u3048\u306B\u5931\u6557\u3057\u307E\u3057\u305F",
     "queue.realtimeUpdateFailed": "\u30E9\u30A4\u30D6\u30B9\u30C6\u30FC\u30BF\u30B9\u3092\u66F4\u65B0\u3067\u304D\u307E\u305B\u3093\u3067\u3057\u305F",
@@ -4425,6 +4458,7 @@
     "taskStatus.submitting": "\u9001\u4FE1\u4E2D",
     "taskStatus.running": "\u751F\u6210\u4E2D",
     "taskStatus.runningWithElapsed": "\u751F\u6210\u4E2D \xB7{elapsed}",
+    "taskStatus.cancelling": "\u30AD\u30E3\u30F3\u30BB\u30EB\u4E2D",
     "taskStatus.completed": "\u5B8C\u4E86",
     "taskStatus.partialFailed": "\u90E8\u5206\u7684\u306B\u5931\u6557\u3057\u307E\u3057\u305F",
     "taskStatus.failed": "\u5931\u6557\u3057\u307E\u3057\u305F",
@@ -4699,8 +4733,14 @@
     "recentAssets.defaultName": "\u6700\u8FD1\u306E\u30A2\u30C3\u30D7\u30ED\u30FC\u30C9",
     "recentAssets.use": "{name}\u3092\u4F7F\u7528\u3057\u3066\u304F\u3060\u3055\u3044",
     "recentAssets.delete": "{name}\u3092\u524A\u9664",
+    "recentAssets.inUse": "{count} \u4EF6\u306E\u30BF\u30B9\u30AF\u3067\u4F7F\u7528\u4E2D\u306E\u305F\u3081\u5B8C\u5168\u306B\u306F\u524A\u9664\u3067\u304D\u307E\u305B\u3093\u304C\u3001\u6700\u8FD1\u306E\u30A2\u30C3\u30D7\u30ED\u30FC\u30C9\u304B\u3089\u975E\u8868\u793A\u306B\u3067\u304D\u307E\u3059",
+    "recentAssets.hide": "{name}\u3092\u6700\u8FD1\u306E\u30A2\u30C3\u30D7\u30ED\u30FC\u30C9\u304B\u3089\u975E\u8868\u793A",
+    "recentAssets.hideTitle": "\u6700\u8FD1\u306E\u30A2\u30C3\u30D7\u30ED\u30FC\u30C9\u304B\u3089\u975E\u8868\u793A\u306B\u3057\u307E\u3059\u304B?",
+    "recentAssets.hideMessage": "\u3053\u306E\u753B\u50CF\u306F {count} \u4EF6\u306E\u30BF\u30B9\u30AF\u3067\u4F7F\u7528\u3055\u308C\u3066\u3044\u308B\u305F\u3081\u3001\u5B8C\u5168\u306B\u306F\u524A\u9664\u3067\u304D\u307E\u305B\u3093\u3002\u975E\u8868\u793A\u306B\u3059\u308B\u3068\u6700\u8FD1\u306E\u30A2\u30C3\u30D7\u30ED\u30FC\u30C9\u304B\u3089\u306E\u307F\u9664\u304B\u308C\u3001\u539F\u672C\u3001\u73FE\u5728\u306E\u5165\u529B\u3001\u5C65\u6B74\u30BF\u30B9\u30AF\u306F\u4FDD\u6301\u3055\u308C\u307E\u3059\u3002",
+    "recentAssets.hideFailed": "\u6700\u8FD1\u306E\u30A2\u30C3\u30D7\u30ED\u30FC\u30C9\u3092\u975E\u8868\u793A\u306B\u3067\u304D\u307E\u305B\u3093\u3067\u3057\u305F",
+    "recentAssets.hidden": "\u6700\u8FD1\u306E\u30A2\u30C3\u30D7\u30ED\u30FC\u30C9\u304B\u3089\u975E\u8868\u793A\u306B\u3057\u307E\u3057\u305F\u3002\u539F\u672C\u3068\u5C65\u6B74\u30BF\u30B9\u30AF\u306F\u4FDD\u6301\u3055\u308C\u3066\u3044\u307E\u3059",
     "recentAssets.deleteTitle": "\u6700\u8FD1\u306E\u30A2\u30C3\u30D7\u30ED\u30FC\u30C9\u3092\u524A\u9664\u3057\u307E\u3059\u304B?",
-    "recentAssets.deleteMessage": "\u3053\u308C\u306B\u3088\u308A\u3001\u6700\u8FD1\u306E\u30A2\u30C3\u30D7\u30ED\u30FC\u30C9\u304B\u3089\u753B\u50CF\u304C\u524A\u9664\u3055\u308C\u307E\u3059\u3002\u73FE\u5728\u753B\u50CF\u5165\u529B\u3068\u3057\u3066\u9078\u629E\u3055\u308C\u3066\u3044\u308B\u5834\u5408\u306F\u3001\u73FE\u5728\u306E\u5165\u529B\u304B\u3089\u524A\u9664\u3055\u308C\u307E\u3059\u3002\u3053\u306E\u6700\u8FD1\u306E\u30A2\u30C3\u30D7\u30ED\u30FC\u30C9\u3092\u53C2\u7167\u3059\u308B\u5C65\u6B74\u30BF\u30B9\u30AF\u306F\u3001\u305D\u306E\u5165\u529B\u30D7\u30EC\u30D3\u30E5\u30FC\u3092\u5931\u3044\u307E\u3059\u3002\u516C\u958B\u30AE\u30E3\u30E9\u30EA\u30FC\u306F\u5F71\u97FF\u3092\u53D7\u3051\u307E\u305B\u3093\u3002",
+    "recentAssets.deleteMessage": "\u3053\u306E\u753B\u50CF\u306F\u3069\u306E\u30BF\u30B9\u30AF\u3067\u3082\u4F7F\u7528\u3055\u308C\u3066\u3044\u307E\u305B\u3093\u3002\u539F\u672C\u3092\u5B8C\u5168\u306B\u524A\u9664\u3057\u3001\u73FE\u5728\u306E\u5165\u529B\u304B\u3089\u540C\u3058\u753B\u50CF\u3092\u53D6\u308A\u9664\u304D\u307E\u3059\u3002\u516C\u958B\u30AE\u30E3\u30E9\u30EA\u30FC\u306F\u5F71\u97FF\u3092\u53D7\u3051\u307E\u305B\u3093\u3002",
     "recentAssets.loadFailed": "\u6700\u8FD1\u306E\u30A2\u30C3\u30D7\u30ED\u30FC\u30C9\u3092\u30ED\u30FC\u30C9\u3067\u304D\u307E\u305B\u3093\u3067\u3057\u305F",
     "recentAssets.deleteFailed": "\u6700\u8FD1\u306E\u30A2\u30C3\u30D7\u30ED\u30FC\u30C9\u3092\u524A\u9664\u3067\u304D\u307E\u305B\u3093\u3067\u3057\u305F",
     "recentAssets.deleted": "\u6700\u8FD1\u306E\u30A2\u30C3\u30D7\u30ED\u30FC\u30C9\u304C\u524A\u9664\u3055\u308C\u307E\u3057\u305F",
@@ -4847,7 +4887,7 @@
     "output.promptHelpTitle": "\u30D7\u30ED\u30F3\u30D7\u30C8\u51E6\u7406",
     "output.promptHelp.responsesChannel": "Responses \xB7 \u30E1\u30A4\u30F3\u30E2\u30C7\u30EB\u304C\u95A2\u4E0E",
     "output.promptHelp.imagesChannel": "Images \xB7 \u76F4\u63A5\u751F\u6210",
-    "output.promptHelp.responses.original": "\u539F\u6587\u3092\u30E1\u30A4\u30F3\u30E2\u30C7\u30EB\u306B\u6E21\u3057\u3001\u753B\u50CF\u30C4\u30FC\u30EB\u3067\u3067\u304D\u308B\u9650\u308A\u305D\u306E\u307E\u307E\u4F7F\u3046\u3088\u3046\u6C42\u3081\u307E\u3059\u3002\u305F\u3060\u3057 revised prompt \u304C\u751F\u6210\u3055\u308C\u308B\u5834\u5408\u304C\u3042\u308A\u307E\u3059\u3002",
+    "output.promptHelp.responses.original": "\u30A2\u30D7\u30EA\u5074\u306E\u30D7\u30ED\u30F3\u30D7\u30C8\u898F\u5247\u3092\u8FFD\u52A0\u305B\u305A\u3001\u5143\u306E\u6587\u9762\u3092\u305D\u306E\u307E\u307E\u9001\u4FE1\u3057\u307E\u3059\u3002\u30D7\u30ED\u30D0\u30A4\u30C0\u30FC\u304C revised prompt \u3092\u8FD4\u3057\u305F\u308A\u3001\u7D50\u679C\u3092\u7570\u306A\u308B\u5F62\u3067\u89E3\u91C8\u3057\u305F\u308A\u3059\u308B\u5834\u5408\u304C\u3042\u308A\u307E\u3059\u3002",
     "output.promptHelp.responses.strict": "\u30E1\u30A4\u30F3\u30E2\u30C7\u30EB\u306B\u3088\u308B\u6574\u7406\u3084\u62E1\u5F35\u3092\u8A31\u53EF\u3057\u3064\u3064\u3001\u88AB\u5199\u4F53\u3001\u6587\u5B57\u3001\u8272\u3001\u69CB\u56F3\u306A\u3069\u306E\u5FC5\u9808\u6761\u4EF6\u3092\u4FDD\u6301\u3057\u307E\u3059\u3002",
     "output.promptHelp.responses.automatic": "\u8FFD\u52A0\u5236\u7D04\u3092\u4ED8\u3051\u305A\u3001\u30E1\u30A4\u30F3\u30E2\u30C7\u30EB\u304C\u89E3\u91C8\u30FB\u6700\u9069\u5316\u3057\u3066\u304B\u3089\u753B\u50CF\u30C4\u30FC\u30EB\u3092\u547C\u3073\u51FA\u3057\u307E\u3059\u3002",
     "output.promptHelp.images.original": "\u30A2\u30D7\u30EA\u5074\u306E\u30EB\u30FC\u30EB\u3092\u8FFD\u52A0\u305B\u305A\u3001\u539F\u6587\u3092\u753B\u50CF API \u306B\u76F4\u63A5\u9001\u4FE1\u3057\u307E\u3059\u3002",
@@ -5439,10 +5479,10 @@
     "batch.cancelSelected": "\uC791\uC5C5 \uCDE8\uC18C",
     "batch.noActiveSelected": "\uC120\uD0DD\uD55C \uC791\uC5C5\uC774 \uB354 \uC774\uC0C1 \uC2E4\uD589 \uC911\uC774\uAC70\uB098 \uB300\uAE30 \uC911\uC774 \uC544\uB2D9\uB2C8\uB2E4",
     "batch.cancelTitle": "{count}\uAC1C \uC791\uC5C5\uC744 \uCDE8\uC18C\uD560\uAE4C\uC694?",
-    "batch.cancelMessage": "\uC2E4\uD589 \uC911\uC778 \uC791\uC5C5\uC740 \uC911\uC9C0\uB418\uACE0 \uB300\uAE30 \uC911\uC778 \uC791\uC5C5\uC740 \uB300\uAE30\uC5F4\uC5D0\uC11C \uC81C\uAC70\uB429\uB2C8\uB2E4. \uAE30\uB85D\uC740 \uC720\uC9C0\uB429\uB2C8\uB2E4.",
+    "batch.cancelMessage": "\uB300\uAE30 \uC911\uC778 \uC791\uC5C5\uC740 \uC989\uC2DC \uCDE8\uC18C\uB429\uB2C8\uB2E4. \uC2E4\uD589 \uC911\uC778 \uACF5\uAE09\uC790 \uD638\uCD9C\uC740 \uC751\uB2F5\uD560 \uB54C\uAE4C\uC9C0 \uACC4\uC18D\uB420 \uC218 \uC788\uC73C\uBA70 \uC694\uAE08\uC774 \uBD80\uACFC\uB420 \uC218 \uC788\uC2B5\uB2C8\uB2E4. \uAE30\uB85D\uC740 \uC720\uC9C0\uB429\uB2C8\uB2E4.",
     "batch.cancelDetail": "\uC2E4\uD589 {running} \xB7 \uB300\uAE30 {waiting}",
     "batch.cancelConfirm": "\uC791\uC5C5 \uCDE8\uC18C",
-    "batch.cancelResult": "\uCDE8\uC18C {cancelled}, \uAC74\uB108\uB700 {skipped}, \uC2E4\uD328 {failed}",
+    "batch.cancelResult": "\uCDE8\uC18C\uB428 {cancelled}, \uCDE8\uC18C \uC694\uCCAD\uB428 {requested}, \uAC74\uB108\uB700 {skipped}, \uC2E4\uD328 {failed}",
     "batch.cancelFailed": "\uC77C\uAD04 \uCDE8\uC18C \uC2E4\uD328",
     "action.archive": "\uBCF4\uAD00",
     "action.delete": "\uC0AD\uC81C",
@@ -5491,8 +5531,9 @@
     "queue.queuedDeleted": "\uB300\uAE30 \uC911\uC778 \uC791\uC5C5\uC774 \uC0AD\uC81C\uB418\uC5C8\uC2B5\uB2C8\uB2E4.",
     "queue.cancelRunningConfirm": "\uC791\uC5C5 \uCDE8\uC18C",
     "queue.cancelRunningTitleConfirm": "\uC2E4\uD589 \uC911\uC778 \uC791\uC5C5\uC744 \uCDE8\uC18C\uD558\uC2DC\uACA0\uC2B5\uB2C8\uAE4C?",
-    "queue.cancelRunningMessage": "\uD604\uC7AC \uC791\uC5C5\uC774 \uC911\uC9C0\uB429\uB2C8\uB2E4. \uAE30\uB85D\uC740 \uC720\uC9C0\uB429\uB2C8\uB2E4.",
+    "queue.cancelRunningMessage": "\uCDE8\uC18C \uC694\uCCAD\uC744 \uBCF4\uB0C5\uB2C8\uB2E4. \uACF5\uAE09\uC790 \uD638\uCD9C\uC740 \uC751\uB2F5\uD560 \uB54C\uAE4C\uC9C0 \uACC4\uC18D\uB420 \uC218 \uC788\uC73C\uBA70 \uC694\uAE08\uC774 \uBD80\uACFC\uB420 \uC218 \uC788\uC2B5\uB2C8\uB2E4. \uAE30\uB85D\uC740 \uC720\uC9C0\uB429\uB2C8\uB2E4.",
     "queue.cancelRunningFailed": "\uC791\uC5C5\uC744 \uCDE8\uC18C\uD558\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4.",
+    "queue.cancellationPending": "\uCDE8\uC18C\uB97C \uC694\uCCAD\uD588\uC2B5\uB2C8\uB2E4. \uACF5\uAE09\uC790 \uD638\uCD9C\uC740 \uC751\uB2F5\uD560 \uB54C\uAE4C\uC9C0 \uACC4\uC18D\uB420 \uC218 \uC788\uC73C\uBA70 \uC694\uAE08\uC774 \uBD80\uACFC\uB420 \uC218 \uC788\uC2B5\uB2C8\uB2E4.",
     "queue.runningCancelled": "\uC791\uC5C5\uC774 \uCDE8\uC18C\uB418\uC5C8\uC2B5\uB2C8\uB2E4.",
     "queue.reorderFailed": "\uB300\uAE30\uC5F4\uC744 \uC7AC\uC815\uB82C\uD558\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4.",
     "queue.realtimeUpdateFailed": "\uB77C\uC774\uBE0C \uC0C1\uD0DC\uB97C \uC5C5\uB370\uC774\uD2B8\uD558\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4.",
@@ -5504,6 +5545,7 @@
     "taskStatus.submitting": "\uC81C\uCD9C \uC911",
     "taskStatus.running": "\uC0DD\uC131 \uC911",
     "taskStatus.runningWithElapsed": "\uC0DD\uC131 \uC911 \xB7{elapsed}",
+    "taskStatus.cancelling": "\uCDE8\uC18C \uC911",
     "taskStatus.completed": "\uC644\uB8CC\uB428",
     "taskStatus.partialFailed": "\uBD80\uBD84\uC801\uC73C\uB85C \uC2E4\uD328\uD568",
     "taskStatus.failed": "\uC2E4\uD328",
@@ -5778,8 +5820,14 @@
     "recentAssets.defaultName": "\uCD5C\uADFC \uC5C5\uB85C\uB4DC",
     "recentAssets.use": "{name}\uC0AC\uC6A9",
     "recentAssets.delete": "{name}\uC0AD\uC81C",
+    "recentAssets.inUse": "{count}\uAC1C \uC791\uC5C5\uC5D0\uC11C \uC0AC\uC6A9 \uC911\uC774\uBBC0\uB85C \uC601\uAD6C \uC0AD\uC81C\uD560 \uC218 \uC5C6\uC9C0\uB9CC \uCD5C\uADFC \uC5C5\uB85C\uB4DC\uC5D0\uC11C \uC228\uAE38 \uC218 \uC788\uC2B5\uB2C8\uB2E4",
+    "recentAssets.hide": "\uCD5C\uADFC \uC5C5\uB85C\uB4DC\uC5D0\uC11C {name} \uC228\uAE30\uAE30",
+    "recentAssets.hideTitle": "\uCD5C\uADFC \uC5C5\uB85C\uB4DC\uC5D0\uC11C \uC228\uAE30\uC2DC\uACA0\uC2B5\uB2C8\uAE4C?",
+    "recentAssets.hideMessage": "\uC774 \uC774\uBBF8\uC9C0\uB294 {count}\uAC1C \uC791\uC5C5\uC5D0\uC11C \uC0AC\uC6A9 \uC911\uC774\uBBC0\uB85C \uC601\uAD6C \uC0AD\uC81C\uD560 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4. \uC228\uAE30\uBA74 \uCD5C\uADFC \uC5C5\uB85C\uB4DC \uBAA9\uB85D\uC5D0\uC11C\uB9CC \uC81C\uAC70\uB418\uBA70 \uC6D0\uBCF8, \uD604\uC7AC \uC785\uB825 \uBC0F \uAE30\uB85D \uC791\uC5C5\uC740 \uC720\uC9C0\uB429\uB2C8\uB2E4.",
+    "recentAssets.hideFailed": "\uCD5C\uADFC \uC5C5\uB85C\uB4DC\uB97C \uC228\uAE30\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4.",
+    "recentAssets.hidden": "\uCD5C\uADFC \uC5C5\uB85C\uB4DC\uC5D0\uC11C \uC228\uACBC\uC2B5\uB2C8\uB2E4. \uC6D0\uBCF8\uACFC \uAE30\uB85D \uC791\uC5C5\uC740 \uC720\uC9C0\uB429\uB2C8\uB2E4.",
     "recentAssets.deleteTitle": "\uCD5C\uADFC \uC5C5\uB85C\uB4DC\uB97C \uC0AD\uC81C\uD558\uC2DC\uACA0\uC2B5\uB2C8\uAE4C?",
-    "recentAssets.deleteMessage": "\uCD5C\uADFC \uC5C5\uB85C\uB4DC\uC5D0\uC11C \uC774\uBBF8\uC9C0\uAC00 \uC81C\uAC70\uB429\uB2C8\uB2E4. \uD604\uC7AC \uC774\uBBF8\uC9C0 \uC785\uB825\uC73C\uB85C \uC120\uD0DD\uB41C \uACBD\uC6B0 \uD604\uC7AC \uC785\uB825\uC5D0\uC11C \uC81C\uAC70\uB429\uB2C8\uB2E4. \uC774 \uCD5C\uADFC \uC5C5\uB85C\uB4DC\uB97C \uCC38\uC870\uD558\uB294 \uAE30\uB85D \uC791\uC5C5\uC740 \uD574\uB2F9 \uC785\uB825 \uBBF8\uB9AC \uBCF4\uAE30\uB97C \uC783\uAC8C \uB429\uB2C8\uB2E4. \uACF5\uAC1C \uAC24\uB7EC\uB9AC\uB294 \uC601\uD5A5\uC744 \uBC1B\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4.",
+    "recentAssets.deleteMessage": "\uC5B4\uB5A4 \uC791\uC5C5\uC5D0\uC11C\uB3C4 \uC0AC\uC6A9\uD558\uC9C0 \uC54A\uB294 \uC774\uBBF8\uC9C0\uC785\uB2C8\uB2E4. \uC6D0\uBCF8\uC744 \uC601\uAD6C \uC0AD\uC81C\uD558\uACE0 \uD604\uC7AC \uC785\uB825\uC5D0\uC11C\uB3C4 \uAC19\uC740 \uC774\uBBF8\uC9C0\uB97C \uC81C\uAC70\uD569\uB2C8\uB2E4. \uACF5\uAC1C \uAC24\uB7EC\uB9AC\uB294 \uC601\uD5A5\uC744 \uBC1B\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4.",
     "recentAssets.loadFailed": "\uCD5C\uADFC \uC5C5\uB85C\uB4DC\uB97C \uB85C\uB4DC\uD558\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4.",
     "recentAssets.deleteFailed": "\uCD5C\uADFC \uC5C5\uB85C\uB4DC\uB97C \uC0AD\uC81C\uD558\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4.",
     "recentAssets.deleted": "\uCD5C\uADFC \uC5C5\uB85C\uB4DC\uAC00 \uC0AD\uC81C\uB418\uC5C8\uC2B5\uB2C8\uB2E4.",
@@ -5926,7 +5974,7 @@
     "output.promptHelpTitle": "\uD504\uB86C\uD504\uD2B8 \uCC98\uB9AC",
     "output.promptHelp.responsesChannel": "Responses \xB7 \uBA54\uC778 \uBAA8\uB378 \uCC38\uC5EC",
     "output.promptHelp.imagesChannel": "Images \xB7 \uC9C1\uC811 \uC0DD\uC131",
-    "output.promptHelp.responses.original": "\uC6D0\uBB38\uC744 \uBA54\uC778 \uBAA8\uB378\uC5D0 \uC804\uB2EC\uD558\uACE0 \uC774\uBBF8\uC9C0 \uB3C4\uAD6C\uAC00 \uAC00\uB2A5\uD55C \uD55C \uADF8\uB300\uB85C \uC0AC\uC6A9\uD558\uB3C4\uB85D \uC694\uCCAD\uD569\uB2C8\uB2E4. \uB2E8, revised prompt\uAC00 \uC0DD\uC131\uB420 \uC218 \uC788\uC2B5\uB2C8\uB2E4.",
+    "output.promptHelp.responses.original": "\uC571 \uC218\uC900\uC758 \uD504\uB86C\uD504\uD2B8 \uADDC\uCE59\uC744 \uCD94\uAC00\uD558\uC9C0 \uC54A\uACE0 \uC6D0\uBB38\uC744 \uADF8\uB300\uB85C \uC804\uC1A1\uD569\uB2C8\uB2E4. \uACF5\uAE09\uC790\uAC00 revised prompt\uB97C \uBC18\uD658\uD558\uAC70\uB098 \uACB0\uACFC\uB97C \uB2E4\uB974\uAC8C \uD574\uC11D\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4.",
     "output.promptHelp.responses.strict": "\uBA54\uC778 \uBAA8\uB378\uC774 \uC815\uB9AC\uD558\uAC70\uB098 \uD655\uC7A5\uD560 \uC218 \uC788\uC9C0\uB9CC \uD53C\uC0AC\uCCB4, \uD14D\uC2A4\uD2B8, \uC0C9\uC0C1, \uAD6C\uB3C4 \uAC19\uC740 \uD544\uC218 \uC870\uAC74\uC740 \uC720\uC9C0\uD569\uB2C8\uB2E4.",
     "output.promptHelp.responses.automatic": "\uCD94\uAC00 \uC81C\uC57D \uC5C6\uC774 \uBA54\uC778 \uBAA8\uB378\uC774 \uD574\uC11D\uD558\uACE0 \uCD5C\uC801\uD654\uD55C \uB4A4 \uC774\uBBF8\uC9C0 \uB3C4\uAD6C\uB97C \uD638\uCD9C\uD569\uB2C8\uB2E4.",
     "output.promptHelp.images.original": "\uC571 \uC218\uC900\uC758 \uADDC\uCE59\uC744 \uCD94\uAC00\uD558\uC9C0 \uC54A\uACE0 \uC6D0\uBB38\uC744 \uC774\uBBF8\uC9C0 API\uC5D0 \uC9C1\uC811 \uC81C\uCD9C\uD569\uB2C8\uB2E4.",
@@ -6518,10 +6566,10 @@
     "batch.cancelSelected": "Cancelar tarefas",
     "batch.noActiveSelected": "As tarefas selecionadas j\xE1 n\xE3o est\xE3o em execu\xE7\xE3o nem em espera",
     "batch.cancelTitle": "Cancelar {count} tarefas?",
-    "batch.cancelMessage": "As tarefas em execu\xE7\xE3o ser\xE3o interrompidas e as tarefas em espera sair\xE3o da fila. O hist\xF3rico ser\xE1 mantido.",
+    "batch.cancelMessage": "As tarefas em espera ser\xE3o canceladas imediatamente. As chamadas ao provedor em execu\xE7\xE3o podem continuar e ainda gerar cobran\xE7a at\xE9 retornar. O hist\xF3rico ser\xE1 mantido.",
     "batch.cancelDetail": "Em execu\xE7\xE3o {running} \xB7 em espera {waiting}",
     "batch.cancelConfirm": "Cancelar tarefas",
-    "batch.cancelResult": "Canceladas {cancelled}, ignoradas {skipped}, falhas {failed}",
+    "batch.cancelResult": "Canceladas {cancelled}, cancelamento solicitado {requested}, ignoradas {skipped}, falhas {failed}",
     "batch.cancelFailed": "Falha no cancelamento em lote",
     "action.archive": "Arquivo",
     "action.delete": "Excluir",
@@ -6570,8 +6618,9 @@
     "queue.queuedDeleted": "Tarefa na fila exclu\xEDda",
     "queue.cancelRunningConfirm": "Cancelar tarefa",
     "queue.cancelRunningTitleConfirm": "Cancelar tarefa em execu\xE7\xE3o?",
-    "queue.cancelRunningMessage": "A tarefa atual ser\xE1 interrompida. A hist\xF3ria ser\xE1 mantida.",
+    "queue.cancelRunningMessage": "O cancelamento ser\xE1 solicitado. A chamada ao provedor pode continuar e ainda gerar cobran\xE7a at\xE9 retornar. O hist\xF3rico ser\xE1 mantido.",
     "queue.cancelRunningFailed": "Falha ao cancelar tarefa",
+    "queue.cancellationPending": "Cancelamento solicitado. A chamada ao provedor pode continuar e ainda gerar cobran\xE7a at\xE9 retornar.",
     "queue.runningCancelled": "Tarefa cancelada",
     "queue.reorderFailed": "Falha ao reordenar a fila",
     "queue.realtimeUpdateFailed": "Falha ao atualizar o status ativo",
@@ -6583,6 +6632,7 @@
     "taskStatus.submitting": "Enviando",
     "taskStatus.running": "Gerando",
     "taskStatus.runningWithElapsed": "Gerando \xB7 {elapsed}",
+    "taskStatus.cancelling": "Cancelando",
     "taskStatus.completed": "Conclu\xEDdo",
     "taskStatus.partialFailed": "Falha parcial",
     "taskStatus.failed": "Falha",
@@ -6857,8 +6907,14 @@
     "recentAssets.defaultName": "Carregamento recente",
     "recentAssets.use": "Usar {name}",
     "recentAssets.delete": "Excluir {name}",
+    "recentAssets.inUse": "Usada por {count} tarefas; n\xE3o pode ser exclu\xEDda permanentemente, mas pode ser ocultada dos uploads recentes",
+    "recentAssets.hide": "Ocultar {name} dos uploads recentes",
+    "recentAssets.hideTitle": "Ocultar dos uploads recentes?",
+    "recentAssets.hideMessage": "Esta imagem \xE9 usada por {count} tarefas e n\xE3o pode ser exclu\xEDda permanentemente. Ocultar remove apenas dos uploads recentes; o original, a entrada atual e as tarefas hist\xF3ricas s\xE3o preservados.",
+    "recentAssets.hideFailed": "Falha ao ocultar upload recente",
+    "recentAssets.hidden": "Ocultada dos uploads recentes; o original e as tarefas hist\xF3ricas foram preservados",
     "recentAssets.deleteTitle": "Excluir upload recente?",
-    "recentAssets.deleteMessage": "Isso remover\xE1 a imagem dos uploads recentes. Se estiver atualmente selecionado como entrada de imagem, ser\xE1 removido da entrada atual. As tarefas hist\xF3ricas que fazem refer\xEAncia a este upload recente perder\xE3o a visualiza\xE7\xE3o da entrada. A galeria p\xFAblica n\xE3o \xE9 afetada.",
+    "recentAssets.deleteMessage": "Esta imagem n\xE3o \xE9 usada por nenhuma tarefa. O original ser\xE1 exclu\xEDdo permanentemente e a mesma imagem ser\xE1 removida da entrada atual. A galeria p\xFAblica n\xE3o \xE9 afetada.",
     "recentAssets.loadFailed": "Falha ao carregar uploads recentes",
     "recentAssets.deleteFailed": "Falha ao excluir upload recente",
     "recentAssets.deleted": "Upload recente exclu\xEDdo",
@@ -7005,7 +7061,7 @@
     "output.promptHelpTitle": "Tratamento do prompt",
     "output.promptHelp.responsesChannel": "Responses \xB7 modelo principal envolvido",
     "output.promptHelp.imagesChannel": "Images \xB7 gera\xE7\xE3o direta",
-    "output.promptHelp.responses.original": "Envia o texto original ao modelo principal e pede que a ferramenta de imagem o preserve; ainda assim pode gerar um revised prompt.",
+    "output.promptHelp.responses.original": "Envia o texto original exato sem regras adicionadas pelo aplicativo; o provedor ainda pode retornar um revised prompt ou interpretar o resultado de outra forma.",
     "output.promptHelp.responses.strict": "Permite que o modelo principal organize ou expanda o prompt, preservando restri\xE7\xF5es como temas, texto, cores e composi\xE7\xE3o.",
     "output.promptHelp.responses.automatic": "N\xE3o adiciona restri\xE7\xF5es; o modelo principal interpreta e otimiza antes de chamar a ferramenta de imagem.",
     "output.promptHelp.images.original": "N\xE3o adiciona regras do aplicativo e envia o texto original diretamente \xE0 API de imagens.",
@@ -7597,10 +7653,10 @@
     "batch.cancelSelected": "\u041E\u0442\u043C\u0435\u043D\u0438\u0442\u044C \u0437\u0430\u0434\u0430\u0447\u0438",
     "batch.noActiveSelected": "\u0412\u044B\u0431\u0440\u0430\u043D\u043D\u044B\u0435 \u0437\u0430\u0434\u0430\u0447\u0438 \u0431\u043E\u043B\u044C\u0448\u0435 \u043D\u0435 \u0432\u044B\u043F\u043E\u043B\u043D\u044F\u044E\u0442\u0441\u044F \u0438 \u043D\u0435 \u043E\u0436\u0438\u0434\u0430\u044E\u0442",
     "batch.cancelTitle": "\u041E\u0442\u043C\u0435\u043D\u0438\u0442\u044C \u0437\u0430\u0434\u0430\u0447\u0438: {count}?",
-    "batch.cancelMessage": "\u0412\u044B\u043F\u043E\u043B\u043D\u044F\u0435\u043C\u044B\u0435 \u0437\u0430\u0434\u0430\u0447\u0438 \u0431\u0443\u0434\u0443\u0442 \u043E\u0441\u0442\u0430\u043D\u043E\u0432\u043B\u0435\u043D\u044B, \u0430 \u043E\u0436\u0438\u0434\u0430\u044E\u0449\u0438\u0435 \u0443\u0434\u0430\u043B\u0435\u043D\u044B \u0438\u0437 \u043E\u0447\u0435\u0440\u0435\u0434\u0438. \u0418\u0441\u0442\u043E\u0440\u0438\u044F \u0441\u043E\u0445\u0440\u0430\u043D\u0438\u0442\u0441\u044F.",
+    "batch.cancelMessage": "\u041E\u0436\u0438\u0434\u0430\u044E\u0449\u0438\u0435 \u0437\u0430\u0434\u0430\u0447\u0438 \u0431\u0443\u0434\u0443\u0442 \u043E\u0442\u043C\u0435\u043D\u0435\u043D\u044B \u0441\u0440\u0430\u0437\u0443. \u0412\u044B\u043F\u043E\u043B\u043D\u044F\u0435\u043C\u044B\u0435 \u0432\u044B\u0437\u043E\u0432\u044B \u043F\u0440\u043E\u0432\u0430\u0439\u0434\u0435\u0440\u0430 \u043C\u043E\u0433\u0443\u0442 \u043F\u0440\u043E\u0434\u043E\u043B\u0436\u0430\u0442\u044C\u0441\u044F \u0438 \u0442\u0430\u0440\u0438\u0444\u0438\u0446\u0438\u0440\u043E\u0432\u0430\u0442\u044C\u0441\u044F \u0434\u043E \u043F\u043E\u043B\u0443\u0447\u0435\u043D\u0438\u044F \u043E\u0442\u0432\u0435\u0442\u0430. \u0418\u0441\u0442\u043E\u0440\u0438\u044F \u0441\u043E\u0445\u0440\u0430\u043D\u0438\u0442\u0441\u044F.",
     "batch.cancelDetail": "\u0412\u044B\u043F\u043E\u043B\u043D\u044F\u0435\u0442\u0441\u044F {running} \xB7 \u043E\u0436\u0438\u0434\u0430\u0435\u0442 {waiting}",
     "batch.cancelConfirm": "\u041E\u0442\u043C\u0435\u043D\u0438\u0442\u044C \u0437\u0430\u0434\u0430\u0447\u0438",
-    "batch.cancelResult": "\u041E\u0442\u043C\u0435\u043D\u0435\u043D\u043E {cancelled}, \u043F\u0440\u043E\u043F\u0443\u0449\u0435\u043D\u043E {skipped}, \u043E\u0448\u0438\u0431\u043E\u043A {failed}",
+    "batch.cancelResult": "\u041E\u0442\u043C\u0435\u043D\u0435\u043D\u043E {cancelled}, \u043E\u0442\u043C\u0435\u043D\u0430 \u0437\u0430\u043F\u0440\u043E\u0448\u0435\u043D\u0430 {requested}, \u043F\u0440\u043E\u043F\u0443\u0449\u0435\u043D\u043E {skipped}, \u043E\u0448\u0438\u0431\u043E\u043A {failed}",
     "batch.cancelFailed": "\u041D\u0435 \u0443\u0434\u0430\u043B\u043E\u0441\u044C \u043E\u0442\u043C\u0435\u043D\u0438\u0442\u044C \u0437\u0430\u0434\u0430\u0447\u0438",
     "action.archive": "\u0410\u0440\u0445\u0438\u0432",
     "action.delete": "\u0423\u0434\u0430\u043B\u0438\u0442\u044C",
@@ -7649,8 +7705,9 @@
     "queue.queuedDeleted": "\u0417\u0430\u0434\u0430\u0447\u0430 \u0432 \u043E\u0447\u0435\u0440\u0435\u0434\u0438 \u0443\u0434\u0430\u043B\u0435\u043D\u0430",
     "queue.cancelRunningConfirm": "\u041E\u0442\u043C\u0435\u043D\u0438\u0442\u044C \u0437\u0430\u0434\u0430\u0447\u0443",
     "queue.cancelRunningTitleConfirm": "\u041E\u0442\u043C\u0435\u043D\u0438\u0442\u044C \u0432\u044B\u043F\u043E\u043B\u043D\u0435\u043D\u0438\u0435 \u0437\u0430\u0434\u0430\u0447\u0438?",
-    "queue.cancelRunningMessage": "\u0422\u0435\u043A\u0443\u0449\u0430\u044F \u0437\u0430\u0434\u0430\u0447\u0430 \u0431\u0443\u0434\u0435\u0442 \u043E\u0441\u0442\u0430\u043D\u043E\u0432\u043B\u0435\u043D\u0430. \u0418\u0441\u0442\u043E\u0440\u0438\u044F \u0431\u0443\u0434\u0435\u0442 \u0441\u043E\u0445\u0440\u0430\u043D\u0435\u043D\u0430.",
+    "queue.cancelRunningMessage": "\u0411\u0443\u0434\u0435\u0442 \u0437\u0430\u043F\u0440\u043E\u0448\u0435\u043D\u0430 \u043E\u0442\u043C\u0435\u043D\u0430. \u0412\u044B\u0437\u043E\u0432 \u043F\u0440\u043E\u0432\u0430\u0439\u0434\u0435\u0440\u0430 \u043C\u043E\u0436\u0435\u0442 \u043F\u0440\u043E\u0434\u043E\u043B\u0436\u0430\u0442\u044C\u0441\u044F \u0438 \u0442\u0430\u0440\u0438\u0444\u0438\u0446\u0438\u0440\u043E\u0432\u0430\u0442\u044C\u0441\u044F \u0434\u043E \u043F\u043E\u043B\u0443\u0447\u0435\u043D\u0438\u044F \u043E\u0442\u0432\u0435\u0442\u0430. \u0418\u0441\u0442\u043E\u0440\u0438\u044F \u0441\u043E\u0445\u0440\u0430\u043D\u0438\u0442\u0441\u044F.",
     "queue.cancelRunningFailed": "\u041D\u0435 \u0443\u0434\u0430\u043B\u043E\u0441\u044C \u043E\u0442\u043C\u0435\u043D\u0438\u0442\u044C \u0437\u0430\u0434\u0430\u0447\u0443.",
+    "queue.cancellationPending": "\u041E\u0442\u043C\u0435\u043D\u0430 \u0437\u0430\u043F\u0440\u043E\u0448\u0435\u043D\u0430. \u0412\u044B\u0437\u043E\u0432 \u043F\u0440\u043E\u0432\u0430\u0439\u0434\u0435\u0440\u0430 \u043C\u043E\u0436\u0435\u0442 \u043F\u0440\u043E\u0434\u043E\u043B\u0436\u0430\u0442\u044C\u0441\u044F \u0438 \u0442\u0430\u0440\u0438\u0444\u0438\u0446\u0438\u0440\u043E\u0432\u0430\u0442\u044C\u0441\u044F \u0434\u043E \u043F\u043E\u043B\u0443\u0447\u0435\u043D\u0438\u044F \u043E\u0442\u0432\u0435\u0442\u0430.",
     "queue.runningCancelled": "\u0417\u0430\u0434\u0430\u0447\u0430 \u043E\u0442\u043C\u0435\u043D\u0435\u043D\u0430",
     "queue.reorderFailed": "\u041D\u0435 \u0443\u0434\u0430\u043B\u043E\u0441\u044C \u0438\u0437\u043C\u0435\u043D\u0438\u0442\u044C \u043F\u043E\u0440\u044F\u0434\u043E\u043A \u043E\u0447\u0435\u0440\u0435\u0434\u0438.",
     "queue.realtimeUpdateFailed": "\u041D\u0435 \u0443\u0434\u0430\u043B\u043E\u0441\u044C \u043E\u0431\u043D\u043E\u0432\u0438\u0442\u044C \u0442\u0435\u043A\u0443\u0449\u0438\u0439 \u0441\u0442\u0430\u0442\u0443\u0441.",
@@ -7662,6 +7719,7 @@
     "taskStatus.submitting": "\u041E\u0442\u043F\u0440\u0430\u0432\u043A\u0430",
     "taskStatus.running": "\u0421\u043E\u0437\u0434\u0430\u043D\u0438\u0435",
     "taskStatus.runningWithElapsed": "\u0413\u0435\u043D\u0435\u0440\u0430\u0446\u0438\u044F \xB7 {elapsed}",
+    "taskStatus.cancelling": "\u041E\u0442\u043C\u0435\u043D\u0430",
     "taskStatus.completed": "\u0417\u0430\u0432\u0435\u0440\u0448\u0435\u043D\u043E",
     "taskStatus.partialFailed": "\u0427\u0430\u0441\u0442\u0438\u0447\u043D\u043E \u043D\u0435 \u0443\u0434\u0430\u043B\u043E\u0441\u044C",
     "taskStatus.failed": "\u041D\u0435 \u0443\u0434\u0430\u043B\u043E\u0441\u044C",
@@ -7936,8 +7994,14 @@
     "recentAssets.defaultName": "\u041F\u043E\u0441\u043B\u0435\u0434\u043D\u044F\u044F \u0437\u0430\u0433\u0440\u0443\u0437\u043A\u0430",
     "recentAssets.use": "\u0418\u0441\u043F\u043E\u043B\u044C\u0437\u0443\u0439\u0442\u0435 {name}",
     "recentAssets.delete": "\u0423\u0434\u0430\u043B\u0438\u0442\u044C {name}",
+    "recentAssets.inUse": "\u0418\u0441\u043F\u043E\u043B\u044C\u0437\u0443\u0435\u0442\u0441\u044F \u0432 {count} \u0437\u0430\u0434\u0430\u0447\u0430\u0445; \u043D\u0435\u043B\u044C\u0437\u044F \u0443\u0434\u0430\u043B\u0438\u0442\u044C \u043D\u0430\u0432\u0441\u0435\u0433\u0434\u0430, \u043D\u043E \u043C\u043E\u0436\u043D\u043E \u0441\u043A\u0440\u044B\u0442\u044C \u0438\u0437 \u043F\u043E\u0441\u043B\u0435\u0434\u043D\u0438\u0445 \u0437\u0430\u0433\u0440\u0443\u0437\u043E\u043A",
+    "recentAssets.hide": "\u0421\u043A\u0440\u044B\u0442\u044C {name} \u0438\u0437 \u043F\u043E\u0441\u043B\u0435\u0434\u043D\u0438\u0445 \u0437\u0430\u0433\u0440\u0443\u0437\u043E\u043A",
+    "recentAssets.hideTitle": "\u0421\u043A\u0440\u044B\u0442\u044C \u0438\u0437 \u043F\u043E\u0441\u043B\u0435\u0434\u043D\u0438\u0445 \u0437\u0430\u0433\u0440\u0443\u0437\u043E\u043A?",
+    "recentAssets.hideMessage": "\u042D\u0442\u043E \u0438\u0437\u043E\u0431\u0440\u0430\u0436\u0435\u043D\u0438\u0435 \u0438\u0441\u043F\u043E\u043B\u044C\u0437\u0443\u0435\u0442\u0441\u044F \u0432 {count} \u0437\u0430\u0434\u0430\u0447\u0430\u0445 \u0438 \u043D\u0435 \u043C\u043E\u0436\u0435\u0442 \u0431\u044B\u0442\u044C \u0443\u0434\u0430\u043B\u0435\u043D\u043E \u043D\u0430\u0432\u0441\u0435\u0433\u0434\u0430. \u0421\u043A\u0440\u044B\u0442\u0438\u0435 \u0443\u0431\u0435\u0440\u0451\u0442 \u0435\u0433\u043E \u0442\u043E\u043B\u044C\u043A\u043E \u0438\u0437 \u043F\u043E\u0441\u043B\u0435\u0434\u043D\u0438\u0445 \u0437\u0430\u0433\u0440\u0443\u0437\u043E\u043A; \u043E\u0440\u0438\u0433\u0438\u043D\u0430\u043B, \u0442\u0435\u043A\u0443\u0449\u0438\u0439 \u0432\u0432\u043E\u0434 \u0438 \u0438\u0441\u0442\u043E\u0440\u0438\u0447\u0435\u0441\u043A\u0438\u0435 \u0437\u0430\u0434\u0430\u0447\u0438 \u0441\u043E\u0445\u0440\u0430\u043D\u044F\u0442\u0441\u044F.",
+    "recentAssets.hideFailed": "\u041D\u0435 \u0443\u0434\u0430\u043B\u043E\u0441\u044C \u0441\u043A\u0440\u044B\u0442\u044C \u043D\u0435\u0434\u0430\u0432\u043D\u044E\u044E \u0437\u0430\u0433\u0440\u0443\u0437\u043A\u0443",
+    "recentAssets.hidden": "\u0421\u043A\u0440\u044B\u0442\u043E \u0438\u0437 \u043F\u043E\u0441\u043B\u0435\u0434\u043D\u0438\u0445 \u0437\u0430\u0433\u0440\u0443\u0437\u043E\u043A; \u043E\u0440\u0438\u0433\u0438\u043D\u0430\u043B \u0438 \u0438\u0441\u0442\u043E\u0440\u0438\u0447\u0435\u0441\u043A\u0438\u0435 \u0437\u0430\u0434\u0430\u0447\u0438 \u0441\u043E\u0445\u0440\u0430\u043D\u0435\u043D\u044B",
     "recentAssets.deleteTitle": "\u0423\u0434\u0430\u043B\u0438\u0442\u044C \u043D\u0435\u0434\u0430\u0432\u043D\u044E\u044E \u0437\u0430\u0433\u0440\u0443\u0437\u043A\u0443?",
-    "recentAssets.deleteMessage": "\u042D\u0442\u043E \u043F\u0440\u0438\u0432\u0435\u0434\u0435\u0442 \u043A \u0443\u0434\u0430\u043B\u0435\u043D\u0438\u044E image \u0438\u0437 \u043F\u043E\u0441\u043B\u0435\u0434\u043D\u0438\u0445 \u0437\u0430\u0433\u0440\u0443\u0437\u043E\u043A. \u0415\u0441\u043B\u0438 \u0432 \u0434\u0430\u043D\u043D\u044B\u0439 \u043C\u043E\u043C\u0435\u043D\u0442 \u043E\u043D \u0432\u044B\u0431\u0440\u0430\u043D \u0432 \u043A\u0430\u0447\u0435\u0441\u0442\u0432\u0435 \u0432\u0445\u043E\u0434\u0430 image, \u043E\u043D \u0431\u0443\u0434\u0435\u0442 \u0443\u0434\u0430\u043B\u0435\u043D \u0438\u0437 \u0442\u0435\u043A\u0443\u0449\u0435\u0433\u043E \u0432\u0445\u043E\u0434\u0430. \u0418\u0441\u0442\u043E\u0440\u0438\u0447\u0435\u0441\u043A\u0438\u0435 \u0437\u0430\u0434\u0430\u0447\u0438, \u0441\u0441\u044B\u043B\u0430\u044E\u0449\u0438\u0435\u0441\u044F \u043D\u0430 \u044D\u0442\u0443 \u043D\u0435\u0434\u0430\u0432\u043D\u044E\u044E \u0437\u0430\u0433\u0440\u0443\u0437\u043A\u0443, \u043F\u043E\u0442\u0435\u0440\u044F\u044E\u0442 \u043F\u0440\u0435\u0434\u0432\u0430\u0440\u0438\u0442\u0435\u043B\u044C\u043D\u044B\u0439 \u043F\u0440\u043E\u0441\u043C\u043E\u0442\u0440 \u0432\u0445\u043E\u0434\u043D\u044B\u0445 \u0434\u0430\u043D\u043D\u044B\u0445. \u041F\u0443\u0431\u043B\u0438\u0447\u043D\u0430\u044F \u0433\u0430\u043B\u0435\u0440\u0435\u044F \u043D\u0435 \u0437\u0430\u0442\u0440\u043E\u043D\u0443\u0442\u0430.",
+    "recentAssets.deleteMessage": "\u042D\u0442\u043E \u0438\u0437\u043E\u0431\u0440\u0430\u0436\u0435\u043D\u0438\u0435 \u043D\u0435 \u0438\u0441\u043F\u043E\u043B\u044C\u0437\u0443\u0435\u0442\u0441\u044F \u043D\u0438 \u0432 \u043E\u0434\u043D\u043E\u0439 \u0437\u0430\u0434\u0430\u0447\u0435. \u041E\u0440\u0438\u0433\u0438\u043D\u0430\u043B \u0431\u0443\u0434\u0435\u0442 \u0443\u0434\u0430\u043B\u0451\u043D \u043D\u0430\u0432\u0441\u0435\u0433\u0434\u0430, \u0430 \u0442\u0430\u043A\u043E\u0435 \u0436\u0435 \u0438\u0437\u043E\u0431\u0440\u0430\u0436\u0435\u043D\u0438\u0435 \u2014 \u0438\u0437 \u0442\u0435\u043A\u0443\u0449\u0435\u0433\u043E \u0432\u0432\u043E\u0434\u0430. \u041F\u0443\u0431\u043B\u0438\u0447\u043D\u0430\u044F \u0433\u0430\u043B\u0435\u0440\u0435\u044F \u043D\u0435 \u0437\u0430\u0442\u0440\u043E\u043D\u0443\u0442\u0430.",
     "recentAssets.loadFailed": "\u041D\u0435 \u0443\u0434\u0430\u043B\u043E\u0441\u044C \u0437\u0430\u0433\u0440\u0443\u0437\u0438\u0442\u044C \u043F\u043E\u0441\u043B\u0435\u0434\u043D\u0438\u0435 \u0437\u0430\u0433\u0440\u0443\u0437\u043A\u0438.",
     "recentAssets.deleteFailed": "\u041D\u0435 \u0443\u0434\u0430\u043B\u043E\u0441\u044C \u0443\u0434\u0430\u043B\u0438\u0442\u044C \u043D\u0435\u0434\u0430\u0432\u043D\u044E\u044E \u0437\u0430\u0433\u0440\u0443\u0437\u043A\u0443.",
     "recentAssets.deleted": "\u041F\u043E\u0441\u043B\u0435\u0434\u043D\u044F\u044F \u0437\u0430\u0433\u0440\u0443\u0437\u043A\u0430 \u0443\u0434\u0430\u043B\u0435\u043D\u0430",
@@ -8084,7 +8148,7 @@
     "output.promptHelpTitle": "\u041E\u0431\u0440\u0430\u0431\u043E\u0442\u043A\u0430 \u043F\u0440\u043E\u043C\u043F\u0442\u0430",
     "output.promptHelp.responsesChannel": "Responses \xB7 \u0443\u0447\u0430\u0441\u0442\u0432\u0443\u0435\u0442 \u043E\u0441\u043D\u043E\u0432\u043D\u0430\u044F \u043C\u043E\u0434\u0435\u043B\u044C",
     "output.promptHelp.imagesChannel": "Images \xB7 \u043F\u0440\u044F\u043C\u0430\u044F \u0433\u0435\u043D\u0435\u0440\u0430\u0446\u0438\u044F",
-    "output.promptHelp.responses.original": "\u041F\u0435\u0440\u0435\u0434\u0430\u0451\u0442 \u0438\u0441\u0445\u043E\u0434\u043D\u044B\u0439 \u0442\u0435\u043A\u0441\u0442 \u043E\u0441\u043D\u043E\u0432\u043D\u043E\u0439 \u043C\u043E\u0434\u0435\u043B\u0438 \u0438 \u043F\u0440\u043E\u0441\u0438\u0442 \u0441\u043E\u0445\u0440\u0430\u043D\u0438\u0442\u044C \u0435\u0433\u043E \u0432 \u0438\u043D\u0441\u0442\u0440\u0443\u043C\u0435\u043D\u0442\u0435 \u0438\u0437\u043E\u0431\u0440\u0430\u0436\u0435\u043D\u0438\u0439; revised prompt \u0432\u0441\u0451 \u0440\u0430\u0432\u043D\u043E \u043C\u043E\u0436\u0435\u0442 \u0431\u044B\u0442\u044C \u0441\u043E\u0437\u0434\u0430\u043D.",
+    "output.promptHelp.responses.original": "\u041F\u0435\u0440\u0435\u0434\u0430\u0451\u0442 \u0442\u043E\u0447\u043D\u044B\u0439 \u0438\u0441\u0445\u043E\u0434\u043D\u044B\u0439 \u0442\u0435\u043A\u0441\u0442 \u0431\u0435\u0437 \u0434\u043E\u0431\u0430\u0432\u043B\u0435\u043D\u043D\u044B\u0445 \u043F\u0440\u0438\u043B\u043E\u0436\u0435\u043D\u0438\u0435\u043C \u043F\u0440\u0430\u0432\u0438\u043B; \u043F\u0440\u043E\u0432\u0430\u0439\u0434\u0435\u0440 \u0432\u0441\u0451 \u0440\u0430\u0432\u043D\u043E \u043C\u043E\u0436\u0435\u0442 \u0432\u0435\u0440\u043D\u0443\u0442\u044C revised prompt \u0438\u043B\u0438 \u0438\u043D\u0430\u0447\u0435 \u0438\u043D\u0442\u0435\u0440\u043F\u0440\u0435\u0442\u0438\u0440\u043E\u0432\u0430\u0442\u044C \u0440\u0435\u0437\u0443\u043B\u044C\u0442\u0430\u0442.",
     "output.promptHelp.responses.strict": "\u0420\u0430\u0437\u0440\u0435\u0448\u0430\u0435\u0442 \u043E\u0441\u043D\u043E\u0432\u043D\u043E\u0439 \u043C\u043E\u0434\u0435\u043B\u0438 \u0443\u043F\u043E\u0440\u044F\u0434\u043E\u0447\u0438\u0442\u044C \u0438\u043B\u0438 \u0440\u0430\u0441\u0448\u0438\u0440\u0438\u0442\u044C \u043F\u0440\u043E\u043C\u043F\u0442, \u0441\u043E\u0445\u0440\u0430\u043D\u044F\u044F \u043E\u0431\u044F\u0437\u0430\u0442\u0435\u043B\u044C\u043D\u044B\u0435 \u0443\u0441\u043B\u043E\u0432\u0438\u044F: \u043E\u0431\u044A\u0435\u043A\u0442\u044B, \u0442\u0435\u043A\u0441\u0442, \u0446\u0432\u0435\u0442\u0430 \u0438 \u043A\u043E\u043C\u043F\u043E\u0437\u0438\u0446\u0438\u044E.",
     "output.promptHelp.responses.automatic": "\u041D\u0435 \u0434\u043E\u0431\u0430\u0432\u043B\u044F\u0435\u0442 \u043E\u0433\u0440\u0430\u043D\u0438\u0447\u0435\u043D\u0438\u0439; \u043E\u0441\u043D\u043E\u0432\u043D\u0430\u044F \u043C\u043E\u0434\u0435\u043B\u044C \u0438\u043D\u0442\u0435\u0440\u043F\u0440\u0435\u0442\u0438\u0440\u0443\u0435\u0442 \u0438 \u043E\u043F\u0442\u0438\u043C\u0438\u0437\u0438\u0440\u0443\u0435\u0442 \u0437\u0430\u043F\u0440\u043E\u0441 \u043F\u0435\u0440\u0435\u0434 \u0432\u044B\u0437\u043E\u0432\u043E\u043C \u0438\u043D\u0441\u0442\u0440\u0443\u043C\u0435\u043D\u0442\u0430 \u0438\u0437\u043E\u0431\u0440\u0430\u0436\u0435\u043D\u0438\u0439.",
     "output.promptHelp.images.original": "\u041D\u0435 \u0434\u043E\u0431\u0430\u0432\u043B\u044F\u0435\u0442 \u043F\u0440\u0430\u0432\u0438\u043B \u043F\u0440\u0438\u043B\u043E\u0436\u0435\u043D\u0438\u044F \u0438 \u043E\u0442\u043F\u0440\u0430\u0432\u043B\u044F\u0435\u0442 \u0438\u0441\u0445\u043E\u0434\u043D\u044B\u0439 \u0442\u0435\u043A\u0441\u0442 \u043D\u0430\u043F\u0440\u044F\u043C\u0443\u044E \u0432 API \u0438\u0437\u043E\u0431\u0440\u0430\u0436\u0435\u043D\u0438\u0439.",
@@ -8676,10 +8740,10 @@
     "batch.cancelSelected": "Annulla attivit\xE0",
     "batch.noActiveSelected": "Le attivit\xE0 selezionate non sono pi\xF9 in esecuzione o in attesa",
     "batch.cancelTitle": "Annullare {count} attivit\xE0?",
-    "batch.cancelMessage": "Le attivit\xE0 in esecuzione verranno interrotte e quelle in attesa usciranno dalla coda. La cronologia verr\xE0 conservata.",
+    "batch.cancelMessage": "Le attivit\xE0 in attesa verranno annullate subito. Le chiamate al provider in corso possono continuare ed essere comunque addebitate fino alla risposta. La cronologia verr\xE0 conservata.",
     "batch.cancelDetail": "In esecuzione {running} \xB7 in attesa {waiting}",
     "batch.cancelConfirm": "Annulla attivit\xE0",
-    "batch.cancelResult": "Annullate {cancelled}, ignorate {skipped}, non riuscite {failed}",
+    "batch.cancelResult": "Annullate {cancelled}, annullamento richiesto {requested}, ignorate {skipped}, non riuscite {failed}",
     "batch.cancelFailed": "Annullamento multiplo non riuscito",
     "action.archive": "Archivio",
     "action.delete": "Elimina",
@@ -8728,8 +8792,9 @@
     "queue.queuedDeleted": "Attivit\xE0 in coda eliminata",
     "queue.cancelRunningConfirm": "Annulla attivit\xE0",
     "queue.cancelRunningTitleConfirm": "Annullare l'attivit\xE0 in esecuzione?",
-    "queue.cancelRunningMessage": "L'attivit\xE0 corrente verr\xE0 interrotta. La storia verr\xE0 mantenuta.",
+    "queue.cancelRunningMessage": "Verr\xE0 richiesto l\u2019annullamento. La chiamata al provider pu\xF2 continuare ed essere comunque addebitata fino alla risposta. La cronologia verr\xE0 conservata.",
     "queue.cancelRunningFailed": "Impossibile annullare l'attivit\xE0",
+    "queue.cancellationPending": "Annullamento richiesto. La chiamata al provider pu\xF2 continuare ed essere comunque addebitata fino alla risposta.",
     "queue.runningCancelled": "Attivit\xE0 annullata",
     "queue.reorderFailed": "Impossibile riordinare la coda",
     "queue.realtimeUpdateFailed": "Impossibile aggiornare lo stato in tempo reale",
@@ -8741,6 +8806,7 @@
     "taskStatus.submitting": "Invio",
     "taskStatus.running": "Generazione",
     "taskStatus.runningWithElapsed": "Generazione \xB7 {elapsed}",
+    "taskStatus.cancelling": "Annullamento in corso",
     "taskStatus.completed": "Completato",
     "taskStatus.partialFailed": "Parzialmente fallito",
     "taskStatus.failed": "Fallito",
@@ -9015,8 +9081,14 @@
     "recentAssets.defaultName": "Caricamento recente",
     "recentAssets.use": "Utilizza {name}",
     "recentAssets.delete": "Elimina {name}",
+    "recentAssets.inUse": "Usata da {count} attivit\xE0; non pu\xF2 essere eliminata definitivamente, ma pu\xF2 essere nascosta dai caricamenti recenti",
+    "recentAssets.hide": "Nascondi {name} dai caricamenti recenti",
+    "recentAssets.hideTitle": "Nascondere dai caricamenti recenti?",
+    "recentAssets.hideMessage": "Questa immagine \xE8 usata da {count} attivit\xE0 e non pu\xF2 essere eliminata definitivamente. Nasconderla la rimuove solo dai caricamenti recenti; l\u2019originale, l\u2019input corrente e le attivit\xE0 storiche restano disponibili.",
+    "recentAssets.hideFailed": "Impossibile nascondere il caricamento recente",
+    "recentAssets.hidden": "Nascosta dai caricamenti recenti; l\u2019originale e le attivit\xE0 storiche sono stati conservati",
     "recentAssets.deleteTitle": "Eliminare il caricamento recente?",
-    "recentAssets.deleteMessage": "Ci\xF2 rimuover\xE0 image dai caricamenti recenti. Se \xE8 attualmente selezionato come ingresso image, verr\xE0 rimosso dall'ingresso corrente. Le attivit\xE0 storiche che fanno riferimento a questo caricamento recente perderanno l'anteprima dell'input. La galleria pubblica non \xE8 interessata.",
+    "recentAssets.deleteMessage": "Questa immagine non \xE8 usata da alcuna attivit\xE0. L\u2019originale verr\xE0 eliminato definitivamente e la stessa immagine sar\xE0 rimossa dall\u2019input corrente. La galleria pubblica non \xE8 interessata.",
     "recentAssets.loadFailed": "Impossibile caricare i caricamenti recenti",
     "recentAssets.deleteFailed": "Impossibile eliminare il caricamento recente",
     "recentAssets.deleted": "Caricamento recente eliminato",
@@ -9163,7 +9235,7 @@
     "output.promptHelpTitle": "Gestione del prompt",
     "output.promptHelp.responsesChannel": "Responses \xB7 modello principale coinvolto",
     "output.promptHelp.imagesChannel": "Images \xB7 generazione diretta",
-    "output.promptHelp.responses.original": "Invia il testo originale al modello principale e chiede allo strumento immagine di conservarlo; pu\xF2 comunque produrre un revised prompt.",
+    "output.promptHelp.responses.original": "Invia il testo originale esatto senza regole aggiunte dall\u2019app; il provider pu\xF2 comunque restituire un revised prompt o interpretare diversamente il risultato.",
     "output.promptHelp.responses.strict": "Consente al modello principale di organizzare o ampliare il prompt, preservando vincoli come soggetti, testo, colori e composizione.",
     "output.promptHelp.responses.automatic": "Non aggiunge vincoli; il modello principale interpreta e ottimizza prima di chiamare lo strumento immagine.",
     "output.promptHelp.images.original": "Non aggiunge regole dell\u2019app e invia il testo originale direttamente all\u2019API immagini.",
@@ -9755,10 +9827,10 @@
     "batch.cancelSelected": "\u0915\u093E\u0930\u094D\u092F \u0930\u0926\u094D\u0926 \u0915\u0930\u0947\u0902",
     "batch.noActiveSelected": "\u091A\u0941\u0928\u0947 \u0917\u090F \u0915\u093E\u0930\u094D\u092F \u0905\u092C \u091A\u0932 \u092F\u093E \u092A\u094D\u0930\u0924\u0940\u0915\u094D\u0937\u093E \u0928\u0939\u0940\u0902 \u0915\u0930 \u0930\u0939\u0947 \u0939\u0948\u0902",
     "batch.cancelTitle": "{count} \u0915\u093E\u0930\u094D\u092F \u0930\u0926\u094D\u0926 \u0915\u0930\u0947\u0902?",
-    "batch.cancelMessage": "\u091A\u0932 \u0930\u0939\u0947 \u0915\u093E\u0930\u094D\u092F \u0930\u0941\u0915 \u091C\u093E\u090F\u0902\u0917\u0947 \u0914\u0930 \u092A\u094D\u0930\u0924\u0940\u0915\u094D\u0937\u093E\u0930\u0924 \u0915\u093E\u0930\u094D\u092F \u0915\u0924\u093E\u0930 \u0938\u0947 \u0939\u091F \u091C\u093E\u090F\u0902\u0917\u0947\u0964 \u0907\u0924\u093F\u0939\u093E\u0938 \u0938\u0941\u0930\u0915\u094D\u0937\u093F\u0924 \u0930\u0939\u0947\u0917\u093E\u0964",
+    "batch.cancelMessage": "\u092A\u094D\u0930\u0924\u0940\u0915\u094D\u0937\u093E\u0930\u0924 \u0915\u093E\u0930\u094D\u092F \u0924\u0941\u0930\u0902\u0924 \u0930\u0926\u094D\u0926 \u0939\u094B\u0902\u0917\u0947\u0964 \u091A\u0932 \u0930\u0939\u0940 \u092A\u094D\u0930\u0926\u093E\u0924\u093E \u0915\u0949\u0932 \u0932\u094C\u091F\u0928\u0947 \u0924\u0915 \u091C\u093E\u0930\u0940 \u0930\u0939 \u0938\u0915\u0924\u0940 \u0939\u0948\u0902 \u0914\u0930 \u0936\u0941\u0932\u094D\u0915 \u0932\u0917 \u0938\u0915\u0924\u093E \u0939\u0948\u0964 \u0907\u0924\u093F\u0939\u093E\u0938 \u0938\u0941\u0930\u0915\u094D\u0937\u093F\u0924 \u0930\u0939\u0947\u0917\u093E\u0964",
     "batch.cancelDetail": "\u091A\u0932 \u0930\u0939\u0947 {running} \xB7 \u092A\u094D\u0930\u0924\u0940\u0915\u094D\u0937\u093E\u0930\u0924 {waiting}",
     "batch.cancelConfirm": "\u0915\u093E\u0930\u094D\u092F \u0930\u0926\u094D\u0926 \u0915\u0930\u0947\u0902",
-    "batch.cancelResult": "\u0930\u0926\u094D\u0926 {cancelled}, \u091B\u094B\u0921\u093C\u0947 {skipped}, \u0935\u093F\u092B\u0932 {failed}",
+    "batch.cancelResult": "\u0930\u0926\u094D\u0926 {cancelled}, \u0930\u0926\u094D\u0926 \u0915\u0930\u0928\u0947 \u0915\u093E \u0905\u0928\u0941\u0930\u094B\u0927 {requested}, \u091B\u094B\u0921\u093C\u0947 {skipped}, \u0935\u093F\u092B\u0932 {failed}",
     "batch.cancelFailed": "\u090F\u0915 \u0938\u093E\u0925 \u0930\u0926\u094D\u0926 \u0915\u0930\u0928\u093E \u0935\u093F\u092B\u0932",
     "action.archive": "\u0938\u0902\u0917\u094D\u0930\u0939\u093F\u0924 \u0915\u0930\u0947\u0902",
     "action.delete": "\u0939\u091F\u093E\u090F\u0901",
@@ -9807,8 +9879,9 @@
     "queue.queuedDeleted": "\u0915\u0924\u093E\u0930\u092C\u0926\u094D\u0927 \u0915\u093E\u0930\u094D\u092F \u0939\u091F\u093E \u0926\u093F\u092F\u093E \u0917\u092F\u093E",
     "queue.cancelRunningConfirm": "\u0915\u093E\u0930\u094D\u092F \u0930\u0926\u094D\u0926 \u0915\u0930\u0947\u0902",
     "queue.cancelRunningTitleConfirm": "\u091A\u0932 \u0930\u0939\u093E \u0915\u093E\u0930\u094D\u092F \u0930\u0926\u094D\u0926 \u0915\u0930\u0947\u0902?",
-    "queue.cancelRunningMessage": "\u0935\u0930\u094D\u0924\u092E\u093E\u0928 \u0915\u093E\u0930\u094D\u092F \u0930\u0941\u0915 \u091C\u093E\u092F\u0947\u0917\u093E. \u0907\u0924\u093F\u0939\u093E\u0938 \u0930\u0916\u093E \u091C\u093E\u090F\u0917\u093E.",
+    "queue.cancelRunningMessage": "\u0930\u0926\u094D\u0926 \u0915\u0930\u0928\u0947 \u0915\u093E \u0905\u0928\u0941\u0930\u094B\u0927 \u092D\u0947\u091C\u093E \u091C\u093E\u090F\u0917\u093E\u0964 \u092A\u094D\u0930\u0926\u093E\u0924\u093E \u0915\u0949\u0932 \u0932\u094C\u091F\u0928\u0947 \u0924\u0915 \u091C\u093E\u0930\u0940 \u0930\u0939 \u0938\u0915\u0924\u0940 \u0939\u0948 \u0914\u0930 \u0936\u0941\u0932\u094D\u0915 \u0932\u0917 \u0938\u0915\u0924\u093E \u0939\u0948\u0964 \u0907\u0924\u093F\u0939\u093E\u0938 \u0938\u0941\u0930\u0915\u094D\u0937\u093F\u0924 \u0930\u0939\u0947\u0917\u093E\u0964",
     "queue.cancelRunningFailed": "\u0915\u093E\u0930\u094D\u092F \u0930\u0926\u094D\u0926 \u0915\u0930\u0928\u0947 \u092E\u0947\u0902 \u0935\u093F\u092B\u0932",
+    "queue.cancellationPending": "\u0930\u0926\u094D\u0926 \u0915\u0930\u0928\u0947 \u0915\u093E \u0905\u0928\u0941\u0930\u094B\u0927 \u092D\u0947\u091C \u0926\u093F\u092F\u093E \u0917\u092F\u093E \u0939\u0948\u0964 \u092A\u094D\u0930\u0926\u093E\u0924\u093E \u0915\u0949\u0932 \u0932\u094C\u091F\u0928\u0947 \u0924\u0915 \u091C\u093E\u0930\u0940 \u0930\u0939 \u0938\u0915\u0924\u0940 \u0939\u0948 \u0914\u0930 \u0936\u0941\u0932\u094D\u0915 \u0932\u0917 \u0938\u0915\u0924\u093E \u0939\u0948\u0964",
     "queue.runningCancelled": "\u0915\u093E\u0930\u094D\u092F \u0930\u0926\u094D\u0926 \u0915\u0930 \u0926\u093F\u092F\u093E \u0917\u092F\u093E",
     "queue.reorderFailed": "\u0915\u0924\u093E\u0930 \u0915\u094B \u092A\u0941\u0928: \u0935\u094D\u092F\u0935\u0938\u094D\u0925\u093F\u0924 \u0915\u0930\u0928\u0947 \u092E\u0947\u0902 \u0935\u093F\u092B\u0932",
     "queue.realtimeUpdateFailed": "\u0932\u093E\u0907\u0935 \u0938\u094D\u0925\u093F\u0924\u093F \u0905\u092A\u0921\u0947\u091F \u0915\u0930\u0928\u0947 \u092E\u0947\u0902 \u0935\u093F\u092B\u0932",
@@ -9820,6 +9893,7 @@
     "taskStatus.submitting": "\u0938\u092C\u092E\u093F\u091F \u0915\u0930\u0928\u093E",
     "taskStatus.running": "\u091C\u0928\u0930\u0947\u091F \u0939\u094B \u0930\u0939\u093E \u0939\u0948",
     "taskStatus.runningWithElapsed": "\u091C\u0928\u0930\u0947\u091F \u0939\u094B \u0930\u0939\u093E \u0939\u0948 \xB7 {elapsed}",
+    "taskStatus.cancelling": "\u0930\u0926\u094D\u0926 \u0915\u093F\u092F\u093E \u091C\u093E \u0930\u0939\u093E \u0939\u0948",
     "taskStatus.completed": "\u092A\u0942\u0930\u093E \u0939\u0941\u0906",
     "taskStatus.partialFailed": "\u0906\u0902\u0936\u093F\u0915 \u0930\u0942\u092A \u0938\u0947 \u0905\u0938\u092B\u0932",
     "taskStatus.failed": "\u0905\u0938\u092B\u0932",
@@ -10094,8 +10168,14 @@
     "recentAssets.defaultName": "\u0939\u093E\u0932\u093F\u092F\u093E \u0905\u092A\u0932\u094B\u0921",
     "recentAssets.use": "{name} \u0915\u093E \u092A\u094D\u0930\u092F\u094B\u0917 \u0915\u0930\u0947\u0902",
     "recentAssets.delete": "{name} \u0939\u091F\u093E\u090F\u0902",
+    "recentAssets.inUse": "{count} \u0915\u093E\u0930\u094D\u092F\u094B\u0902 \u0926\u094D\u0935\u093E\u0930\u093E \u0909\u092A\u092F\u094B\u0917 \u092E\u0947\u0902 \u0939\u0948; \u0907\u0938\u0947 \u0938\u094D\u0925\u093E\u092F\u0940 \u0930\u0942\u092A \u0938\u0947 \u0939\u091F\u093E\u092F\u093E \u0928\u0939\u0940\u0902 \u091C\u093E \u0938\u0915\u0924\u093E, \u0932\u0947\u0915\u093F\u0928 \u0939\u093E\u0932\u093F\u092F\u093E \u0905\u092A\u0932\u094B\u0921 \u0938\u0947 \u091B\u093F\u092A\u093E\u092F\u093E \u091C\u093E \u0938\u0915\u0924\u093E \u0939\u0948",
+    "recentAssets.hide": "{name} \u0915\u094B \u0939\u093E\u0932\u093F\u092F\u093E \u0905\u092A\u0932\u094B\u0921 \u0938\u0947 \u091B\u093F\u092A\u093E\u090F\u0902",
+    "recentAssets.hideTitle": "\u0939\u093E\u0932\u093F\u092F\u093E \u0905\u092A\u0932\u094B\u0921 \u0938\u0947 \u091B\u093F\u092A\u093E\u090F\u0902?",
+    "recentAssets.hideMessage": "\u092F\u0939 \u091A\u093F\u0924\u094D\u0930 {count} \u0915\u093E\u0930\u094D\u092F\u094B\u0902 \u0926\u094D\u0935\u093E\u0930\u093E \u0909\u092A\u092F\u094B\u0917 \u092E\u0947\u0902 \u0939\u0948 \u0914\u0930 \u0907\u0938\u0947 \u0938\u094D\u0925\u093E\u092F\u0940 \u0930\u0942\u092A \u0938\u0947 \u0939\u091F\u093E\u092F\u093E \u0928\u0939\u0940\u0902 \u091C\u093E \u0938\u0915\u0924\u093E\u0964 \u091B\u093F\u092A\u093E\u0928\u0947 \u092A\u0930 \u092F\u0939 \u0915\u0947\u0935\u0932 \u0939\u093E\u0932\u093F\u092F\u093E \u0905\u092A\u0932\u094B\u0921 \u0938\u0947 \u0939\u091F\u0947\u0917\u093E; \u092E\u0942\u0932 \u091A\u093F\u0924\u094D\u0930, \u0935\u0930\u094D\u0924\u092E\u093E\u0928 \u0907\u0928\u092A\u0941\u091F \u0914\u0930 \u092A\u0941\u0930\u093E\u0928\u0947 \u0915\u093E\u0930\u094D\u092F \u0938\u0941\u0930\u0915\u094D\u0937\u093F\u0924 \u0930\u0939\u0947\u0902\u0917\u0947\u0964",
+    "recentAssets.hideFailed": "\u0939\u093E\u0932\u093F\u092F\u093E \u0905\u092A\u0932\u094B\u0921 \u091B\u093F\u092A\u093E\u0928\u0947 \u092E\u0947\u0902 \u0935\u093F\u092B\u0932",
+    "recentAssets.hidden": "\u0939\u093E\u0932\u093F\u092F\u093E \u0905\u092A\u0932\u094B\u0921 \u0938\u0947 \u091B\u093F\u092A\u093E\u092F\u093E \u0917\u092F\u093E; \u092E\u0942\u0932 \u091A\u093F\u0924\u094D\u0930 \u0914\u0930 \u092A\u0941\u0930\u093E\u0928\u0947 \u0915\u093E\u0930\u094D\u092F \u0938\u0941\u0930\u0915\u094D\u0937\u093F\u0924 \u0939\u0948\u0902",
     "recentAssets.deleteTitle": "\u0939\u093E\u0932\u093F\u092F\u093E \u0905\u092A\u0932\u094B\u0921 \u0939\u091F\u093E\u090F\u0902?",
-    "recentAssets.deleteMessage": "\u092F\u0939 \u0939\u093E\u0932 \u0915\u0947 \u0905\u092A\u0932\u094B\u0921 \u0938\u0947 \u091A\u093F\u0924\u094D\u0930 \u0915\u094B \u0939\u091F\u093E \u0926\u0947\u0917\u093E\u0964 \u092F\u0926\u093F \u092F\u0939 \u0905\u092D\u0940 \u091A\u093F\u0924\u094D\u0930 \u0907\u0928\u092A\u0941\u091F \u0915\u0947 \u0930\u0942\u092A \u092E\u0947\u0902 \u091A\u0941\u0928\u093E \u0917\u092F\u093E \u0939\u0948, \u0924\u094B \u0907\u0938\u0947 \u0935\u0930\u094D\u0924\u092E\u093E\u0928 \u0907\u0928\u092A\u0941\u091F \u0938\u0947 \u092D\u0940 \u0939\u091F\u093E \u0926\u093F\u092F\u093E \u091C\u093E\u090F\u0917\u093E\u0964 \u0907\u0938 \u0939\u093E\u0932\u093F\u092F\u093E \u0905\u092A\u0932\u094B\u0921 \u0915\u093E \u0938\u0902\u0926\u0930\u094D\u092D \u0926\u0947\u0928\u0947 \u0935\u093E\u0932\u0947 \u092A\u0941\u0930\u093E\u0928\u0947 \u0915\u093E\u0930\u094D\u092F \u0905\u092A\u0928\u093E \u0907\u0928\u092A\u0941\u091F \u092A\u0942\u0930\u094D\u0935\u093E\u0935\u0932\u094B\u0915\u0928 \u0916\u094B \u0926\u0947\u0902\u0917\u0947\u0964 \u0938\u093E\u0930\u094D\u0935\u091C\u0928\u093F\u0915 \u0917\u0948\u0932\u0930\u0940 \u092A\u094D\u0930\u092D\u093E\u0935\u093F\u0924 \u0928\u0939\u0940\u0902 \u0939\u094B\u0917\u0940.",
+    "recentAssets.deleteMessage": "\u0907\u0938 \u091A\u093F\u0924\u094D\u0930 \u0915\u093E \u0915\u094B\u0908 \u0915\u093E\u0930\u094D\u092F \u0909\u092A\u092F\u094B\u0917 \u0928\u0939\u0940\u0902 \u0915\u0930 \u0930\u0939\u093E \u0939\u0948\u0964 \u092E\u0942\u0932 \u091A\u093F\u0924\u094D\u0930 \u0938\u094D\u0925\u093E\u092F\u0940 \u0930\u0942\u092A \u0938\u0947 \u0939\u091F\u0947\u0917\u093E \u0914\u0930 \u092F\u0939\u0940 \u091A\u093F\u0924\u094D\u0930 \u0935\u0930\u094D\u0924\u092E\u093E\u0928 \u0907\u0928\u092A\u0941\u091F \u0938\u0947 \u092D\u0940 \u0939\u091F \u091C\u093E\u090F\u0917\u093E\u0964 \u0938\u093E\u0930\u094D\u0935\u091C\u0928\u093F\u0915 \u0917\u0948\u0932\u0930\u0940 \u092A\u094D\u0930\u092D\u093E\u0935\u093F\u0924 \u0928\u0939\u0940\u0902 \u0939\u094B\u0917\u0940\u0964",
     "recentAssets.loadFailed": "\u0939\u093E\u0932 \u0915\u0947 \u0905\u092A\u0932\u094B\u0921 \u0932\u094B\u0921 \u0915\u0930\u0928\u0947 \u092E\u0947\u0902 \u0935\u093F\u092B\u0932",
     "recentAssets.deleteFailed": "\u0939\u093E\u0932\u093F\u092F\u093E \u0905\u092A\u0932\u094B\u0921 \u0939\u091F\u093E\u0928\u0947 \u092E\u0947\u0902 \u0935\u093F\u092B\u0932",
     "recentAssets.deleted": "\u0939\u093E\u0932\u093F\u092F\u093E \u0905\u092A\u0932\u094B\u0921 \u0939\u091F\u093E \u0926\u093F\u092F\u093E \u0917\u092F\u093E",
@@ -10242,7 +10322,7 @@
     "output.promptHelpTitle": "\u092A\u094D\u0930\u0949\u092E\u094D\u092A\u094D\u091F \u092A\u094D\u0930\u094B\u0938\u0947\u0938\u093F\u0902\u0917",
     "output.promptHelp.responsesChannel": "Responses \xB7 \u092E\u0941\u0916\u094D\u092F \u092E\u0949\u0921\u0932 \u0936\u093E\u092E\u093F\u0932",
     "output.promptHelp.imagesChannel": "Images \xB7 \u0938\u0940\u0927\u093E \u091C\u0928\u0930\u0947\u0936\u0928",
-    "output.promptHelp.responses.original": "\u092E\u0942\u0932 \u092A\u093E\u0920 \u092E\u0941\u0916\u094D\u092F \u092E\u0949\u0921\u0932 \u0915\u094B \u092D\u0947\u091C\u0924\u093E \u0939\u0948 \u0914\u0930 \u0907\u092E\u0947\u091C \u091F\u0942\u0932 \u0938\u0947 \u0909\u0938\u0947 \u092F\u0925\u093E\u0938\u0902\u092D\u0935 \u091C\u094D\u092F\u094B\u0902 \u0915\u093E \u0924\u094D\u092F\u094B\u0902 \u0930\u0916\u0928\u0947 \u0915\u094B \u0915\u0939\u0924\u093E \u0939\u0948; revised prompt \u092B\u093F\u0930 \u092D\u0940 \u092C\u0928 \u0938\u0915\u0924\u093E \u0939\u0948\u0964",
+    "output.promptHelp.responses.original": "\u0910\u092A-\u0938\u094D\u0924\u0930\u0940\u092F \u0928\u093F\u092F\u092E \u091C\u094B\u0921\u093C\u0947 \u092C\u093F\u0928\u093E \u0920\u0940\u0915 \u092E\u0942\u0932 \u092A\u093E\u0920 \u092D\u0947\u091C\u0924\u093E \u0939\u0948; \u092A\u094D\u0930\u0926\u093E\u0924\u093E \u092B\u093F\u0930 \u092D\u0940 revised prompt \u0932\u094C\u091F\u093E \u0938\u0915\u0924\u093E \u0939\u0948 \u092F\u093E \u092A\u0930\u093F\u0923\u093E\u092E \u0915\u0940 \u0905\u0932\u0917 \u0935\u094D\u092F\u093E\u0916\u094D\u092F\u093E \u0915\u0930 \u0938\u0915\u0924\u093E \u0939\u0948\u0964",
     "output.promptHelp.responses.strict": "\u092E\u0941\u0916\u094D\u092F \u092E\u0949\u0921\u0932 \u0915\u094B \u092A\u094D\u0930\u0949\u092E\u094D\u092A\u094D\u091F \u0935\u094D\u092F\u0935\u0938\u094D\u0925\u093F\u0924 \u092F\u093E \u0935\u093F\u0938\u094D\u0924\u0943\u0924 \u0915\u0930\u0928\u0947 \u0926\u0947\u0924\u093E \u0939\u0948, \u0932\u0947\u0915\u093F\u0928 \u0935\u093F\u0937\u092F, \u091F\u0947\u0915\u094D\u0938\u094D\u091F, \u0930\u0902\u0917 \u0914\u0930 \u0930\u091A\u0928\u093E \u091C\u0948\u0938\u0940 \u0905\u0928\u093F\u0935\u093E\u0930\u094D\u092F \u0936\u0930\u094D\u0924\u0947\u0902 \u0938\u0941\u0930\u0915\u094D\u0937\u093F\u0924 \u0930\u0916\u0924\u093E \u0939\u0948\u0964",
     "output.promptHelp.responses.automatic": "\u0915\u094B\u0908 \u0905\u0924\u093F\u0930\u093F\u0915\u094D\u0924 \u0936\u0930\u094D\u0924 \u0928\u0939\u0940\u0902 \u091C\u094B\u0921\u093C\u0924\u093E; \u092E\u0941\u0916\u094D\u092F \u092E\u0949\u0921\u0932 \u0907\u092E\u0947\u091C \u091F\u0942\u0932 \u092C\u0941\u0932\u093E\u0928\u0947 \u0938\u0947 \u092A\u0939\u0932\u0947 \u0905\u0930\u094D\u0925 \u0938\u092E\u091D\u0915\u0930 \u0905\u0928\u0941\u0915\u0942\u0932\u093F\u0924 \u0915\u0930\u0924\u093E \u0939\u0948\u0964",
     "output.promptHelp.images.original": "\u0910\u092A \u0938\u094D\u0924\u0930 \u0915\u0947 \u0928\u093F\u092F\u092E \u091C\u094B\u0921\u093C\u0947 \u092C\u093F\u0928\u093E \u092E\u0942\u0932 \u092A\u093E\u0920 \u0938\u0940\u0927\u0947 \u0907\u092E\u0947\u091C API \u0915\u094B \u092D\u0947\u091C\u0924\u093E \u0939\u0948\u0964",
@@ -10834,10 +10914,10 @@
     "batch.cancelSelected": "H\u1EE7y t\xE1c v\u1EE5",
     "batch.noActiveSelected": "C\xE1c t\xE1c v\u1EE5 \u0111\xE3 ch\u1ECDn kh\xF4ng c\xF2n ch\u1EA1y ho\u1EB7c ch\u1EDD",
     "batch.cancelTitle": "H\u1EE7y {count} t\xE1c v\u1EE5?",
-    "batch.cancelMessage": "T\xE1c v\u1EE5 \u0111ang ch\u1EA1y s\u1EBD d\u1EEBng v\xE0 t\xE1c v\u1EE5 \u0111ang ch\u1EDD s\u1EBD r\u1EDDi h\xE0ng \u0111\u1EE3i. L\u1ECBch s\u1EED v\u1EABn \u0111\u01B0\u1EE3c gi\u1EEF l\u1EA1i.",
+    "batch.cancelMessage": "T\xE1c v\u1EE5 \u0111ang ch\u1EDD s\u1EBD b\u1ECB h\u1EE7y ngay. L\u1EC7nh g\u1ECDi nh\xE0 cung c\u1EA5p \u0111ang ch\u1EA1y c\xF3 th\u1EC3 ti\u1EBFp t\u1EE5c v\xE0 v\u1EABn c\xF3 th\u1EC3 b\u1ECB t\xEDnh ph\xED cho \u0111\u1EBFn khi tr\u1EA3 v\u1EC1. L\u1ECBch s\u1EED v\u1EABn \u0111\u01B0\u1EE3c gi\u1EEF l\u1EA1i.",
     "batch.cancelDetail": "\u0110ang ch\u1EA1y {running} \xB7 \u0111ang ch\u1EDD {waiting}",
     "batch.cancelConfirm": "H\u1EE7y t\xE1c v\u1EE5",
-    "batch.cancelResult": "\u0110\xE3 h\u1EE7y {cancelled}, b\u1ECF qua {skipped}, th\u1EA5t b\u1EA1i {failed}",
+    "batch.cancelResult": "\u0110\xE3 h\u1EE7y {cancelled}, \u0111\xE3 y\xEAu c\u1EA7u h\u1EE7y {requested}, b\u1ECF qua {skipped}, th\u1EA5t b\u1EA1i {failed}",
     "batch.cancelFailed": "H\u1EE7y h\xE0ng lo\u1EA1t th\u1EA5t b\u1EA1i",
     "action.archive": "L\u01B0u tr\u1EEF",
     "action.delete": "X\xF3a",
@@ -10886,8 +10966,9 @@
     "queue.queuedDeleted": "\u0110\xE3 x\xF3a t\xE1c v\u1EE5 x\u1EBFp h\xE0ng \u0111\u1EE3i",
     "queue.cancelRunningConfirm": "H\u1EE7y t\xE1c v\u1EE5",
     "queue.cancelRunningTitleConfirm": "H\u1EE7y t\xE1c v\u1EE5 \u0111ang ch\u1EA1y?",
-    "queue.cancelRunningMessage": "T\xE1c v\u1EE5 hi\u1EC7n t\u1EA1i s\u1EBD d\u1EEBng. L\u1ECBch s\u1EED s\u1EBD \u0111\u01B0\u1EE3c gi\u1EEF l\u1EA1i.",
+    "queue.cancelRunningMessage": "S\u1EBD g\u1EEDi y\xEAu c\u1EA7u h\u1EE7y. L\u1EC7nh g\u1ECDi nh\xE0 cung c\u1EA5p c\xF3 th\u1EC3 ti\u1EBFp t\u1EE5c v\xE0 v\u1EABn c\xF3 th\u1EC3 b\u1ECB t\xEDnh ph\xED cho \u0111\u1EBFn khi tr\u1EA3 v\u1EC1. L\u1ECBch s\u1EED s\u1EBD \u0111\u01B0\u1EE3c gi\u1EEF l\u1EA1i.",
     "queue.cancelRunningFailed": "Kh\xF4ng h\u1EE7y \u0111\u01B0\u1EE3c t\xE1c v\u1EE5",
+    "queue.cancellationPending": "\u0110\xE3 y\xEAu c\u1EA7u h\u1EE7y. L\u1EC7nh g\u1ECDi nh\xE0 cung c\u1EA5p c\xF3 th\u1EC3 ti\u1EBFp t\u1EE5c v\xE0 v\u1EABn c\xF3 th\u1EC3 b\u1ECB t\xEDnh ph\xED cho \u0111\u1EBFn khi tr\u1EA3 v\u1EC1.",
     "queue.runningCancelled": "T\xE1c v\u1EE5 \u0111\xE3 b\u1ECB h\u1EE7y",
     "queue.reorderFailed": "Kh\xF4ng th\u1EC3 s\u1EAFp x\u1EBFp l\u1EA1i h\xE0ng \u0111\u1EE3i",
     "queue.realtimeUpdateFailed": "Kh\xF4ng c\u1EADp nh\u1EADt \u0111\u01B0\u1EE3c tr\u1EA1ng th\xE1i tr\u1EF1c ti\u1EBFp",
@@ -10899,6 +10980,7 @@
     "taskStatus.submitting": "\u0110ang g\u1EEDi",
     "taskStatus.running": "\u0110ang t\u1EA1o",
     "taskStatus.runningWithElapsed": "\u0110ang t\u1EA1o \xB7 {elapsed}",
+    "taskStatus.cancelling": "\u0110ang h\u1EE7y",
     "taskStatus.completed": "\u0110\xE3 ho\xE0n th\xE0nh",
     "taskStatus.partialFailed": "Th\u1EA5t b\u1EA1i m\u1ED9t ph\u1EA7n",
     "taskStatus.failed": "Th\u1EA5t b\u1EA1i",
@@ -11183,8 +11265,14 @@
     "recentAssets.defaultName": "T\u1EA3i l\xEAn g\u1EA7n \u0111\xE2y",
     "recentAssets.use": "S\u1EED d\u1EE5ng {name}",
     "recentAssets.delete": "X\xF3a {name}",
+    "recentAssets.inUse": "\u0110\u01B0\u1EE3c {count} t\xE1c v\u1EE5 s\u1EED d\u1EE5ng; kh\xF4ng th\u1EC3 x\xF3a v\u0129nh vi\u1EC5n nh\u01B0ng c\xF3 th\u1EC3 \u1EA9n kh\u1ECFi m\u1EE5c t\u1EA3i l\xEAn g\u1EA7n \u0111\xE2y",
+    "recentAssets.hide": "\u1EA8n {name} kh\u1ECFi m\u1EE5c t\u1EA3i l\xEAn g\u1EA7n \u0111\xE2y",
+    "recentAssets.hideTitle": "\u1EA8n kh\u1ECFi m\u1EE5c t\u1EA3i l\xEAn g\u1EA7n \u0111\xE2y?",
+    "recentAssets.hideMessage": "H\xECnh \u1EA3nh n\xE0y \u0111\u01B0\u1EE3c {count} t\xE1c v\u1EE5 s\u1EED d\u1EE5ng n\xEAn kh\xF4ng th\u1EC3 x\xF3a v\u0129nh vi\u1EC5n. Vi\u1EC7c \u1EA9n ch\u1EC9 lo\u1EA1i b\u1ECF n\xF3 kh\u1ECFi m\u1EE5c t\u1EA3i l\xEAn g\u1EA7n \u0111\xE2y; \u1EA3nh g\u1ED1c, \u0111\u1EA7u v\xE0o hi\u1EC7n t\u1EA1i v\xE0 c\xE1c t\xE1c v\u1EE5 tr\u01B0\u1EDBc \u0111\xE2y v\u1EABn \u0111\u01B0\u1EE3c gi\u1EEF l\u1EA1i.",
+    "recentAssets.hideFailed": "Kh\xF4ng \u1EA9n \u0111\u01B0\u1EE3c \u1EA3nh t\u1EA3i l\xEAn g\u1EA7n \u0111\xE2y",
+    "recentAssets.hidden": "\u0110\xE3 \u1EA9n kh\u1ECFi m\u1EE5c t\u1EA3i l\xEAn g\u1EA7n \u0111\xE2y; \u1EA3nh g\u1ED1c v\xE0 c\xE1c t\xE1c v\u1EE5 tr\u01B0\u1EDBc \u0111\xE2y v\u1EABn \u0111\u01B0\u1EE3c gi\u1EEF l\u1EA1i",
     "recentAssets.deleteTitle": "X\xF3a n\u1ED9i dung t\u1EA3i l\xEAn g\u1EA7n \u0111\xE2y?",
-    "recentAssets.deleteMessage": "Thao t\xE1c n\xE0y s\u1EBD x\xF3a h\xECnh \u1EA3nh kh\u1ECFi c\xE1c \u1EA3nh t\u1EA3i l\xEAn g\u1EA7n \u0111\xE2y. N\u1EBFu n\xF3 hi\u1EC7n \u0111\u01B0\u1EE3c ch\u1ECDn l\xE0m \u0111\u1EA7u v\xE0o h\xECnh \u1EA3nh, n\xF3 s\u1EBD b\u1ECB x\xF3a kh\u1ECFi \u0111\u1EA7u v\xE0o hi\u1EC7n t\u1EA1i. C\xE1c t\xE1c v\u1EE5 tr\u01B0\u1EDBc \u0111\xE2y tham chi\u1EBFu \u0111\u1EBFn l\u1EA7n t\u1EA3i l\xEAn g\u1EA7n \u0111\xE2y n\xE0y s\u1EBD m\u1EA5t b\u1EA3n xem tr\u01B0\u1EDBc \u0111\u1EA7u v\xE0o \u0111\xF3. Ph\xF2ng tr\u01B0ng b\xE0y c\xF4ng c\u1ED9ng kh\xF4ng b\u1ECB \u1EA3nh h\u01B0\u1EDFng.",
+    "recentAssets.deleteMessage": "H\xECnh \u1EA3nh n\xE0y kh\xF4ng \u0111\u01B0\u1EE3c t\xE1c v\u1EE5 n\xE0o s\u1EED d\u1EE5ng. \u1EA2nh g\u1ED1c s\u1EBD b\u1ECB x\xF3a v\u0129nh vi\u1EC5n v\xE0 h\xECnh \u1EA3nh t\u01B0\u01A1ng \u1EE9ng s\u1EBD b\u1ECB lo\u1EA1i kh\u1ECFi \u0111\u1EA7u v\xE0o hi\u1EC7n t\u1EA1i. Ph\xF2ng tr\u01B0ng b\xE0y c\xF4ng c\u1ED9ng kh\xF4ng b\u1ECB \u1EA3nh h\u01B0\u1EDFng.",
     "recentAssets.loadFailed": "Kh\xF4ng t\u1EA3i \u0111\u01B0\u1EE3c \u1EA3nh t\u1EA3i l\xEAn g\u1EA7n \u0111\xE2y",
     "recentAssets.deleteFailed": "Kh\xF4ng x\xF3a \u0111\u01B0\u1EE3c n\u1ED9i dung t\u1EA3i l\xEAn g\u1EA7n \u0111\xE2y",
     "recentAssets.deleted": "\u0110\xE3 x\xF3a n\u1ED9i dung t\u1EA3i l\xEAn g\u1EA7n \u0111\xE2y",
@@ -11331,7 +11419,7 @@
     "output.promptHelpTitle": "X\u1EED l\xFD l\u1EDDi nh\u1EAFc",
     "output.promptHelp.responsesChannel": "Responses \xB7 c\xF3 m\xF4 h\xECnh ch\xEDnh tham gia",
     "output.promptHelp.imagesChannel": "Images \xB7 t\u1EA1o tr\u1EF1c ti\u1EBFp",
-    "output.promptHelp.responses.original": "G\u1EEDi nguy\xEAn v\u0103n c\u1EE7a b\u1EA1n cho m\xF4 h\xECnh ch\xEDnh v\xE0 y\xEAu c\u1EA7u c\xF4ng c\u1EE5 h\xECnh \u1EA3nh gi\u1EEF nguy\xEAn t\u1EEBng ch\u1EEF; m\xF4 h\xECnh ch\xEDnh v\u1EABn c\xF3 th\u1EC3 t\u1EA1o ra l\u1EDDi nh\u1EAFc \u0111\xE3 s\u1EEDa \u0111\u1ED5i.",
+    "output.promptHelp.responses.original": "G\u1EEDi nguy\xEAn v\u0103n ch\xEDnh x\xE1c m\xE0 kh\xF4ng th\xEAm quy t\u1EAFc \u1EDF c\u1EA5p \u1EE9ng d\u1EE5ng; nh\xE0 cung c\u1EA5p v\u1EABn c\xF3 th\u1EC3 tr\u1EA3 v\u1EC1 revised prompt ho\u1EB7c di\u1EC5n gi\u1EA3i k\u1EBFt qu\u1EA3 theo c\xE1ch kh\xE1c.",
     "output.promptHelp.responses.strict": "Cho ph\xE9p m\xF4 h\xECnh ch\xEDnh s\u1EAFp x\u1EBFp ho\u1EB7c m\u1EDF r\u1ED9ng l\u1EDDi nh\u1EAFc, nh\u01B0ng v\u1EABn gi\u1EEF c\xE1c r\xE0ng bu\u1ED9c b\u1EAFt bu\u1ED9c nh\u01B0 \u0111\u1ED1i t\u01B0\u1EE3ng, v\u0103n b\u1EA3n, m\xE0u s\u1EAFc v\xE0 b\u1ED1 c\u1EE5c.",
     "output.promptHelp.responses.automatic": "Kh\xF4ng th\xEAm r\xE0ng bu\u1ED9c n\xE0o, \u0111\u1EC3 m\xF4 h\xECnh ch\xEDnh t\u1EF1 hi\u1EC3u v\xE0 t\u1ED1i \u01B0u h\xF3a l\u1EDDi nh\u1EAFc tr\u01B0\u1EDBc khi g\u1ECDi c\xF4ng c\u1EE5 h\xECnh \u1EA3nh.",
     "output.promptHelp.images.original": "\u1EE8ng d\u1EE5ng kh\xF4ng th\xEAm quy t\u1EAFc l\u1EDDi nh\u1EAFc n\xE0o v\xE0 g\u1EEDi th\u1EB3ng nguy\xEAn v\u0103n c\u1EE7a b\u1EA1n t\u1EDBi API h\xECnh \u1EA3nh.",
@@ -11923,10 +12011,10 @@
     "batch.cancelSelected": "\u53D6\u6D88\u4EFB\u52A1",
     "batch.noActiveSelected": "\u9009\u4E2D\u7684\u4EFB\u52A1\u5DF2\u4E0D\u5728\u8FD0\u884C\u6216\u7B49\u5F85\u961F\u5217\u4E2D",
     "batch.cancelTitle": "\u53D6\u6D88 {count} \u4E2A\u4EFB\u52A1\uFF1F",
-    "batch.cancelMessage": "\u8FD0\u884C\u4E2D\u7684\u4EFB\u52A1\u4F1A\u505C\u6B62\uFF0C\u7B49\u5F85\u4E2D\u7684\u4EFB\u52A1\u4F1A\u79BB\u5F00\u961F\u5217\uFF1B\u5386\u53F2\u8BB0\u5F55\u90FD\u4F1A\u4FDD\u7559\u3002",
+    "batch.cancelMessage": "\u7B49\u5F85\u4EFB\u52A1\u4F1A\u7ACB\u5373\u53D6\u6D88\u3002\u8FD0\u884C\u4E2D\u7684\u670D\u52A1\u5546\u8C03\u7528\u5728\u8FD4\u56DE\u524D\u53EF\u80FD\u4ECD\u4F1A\u7EE7\u7EED\uFF0C\u4E5F\u53EF\u80FD\u4ECD\u4F1A\u8BA1\u8D39\uFF1B\u5386\u53F2\u8BB0\u5F55\u90FD\u4F1A\u4FDD\u7559\u3002",
     "batch.cancelDetail": "\u8FD0\u884C {running} \u4E2A \xB7 \u7B49\u5F85 {waiting} \u4E2A",
     "batch.cancelConfirm": "\u786E\u8BA4\u53D6\u6D88",
-    "batch.cancelResult": "\u5DF2\u53D6\u6D88 {cancelled} \u4E2A\uFF0C\u8DF3\u8FC7 {skipped} \u4E2A\uFF0C\u5931\u8D25 {failed} \u4E2A",
+    "batch.cancelResult": "\u5DF2\u53D6\u6D88 {cancelled} \u4E2A\uFF0C\u5DF2\u8BF7\u6C42\u53D6\u6D88 {requested} \u4E2A\uFF0C\u8DF3\u8FC7 {skipped} \u4E2A\uFF0C\u5931\u8D25 {failed} \u4E2A",
     "batch.cancelFailed": "\u6279\u91CF\u53D6\u6D88\u5931\u8D25",
     "action.archive": "\u5F52\u6863",
     "action.delete": "\u5220\u9664",
@@ -11975,8 +12063,9 @@
     "queue.queuedDeleted": "\u961F\u5217\u4EFB\u52A1\u5DF2\u5220\u9664",
     "queue.cancelRunningConfirm": "\u53D6\u6D88\u4EFB\u52A1",
     "queue.cancelRunningTitleConfirm": "\u53D6\u6D88\u8FD0\u884C\u4EFB\u52A1\uFF1F",
-    "queue.cancelRunningMessage": "\u5F53\u524D\u4EFB\u52A1\u4F1A\u505C\u6B62\uFF0C\u5386\u53F2\u8BB0\u5F55\u4F1A\u4FDD\u7559\u3002",
+    "queue.cancelRunningMessage": "\u5C06\u53D1\u9001\u53D6\u6D88\u8BF7\u6C42\u3002\u670D\u52A1\u5546\u8C03\u7528\u5728\u8FD4\u56DE\u524D\u53EF\u80FD\u4ECD\u4F1A\u7EE7\u7EED\uFF0C\u4E5F\u53EF\u80FD\u4ECD\u4F1A\u8BA1\u8D39\uFF1B\u5386\u53F2\u8BB0\u5F55\u4F1A\u4FDD\u7559\u3002",
     "queue.cancelRunningFailed": "\u53D6\u6D88\u4EFB\u52A1\u5931\u8D25",
+    "queue.cancellationPending": "\u5DF2\u8BF7\u6C42\u53D6\u6D88\u3002\u670D\u52A1\u5546\u8C03\u7528\u5728\u8FD4\u56DE\u524D\u53EF\u80FD\u4ECD\u4F1A\u7EE7\u7EED\uFF0C\u4E5F\u53EF\u80FD\u4ECD\u4F1A\u8BA1\u8D39\u3002",
     "queue.runningCancelled": "\u4EFB\u52A1\u5DF2\u53D6\u6D88",
     "queue.reorderFailed": "\u961F\u5217\u6392\u5E8F\u5931\u8D25",
     "queue.realtimeUpdateFailed": "\u5B9E\u65F6\u72B6\u6001\u66F4\u65B0\u5931\u8D25",
@@ -11988,6 +12077,7 @@
     "taskStatus.submitting": "\u63D0\u4EA4\u4E2D",
     "taskStatus.running": "\u751F\u6210\u4E2D",
     "taskStatus.runningWithElapsed": "\u751F\u6210\u4E2D \xB7 {elapsed}",
+    "taskStatus.cancelling": "\u6B63\u5728\u53D6\u6D88",
     "taskStatus.completed": "\u5DF2\u5B8C\u6210",
     "taskStatus.partialFailed": "\u90E8\u5206\u5931\u8D25",
     "taskStatus.failed": "\u5931\u8D25",
@@ -12272,8 +12362,14 @@
     "recentAssets.defaultName": "\u6700\u8FD1\u4E0A\u4F20",
     "recentAssets.use": "\u4F7F\u7528{name}",
     "recentAssets.delete": "\u5220\u9664{name}",
+    "recentAssets.inUse": "\u88AB {count} \u4E2A\u4EFB\u52A1\u5F15\u7528\uFF0C\u65E0\u6CD5\u6C38\u4E45\u5220\u9664\uFF1B\u53EF\u4EC5\u4ECE\u6700\u8FD1\u4E0A\u4F20\u9690\u85CF",
+    "recentAssets.hide": "\u4ECE\u6700\u8FD1\u4E0A\u4F20\u9690\u85CF{name}",
+    "recentAssets.hideTitle": "\u4ECE\u6700\u8FD1\u4E0A\u4F20\u9690\u85CF\uFF1F",
+    "recentAssets.hideMessage": "\u8FD9\u5F20\u56FE\u7247\u88AB {count} \u4E2A\u4EFB\u52A1\u5F15\u7528\uFF0C\u65E0\u6CD5\u6C38\u4E45\u5220\u9664\u3002\u9690\u85CF\u53EA\u4F1A\u4ECE\u300C\u6700\u8FD1\u4E0A\u4F20\u300D\u79FB\u9664\uFF1B\u539F\u56FE\u3001\u5F53\u524D\u8F93\u5165\u548C\u5386\u53F2\u4EFB\u52A1\u5747\u4FDD\u7559\u3002",
+    "recentAssets.hideFailed": "\u6700\u8FD1\u4E0A\u4F20\u9690\u85CF\u5931\u8D25",
+    "recentAssets.hidden": "\u5DF2\u4ECE\u6700\u8FD1\u4E0A\u4F20\u9690\u85CF\uFF1B\u539F\u56FE\u548C\u5386\u53F2\u4EFB\u52A1\u5747\u5DF2\u4FDD\u7559",
     "recentAssets.deleteTitle": "\u5220\u9664\u6700\u8FD1\u4E0A\u4F20\uFF1F",
-    "recentAssets.deleteMessage": "\u4F1A\u4ECE\u300C\u6700\u8FD1\u4E0A\u4F20\u300D\u4E2D\u5220\u9664\u8FD9\u5F20\u56FE\u7247\u3002\u5982\u679C\u5B83\u5DF2\u88AB\u6DFB\u52A0\u5230\u5F53\u524D\u56FE\u50CF\u8F93\u5165\uFF0C\u4F1A\u4ECE\u5F53\u524D\u8F93\u5165\u4E2D\u79FB\u9664\uFF1B\u5386\u53F2\u4EFB\u52A1\u91CC\u5F15\u7528\u8FD9\u5F20\u6700\u8FD1\u4E0A\u4F20\u56FE\u7684\u8F93\u5165\u9884\u89C8\u4E5F\u4F1A\u5931\u6548\u3002\u4E0D\u4F1A\u5F71\u54CD\u516C\u7528\u56FE\u5E93\u3002",
+    "recentAssets.deleteMessage": "\u8FD9\u5F20\u56FE\u7247\u672A\u88AB\u4EFB\u4F55\u4EFB\u52A1\u5F15\u7528\uFF0C\u5C06\u6C38\u4E45\u5220\u9664\u539F\u56FE\uFF0C\u5E76\u4ECE\u5F53\u524D\u8F93\u5165\u79FB\u9664\u540C\u56FE\u3002\u516C\u7528\u56FE\u5E93\u4E0D\u53D7\u5F71\u54CD\u3002",
     "recentAssets.loadFailed": "\u6700\u8FD1\u4E0A\u4F20\u8BFB\u53D6\u5931\u8D25",
     "recentAssets.deleteFailed": "\u6700\u8FD1\u4E0A\u4F20\u5220\u9664\u5931\u8D25",
     "recentAssets.deleted": "\u6700\u8FD1\u4E0A\u4F20\u5DF2\u5220\u9664",
@@ -12420,7 +12516,7 @@
     "output.promptHelpTitle": "\u63D0\u793A\u8BCD\u5904\u7406",
     "output.promptHelp.responsesChannel": "Responses \xB7 \u4E3B\u6A21\u578B\u53C2\u4E0E",
     "output.promptHelp.imagesChannel": "Images \xB7 \u76F4\u63A5\u751F\u6210",
-    "output.promptHelp.responses.original": "\u539F\u6587\u4EA4\u7ED9\u4E3B\u6A21\u578B\uFF0C\u5E76\u8981\u6C42\u56FE\u50CF\u5DE5\u5177\u5C3D\u91CF\u9010\u5B57\u4F7F\u7528\uFF1B\u4E3B\u6A21\u578B\u4ECD\u53EF\u80FD\u751F\u6210 revised prompt\u3002",
+    "output.promptHelp.responses.original": "\u6309\u539F\u6587\u53D1\u9001\uFF0C\u4E0D\u6DFB\u52A0\u5E94\u7528\u7EA7\u63D0\u793A\u8BCD\u89C4\u5219\uFF1B\u670D\u52A1\u5546\u4ECD\u53EF\u80FD\u8FD4\u56DE revised prompt\uFF0C\u751F\u6210\u7ED3\u679C\u4E5F\u53EF\u80FD\u4E0E\u6587\u5B57\u7EA6\u675F\u6709\u504F\u5DEE\u3002",
     "output.promptHelp.responses.strict": "\u5141\u8BB8\u4E3B\u6A21\u578B\u6574\u7406\u6216\u6269\u5199\uFF0C\u4F46\u5FC5\u987B\u4FDD\u7559\u5BF9\u8C61\u3001\u6587\u5B57\u3001\u989C\u8272\u3001\u6784\u56FE\u7B49\u786C\u6027\u7EA6\u675F\u3002",
     "output.promptHelp.responses.automatic": "\u4E0D\u6DFB\u52A0\u989D\u5916\u7EA6\u675F\uFF0C\u7531\u4E3B\u6A21\u578B\u7406\u89E3\u5E76\u4F18\u5316\u540E\u8C03\u7528\u56FE\u50CF\u5DE5\u5177\u3002",
     "output.promptHelp.images.original": "\u5E94\u7528\u4E0D\u6DFB\u52A0\u63D0\u793A\u8BCD\u89C4\u5219\uFF0C\u6309\u7528\u6237\u539F\u6587\u76F4\u63A5\u63D0\u4EA4\u7ED9\u56FE\u50CF\u63A5\u53E3\u3002",
@@ -13012,10 +13108,10 @@
     "batch.cancelSelected": "\u53D6\u6D88\u4EFB\u52D9",
     "batch.noActiveSelected": "\u6240\u9078\u4EFB\u52D9\u5DF2\u4E0D\u5728\u57F7\u884C\u6216\u7B49\u5019\u4F47\u5217\u4E2D",
     "batch.cancelTitle": "\u53D6\u6D88 {count} \u500B\u4EFB\u52D9\uFF1F",
-    "batch.cancelMessage": "\u57F7\u884C\u4E2D\u7684\u4EFB\u52D9\u6703\u505C\u6B62\uFF0C\u7B49\u5019\u4E2D\u7684\u4EFB\u52D9\u6703\u96E2\u958B\u4F47\u5217\uFF1B\u6B77\u53F2\u8A18\u9304\u90FD\u6703\u4FDD\u7559\u3002",
+    "batch.cancelMessage": "\u7B49\u5019\u4EFB\u52D9\u6703\u7ACB\u5373\u53D6\u6D88\u3002\u57F7\u884C\u4E2D\u7684\u670D\u52D9\u5546\u547C\u53EB\u5728\u8FD4\u56DE\u524D\u53EF\u80FD\u4ECD\u6703\u7E7C\u7E8C\uFF0C\u4EA6\u53EF\u80FD\u4ECD\u6703\u8A08\u8CBB\uFF1B\u6B77\u53F2\u8A18\u9304\u90FD\u6703\u4FDD\u7559\u3002",
     "batch.cancelDetail": "\u57F7\u884C {running} \u500B \xB7 \u7B49\u5019 {waiting} \u500B",
     "batch.cancelConfirm": "\u78BA\u8A8D\u53D6\u6D88",
-    "batch.cancelResult": "\u5DF2\u53D6\u6D88 {cancelled} \u500B\uFF0C\u7565\u904E {skipped} \u500B\uFF0C\u5931\u6557 {failed} \u500B",
+    "batch.cancelResult": "\u5DF2\u53D6\u6D88 {cancelled} \u500B\uFF0C\u5DF2\u8981\u6C42\u53D6\u6D88 {requested} \u500B\uFF0C\u7565\u904E {skipped} \u500B\uFF0C\u5931\u6557 {failed} \u500B",
     "batch.cancelFailed": "\u6279\u6B21\u53D6\u6D88\u5931\u6557",
     "action.archive": "\u6B78\u6A94",
     "action.delete": "\u522A\u9664",
@@ -13064,8 +13160,9 @@
     "queue.queuedDeleted": "\u4F47\u5217\u4EFB\u52D9\u5DF2\u522A\u9664",
     "queue.cancelRunningConfirm": "\u53D6\u6D88\u4EFB\u52D9",
     "queue.cancelRunningTitleConfirm": "\u53D6\u6D88\u57F7\u884C\u4EFB\u52D9\uFF1F",
-    "queue.cancelRunningMessage": "\u76EE\u524D\u4EFB\u52D9\u6703\u505C\u6B62\uFF0C\u6B77\u53F2\u8A18\u9304\u6703\u4FDD\u7559\u3002",
+    "queue.cancelRunningMessage": "\u5C07\u50B3\u9001\u53D6\u6D88\u8981\u6C42\u3002\u670D\u52D9\u5546\u547C\u53EB\u5728\u8FD4\u56DE\u524D\u53EF\u80FD\u4ECD\u6703\u7E7C\u7E8C\uFF0C\u4EA6\u53EF\u80FD\u4ECD\u6703\u8A08\u8CBB\uFF1B\u6B77\u53F2\u8A18\u9304\u6703\u4FDD\u7559\u3002",
     "queue.cancelRunningFailed": "\u53D6\u6D88\u4EFB\u52D9\u5931\u6557",
+    "queue.cancellationPending": "\u5DF2\u8981\u6C42\u53D6\u6D88\u3002\u670D\u52D9\u5546\u547C\u53EB\u5728\u8FD4\u56DE\u524D\u53EF\u80FD\u4ECD\u6703\u7E7C\u7E8C\uFF0C\u4EA6\u53EF\u80FD\u4ECD\u6703\u8A08\u8CBB\u3002",
     "queue.runningCancelled": "\u4EFB\u52D9\u5DF2\u53D6\u6D88",
     "queue.reorderFailed": "\u4F47\u5217\u6392\u5E8F\u5931\u6557",
     "queue.realtimeUpdateFailed": "\u5373\u6642\u72C0\u614B\u66F4\u65B0\u5931\u6557",
@@ -13077,6 +13174,7 @@
     "taskStatus.submitting": "\u63D0\u4EA4\u4E2D",
     "taskStatus.running": "\u751F\u6210\u4E2D",
     "taskStatus.runningWithElapsed": "\u751F\u6210\u4E2D \xB7{elapsed}",
+    "taskStatus.cancelling": "\u6B63\u5728\u53D6\u6D88",
     "taskStatus.completed": "\u5DF2\u5B8C\u6210",
     "taskStatus.partialFailed": "\u90E8\u5206\u5931\u6557",
     "taskStatus.failed": "\u5931\u6557",
@@ -13361,8 +13459,14 @@
     "recentAssets.defaultName": "\u6700\u8FD1\u4E0A\u50B3",
     "recentAssets.use": "\u4F7F\u7528{name}",
     "recentAssets.delete": "\u522A\u9664{name}",
+    "recentAssets.inUse": "\u88AB {count} \u500B\u4EFB\u52D9\u5F15\u7528\uFF0C\u7121\u6CD5\u6C38\u4E45\u522A\u9664\uFF1B\u53EF\u53EA\u5F9E\u6700\u8FD1\u4E0A\u50B3\u96B1\u85CF",
+    "recentAssets.hide": "\u5F9E\u6700\u8FD1\u4E0A\u50B3\u96B1\u85CF{name}",
+    "recentAssets.hideTitle": "\u5F9E\u6700\u8FD1\u4E0A\u50B3\u96B1\u85CF\uFF1F",
+    "recentAssets.hideMessage": "\u9019\u5F35\u5716\u7247\u88AB {count} \u500B\u4EFB\u52D9\u5F15\u7528\uFF0C\u7121\u6CD5\u6C38\u4E45\u522A\u9664\u3002\u96B1\u85CF\u53EA\u6703\u5F9E\u300C\u6700\u8FD1\u4E0A\u50B3\u300D\u79FB\u9664\uFF1B\u539F\u5716\u3001\u7576\u524D\u8F38\u5165\u53CA\u6B77\u53F2\u4EFB\u52D9\u5747\u6703\u4FDD\u7559\u3002",
+    "recentAssets.hideFailed": "\u6700\u8FD1\u4E0A\u50B3\u96B1\u85CF\u5931\u6557",
+    "recentAssets.hidden": "\u5DF2\u5F9E\u6700\u8FD1\u4E0A\u50B3\u96B1\u85CF\uFF1B\u539F\u5716\u53CA\u6B77\u53F2\u4EFB\u52D9\u5747\u5DF2\u4FDD\u7559",
     "recentAssets.deleteTitle": "\u522A\u9664\u6700\u8FD1\u4E0A\u50B3\uFF1F",
-    "recentAssets.deleteMessage": "\u6703\u5F9E\u300C\u6700\u8FD1\u4E0A\u50B3\u300D\u522A\u9664\u9019\u5F35\u5716\u7247\u3002\u5982\u679C\u5B83\u5DF2\u88AB\u52A0\u5165\u5230\u7576\u524D\u5716\u50CF\u8F38\u5165\uFF0C\u5247\u6703\u5F9E\u7576\u524D\u8F38\u5165\u4E2D\u79FB\u9664\uFF1B\u6B77\u53F2\u4EFB\u52D9\u4E2D\u53C3\u7167\u9019\u5F35\u6700\u8FD1\u4E0A\u50B3\u5716\u7684\u8F38\u5165\u9810\u89BD\u4E5F\u6703\u5931\u6548\u3002\u4E0D\u6703\u5F71\u97FF\u516C\u7528\u5716\u5EAB\u3002",
+    "recentAssets.deleteMessage": "\u9019\u5F35\u5716\u7247\u672A\u88AB\u4EFB\u4F55\u4EFB\u52D9\u5F15\u7528\uFF0C\u5C07\u6C38\u4E45\u522A\u9664\u539F\u5716\uFF0C\u4E26\u5F9E\u7576\u524D\u8F38\u5165\u79FB\u9664\u76F8\u540C\u5716\u7247\u3002\u516C\u7528\u5716\u5EAB\u4E0D\u53D7\u5F71\u97FF\u3002",
     "recentAssets.loadFailed": "\u6700\u8FD1\u4E0A\u50B3\u8B80\u53D6\u5931\u6557",
     "recentAssets.deleteFailed": "\u6700\u8FD1\u4E0A\u50B3\u522A\u9664\u5931\u6557",
     "recentAssets.deleted": "\u6700\u8FD1\u4E0A\u50B3\u5DF2\u522A\u9664",
@@ -13509,7 +13613,7 @@
     "output.promptHelpTitle": "\u63D0\u793A\u8A5E\u8655\u7406",
     "output.promptHelp.responsesChannel": "Responses \xB7 \u4E3B\u6A21\u578B\u53C3\u8207",
     "output.promptHelp.imagesChannel": "Images \xB7 \u76F4\u63A5\u751F\u6210",
-    "output.promptHelp.responses.original": "\u539F\u6587\u4EA4\u7D66\u4E3B\u6A21\u578B\uFF0C\u4E26\u8981\u6C42\u5716\u50CF\u5DE5\u5177\u76E1\u91CF\u9010\u5B57\u4F7F\u7528\uFF1B\u4E3B\u6A21\u578B\u4ECD\u53EF\u80FD\u7522\u751F revised prompt\u3002",
+    "output.promptHelp.responses.original": "\u6309\u539F\u6587\u50B3\u9001\uFF0C\u4E0D\u52A0\u5165\u61C9\u7528\u7A0B\u5F0F\u5C64\u63D0\u793A\u8A5E\u898F\u5247\uFF1B\u670D\u52D9\u5546\u4ECD\u53EF\u80FD\u50B3\u56DE revised prompt\uFF0C\u751F\u6210\u7D50\u679C\u4EA6\u53EF\u80FD\u8207\u6587\u5B57\u7D04\u675F\u6709\u504F\u5DEE\u3002",
     "output.promptHelp.responses.strict": "\u5141\u8A31\u4E3B\u6A21\u578B\u6574\u7406\u6216\u64F4\u5BEB\uFF0C\u4F46\u5FC5\u9808\u4FDD\u7559\u7269\u4EF6\u3001\u6587\u5B57\u3001\u984F\u8272\u3001\u69CB\u5716\u7B49\u786C\u6027\u9650\u5236\u3002",
     "output.promptHelp.responses.automatic": "\u4E0D\u52A0\u5165\u984D\u5916\u9650\u5236\uFF0C\u7531\u4E3B\u6A21\u578B\u7406\u89E3\u4E26\u512A\u5316\u5F8C\u547C\u53EB\u5716\u50CF\u5DE5\u5177\u3002",
     "output.promptHelp.images.original": "\u61C9\u7528\u7A0B\u5F0F\u4E0D\u52A0\u5165\u63D0\u793A\u8A5E\u898F\u5247\uFF0C\u6309\u7528\u6236\u539F\u6587\u76F4\u63A5\u63D0\u4EA4\u81F3\u5716\u50CF\u4ECB\u9762\u3002",
@@ -14101,10 +14205,10 @@
     "batch.cancelSelected": "\u53D6\u6D88\u4EFB\u52D9",
     "batch.noActiveSelected": "\u6240\u9078\u4EFB\u52D9\u5DF2\u4E0D\u5728\u57F7\u884C\u6216\u7B49\u5F85\u4F47\u5217\u4E2D",
     "batch.cancelTitle": "\u53D6\u6D88 {count} \u500B\u4EFB\u52D9\uFF1F",
-    "batch.cancelMessage": "\u57F7\u884C\u4E2D\u7684\u4EFB\u52D9\u6703\u505C\u6B62\uFF0C\u7B49\u5F85\u4E2D\u7684\u4EFB\u52D9\u6703\u96E2\u958B\u4F47\u5217\uFF1B\u6B77\u53F2\u8A18\u9304\u90FD\u6703\u4FDD\u7559\u3002",
+    "batch.cancelMessage": "\u7B49\u5F85\u4EFB\u52D9\u6703\u7ACB\u5373\u53D6\u6D88\u3002\u57F7\u884C\u4E2D\u7684\u670D\u52D9\u5546\u547C\u53EB\u5728\u8FD4\u56DE\u524D\u53EF\u80FD\u4ECD\u6703\u7E7C\u7E8C\uFF0C\u4E5F\u53EF\u80FD\u4ECD\u6703\u8A08\u8CBB\uFF1B\u6B77\u53F2\u8A18\u9304\u90FD\u6703\u4FDD\u7559\u3002",
     "batch.cancelDetail": "\u57F7\u884C {running} \u500B \xB7 \u7B49\u5F85 {waiting} \u500B",
     "batch.cancelConfirm": "\u78BA\u8A8D\u53D6\u6D88",
-    "batch.cancelResult": "\u5DF2\u53D6\u6D88 {cancelled} \u500B\uFF0C\u7565\u904E {skipped} \u500B\uFF0C\u5931\u6557 {failed} \u500B",
+    "batch.cancelResult": "\u5DF2\u53D6\u6D88 {cancelled} \u500B\uFF0C\u5DF2\u8981\u6C42\u53D6\u6D88 {requested} \u500B\uFF0C\u7565\u904E {skipped} \u500B\uFF0C\u5931\u6557 {failed} \u500B",
     "batch.cancelFailed": "\u6279\u6B21\u53D6\u6D88\u5931\u6557",
     "action.archive": "\u6B78\u6A94",
     "action.delete": "\u522A\u9664",
@@ -14153,8 +14257,9 @@
     "queue.queuedDeleted": "\u4F47\u5217\u4EFB\u52D9\u5DF2\u522A\u9664",
     "queue.cancelRunningConfirm": "\u53D6\u6D88\u4EFB\u52D9",
     "queue.cancelRunningTitleConfirm": "\u53D6\u6D88\u57F7\u884C\u4EFB\u52D9\uFF1F",
-    "queue.cancelRunningMessage": "\u76EE\u524D\u4EFB\u52D9\u6703\u505C\u6B62\uFF0C\u6B77\u53F2\u8A18\u9304\u6703\u4FDD\u7559\u3002",
+    "queue.cancelRunningMessage": "\u5C07\u50B3\u9001\u53D6\u6D88\u8981\u6C42\u3002\u670D\u52D9\u5546\u547C\u53EB\u5728\u8FD4\u56DE\u524D\u53EF\u80FD\u4ECD\u6703\u7E7C\u7E8C\uFF0C\u4E5F\u53EF\u80FD\u4ECD\u6703\u8A08\u8CBB\uFF1B\u6B77\u53F2\u8A18\u9304\u6703\u4FDD\u7559\u3002",
     "queue.cancelRunningFailed": "\u53D6\u6D88\u4EFB\u52D9\u5931\u6557",
+    "queue.cancellationPending": "\u5DF2\u8981\u6C42\u53D6\u6D88\u3002\u670D\u52D9\u5546\u547C\u53EB\u5728\u8FD4\u56DE\u524D\u53EF\u80FD\u4ECD\u6703\u7E7C\u7E8C\uFF0C\u4E5F\u53EF\u80FD\u4ECD\u6703\u8A08\u8CBB\u3002",
     "queue.runningCancelled": "\u4EFB\u52D9\u5DF2\u53D6\u6D88",
     "queue.reorderFailed": "\u4F47\u5217\u6392\u5E8F\u5931\u6557",
     "queue.realtimeUpdateFailed": "\u5373\u6642\u72C0\u614B\u66F4\u65B0\u5931\u6557",
@@ -14166,6 +14271,7 @@
     "taskStatus.submitting": "\u63D0\u4EA4\u4E2D",
     "taskStatus.running": "\u751F\u6210\u4E2D",
     "taskStatus.runningWithElapsed": "\u751F\u6210\u4E2D \xB7{elapsed}",
+    "taskStatus.cancelling": "\u6B63\u5728\u53D6\u6D88",
     "taskStatus.completed": "\u5DF2\u5B8C\u6210",
     "taskStatus.partialFailed": "\u90E8\u5206\u5931\u6557",
     "taskStatus.failed": "\u5931\u6557",
@@ -14450,8 +14556,14 @@
     "recentAssets.defaultName": "\u6700\u8FD1\u4E0A\u50B3",
     "recentAssets.use": "\u4F7F\u7528{name}",
     "recentAssets.delete": "\u522A\u9664{name}",
+    "recentAssets.inUse": "\u88AB {count} \u500B\u4EFB\u52D9\u5F15\u7528\uFF0C\u7121\u6CD5\u6C38\u4E45\u522A\u9664\uFF1B\u53EF\u53EA\u5F9E\u6700\u8FD1\u4E0A\u50B3\u96B1\u85CF",
+    "recentAssets.hide": "\u5F9E\u6700\u8FD1\u4E0A\u50B3\u96B1\u85CF{name}",
+    "recentAssets.hideTitle": "\u5F9E\u6700\u8FD1\u4E0A\u50B3\u96B1\u85CF\uFF1F",
+    "recentAssets.hideMessage": "\u9019\u5F35\u5716\u7247\u88AB {count} \u500B\u4EFB\u52D9\u5F15\u7528\uFF0C\u7121\u6CD5\u6C38\u4E45\u522A\u9664\u3002\u96B1\u85CF\u53EA\u6703\u5F9E\u300C\u6700\u8FD1\u4E0A\u50B3\u300D\u79FB\u9664\uFF1B\u539F\u5716\u3001\u76EE\u524D\u8F38\u5165\u53CA\u6B77\u53F2\u4EFB\u52D9\u90FD\u6703\u4FDD\u7559\u3002",
+    "recentAssets.hideFailed": "\u6700\u8FD1\u4E0A\u50B3\u96B1\u85CF\u5931\u6557",
+    "recentAssets.hidden": "\u5DF2\u5F9E\u6700\u8FD1\u4E0A\u50B3\u96B1\u85CF\uFF1B\u539F\u5716\u53CA\u6B77\u53F2\u4EFB\u52D9\u90FD\u5DF2\u4FDD\u7559",
     "recentAssets.deleteTitle": "\u522A\u9664\u6700\u8FD1\u4E0A\u50B3\uFF1F",
-    "recentAssets.deleteMessage": "\u6703\u5F9E\u300C\u6700\u8FD1\u4E0A\u50B3\u300D\u522A\u9664\u9019\u5F35\u5716\u7247\u3002\u5982\u679C\u5B83\u5DF2\u88AB\u52A0\u5165\u5230\u76EE\u524D\u5716\u50CF\u8F38\u5165\uFF0C\u6703\u5F9E\u76EE\u524D\u8F38\u5165\u4E2D\u79FB\u9664\uFF1B\u6B77\u53F2\u4EFB\u52D9\u91CC\u53C3\u7167\u9019\u5F35\u6700\u8FD1\u4E0A\u50B3\u5716\u7684\u8F38\u5165\u9810\u89BD\u4E5F\u6703\u5931\u6548\u3002\u4E0D\u6703\u5F71\u97FF\u516C\u7528\u5716\u5EAB\u3002",
+    "recentAssets.deleteMessage": "\u9019\u5F35\u5716\u7247\u672A\u88AB\u4EFB\u4F55\u4EFB\u52D9\u5F15\u7528\uFF0C\u5C07\u6C38\u4E45\u522A\u9664\u539F\u5716\uFF0C\u4E26\u5F9E\u76EE\u524D\u8F38\u5165\u79FB\u9664\u76F8\u540C\u5716\u7247\u3002\u516C\u7528\u5716\u5EAB\u4E0D\u53D7\u5F71\u97FF\u3002",
     "recentAssets.loadFailed": "\u6700\u8FD1\u4E0A\u50B3\u8B80\u53D6\u5931\u6557",
     "recentAssets.deleteFailed": "\u6700\u8FD1\u4E0A\u50B3\u522A\u9664\u5931\u6557",
     "recentAssets.deleted": "\u6700\u8FD1\u4E0A\u50B3\u5DF2\u522A\u9664",
@@ -14598,7 +14710,7 @@
     "output.promptHelpTitle": "\u63D0\u793A\u8A5E\u8655\u7406",
     "output.promptHelp.responsesChannel": "Responses \xB7 \u4E3B\u6A21\u578B\u53C3\u8207",
     "output.promptHelp.imagesChannel": "Images \xB7 \u76F4\u63A5\u751F\u6210",
-    "output.promptHelp.responses.original": "\u539F\u6587\u4EA4\u7D66\u4E3B\u6A21\u578B\uFF0C\u4E26\u8981\u6C42\u5716\u50CF\u5DE5\u5177\u76E1\u91CF\u9010\u5B57\u4F7F\u7528\uFF1B\u4E3B\u6A21\u578B\u4ECD\u53EF\u80FD\u7522\u751F revised prompt\u3002",
+    "output.promptHelp.responses.original": "\u6309\u539F\u6587\u50B3\u9001\uFF0C\u4E0D\u52A0\u5165\u61C9\u7528\u7A0B\u5F0F\u5C64\u63D0\u793A\u8A5E\u898F\u5247\uFF1B\u670D\u52D9\u5546\u4ECD\u53EF\u80FD\u50B3\u56DE revised prompt\uFF0C\u751F\u6210\u7D50\u679C\u4E5F\u53EF\u80FD\u8207\u6587\u5B57\u7D04\u675F\u6709\u504F\u5DEE\u3002",
     "output.promptHelp.responses.strict": "\u5141\u8A31\u4E3B\u6A21\u578B\u6574\u7406\u6216\u64F4\u5BEB\uFF0C\u4F46\u5FC5\u9808\u4FDD\u7559\u7269\u4EF6\u3001\u6587\u5B57\u3001\u984F\u8272\u3001\u69CB\u5716\u7B49\u786C\u6027\u9650\u5236\u3002",
     "output.promptHelp.responses.automatic": "\u4E0D\u52A0\u5165\u984D\u5916\u9650\u5236\uFF0C\u7531\u4E3B\u6A21\u578B\u7406\u89E3\u4E26\u6700\u4F73\u5316\u5F8C\u547C\u53EB\u5716\u50CF\u5DE5\u5177\u3002",
     "output.promptHelp.images.original": "\u61C9\u7528\u7A0B\u5F0F\u4E0D\u52A0\u5165\u63D0\u793A\u8A5E\u898F\u5247\uFF0C\u6309\u4F7F\u7528\u8005\u539F\u6587\u76F4\u63A5\u63D0\u4EA4\u81F3\u5716\u50CF\u4ECB\u9762\u3002",
@@ -16182,7 +16294,10 @@
   var USER_CANCELLATION_ERROR = "Task cancelled by user.";
   function taskWasCancelled(task) {
     const error = String(task?.error || task?.last_error || "").trim();
-    return Boolean(task?.cancel_requested || error === USER_CANCELLATION_ERROR);
+    return Boolean(task?.cancelled_at || error === USER_CANCELLATION_ERROR);
+  }
+  function taskCancellationPending(task) {
+    return Boolean(task?.cancel_requested && !taskWasCancelled(task));
   }
 
   // codex_image/webui/frontend/src/runtime-feedback.ts
@@ -16234,6 +16349,7 @@
   function formatTaskStatus(task) {
     if (!task) return "";
     if (taskWasCancelled(task)) return translate("queue.runningCancelled");
+    if (taskCancellationPending(task)) return translate("taskStatus.cancelling");
     if (task.status === "submitting") return translate("taskStatus.submitting");
     if (task.status === "running") {
       const progressStartedAt = taskProgressStartValue(task);
@@ -16246,6 +16362,7 @@
     return task.status || "";
   }
   function formatTaskCardStatus(task) {
+    if (taskCancellationPending(task)) return translate("taskStatus.cancelling");
     if (task?.status === "running" && !taskWasCancelled(task)) return translate("taskStatus.running");
     return formatTaskStatus(task);
   }
@@ -16277,7 +16394,7 @@
     updateTaskElapsedDisplays();
     updatePreviewElapsedDisplay();
   }
-  var ELAPSED_TICK_STATUSES = /* @__PURE__ */ new Set(["submitting", "queued", "running"]);
+  var ELAPSED_TICK_STATUSES = /* @__PURE__ */ new Set(["submitting", "queued", "running", "cancelling"]);
   function taskNeedsElapsedTick(task) {
     if (!task) return false;
     if (task.local_pending) return true;
@@ -20546,13 +20663,14 @@
     const message = options.message ? `<p class="confirm-popover-message">${escapeHtml2(options.message)}</p>` : "";
     const detail = options.detail ? `<div class="confirm-popover-detail">${escapeHtml2(options.detail)}</div>` : "";
     const confirmText = options.confirmText || translate("action.confirm");
+    const confirmClass = options.danger === false ? "ghost-button text-sm confirm-popover-confirm" : "ghost-button text-sm danger-button confirm-popover-confirm";
     popover.innerHTML = `
     <div class="confirm-popover-title">${escapeHtml2(options.title || translate("action.confirmQuestion"))}</div>
     ${message}
     ${detail}
     <div class="confirm-popover-actions">
       <button class="ghost-button text-sm" type="button" data-confirm-popover-cancel>${escapeHtml2(translate("action.cancel"))}</button>
-      <button class="ghost-button text-sm danger-button confirm-popover-confirm" type="button" data-confirm-popover-confirm>${escapeHtml2(confirmText)}</button>
+      <button class="${confirmClass}" type="button" data-confirm-popover-confirm>${escapeHtml2(confirmText)}</button>
     </div>
   `;
     popover.querySelector("[data-confirm-popover-cancel]")?.addEventListener("click", closeConfirmPopover);
@@ -20834,7 +20952,7 @@
     queueFeatureInitialized = true;
     exposeQueueWindowApi();
     bindQueueControls();
-    document.addEventListener(LOCALE_CHANGE_EVENT, renderQueue);
+    document.addEventListener(LOCALE_CHANGE_EVENT, () => renderQueue());
   }
   function exposeQueueWindowApi() {
     window.startRealtimeUpdates = startRealtimeUpdates;
@@ -20897,9 +21015,13 @@
       return;
     }
     if (payload?.type === "queue") {
-      applyQueueState(payload.queue);
-      await applyRealtimeTaskPayloads(payload.tasks || []);
+      const updatedTasks = payload.tasks || [];
+      applyQueueState(payload.queue, { deferTaskListRender: true });
+      await applyRealtimeTaskPayloads(updatedTasks);
       applyQueueTasks(payload.queue);
+      if (!updatedTasks.length && !queueTaskCount(payload.queue)) {
+        bridge7.methods.renderTasks?.({ preserveScroll: true });
+      }
       return;
     }
     if (payload?.type === "task") {
@@ -20946,13 +21068,13 @@
   function invalidateQueueRequests() {
     getState().queueRequestSeq += 1;
   }
-  function applyQueueState(queue) {
+  function applyQueueState(queue, { deferTaskListRender = false } = {}) {
     const state5 = getState();
     invalidateQueueRequests();
     state5.queue = normalizeQueueState(queue);
-    renderQueue();
+    renderQueue({ deferTaskListRender });
   }
-  function renderQueue() {
+  function renderQueue({ deferTaskListRender = false } = {}) {
     const bridge7 = getLegacyBridge();
     const state5 = bridge7.state;
     const summary = state5.queue.summary || {};
@@ -20980,7 +21102,12 @@
       return;
     }
     state5.queueRenderKey = nextRenderKey;
-    renderActiveTaskGroupForQueueChange();
+    if (!deferTaskListRender) {
+      renderActiveTaskGroupForQueueChange();
+    }
+  }
+  function queueTaskCount(queue) {
+    return (Array.isArray(queue?.waiting) ? queue.waiting.length : 0) + (Array.isArray(queue?.running) ? queue.running.length : 0);
   }
   function renderActiveTaskGroupForQueueChange() {
     const bridge7 = getLegacyBridge();
@@ -21104,7 +21231,7 @@
       const taskId = String(task?.task_id || "");
       if (!taskId || queueTaskIds.has(taskId) || task?.local_pending) return false;
       const status = String(task?.status || "");
-      return status === "submitting" || status === "queued" || status === "running";
+      return status === "submitting" || status === "queued" || status === "running" || status === "cancelling";
     });
   }
   function updateQueueElapsedDisplays() {
@@ -22174,7 +22301,7 @@
         if (!task?.task_id) return;
         methods.updateTaskInState(task);
         if (isTerminalTask(task)) {
-          await options.refreshHistoryTasks?.();
+          await options.refreshHistoryTasks?.(task);
         }
       },
       refreshTasks: async () => {
@@ -23431,6 +23558,26 @@
         </label>
       `;
     }).join("");
+  }
+
+  // codex_image/webui/frontend/src/history-realtime.ts
+  var HISTORY_REALTIME_TOP_THRESHOLD = 8;
+  async function refreshHistoryForRealtimeTask({
+    task,
+    scroller,
+    loadSummary: loadSummary2,
+    reloadNewestWindow,
+    upsertTask
+  }) {
+    const preserveCurrentWindow = Boolean(
+      scroller && scroller.scrollTop > HISTORY_REALTIME_TOP_THRESHOLD
+    );
+    const taskId = String(task?.task_id || "");
+    if (task && taskId) upsertTask(taskId, task);
+    await loadSummary2();
+    if (!preserveCurrentWindow) {
+      await reloadNewestWindow();
+    }
   }
 
   // codex_image/webui/frontend/src/history.ts
@@ -25084,7 +25231,7 @@
   }
   function historyTaskDeleteBlocked(task) {
     const status = String(task?.status || "");
-    return Boolean(task?.local_pending || status === "running" || status === "submitting" || status === "queued");
+    return Boolean(task?.local_pending || status === "running" || status === "cancelling" || status === "submitting" || status === "queued");
   }
   function historyTaskGeneratedCount(task) {
     const generated = positiveInt2(task?.generated_count);
@@ -26521,11 +26668,14 @@
   async function bootHistoryPage() {
     initializeHistoryShell({
       selectHistoryTask: loadTaskDetail,
-      refreshHistoryTasks: async () => {
-        await Promise.all([
-          loadSummary(),
-          loadTasks({ reset: true })
-        ]);
+      refreshHistoryTasks: async (task) => {
+        await refreshHistoryForRealtimeTask({
+          task,
+          scroller: els8.taskList,
+          loadSummary,
+          reloadNewestWindow: () => loadTasks({ reset: true }),
+          upsertTask: upsertHistoryTaskSummaryCard
+        });
       }
     });
     applyHistoryLocale();

@@ -87,7 +87,7 @@ function renderSelectedTask(task, taskId) {
   renderPreview(task);
   if (task.status === "failed") {
     setStatus(taskFailureMessage(task) || translate("taskActions.failedFallback"), "error");
-  } else if (task.status !== "running") {
+  } else if (!["running", "cancelling"].includes(String(task.status || ""))) {
     setStatus(formatTranslation("status.loadedTask", { taskId }), "ok");
   }
 }
@@ -294,7 +294,7 @@ async function selectTask(taskId) {
   }
   if (!selectedTaskInputRestoreCurrent(taskId, restoreSeq)) return;
   applySelectedTaskRequestPreview(task);
-  if (task.status !== "running") renderSelectedTask(task, taskId);
+  if (!["running", "cancelling"].includes(String(task.status || ""))) renderSelectedTask(task, taskId);
 }
 
 async function restoreHistoryTaskReuseHandoff() {

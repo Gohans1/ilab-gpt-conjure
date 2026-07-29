@@ -6,7 +6,7 @@ import mimetypes
 import re
 import threading
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable, Mapping
 
 from .schemas import DEFAULT_WEBUI_INPUT_ROOT, DEFAULT_WEBUI_REFERENCE_ASSET_SUBDIR
 from .storage_utils import _guess_mime_type, _safe_filename, utc_now
@@ -15,15 +15,28 @@ REFERENCE_ASSET_SUFFIXES = {".png", ".jpg", ".webp", ".gif"}
 MAX_REFERENCE_ASSETS = 50
 
 
+class ReferenceAssetInUseError(RuntimeError):
+    def __init__(self, asset_id: str, reference_count: int) -> None:
+        self.asset_id = asset_id
+        self.reference_count = max(1, int(reference_count))
+        super().__init__("Reference asset is used by existing tasks")
+
+
+class ReferenceAssetProtectionUnavailableError(RuntimeError):
+    pass
+
+
 class ReferenceAssetStorage:
     def __init__(
         self,
         root: Path | str = DEFAULT_WEBUI_INPUT_ROOT / DEFAULT_WEBUI_REFERENCE_ASSET_SUBDIR,
         *,
         max_items: int = MAX_REFERENCE_ASSETS,
+        reference_counts_provider: Callable[[], Mapping[str, int]] | None = None,
     ) -> None:
         self.root = Path(root)
         self.max_items = max(1, int(max_items))
+        self._reference_counts_provider = reference_counts_provider
         self._lock = threading.RLock()
 
     def create_or_touch(
@@ -36,8 +49,8 @@ class ReferenceAssetStorage:
         with self._lock:
             existing = self._read_valid_item(asset_id)
             if existing is not None:
-                touched = self._touch_metadata(existing)
-                self._prune_to_limit()
+                touched = self._touch_metadata(existing, restore_to_recent=True)
+                self._prune_to_limit(preserve_ids={asset_id})
                 return touched
 
             suffix = _reference_asset_suffix(filename, content_type)
@@ -59,16 +72,21 @@ class ReferenceAssetStorage:
             shard_path.mkdir(parents=True, exist_ok=True)
             image_path.write_bytes(data)
             self._write_item_metadata(asset_id, metadata)
-            self._prune_to_limit()
+            self._prune_to_limit(preserve_ids={asset_id})
             return metadata
 
     def touch(self, asset_id: str) -> dict[str, Any]:
         with self._lock:
             touched = self._touch_metadata(self.read_item(asset_id))
-            self._prune_to_limit()
+            self._prune_to_limit(preserve_ids={asset_id})
             return touched
 
-    def list_recent(self, limit: int = 20) -> list[dict[str, Any]]:
+    def list_recent(
+        self,
+        limit: int = 20,
+        *,
+        include_hidden: bool = False,
+    ) -> list[dict[str, Any]]:
         if not self.root.exists():
             return []
         items: list[dict[str, Any]] = []
@@ -88,6 +106,8 @@ class ReferenceAssetStorage:
                 continue
             if self._stored_image_path(asset_id, metadata) is None:
                 continue
+            if metadata.get("hidden_from_recent_at") and not include_hidden:
+                continue
             items.append(metadata)
         return sorted(items, key=lambda item: str(item.get("last_used_at", "")), reverse=True)[: max(0, limit)]
 
@@ -99,7 +119,27 @@ class ReferenceAssetStorage:
         self._validate_asset_id(asset_id)
         with self._lock:
             metadata = self.read_item(asset_id)
+            try:
+                reference_count = self._reference_counts().get(asset_id, 0)
+            except Exception as exc:
+                raise ReferenceAssetProtectionUnavailableError(
+                    "Reference asset protection could not be checked"
+                ) from exc
+            if reference_count > 0:
+                raise ReferenceAssetInUseError(asset_id, reference_count)
             self._delete_item_files(asset_id, metadata)
+
+    def hide_item(self, asset_id: str) -> dict[str, Any]:
+        self._validate_asset_id(asset_id)
+        with self._lock:
+            metadata = dict(self.read_item(asset_id))
+            metadata["hidden_from_recent_at"] = utc_now()
+            self._write_item_metadata(asset_id, metadata)
+            return metadata
+
+    def reference_counts(self) -> dict[str, int]:
+        with self._lock:
+            return self._reference_counts()
 
     def image_path(self, asset_id: str) -> Path:
         metadata = self.read_item(asset_id)
@@ -108,10 +148,17 @@ class ReferenceAssetStorage:
             raise FileNotFoundError(asset_id)
         return path
 
-    def _touch_metadata(self, metadata: dict[str, Any]) -> dict[str, Any]:
+    def _touch_metadata(
+        self,
+        metadata: dict[str, Any],
+        *,
+        restore_to_recent: bool = False,
+    ) -> dict[str, Any]:
         asset_id = str(metadata.get("id") or "")
         self._validate_asset_id(asset_id)
         metadata = dict(metadata)
+        if restore_to_recent:
+            metadata.pop("hidden_from_recent_at", None)
         metadata["last_used_at"] = utc_now()
         try:
             used_count = int(metadata.get("used_count", 0))
@@ -134,17 +181,49 @@ class ReferenceAssetStorage:
             return None
         return metadata
 
-    def _prune_to_limit(self) -> None:
-        items = self.list_recent(limit=10_000)
+    def _prune_to_limit(self, *, preserve_ids: set[str] | None = None) -> None:
+        items = self.list_recent(limit=10_000, include_hidden=True)
+        excess = len(items) - self.max_items
+        if excess <= 0:
+            return
+        try:
+            reference_counts = self._reference_counts()
+        except Exception:
+            # Failing closed may temporarily exceed the cache limit, but it
+            # cannot delete an asset whose task references could not be read.
+            return
+        preserved = preserve_ids or set()
         for metadata in sorted(
-            items[self.max_items :],
+            items,
             key=lambda item: (str(item.get("last_used_at", "")), str(item.get("id", ""))),
         ):
+            if excess <= 0:
+                break
             asset_id = str(metadata.get("id") or "")
+            if asset_id in preserved or reference_counts.get(asset_id, 0) > 0:
+                continue
             try:
                 self._delete_item_files(asset_id, metadata)
             except (OSError, ValueError):
                 continue
+            excess -= 1
+
+    def _reference_counts(self) -> dict[str, int]:
+        if self._reference_counts_provider is None:
+            return {}
+        raw_counts = self._reference_counts_provider()
+        counts: dict[str, int] = {}
+        for raw_asset_id, raw_count in raw_counts.items():
+            asset_id = str(raw_asset_id or "")
+            if not re.fullmatch(r"[0-9a-f]{64}", asset_id):
+                continue
+            try:
+                count = int(raw_count)
+            except (TypeError, ValueError):
+                continue
+            if count > 0:
+                counts[asset_id] = count
+        return counts
 
     def _delete_item_files(self, asset_id: str, metadata: dict[str, Any]) -> None:
         self._validate_asset_id(asset_id)

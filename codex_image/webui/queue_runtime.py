@@ -3,7 +3,8 @@ from __future__ import annotations
 import asyncio
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
-from typing import Any, AsyncContextManager, Callable
+import logging
+from typing import Any, AsyncContextManager, Awaitable, Callable
 
 from fastapi import FastAPI
 
@@ -17,7 +18,7 @@ from codex_image.generation.errors import (
 )
 from codex_image.generation.snapshot import execution_plan_from_snapshot
 from codex_image.generation.types import GenerationCommand, ImageInput
-from codex_image.prompt_guard import build_original_prompt_instructions, build_prompt_guard_instructions
+from codex_image.prompt_guard import build_prompt_guard_instructions
 from codex_image.providers.registry import ProviderRegistry, default_registry
 
 from .auth_routing import (
@@ -31,7 +32,11 @@ from .auth_routing import (
     _normalize_api_mode,
     _queue_channels_for_source,
 )
-from .context import WebUIContext
+from .cancellation import (
+    finalize_task_cancellation,
+    requeue_task_after_shutdown,
+)
+from .context import QueueWorkerHealth, WebUIContext
 from .executor import (
     _execute_stored_task,
     _is_non_retryable_error,
@@ -59,13 +64,18 @@ from .reference_file_capabilities import (
     reference_file_capability_key_for_resolved_backend,
 )
 from .prompt_ratio import append_ratio_prompt_instruction
+from .provider_validation import provider_url_origin
 from .storage import utc_now
+
+logger = logging.getLogger(__name__)
+_QUEUE_WORKER_BACKOFF_SECONDS = (0.5, 1.0, 2.0, 4.0, 8.0, 16.0, 30.0)
 
 
 @dataclass(frozen=True)
 class QueueRuntimeResult:
     lifespan: Callable[[FastAPI], AsyncContextManager[None]]
     ensure_queue_worker_running: Callable[[], None]
+    wake_queue_worker: Callable[[], None]
     queue_channel_available: Callable[[QueueChannel], bool]
 
 
@@ -83,42 +93,142 @@ def _queue_channel_by_id(app_instance: FastAPI, channel_id: str) -> QueueChannel
     )
 
 
-async def _queue_channel_worker_loop(app_instance: FastAPI, channel_id: str) -> None:
+async def _queue_channel_worker_loop(
+    app_instance: FastAPI,
+    channel_id: str,
+    *,
+    sleeper: Callable[[float], Awaitable[None]] = asyncio.sleep,
+) -> None:
+    health = getattr(app_instance.state, "queue_worker_health", None)
+    if not isinstance(health, QueueWorkerHealth):
+        health = QueueWorkerHealth()
+        app_instance.state.queue_worker_health = health
     while True:
         channel = _queue_channel_by_id(app_instance, channel_id)
         if channel is None:
+            health.record_success(channel_id=channel_id)
             return
         try:
             started = await app_instance.state.queue_manager.run_channel_once(channel)
-        except Exception:
-            started = True
-        await asyncio.sleep(0.1 if started else 1.0)
-
-
-async def _queue_worker_loop(app_instance: FastAPI) -> None:
-    workers: dict[str, asyncio.Task[None]] = {}
-    while True:
-        active_channel_ids = {channel.channel_id for channel in app_instance.state.queue_manager.channels}
-        for channel_id in active_channel_ids:
-            worker = workers.get(channel_id)
-            if worker is None or worker.done():
-                workers[channel_id] = asyncio.create_task(_queue_channel_worker_loop(app_instance, channel_id))
-        for channel_id, worker in list(workers.items()):
-            if worker.done() and channel_id not in active_channel_ids:
-                workers.pop(channel_id, None)
-        try:
-            await asyncio.sleep(1.0)
         except asyncio.CancelledError:
-            for worker in workers.values():
-                worker.cancel()
-            await asyncio.gather(*workers.values(), return_exceptions=True)
             raise
+        except Exception as exc:
+            failure_count = health.record_failure(exc, channel_id=channel_id)
+            error_type = health.last_error_type or "Exception"
+            safe_channel_id = str(channel_id).replace("\r", "_").replace("\n", "_")[:160]
+            logger.error(
+                "Queue channel worker failure channel_id=%s error_type=%s",
+                safe_channel_id,
+                error_type,
+            )
+            delay = _QUEUE_WORKER_BACKOFF_SECONDS[
+                min(failure_count - 1, len(_QUEUE_WORKER_BACKOFF_SECONDS) - 1)
+            ]
+            await sleeper(delay)
+            continue
+        health.record_success(channel_id=channel_id)
+        if not started:
+            return
+        await sleeper(0)
+
+
+async def _queue_worker_loop(
+    app_instance: FastAPI,
+    *,
+    sleeper: Callable[[float], Awaitable[None]] = asyncio.sleep,
+) -> None:
+    workers: dict[str, asyncio.Task[None]] = {}
+    health = getattr(app_instance.state, "queue_worker_health", None)
+    if not isinstance(health, QueueWorkerHealth):
+        health = QueueWorkerHealth()
+        app_instance.state.queue_worker_health = health
+    wake_event = getattr(app_instance.state, "queue_wakeup_event", None)
+    if not isinstance(wake_event, asyncio.Event):
+        wake_event = asyncio.Event()
+        app_instance.state.queue_wakeup_event = wake_event
+        wake_event.set()
+    wake_waiter: asyncio.Task[bool] | None = None
+    try:
+        while True:
+            for channel_id, worker in list(workers.items()):
+                if not worker.done():
+                    continue
+                workers.pop(channel_id, None)
+                try:
+                    worker.result()
+                except asyncio.CancelledError:
+                    raise
+
+            if wake_event.is_set():
+                wake_event.clear()
+                try:
+                    state = app_instance.state.queue_storage.read_state()
+                except asyncio.CancelledError:
+                    raise
+                except Exception as exc:
+                    failure_count = health.record_failure(exc)
+                    logger.error(
+                        "Queue supervisor failure error_type=%s",
+                        health.last_error_type or "Exception",
+                    )
+                    delay = _QUEUE_WORKER_BACKOFF_SECONDS[
+                        min(
+                            failure_count - 1,
+                            len(_QUEUE_WORKER_BACKOFF_SECONDS) - 1,
+                        )
+                    ]
+                    await sleeper(delay)
+                    wake_event.set()
+                    continue
+                health.record_success()
+                if state.get("waiting"):
+                    for channel in app_instance.state.queue_manager.channels:
+                        worker = workers.get(channel.channel_id)
+                        if worker is None or worker.done():
+                            workers[channel.channel_id] = asyncio.create_task(
+                                _queue_channel_worker_loop(
+                                    app_instance,
+                                    channel.channel_id,
+                                )
+                            )
+
+            wake_waiter = asyncio.create_task(wake_event.wait())
+            waiters: set[asyncio.Task[Any]] = {
+                *workers.values(),
+                wake_waiter,
+            }
+            done, _ = await asyncio.wait(
+                waiters,
+                return_when=asyncio.FIRST_COMPLETED,
+            )
+            if wake_waiter not in done:
+                wake_waiter.cancel()
+                await asyncio.gather(wake_waiter, return_exceptions=True)
+            wake_waiter = None
+    except asyncio.CancelledError:
+        raise
+    finally:
+        if wake_waiter is not None and not wake_waiter.done():
+            wake_waiter.cancel()
+        for worker in workers.values():
+            worker.cancel()
+        await asyncio.gather(
+            *(workers.values()),
+            *([wake_waiter] if wake_waiter is not None else []),
+            return_exceptions=True,
+        )
 
 
 @asynccontextmanager
 async def queue_lifespan(app_instance: FastAPI):
     if app_instance.state.auto_start_queue:
-        app_instance.state.queue_worker_task = asyncio.create_task(_queue_worker_loop(app_instance))
+        loop = asyncio.get_running_loop()
+        app_instance.state.queue_event_loop = loop
+        app_instance.state.queue_wakeup_event = asyncio.Event()
+        app_instance.state.queue_wakeup_event.set()
+        app_instance.state.queue_worker_task = loop.create_task(
+            _queue_worker_loop(app_instance)
+        )
     try:
         yield
     finally:
@@ -129,14 +239,50 @@ async def queue_lifespan(app_instance: FastAPI):
                 await worker
             except asyncio.CancelledError:
                 pass
+        app_instance.state.queue_event_loop = None
+        instance_lock = getattr(app_instance.state, "webui_instance_lock", None)
+        if instance_lock is not None:
+            instance_lock.release()
+
+
+def _schedule_queue_worker(
+    app_instance: FastAPI,
+    *,
+    wake: bool,
+) -> None:
+    if not app_instance.state.auto_start_queue:
+        return
+    loop = getattr(app_instance.state, "queue_event_loop", None)
+    if not isinstance(loop, asyncio.AbstractEventLoop) or loop.is_closed():
+        return
+
+    def start_or_wake() -> None:
+        worker = getattr(app_instance.state, "queue_worker_task", None)
+        restarted = worker is None or worker.done()
+        if restarted:
+            app_instance.state.queue_worker_task = loop.create_task(
+                _queue_worker_loop(app_instance)
+            )
+        event = getattr(app_instance.state, "queue_wakeup_event", None)
+        if isinstance(event, asyncio.Event) and (wake or restarted):
+            event.set()
+
+    try:
+        current_loop = asyncio.get_running_loop()
+    except RuntimeError:
+        current_loop = None
+    if current_loop is loop:
+        start_or_wake()
+    else:
+        loop.call_soon_threadsafe(start_or_wake)
 
 
 def _ensure_queue_worker_running(app_instance: FastAPI) -> None:
-    if not app_instance.state.auto_start_queue:
-        return
-    worker = getattr(app_instance.state, "queue_worker_task", None)
-    if worker is not None and worker.done():
-        app_instance.state.queue_worker_task = asyncio.create_task(_queue_worker_loop(app_instance))
+    _schedule_queue_worker(app_instance, wake=False)
+
+
+def _wake_queue_worker(app_instance: FastAPI) -> None:
+    _schedule_queue_worker(app_instance, wake=True)
 
 
 def _queue_channel_available(ctx: WebUIContext, channel: QueueChannel) -> bool:
@@ -144,30 +290,52 @@ def _queue_channel_available(ctx: WebUIContext, channel: QueueChannel) -> bool:
 
 
 def _queue_channels_with_pending(ctx: WebUIContext, source: str) -> list[QueueChannel]:
-    channels = list(_queue_channels_for_source(source, api_settings=ctx.api_settings))
+    configured_channels = list(
+        _queue_channels_for_source(source, api_settings=ctx.api_settings)
+    )
     required: dict[str, int] = {}
     try:
-        waiting = ctx.queue_storage.read_state().get("waiting") or []
+        state = ctx.queue_storage.read_state()
     except Exception:
-        waiting = []
-    needs_codex = source == "codex"
-    for task_id in waiting:
+        return configured_channels
+    waiting = [str(task_id) for task_id in state.get("waiting") or []]
+    running = [
+        str(item.get("task_id"))
+        for item in (state.get("running") or {}).values()
+        if isinstance(item, dict) and item.get("task_id")
+    ]
+    task_ids = list(dict.fromkeys([*waiting, *running]))
+    if not task_ids:
+        return configured_channels
+
+    needs_codex = False
+    needs_legacy_channels = False
+    for task_id in task_ids:
         try:
             snapshot = ctx.storage.read_metadata(str(task_id)).get("generation_snapshot")
         except (FileNotFoundError, OSError, ValueError):
+            needs_legacy_channels = True
             continue
         if not isinstance(snapshot, dict):
+            needs_legacy_channels = True
             continue
         provider_id = str(snapshot.get("provider_id") or "")
         if provider_id == "codex":
             needs_codex = True
+            continue
+        if not provider_id:
+            needs_legacy_channels = True
             continue
         try:
             limit = max(1, min(32, int(snapshot.get("provider_concurrency") or 1)))
         except (TypeError, ValueError):
             limit = 1
         required[provider_id] = max(required.get(provider_id, 0), limit)
-    by_id = {channel.channel_id: channel for channel in channels}
+    by_id = (
+        {channel.channel_id: channel for channel in configured_channels}
+        if needs_legacy_channels
+        else {}
+    )
     if needs_codex:
         by_id.setdefault("codex:local", QueueChannel("codex:local", "codex"))
     for provider_id, limit in required.items():
@@ -221,7 +389,31 @@ def _validated_snapshot_plan(
     api_key = ""
     if provider_id != "codex":
         configured = _configured_provider_exact(ctx, provider_id)
-        if configured is None or not str(configured.get("api_key") or ""):
+        if configured is None:
+            raise provider_error(
+                "provider_credentials_missing",
+                provider_id=provider_id,
+                canonical_model_id=str(snapshot.get("canonical_model_id") or ""),
+                protocol_profile=str(snapshot.get("protocol_profile") or ""),
+                status_code=400,
+                retryable=False,
+            )
+        try:
+            origin_matches = provider_url_origin(
+                snapshot.get("provider_base_url")
+            ) == provider_url_origin(configured.get("base_url"))
+        except ValueError:
+            origin_matches = False
+        if not origin_matches:
+            raise provider_error(
+                "provider_credentials_origin_changed",
+                provider_id=provider_id,
+                canonical_model_id=str(snapshot.get("canonical_model_id") or ""),
+                protocol_profile=str(snapshot.get("protocol_profile") or ""),
+                status_code=400,
+                retryable=False,
+            )
+        if not str(configured.get("api_key") or ""):
             raise provider_error(
                 "provider_credentials_missing",
                 provider_id=provider_id,
@@ -235,31 +427,50 @@ def _validated_snapshot_plan(
     raw_constraints = metadata.get("prompt_constraints")
     constraints = [str(item) for item in raw_constraints] if isinstance(raw_constraints, list) else []
     fidelity = _normalize_prompt_fidelity(params.get("prompt_fidelity") or "off")
-    if fidelity == "strict":
-        guard_instructions = build_prompt_guard_instructions(constraints)
-    elif fidelity == "original":
-        guard_instructions = build_original_prompt_instructions()
-    else:
-        guard_instructions = ""
+    prompt_locale = str(metadata.get("prompt_locale") or "zh-CN")
     profile = str(snapshot.get("protocol_profile") or "")
     auth_source = "codex" if provider_id == "codex" else "api"
     api_mode = "responses" if profile.endswith("responses") else "images"
-    model_prompt = append_ratio_prompt_instruction(
-        str(metadata.get("prompt_for_model") or metadata.get("prompt") or ""),
-        params.get("ratio"),
-    )
-    transport_prompt = _prompt_for_transport(
-        model_prompt,
-        auth_source=auth_source,
-        api_mode=api_mode,
-        prompt_fidelity=fidelity,
-        instructions=guard_instructions,
-    )
-    transport_instructions = _instructions_for_transport(
-        auth_source=auth_source,
-        api_mode=api_mode,
-        instructions=guard_instructions,
-    )
+    if "execution_prompt" in metadata:
+        transport_prompt = str(metadata.get("execution_prompt") or "")
+        transport_instructions = (
+            str(metadata.get("execution_instructions") or "") or None
+        )
+    else:
+        if fidelity == "original":
+            model_prompt = str(metadata.get("prompt") or "")
+            guard_instructions = ""
+        else:
+            model_prompt = append_ratio_prompt_instruction(
+                str(
+                    metadata.get("prompt_for_model")
+                    or metadata.get("prompt")
+                    or ""
+                ),
+                params.get("ratio"),
+                locale=prompt_locale,
+            )
+            guard_instructions = (
+                build_prompt_guard_instructions(
+                    constraints,
+                    locale=prompt_locale,
+                )
+                if fidelity == "strict"
+                else ""
+            )
+        transport_prompt = _prompt_for_transport(
+            model_prompt,
+            auth_source=auth_source,
+            api_mode=api_mode,
+            prompt_fidelity=fidelity,
+            instructions=guard_instructions,
+            locale=prompt_locale,
+        )
+        transport_instructions = _instructions_for_transport(
+            auth_source=auth_source,
+            api_mode=api_mode,
+            instructions=guard_instructions,
+        )
     input_paths = [ctx.storage.input_path(str(name)) for name in metadata.get("input_files") or ()]
     raw_assets = metadata.get("reference_assets")
     asset_ids = [
@@ -569,24 +780,6 @@ def _task_channel_matches(ctx: WebUIContext, task_id: str, channel: QueueChannel
     return channel.slot_index < concurrency
 
 
-def _mark_task_cancelled(ctx: WebUIContext, task_id: str) -> dict[str, Any]:
-    metadata = ctx.storage.read_metadata(task_id)
-    cancelled_at = utc_now()
-    metadata.update(
-        {
-            "status": "failed",
-            "updated_at": cancelled_at,
-            "cancelled_at": cancelled_at,
-            "cancel_requested": True,
-            "error": "Task cancelled by user.",
-            "last_error": "Task cancelled by user.",
-        }
-    )
-    metadata.pop("request", None)
-    ctx.storage.write_metadata(task_id, metadata)
-    return metadata
-
-
 def _structured_task_error(ctx: WebUIContext, metadata: dict[str, Any], exc: BaseException):
     snapshot = metadata.get("generation_snapshot")
     if isinstance(snapshot, dict) and isinstance(exc, GenerationProviderError):
@@ -609,7 +802,13 @@ def _structured_task_error(ctx: WebUIContext, metadata: dict[str, Any], exc: Bas
         pass
     prompts = tuple(
         str(item)
-        for item in (metadata.get("prompt"), metadata.get("prompt_for_model"))
+        for item in (
+            metadata.get("prompt"),
+            metadata.get("prompt_for_model"),
+            metadata.get("execution_model_prompt"),
+            metadata.get("execution_prompt"),
+            metadata.get("execution_instructions"),
+        )
         if isinstance(item, str) and item
     )
     safe = sanitize_generation_error_text(
@@ -675,9 +874,16 @@ async def execute_task(
             request_context=(lambda params: _api_provider_request_context(ctx, params)) if channel.auth_source == "api" else None,
         )
     except asyncio.CancelledError:
+        externally_cancelled = bool(
+            current_task is not None and current_task.cancelling()
+        )
         try:
             if _task_cancel_requested(ctx.storage, task_id):
-                _mark_task_cancelled(ctx, task_id)
+                finalize_task_cancellation(ctx.storage, task_id)
+                if not externally_cancelled:
+                    return
+            else:
+                requeue_task_after_shutdown(ctx.storage, task_id)
         except FileNotFoundError:
             pass
         raise
@@ -751,7 +957,15 @@ def install_queue_runtime(
         max_attempts=_queue_max_attempts_for_channels(initial_channels),
         channel_available=queue_channel_available,
         claim_task=queue_task_claim,
+        release_task_claim=lambda task_id, _channel: ctx.api_task_slot_reservations.pop(
+            task_id,
+            None,
+        ),
         task_channel_matches=task_channel_matches,
+        should_requeue_cancelled=lambda task_id: not _task_cancel_requested(
+            ctx.storage,
+            task_id,
+        ),
         auto_retry=auto_retry,
     )
     ctx.install_on_app_state()
@@ -759,11 +973,13 @@ def install_queue_runtime(
     result = QueueRuntimeResult(
         lifespan=queue_lifespan,
         ensure_queue_worker_running=lambda: _ensure_queue_worker_running(ctx.app),
+        wake_queue_worker=lambda: _wake_queue_worker(ctx.app),
         queue_channel_available=queue_channel_available,
     )
     ctx.route_helpers.update(
         {
             "ensure_queue_worker_running": result.ensure_queue_worker_running,
+            "wake_queue_worker": result.wake_queue_worker,
             "queue_channel_available": result.queue_channel_available,
             "queue_max_attempts_for_channels": _queue_max_attempts_for_channels,
         }

@@ -100,7 +100,7 @@ Images API 或 Responses API 形态。
 ## 环境要求
 
 - Python 3.11 或更高版本。
-- WebUI 依赖见 `requirements-webui.txt`。
+- WebUI 依赖由 `requirements-webui.txt` 精确锁定并附带包哈希。
 - 修改 TypeScript 或 CSS 时需要 `package.json` 中的前端工具。
 
 ## 安装
@@ -109,8 +109,13 @@ Images API 或 Responses API 形态。
 git clone https://github.com/kadevin/ilab-conjure.git
 cd ilab-conjure
 python3 -m venv .venv
-.venv/bin/python -m pip install -r requirements-webui.txt
+.venv/bin/python -m pip install --require-hashes -r requirements-webui.txt
 ```
+
+普通升级前先退出旧实例。标准包和 portable 包已包含匹配依赖，通常不会出现依赖提示；复用旧
+`.venv` 的源码或旧 portable 安装可能显示一次 `Installing WebUI dependencies...`。如果安装
+失败，保留现有数据，检查网络后重试或重新覆盖完整安装包；不要删除 `data/`、`output/`、
+`source-data/`、图库或配置，更新依赖不需要重置这些文件。
 
 ## 启动 WebUI
 
@@ -129,7 +134,7 @@ Start WebUI.bat
 手动启动：
 
 ```bash
-.venv/bin/python -m uvicorn codex_image.webui.app:app --host 127.0.0.1 --port 8787 --no-access-log
+.venv/bin/python -m codex_image.webui.server codex_image.webui.app:app --host 127.0.0.1 --port 8787 --no-access-log
 ```
 
 然后打开：
@@ -141,14 +146,14 @@ http://127.0.0.1:8787/
 ## 应用包下载
 
 当前可用的标准包和一键包见 [下载 / Releases](RELEASES.md)，也可以直接打开
-[GitHub Release v0.7.2](https://github.com/kadevin/ilab-conjure/releases/tag/v0.7.2)。
+[GitHub Release v0.7.3](https://github.com/kadevin/ilab-conjure/releases/tag/v0.7.3)。
 
 新用户建议优先下载标准包：
 
-1. macOS：Apple Silicon 下载 `iLab-GPT-CONJURE-macos-arm64-0.7.2.dmg`，
-   Intel 下载 `iLab-GPT-CONJURE-macos-x64-0.7.2.dmg`，然后把
+1. macOS：Apple Silicon 下载 `iLab-GPT-CONJURE-macos-arm64-0.7.3.dmg`，
+   Intel 下载 `iLab-GPT-CONJURE-macos-x64-0.7.3.dmg`，然后把
    `iLab GPT CONJURE.app` 拖到 Applications。
-2. Windows：下载 `iLab-GPT-CONJURE-windows-x64_0.7.2.zip`，
+2. Windows：下载 `iLab-GPT-CONJURE-windows-x64_0.7.3.zip`，
    解压到普通用户目录，双击 `iLab GPT CONJURE.exe`。
 
 标准包的用户数据会写入 macOS 的

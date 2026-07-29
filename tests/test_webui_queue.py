@@ -3,7 +3,9 @@ from __future__ import annotations
 import asyncio
 import json
 import os
+import subprocess
 import struct
+import sys
 import tempfile
 import threading
 import time
@@ -12,9 +14,11 @@ import zipfile
 from datetime import UTC, datetime
 from io import BytesIO
 from pathlib import Path
+from typing import Any
 from unittest.mock import patch
 
 from fastapi.testclient import TestClient
+from PIL import Image
 
 from tests.webui_helpers import (
     AlwaysFailQueueTestExecutor,
@@ -53,6 +57,12 @@ from tests.webui_helpers import (
 
 
 class WebUIQueueTests(unittest.TestCase):
+    def _png_bytes(self) -> bytes:
+        image = Image.new("RGB", (12, 8), (70, 120, 170))
+        buffer = BytesIO()
+        image.save(buffer, format="PNG")
+        return buffer.getvalue()
+
     def test_queue_api_reports_waiting_tasks(self) -> None:
         from codex_image.webui.app import create_app
 
@@ -65,6 +75,466 @@ class WebUIQueueTests(unittest.TestCase):
         self.assertEqual(created.status_code, 200)
         self.assertEqual(queue["summary"]["waiting_count"], 1)
         self.assertEqual(queue["waiting"][0]["task_id"], created.json()["task"]["task_id"])
+
+    def test_queue_api_orders_running_tasks_by_claim_time_not_channel_id(self) -> None:
+        from codex_image.webui.app import create_app
+
+        with tempfile.TemporaryDirectory() as tmp:
+            app = create_app(
+                output_root=Path(tmp),
+                client_factory=lambda: FakeImageClient(),
+                auth_checker=lambda: True,
+                auto_start_queue=False,
+            )
+            task_ids: list[str] = []
+            for started_at in (
+                "2026-07-29T06:50:14+00:00",
+                "2026-07-29T06:50:48+00:00",
+                "2026-07-29T06:51:27+00:00",
+            ):
+                task = app.state.storage.create_task("generate")
+                task_ids.append(task.task_id)
+                app.state.storage.write_metadata(
+                    task.task_id,
+                    {
+                        "task_id": task.task_id,
+                        "created_at": started_at,
+                        "updated_at": started_at,
+                        "started_at": started_at,
+                        "status": "running",
+                        "mode": "generate",
+                        "prompt": "stable running order",
+                    },
+                )
+            app.state.active_task_ids.update(task_ids)
+            app.state.queue_storage.write_state(
+                {
+                    "waiting": [],
+                    "running": {
+                        "provider:test:10": {
+                            "task_id": task_ids[0],
+                            "started_at": "2026-07-29T06:50:14+00:00",
+                            "auth_source": "api",
+                            "account_id": None,
+                        },
+                        "provider:test:4": {
+                            "task_id": task_ids[2],
+                            "started_at": "2026-07-29T06:51:27+00:00",
+                            "auth_source": "api",
+                            "account_id": None,
+                        },
+                        "provider:test:6": {
+                            "task_id": task_ids[1],
+                            "started_at": "2026-07-29T06:50:48+00:00",
+                            "auth_source": "api",
+                            "account_id": None,
+                        },
+                    },
+                }
+            )
+
+            response = TestClient(app).get("/api/queue")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            [item["task_id"] for item in response.json()["running"]],
+            task_ids,
+        )
+
+    def test_queue_channel_worker_uses_capped_backoff_and_resets_sanitized_health(self) -> None:
+        from codex_image.webui.context import QueueWorkerHealth
+        from codex_image.webui.queue import QueueChannel
+        from codex_image.webui.queue_runtime import _queue_channel_worker_loop
+        from fastapi import FastAPI
+
+        channel = QueueChannel(channel_id="provider:test:0", auth_source="api")
+
+        class RepeatedFailureManager:
+            channels = [channel]
+            calls = 0
+
+            async def run_channel_once(self, _channel: QueueChannel) -> bool:
+                self.calls += 1
+                if self.calls <= 7:
+                    raise RuntimeError(
+                        "secret prompt and /Users/example/private/output must not leak"
+                    )
+                return False
+
+        app = FastAPI()
+        app.state.queue_manager = RepeatedFailureManager()
+        app.state.queue_worker_health = QueueWorkerHealth()
+        delays: list[float] = []
+        snapshots: list[tuple[str, int, str | None]] = []
+
+        async def sleeper(delay: float) -> None:
+            delays.append(delay)
+            health = app.state.queue_worker_health
+            snapshots.append(
+                (
+                    health.status,
+                    health.consecutive_failures,
+                    health.last_error_type,
+                )
+            )
+            if len(delays) == 8:
+                await asyncio.Event().wait()
+            await asyncio.sleep(0)
+
+        async def run_worker() -> None:
+            await _queue_channel_worker_loop(
+                app,
+                channel.channel_id,
+                sleeper=sleeper,
+            )
+
+        with self.assertLogs("codex_image.webui.queue_runtime", level="ERROR") as logs:
+            asyncio.run(asyncio.wait_for(run_worker(), timeout=0.2))
+
+        self.assertEqual(delays, [0.5, 1.0, 2.0, 4.0, 8.0, 16.0, 30.0])
+        self.assertEqual(snapshots[0], ("degraded", 1, "RuntimeError"))
+        self.assertEqual(snapshots[2], ("unhealthy", 3, "RuntimeError"))
+        self.assertEqual(app.state.queue_worker_health.snapshot()["status"], "healthy")
+        log_text = "\n".join(logs.output)
+        self.assertIn("provider:test:0", log_text)
+        self.assertIn("RuntimeError", log_text)
+        self.assertNotIn("secret prompt", log_text)
+        self.assertNotIn("/Users/example/private/output", log_text)
+
+    def test_queue_channel_worker_returns_immediately_when_channel_is_idle(self) -> None:
+        from codex_image.webui.queue import QueueChannel
+        from codex_image.webui.queue_runtime import _queue_channel_worker_loop
+        from fastapi import FastAPI
+
+        channel = QueueChannel(channel_id="provider:test:0", auth_source="api")
+
+        class IdleManager:
+            channels = [channel]
+            calls = 0
+
+            async def run_channel_once(self, _channel: QueueChannel) -> bool:
+                self.calls += 1
+                return False
+
+        app = FastAPI()
+        app.state.queue_manager = IdleManager()
+
+        async def forbidden_idle_sleep(_delay: float) -> None:
+            raise AssertionError("An idle channel worker must stop instead of polling")
+
+        asyncio.run(
+            _queue_channel_worker_loop(
+                app,
+                channel.channel_id,
+                sleeper=forbidden_idle_sleep,
+            )
+        )
+
+        self.assertEqual(app.state.queue_manager.calls, 1)
+
+    def test_queue_supervisor_stays_dormant_with_many_channels_and_an_empty_queue(self) -> None:
+        from codex_image.webui.queue import QueueChannel
+        from codex_image.webui.queue_runtime import _queue_worker_loop
+        from fastapi import FastAPI
+
+        class EmptyQueueStorage:
+            def __init__(self) -> None:
+                self.reads = 0
+                self.inspected: asyncio.Event | None = None
+
+            def read_state(self) -> dict[str, Any]:
+                self.reads += 1
+                if self.inspected is not None:
+                    self.inspected.set()
+                return {"waiting": [], "running": {}}
+
+        class CountingManager:
+            def __init__(self, storage: EmptyQueueStorage) -> None:
+                self.queue_storage = storage
+                self.channels = [
+                    QueueChannel(
+                        channel_id=f"provider:test:{index}",
+                        auth_source="api",
+                        provider_id="test",
+                        slot_index=index,
+                    )
+                    for index in range(200)
+                ]
+                self.calls: list[str] = []
+
+            async def run_channel_once(self, channel: QueueChannel) -> bool:
+                self.calls.append(channel.channel_id)
+                return False
+
+        async def scenario() -> tuple[int, list[str]]:
+            app = FastAPI()
+            storage = EmptyQueueStorage()
+            storage.inspected = asyncio.Event()
+            app.state.queue_storage = storage
+            app.state.queue_manager = CountingManager(storage)
+            app.state.queue_wakeup_event = asyncio.Event()
+            app.state.queue_wakeup_event.set()
+            worker = asyncio.create_task(_queue_worker_loop(app))
+            try:
+                await asyncio.wait_for(storage.inspected.wait(), timeout=1)
+                reads_after_idle = storage.reads
+                for _ in range(10):
+                    await asyncio.sleep(0)
+                self.assertEqual(storage.reads, reads_after_idle)
+                return storage.reads, app.state.queue_manager.calls
+            finally:
+                worker.cancel()
+                with self.assertRaises(asyncio.CancelledError):
+                    await worker
+
+        reads, calls = asyncio.run(scenario())
+
+        self.assertEqual(reads, 1)
+        self.assertEqual(calls, [])
+
+    def test_queue_supervisor_processes_an_explicit_wakeup_without_idle_polling(self) -> None:
+        from codex_image.webui.queue import QueueChannel
+        from codex_image.webui.queue_runtime import _queue_worker_loop
+        from fastapi import FastAPI
+
+        channel = QueueChannel(
+            channel_id="provider:needed:0",
+            auth_source="api",
+            provider_id="needed",
+        )
+
+        class MutableQueueStorage:
+            def __init__(self) -> None:
+                self.waiting: list[str] = []
+                self.reads = 0
+                self.inspected = asyncio.Event()
+
+            def read_state(self) -> dict[str, Any]:
+                self.reads += 1
+                self.inspected.set()
+                return {"waiting": list(self.waiting), "running": {}}
+
+        class WakeableManager:
+            def __init__(self, storage: MutableQueueStorage) -> None:
+                self.queue_storage = storage
+                self.channels = [channel]
+                self.started = asyncio.Event()
+                self.calls = 0
+
+            async def run_channel_once(self, _channel: QueueChannel) -> bool:
+                self.calls += 1
+                self.started.set()
+                self.queue_storage.waiting.clear()
+                return False
+
+        async def scenario() -> tuple[int, int]:
+            app = FastAPI()
+            storage = MutableQueueStorage()
+            manager = WakeableManager(storage)
+            app.state.queue_storage = storage
+            app.state.queue_manager = manager
+            app.state.queue_wakeup_event = asyncio.Event()
+            app.state.queue_wakeup_event.set()
+            worker = asyncio.create_task(_queue_worker_loop(app))
+            try:
+                await asyncio.wait_for(storage.inspected.wait(), timeout=1)
+                storage.inspected.clear()
+                storage.waiting.append("task-a")
+                app.state.queue_wakeup_event.set()
+                await asyncio.wait_for(manager.started.wait(), timeout=1)
+                await asyncio.wait_for(storage.inspected.wait(), timeout=1)
+                reads_after_drain = storage.reads
+                for _ in range(10):
+                    await asyncio.sleep(0)
+                self.assertEqual(storage.reads, reads_after_drain)
+                return storage.reads, manager.calls
+            finally:
+                worker.cancel()
+                with self.assertRaises(asyncio.CancelledError):
+                    await worker
+
+        reads, calls = asyncio.run(scenario())
+
+        self.assertEqual(reads, 2)
+        self.assertEqual(calls, 1)
+
+    def test_queue_supervisor_retries_a_transient_state_read_without_polling_after_recovery(self) -> None:
+        from codex_image.webui.context import QueueWorkerHealth
+        from codex_image.webui.queue_runtime import _queue_worker_loop
+        from fastapi import FastAPI
+
+        class FlakyQueueStorage:
+            def __init__(self) -> None:
+                self.reads = 0
+                self.recovered = asyncio.Event()
+
+            def read_state(self) -> dict[str, Any]:
+                self.reads += 1
+                if self.reads == 1:
+                    raise OSError("temporary queue read failure")
+                self.recovered.set()
+                return {"waiting": [], "running": {}}
+
+        class EmptyManager:
+            channels: list[Any] = []
+
+        async def scenario() -> tuple[list[float], dict[str, Any], int]:
+            app = FastAPI()
+            storage = FlakyQueueStorage()
+            app.state.queue_storage = storage
+            app.state.queue_manager = EmptyManager()
+            app.state.queue_worker_health = QueueWorkerHealth()
+            app.state.queue_wakeup_event = asyncio.Event()
+            app.state.queue_wakeup_event.set()
+            delays: list[float] = []
+
+            async def sleeper(delay: float) -> None:
+                delays.append(delay)
+                await asyncio.sleep(0)
+
+            worker = asyncio.create_task(
+                _queue_worker_loop(app, sleeper=sleeper)
+            )
+            try:
+                await asyncio.wait_for(storage.recovered.wait(), timeout=1)
+                reads_after_recovery = storage.reads
+                for _ in range(10):
+                    await asyncio.sleep(0)
+                self.assertEqual(storage.reads, reads_after_recovery)
+                return (
+                    delays,
+                    app.state.queue_worker_health.snapshot(),
+                    storage.reads,
+                )
+            finally:
+                worker.cancel()
+                with self.assertRaises(asyncio.CancelledError):
+                    await worker
+
+        with self.assertLogs(
+            "codex_image.webui.queue_runtime",
+            level="ERROR",
+        ) as logs:
+            delays, health, reads = asyncio.run(scenario())
+
+        self.assertEqual(delays, [0.5])
+        self.assertEqual(health["status"], "healthy")
+        self.assertEqual(reads, 2)
+        self.assertNotIn("temporary queue read failure", "\n".join(logs.output))
+
+    def test_queue_channels_with_pending_only_materializes_required_snapshot_providers(self) -> None:
+        from types import SimpleNamespace
+
+        from codex_image.webui.queue_runtime import _queue_channels_with_pending
+
+        class QueueState:
+            def read_state(self) -> dict[str, Any]:
+                return {
+                    "waiting": ["task-waiting"],
+                    "running": {
+                        "provider:running-only:1": {
+                            "task_id": "task-running",
+                            "auth_source": "api",
+                            "account_id": None,
+                        }
+                    },
+                }
+
+        class MetadataStorage:
+            def read_metadata(self, task_id: str) -> dict[str, Any]:
+                if task_id == "task-waiting":
+                    return {
+                        "generation_snapshot": {
+                            "provider_id": "needed",
+                            "provider_concurrency": 2,
+                        }
+                    }
+                if task_id == "task-running":
+                    return {
+                        "generation_snapshot": {
+                            "provider_id": "running-only",
+                            "provider_concurrency": 2,
+                        }
+                    }
+                raise FileNotFoundError(task_id)
+
+        class ApiSettings:
+            def read_connections(self) -> list[Any]:
+                return [
+                    SimpleNamespace(id="needed", concurrency=2),
+                    SimpleNamespace(id="unrelated-a", concurrency=20),
+                    SimpleNamespace(id="unrelated-b", concurrency=20),
+                ]
+
+        ctx = SimpleNamespace(
+            queue_storage=QueueState(),
+            storage=MetadataStorage(),
+            api_settings=ApiSettings(),
+        )
+
+        channels = _queue_channels_with_pending(ctx, "api")
+
+        self.assertEqual(
+            {channel.channel_id for channel in channels},
+            {
+                "provider:needed:0",
+                "provider:needed:1",
+                "provider:running-only:0",
+                "provider:running-only:1",
+            },
+        )
+
+    def test_queue_manager_channel_claim_reads_queue_state_once(self) -> None:
+        from codex_image.webui.queue import QueueChannel, QueueManager
+
+        class CountingStorage:
+            def __init__(self) -> None:
+                self.reads = 0
+                self.cleared: list[str] = []
+
+            def read_state(self) -> dict[str, Any]:
+                self.reads += 1
+                return {"waiting": ["task-a"], "running": {}}
+
+            def claim_waiting(
+                self,
+                task_id: str,
+                channel_id: str,
+                *,
+                auth_source: str,
+                account_id: str | None = None,
+            ) -> bool:
+                return task_id == "task-a" and channel_id == "provider:test:0"
+
+            def clear_running(self, channel_id: str) -> None:
+                self.cleared.append(channel_id)
+
+        storage = CountingStorage()
+        channel = QueueChannel(
+            channel_id="provider:test:0",
+            auth_source="api",
+            provider_id="test",
+        )
+
+        async def execute_task(
+            _task_id: str,
+            _channel: QueueChannel,
+            _is_final_attempt: bool,
+        ) -> None:
+            return None
+
+        manager = QueueManager(
+            queue_storage=storage,  # type: ignore[arg-type]
+            channels=[channel],
+            execute_task=execute_task,
+        )
+
+        started = asyncio.run(manager.run_channel_once(channel))
+
+        self.assertTrue(started)
+        self.assertEqual(storage.reads, 1)
+        self.assertEqual(storage.cleared, [channel.channel_id])
+
     def test_queue_api_restarts_stopped_background_worker(self) -> None:
         from codex_image.webui.app import create_app
 
@@ -179,6 +649,127 @@ class WebUIQueueTests(unittest.TestCase):
             app = create_app(output_root=Path(tmp), auth_checker=lambda: True, auto_start_queue=False)
 
         self.assertIsInstance(app.state.queue_storage, SQLiteQueueStorage)
+
+    def test_single_instance_lock_rejects_second_process_for_same_data_root(self) -> None:
+        from codex_image.webui.instance_lock import WebUIInstanceLock
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp) / "source-data"
+            lock = WebUIInstanceLock.acquire(root)
+            try:
+                script = """
+import sys
+from pathlib import Path
+from codex_image.webui.instance_lock import WebUIAlreadyRunningError, WebUIInstanceLock
+
+try:
+    WebUIInstanceLock.acquire(Path(sys.argv[1]))
+except WebUIAlreadyRunningError:
+    raise SystemExit(0)
+raise SystemExit(1)
+"""
+                result = subprocess.run(
+                    [sys.executable, "-c", script, str(root)],
+                    cwd=Path.cwd(),
+                    capture_output=True,
+                    text=True,
+                    timeout=10,
+                    check=False,
+                )
+            finally:
+                lock.release()
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_create_app_single_instance_rejects_before_queue_recovery(self) -> None:
+        from codex_image.webui.app import create_app
+        from codex_image.webui.instance_lock import WebUIAlreadyRunningError
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            first = create_app(
+                output_root=root / "outputs",
+                source_data_root=root / "outputs" / "source-data",
+                auth_checker=lambda: True,
+                auto_start_queue=False,
+                enforce_single_instance=True,
+            )
+            try:
+                with patch("codex_image.webui.app._recover_queue_state") as recovery:
+                    with self.assertRaises(WebUIAlreadyRunningError):
+                        create_app(
+                            output_root=root / "outputs",
+                            source_data_root=root / "outputs" / "source-data",
+                            auth_checker=lambda: True,
+                            auto_start_queue=False,
+                            enforce_single_instance=True,
+                        )
+                    recovery.assert_not_called()
+            finally:
+                first.state.webui_instance_lock.release()
+
+    def test_create_app_rejects_multi_worker_environment_before_recovery(self) -> None:
+        from codex_image.webui.app import create_app
+        from codex_image.webui.instance_lock import WebUIWorkerConfigurationError
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            with (
+                patch.dict(os.environ, {"WEB_CONCURRENCY": "2"}),
+                patch("codex_image.webui.app._recover_queue_state") as recovery,
+            ):
+                with self.assertRaises(WebUIWorkerConfigurationError):
+                    create_app(
+                        output_root=root / "outputs",
+                        source_data_root=root / "outputs" / "source-data",
+                        auth_checker=lambda: True,
+                        auto_start_queue=False,
+                        enforce_single_instance=True,
+                    )
+                recovery.assert_not_called()
+
+    def test_single_instance_lock_is_released_after_lifespan_shutdown(self) -> None:
+        from codex_image.webui.app import create_app
+        from codex_image.webui.instance_lock import WebUIInstanceLock
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source_data_root = root / "outputs" / "source-data"
+            app = create_app(
+                output_root=root / "outputs",
+                source_data_root=source_data_root,
+                auth_checker=lambda: True,
+                auto_start_queue=False,
+                enforce_single_instance=True,
+            )
+            with TestClient(app) as client:
+                self.assertEqual(client.get("/api/health").status_code, 200)
+
+            reacquired = WebUIInstanceLock.acquire(source_data_root)
+            reacquired.release()
+
+    def test_single_instance_lock_is_released_when_app_construction_fails(self) -> None:
+        from codex_image.webui.app import create_app
+        from codex_image.webui.instance_lock import WebUIInstanceLock
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source_data_root = root / "outputs" / "source-data"
+            with patch(
+                "codex_image.webui.app._migrate_legacy_gallery_directory",
+                side_effect=RuntimeError("construction failed"),
+            ):
+                with self.assertRaisesRegex(RuntimeError, "construction failed"):
+                    create_app(
+                        output_root=root / "outputs",
+                        source_data_root=source_data_root,
+                        auth_checker=lambda: True,
+                        auto_start_queue=False,
+                        enforce_single_instance=True,
+                    )
+
+            reacquired = WebUIInstanceLock.acquire(source_data_root)
+            reacquired.release()
     def test_queue_worker_executes_queued_generate_task(self) -> None:
         from codex_image.webui.app import create_app
 
@@ -309,7 +900,7 @@ class WebUIQueueTests(unittest.TestCase):
 
         self.assertLess(elapsed, 0.15)
         self.assertEqual([item["task_id"] for item in state["running"].values()], [task_id])
-    def test_queue_cancel_running_task_unblocks_channel_worker(self) -> None:
+    def test_queue_cancel_running_task_keeps_channel_until_provider_returns(self) -> None:
         from codex_image.webui.app import create_app
 
         fake = BlockingFirstImageClient()
@@ -327,17 +918,30 @@ class WebUIQueueTests(unittest.TestCase):
 
                 deleted = client.delete(f"/api/queue/{first['task_id']}")
                 try:
-                    self.assertTrue(fake.second_call_started.wait(timeout=3))
+                    self.assertFalse(fake.second_call_started.wait(timeout=0.2))
+                    pending = client.get(f"/api/tasks/{first['task_id']}").json()["task"]
+                    pending_queue = client.get("/api/queue").json()
                 finally:
                     fake.release_first_call.set()
-                cancelled = client.get(f"/api/tasks/{first['task_id']}").json()["task"]
+                self.assertTrue(fake.second_call_started.wait(timeout=3))
+                for _ in range(100):
+                    cancelled = client.get(f"/api/tasks/{first['task_id']}").json()["task"]
+                    if cancelled.get("cancelled_at"):
+                        break
+                    time.sleep(0.02)
                 next_task = client.get(f"/api/tasks/{second['task_id']}").json()["task"]
 
         self.assertEqual(deleted.status_code, 200)
+        self.assertTrue(deleted.json()["cancellation_pending"])
+        self.assertEqual(pending["status"], "cancelling")
+        self.assertTrue(pending["cancel_requested"])
+        self.assertNotIn("cancelled_at", pending)
+        self.assertTrue(any(task["task_id"] == first["task_id"] for task in pending_queue["running"]))
         self.assertEqual(cancelled["status"], "failed")
         self.assertTrue(cancelled["cancel_requested"])
         self.assertIn(next_task["status"], {"running", "completed"})
-    def test_queue_cancel_running_fourth_slot_persists_cancel_and_releases_next_task(self) -> None:
+
+    def test_queue_cancel_running_fourth_slot_waits_for_inflight_slot_before_next_task(self) -> None:
         from codex_image.webui.app import create_app
         from codex_image.webui.queue import QueueChannel
 
@@ -363,14 +967,25 @@ class WebUIQueueTests(unittest.TestCase):
 
                 deleted = client.delete(f"/api/queue/{first['task_id']}")
                 try:
-                    self.assertTrue(fake.second_task_started.wait(timeout=3))
+                    self.assertFalse(fake.second_task_started.wait(timeout=0.2))
+                    pending = client.get(f"/api/tasks/{first['task_id']}").json()["task"]
+                    pending_queue = client.get("/api/queue").json()
                 finally:
                     fake.release_fourth_call.set()
-                cancelled = client.get(f"/api/tasks/{first['task_id']}").json()["task"]
+                self.assertTrue(fake.second_task_started.wait(timeout=3))
+                for _ in range(100):
+                    cancelled = client.get(f"/api/tasks/{first['task_id']}").json()["task"]
+                    if cancelled.get("cancelled_at"):
+                        break
+                    time.sleep(0.02)
                 next_task = client.get(f"/api/tasks/{second['task_id']}").json()["task"]
                 queue = client.get("/api/queue").json()
 
         self.assertEqual(deleted.status_code, 200)
+        self.assertTrue(deleted.json()["cancellation_pending"])
+        self.assertEqual(pending["status"], "cancelling")
+        self.assertNotIn("cancelled_at", pending)
+        self.assertTrue(any(task["task_id"] == first["task_id"] for task in pending_queue["running"]))
         self.assertEqual(cancelled["status"], "failed")
         self.assertEqual(cancelled["error"], "Task cancelled by user.")
         self.assertTrue(cancelled["cancel_requested"])
@@ -395,8 +1010,7 @@ class WebUIQueueTests(unittest.TestCase):
             task_id = created.json()["task"]["task_id"]
             fake.task_id = task_id
 
-            with self.assertRaises(asyncio.CancelledError):
-                asyncio.run(app.state.queue_manager.run_available_once())
+            asyncio.run(app.state.queue_manager.run_available_once())
             task = client.get(f"/api/tasks/{task_id}").json()["task"]
             output_exists = (root / output_name(task_id)).exists()
             queue_state = app.state.queue_storage.read_state()
@@ -434,6 +1048,39 @@ class WebUIQueueTests(unittest.TestCase):
         self.assertEqual(queue_state["running"], {})
         self.assertIn(waiting["task_id"], queue_state["waiting"])
         self.assertNotIn(running["task_id"], queue_state["waiting"])
+
+    def test_startup_recovery_does_not_rewrite_unchanged_terminal_task_index(self) -> None:
+        from codex_image.webui.recovery import _recover_queue_state
+        from codex_image.webui.storage import SQLiteQueueStorage, TaskStorage
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            storage = TaskStorage(root)
+            for index in range(3):
+                task = storage.create_task("generate")
+                storage.write_metadata(
+                    task.task_id,
+                    {
+                        "task_id": task.task_id,
+                        "created_at": f"2026-07-29T10:00:0{index}+00:00",
+                        "updated_at": f"2026-07-29T10:01:0{index}+00:00",
+                        "status": "completed",
+                        "prompt": f"completed task {index}",
+                    },
+                )
+            queue_storage = SQLiteQueueStorage(
+                storage.source_data_root / "webui.db"
+            )
+
+            with patch.object(
+                storage.task_index,
+                "upsert",
+                wraps=storage.task_index.upsert,
+            ) as upsert:
+                _recover_queue_state(storage, queue_storage)
+
+        upsert.assert_not_called()
+
     def test_startup_recovery_fails_old_queued_auto_retry(self) -> None:
         from codex_image.webui.app import create_app
 
@@ -586,8 +1233,8 @@ class WebUIQueueTests(unittest.TestCase):
                 "/api/edit",
                 data={"prompt": "edit queued", "size": "1024x1024", "quality": "low"},
                 files={
-                    "images": ("input.png", b"input", "image/png"),
-                    "mask": ("mask.png", b"mask", "image/png"),
+                    "images": ("input.png", self._png_bytes(), "image/png"),
+                    "mask": ("mask.png", self._png_bytes(), "image/png"),
                 },
             )
             task_id = created.json()["task"]["task_id"]
@@ -876,7 +1523,8 @@ class WebUIQueueTests(unittest.TestCase):
         self.assertEqual(first_task["generated_count"], 3)
         self.assertEqual(first_task["failed_count"], 1)
         self.assertEqual(first_task["total_count"], 4)
-        self.assertIn("Image request timed out after 1s", first_task["last_error"])
+        self.assertIn("Image request timed out after ", first_task["last_error"])
+        self.assertIn("timeout limit 1s", first_task["last_error"])
         self.assertEqual(
             [(item["index"], item["status"]) for item in first_task["outputs"]],
             [(1, "completed"), (2, "completed"), (3, "completed"), (4, "failed")],
@@ -897,6 +1545,27 @@ class WebUIQueueTests(unittest.TestCase):
 
         with self.assertRaisesRegex(TimeoutError, "HTTP request timed out after 0.2s"):
             asyncio.run(run_call())
+
+    def test_call_image_client_timeout_waits_for_synchronous_call_to_exit(self) -> None:
+        from codex_image.webui.executor_transport import _call_image_client
+
+        call_finished = threading.Event()
+
+        def slow_call() -> object:
+            time.sleep(0.08)
+            call_finished.set()
+            return object()
+
+        async def run_call() -> None:
+            await _call_image_client(None, {}, slow_call, timeout_seconds=0.01)
+
+        started_at = time.monotonic()
+        with self.assertRaisesRegex(TimeoutError, "timeout limit 0.01s"):
+            asyncio.run(run_call())
+        elapsed = time.monotonic() - started_at
+
+        self.assertTrue(call_finished.is_set())
+        self.assertGreaterEqual(elapsed, 0.07)
 
     def test_queue_worker_publishes_partial_outputs_while_running(self) -> None:
         from codex_image.webui.app import create_app
@@ -1184,6 +1853,78 @@ class WebUIQueueTests(unittest.TestCase):
         self.assertEqual(state["running"], {})
         self.assertNotIn("task-a", manager.attempts)
         self.assertEqual(manager.failed_channels, {})
+
+    def test_queue_manager_requeues_external_cancellation_without_consuming_attempt(self) -> None:
+        from codex_image.webui.queue import QueueChannel, QueueManager
+        from codex_image.webui.storage import QueueStorage
+
+        with tempfile.TemporaryDirectory() as tmp:
+            queue_storage = QueueStorage(Path(tmp) / "queue.json")
+            queue_storage.enqueue("task-a")
+            manager = QueueManager(
+                queue_storage=queue_storage,
+                channels=[QueueChannel(channel_id="api:slot-a", auth_source="api")],
+                execute_task=CancelQueueTestExecutor(),
+                should_requeue_cancelled=lambda _task_id: True,
+            )
+
+            with self.assertRaises(asyncio.CancelledError):
+                asyncio.run(manager.run_available_once())
+
+            state = queue_storage.read_state()
+
+        self.assertEqual(state["waiting"], ["task-a"])
+        self.assertEqual(state["running"], {})
+        self.assertNotIn("task-a", manager.attempts)
+
+    def test_runtime_shutdown_requeues_inflight_task_and_preserves_it_on_restart(self) -> None:
+        from codex_image.webui.app import create_app
+
+        fake = BlockingFirstImageClient()
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            app = create_app(
+                output_root=root,
+                client_factory=lambda: fake,
+                auth_checker=lambda: True,
+                batch_delay_seconds=0,
+                auto_start_queue=False,
+            )
+            client = TestClient(app)
+            task_id = client.post(
+                "/api/generate",
+                data={"prompt": "shutdown recovery", "size": "1024x1024"},
+            ).json()["task"]["task_id"]
+
+            async def cancel_running_worker() -> None:
+                worker = asyncio.create_task(app.state.queue_manager.run_available_once())
+                started = await asyncio.to_thread(fake.first_call_started.wait, 2)
+                self.assertTrue(started)
+                worker.cancel()
+                try:
+                    with self.assertRaises(asyncio.CancelledError):
+                        await worker
+                finally:
+                    fake.release_first_call.set()
+
+            asyncio.run(cancel_running_worker())
+
+            queued = app.state.storage.read_metadata(task_id)
+            queue_state = app.state.queue_storage.read_state()
+            restarted = create_app(
+                output_root=root,
+                client_factory=lambda: FakeImageClient(),
+                auth_checker=lambda: True,
+                auto_start_queue=False,
+            )
+            recovered = restarted.state.storage.read_metadata(task_id)
+            recovered_queue = restarted.state.queue_storage.read_state()
+
+        self.assertEqual(queued["status"], "queued")
+        self.assertEqual(queued["attempts"], 0)
+        self.assertEqual(queue_state["waiting"], [task_id])
+        self.assertEqual(recovered["status"], "queued")
+        self.assertEqual(recovered_queue["waiting"], [task_id])
     def test_queue_recovery_fails_interrupted_running_task(self) -> None:
         from codex_image.webui.app import create_app
 

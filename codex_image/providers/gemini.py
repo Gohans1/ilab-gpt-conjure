@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import base64
-import binascii
 import json
 from typing import Any, Callable, Mapping
 from urllib.parse import urlsplit, urlunsplit
@@ -115,16 +113,22 @@ def parse_gemini_generate_content_response(
                     )
                     if isinstance(encoded, str) and encoded and mime_type.lower().startswith("image/"):
                         try:
-                            image_bytes = base64.b64decode(encoded, validate=True)
-                        except (binascii.Error, ValueError):
-                            image_bytes = b""
-                        if image_bytes:
-                            assets.append(
-                                GeneratedAsset(
-                                    image_bytes=image_bytes,
-                                    mime_type=mime_type,
-                                )
+                            loaded = load_response_asset(
+                                {
+                                    "b64_json": encoded,
+                                    "mime_type": mime_type,
+                                }
                             )
+                        except AssetLoadError:
+                            continue
+                        assets.append(
+                            GeneratedAsset(
+                                image_bytes=loaded.image_bytes,
+                                mime_type=loaded.mime_type,
+                                width=loaded.width,
+                                height=loaded.height,
+                            )
+                        )
                     file_data = _mapping(_field(part_value, "fileData", "file_data"))
                     file_uri = _field(file_data, "fileUri", "file_uri", "uri", "url")
                     file_mime_type = str(

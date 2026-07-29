@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import unittest
 from pathlib import Path
+import re
 import shutil
 import subprocess
 import textwrap
@@ -24,6 +25,28 @@ def _typescript_function_body(source: str, name: str) -> str:
 
 
 class WebUIStaticHistoryTests(unittest.TestCase):
+    def test_history_realtime_terminal_update_does_not_reset_a_scrolled_window(self) -> None:
+        source = Path(
+            "codex_image/webui/frontend/src/history.ts"
+        ).read_text(encoding="utf-8")
+        shell_source = Path(
+            "codex_image/webui/frontend/src/history-shell.ts"
+        ).read_text(encoding="utf-8")
+
+        boot_body = _typescript_function_body(source, "bootHistoryPage")
+        callback_match = re.search(
+            r"refreshHistoryTasks:\s*async\s*\((?P<args>[^)]*)\)\s*=>\s*\{(?P<body>[\s\S]*?)\n\s*\},",
+            boot_body,
+        )
+        self.assertIsNotNone(callback_match)
+        self.assertIn("task", callback_match.group("args"))
+        self.assertIn("refreshHistoryForRealtimeTask", callback_match.group("body"))
+        self.assertIn(
+            "reloadNewestWindow: () => loadTasks({ reset: true })",
+            callback_match.group("body"),
+        )
+        self.assertIn("refreshHistoryTasks?.(task)", shell_source)
+
     def test_history_shell_uses_shared_top_nav_and_compact_sidebar(self) -> None:
         html = Path(
             "codex_image/webui/static/history.html"
@@ -1096,7 +1119,7 @@ class WebUIStaticHistoryTests(unittest.TestCase):
         self.assertIn('class="history-filter-heading-icon"', html)
         self.assertIn('data-i18n-attr="aria-label:history.resizeFilters"', html)
         self.assertIn('data-i18n-attr="aria-label:history.resizeDetail"', html)
-        self.assertIn('/static/styles.css?v=runtime-658', html)
+        self.assertIn('/static/styles.css?v=runtime-666', html)
         self.assertRegex(styles, r"\.history-page\s*\{[^}]*height:\s*100dvh")
         self.assertRegex(styles, r"\.history-page\s*\{[^}]*overflow:\s*hidden")
         self.assertRegex(styles, r"\.history-page\s*\{[^}]*--history-sidebar-width:\s*280px")

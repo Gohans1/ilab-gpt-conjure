@@ -171,7 +171,7 @@ $env:PIP_DISABLE_PIP_VERSION_CHECK = "1"
 $env:PIP_NO_CACHE_DIR = "1"
 
 & $PythonExe $GetPipPath --no-warn-script-location
-& $PythonExe -m pip install --no-warn-script-location -r (Join-Path $AppDir "requirements-webui.txt")
+& $PythonExe -m pip install --require-hashes --no-warn-script-location -r (Join-Path $AppDir "requirements-webui.txt")
 $CertifiCaBundle = Join-Path $PythonDir "Lib\site-packages\certifi\cacert.pem"
 if (-not (Test-Path $CertifiCaBundle)) {
   throw "certifi CA bundle was not installed at $CertifiCaBundle"

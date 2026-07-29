@@ -1,4 +1,4 @@
-export type TaskStatus = "submitting" | "queued" | "running" | "completed" | "failed" | "partial_failed" | "cancelled";
+export type TaskStatus = "submitting" | "queued" | "running" | "cancelling" | "completed" | "failed" | "partial_failed" | "cancelled";
 export type TaskMode = "generate" | "edit";
 export type OutputStatus = "running" | "completed" | "failed";
 export type AuthSource = "codex" | "api";
@@ -274,6 +274,7 @@ export interface WebUITask {
   last_error?: string;
   error?: string;
   cancel_requested?: boolean;
+  cancel_requested_at?: string;
   cancelled_at?: string;
   channel_id?: string;
   account_id?: string | null;

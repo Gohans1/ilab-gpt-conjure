@@ -19,6 +19,8 @@ class QueueChannel:
 TaskExecutor = Callable[[str, QueueChannel, bool], Awaitable[None]]
 ChannelAvailability = Callable[[QueueChannel], bool]
 TaskClaim = Callable[[str, QueueChannel], bool]
+TaskClaimRelease = Callable[[str, QueueChannel], None]
+CancelledTaskRequeue = Callable[[str], bool]
 
 
 class NonRetryableTaskError(RuntimeError):
@@ -33,7 +35,9 @@ class QueueManager:
     max_attempts: int = 2
     channel_available: ChannelAvailability | None = None
     claim_task: TaskClaim | None = None
+    release_task_claim: TaskClaimRelease | None = None
     task_channel_matches: TaskClaim | None = None
+    should_requeue_cancelled: CancelledTaskRequeue | None = None
     auto_retry: bool = True
     attempts: dict[str, int] = field(default_factory=dict)
     failed_channels: dict[str, set[str]] = field(default_factory=dict)
@@ -44,12 +48,6 @@ class QueueManager:
             task_id = self._next_task_for_channel(channel)
             if task_id is None:
                 continue
-            self.queue_storage.set_running(
-                channel.channel_id,
-                task_id,
-                auth_source=channel.auth_source,
-                account_id=channel.account_id,
-            )
             jobs.append(self._run_task(task_id, channel))
         if jobs:
             results = await asyncio.gather(*jobs, return_exceptions=True)
@@ -58,22 +56,11 @@ class QueueManager:
                     raise result
 
     async def run_channel_once(self, channel: QueueChannel) -> bool:
-        if self._channel_is_running(channel.channel_id):
-            return False
         task_id = self._next_task_for_channel(channel)
         if task_id is None:
             return False
-        self.queue_storage.set_running(
-            channel.channel_id,
-            task_id,
-            auth_source=channel.auth_source,
-            account_id=channel.account_id,
-        )
         await self._run_task(task_id, channel)
         return True
-
-    def _channel_is_running(self, channel_id: str) -> bool:
-        return channel_id in self.queue_storage.read_state()["running"]
 
     def _next_task_for_channel(self, channel: QueueChannel) -> str | None:
         if not self._channel_can_take_work(channel):
@@ -82,17 +69,14 @@ class QueueManager:
         for task_id in state["waiting"]:
             blocked = self.failed_channels.get(task_id, set())
             if channel.channel_id not in blocked:
-                if not self._claim_task(task_id, channel):
-                    continue
-                self.queue_storage.remove_waiting(task_id)
-                return task_id
+                if self._claim_waiting_task(task_id, channel):
+                    return task_id
+                continue
             matching_ids = self._matching_available_channel_ids(task_id)
             if matching_ids and matching_ids.issubset(blocked):
                 self.failed_channels[task_id] = set()
-                if not self._claim_task(task_id, channel):
-                    continue
-                self.queue_storage.remove_waiting(task_id)
-                return task_id
+                if self._claim_waiting_task(task_id, channel):
+                    return task_id
         return None
 
     def _channel_can_take_work(self, channel: QueueChannel) -> bool:
@@ -104,6 +88,27 @@ class QueueManager:
         if self.claim_task is None:
             return True
         return bool(self.claim_task(task_id, channel))
+
+    def _claim_waiting_task(self, task_id: str, channel: QueueChannel) -> bool:
+        if not self._claim_task(task_id, channel):
+            return False
+        try:
+            claimed = self.queue_storage.claim_waiting(
+                task_id,
+                channel.channel_id,
+                auth_source=channel.auth_source,
+                account_id=channel.account_id,
+            )
+        except BaseException:
+            self._release_task_claim(task_id, channel)
+            raise
+        if not claimed:
+            self._release_task_claim(task_id, channel)
+        return claimed
+
+    def _release_task_claim(self, task_id: str, channel: QueueChannel) -> None:
+        if self.release_task_claim is not None:
+            self.release_task_claim(task_id, channel)
 
     def _available_channel_count(self) -> int:
         return max(1, sum(1 for channel in self.channels if self._channel_can_take_work(channel)))
@@ -127,6 +132,11 @@ class QueueManager:
             self.failed_channels.pop(task_id, None)
             self.attempts.pop(task_id, None)
         except asyncio.CancelledError:
+            if (
+                self.should_requeue_cancelled is not None
+                and self.should_requeue_cancelled(task_id)
+            ):
+                self.queue_storage.enqueue(task_id)
             attempt_count = self.attempts.get(task_id, 0) - 1
             if attempt_count > 0:
                 self.attempts[task_id] = attempt_count

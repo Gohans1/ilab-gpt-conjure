@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import UTC, datetime
 import json
 from typing import Any, Iterable
 
@@ -9,6 +10,20 @@ from .task_metadata import _gallery_item_response, _with_file_urls
 
 
 GENERATION_PAGE_TASK_LIMIT = 50
+
+
+def _running_queue_order(entry: tuple[str, Any]) -> tuple[float, str, str]:
+    channel_id, item = entry
+    task_id = str(item.get("task_id") or "") if isinstance(item, dict) else ""
+    raw_started_at = str(item.get("started_at") or "") if isinstance(item, dict) else ""
+    try:
+        started_at = datetime.fromisoformat(raw_started_at.replace("Z", "+00:00"))
+        if started_at.tzinfo is None:
+            started_at = started_at.replace(tzinfo=UTC)
+        started_timestamp = started_at.timestamp()
+    except (OverflowError, ValueError):
+        started_timestamp = float("inf")
+    return started_timestamp, task_id, str(channel_id)
 
 
 def _prune_inactive_running_channels(ctx: WebUIContext) -> None:
@@ -63,7 +78,10 @@ def queue_snapshot(ctx: WebUIContext) -> dict[str, Any]:
         for task in (ctx.storage.read_metadata(task_id) for task_id in state["waiting"] if ctx.storage.metadata_path(task_id).exists())
     ]
     running = []
-    for channel_id, item in state["running"].items():
+    for channel_id, item in sorted(
+        state["running"].items(),
+        key=_running_queue_order,
+    ):
         metadata_path = ctx.storage.metadata_path(str(item.get("task_id") or "")) if isinstance(item, dict) else None
         if metadata_path is None or not metadata_path.exists():
             continue

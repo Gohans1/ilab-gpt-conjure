@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import asyncio
 from typing import Any
 
 from fastapi import Body, FastAPI, HTTPException, Request
@@ -36,7 +35,13 @@ def register_queue_routes(app: FastAPI, ctx: WebUIContext) -> None:
             previous_queue_key = event_key(previous_queue)
             previous_task_ids = queued_or_running_task_ids(previous_queue)
             while True:
-                await asyncio.sleep(EVENT_STREAM_CHECK_INTERVAL_SECONDS)
+                shutdown_coordinator = (
+                    request.app.state.webui_shutdown_coordinator
+                )
+                if await shutdown_coordinator.wait(
+                    EVENT_STREAM_CHECK_INTERVAL_SECONDS
+                ):
+                    return
                 if await request.is_disconnected():
                     return
                 h["ensure_queue_worker_running"]()
@@ -85,8 +90,7 @@ def register_queue_routes(app: FastAPI, ctx: WebUIContext) -> None:
             for channel_id, item in state["running"].items()
             if isinstance(item, dict) and item.get("task_id")
         }
-        results: list[dict[str, str]] = []
-        cancelled_workers: list[asyncio.Task[Any]] = []
+        results: list[dict[str, Any]] = []
 
         for task_id in task_ids:
             previous_state = "waiting" if task_id in waiting_ids else "running" if task_id in running_channels else None
@@ -94,31 +98,38 @@ def register_queue_routes(app: FastAPI, ctx: WebUIContext) -> None:
                 results.append({"task_id": task_id, "result": "skipped", "reason": "not_active"})
                 continue
             try:
-                h["mark_task_cancelled"](task_id)
+                h["request_task_cancellation"](task_id)
                 if previous_state == "waiting":
+                    h["finalize_task_cancellation"](task_id)
                     ctx.queue_storage.remove_waiting(task_id)
-                else:
-                    ctx.queue_storage.clear_running(running_channels[task_id])
-                    ctx.active_task_ids.discard(task_id)
-                    worker_task = ctx.running_worker_tasks.get(task_id)
-                    if worker_task is not None and not worker_task.done():
-                        worker_task.cancel()
-                        cancelled_workers.append(worker_task)
             except FileNotFoundError:
                 results.append({"task_id": task_id, "result": "skipped", "reason": "not_found"})
                 continue
-            except OSError as exc:
-                results.append({"task_id": task_id, "result": "failed", "reason": str(exc)})
+            except OSError:
+                results.append({"task_id": task_id, "result": "failed", "reason": "storage_error"})
                 continue
-            results.append({"task_id": task_id, "result": "cancelled", "previous_state": previous_state})
-
-        if cancelled_workers:
-            await asyncio.sleep(0)
+            cancellation_pending = previous_state == "running"
+            results.append(
+                {
+                    "task_id": task_id,
+                    "result": (
+                        "cancellation_requested"
+                        if cancellation_pending
+                        else "cancelled"
+                    ),
+                    "previous_state": previous_state,
+                    "cancellation_pending": cancellation_pending,
+                }
+            )
 
         return {
             "ok": not any(item["result"] == "failed" for item in results),
             "summary": {
                 "cancelled": sum(item["result"] == "cancelled" for item in results),
+                "cancellation_requested": sum(
+                    item["result"] == "cancellation_requested"
+                    for item in results
+                ),
                 "skipped": sum(item["result"] == "skipped" for item in results),
                 "failed": sum(item["result"] == "failed" for item in results),
             },
@@ -136,13 +147,12 @@ def register_queue_routes(app: FastAPI, ctx: WebUIContext) -> None:
         if running_channel_id is None:
             raise HTTPException(status_code=409, detail="Only waiting or running tasks can be cancelled from queue")
         try:
-            h["mark_task_cancelled"](task_id)
+            h["request_task_cancellation"](task_id)
         except FileNotFoundError as exc:
             raise HTTPException(status_code=404, detail="Task not found") from exc
-        ctx.queue_storage.clear_running(running_channel_id)
-        ctx.active_task_ids.discard(task_id)
-        worker_task = ctx.running_worker_tasks.get(task_id)
-        if worker_task is not None and not worker_task.done():
-            worker_task.cancel()
-            await asyncio.sleep(0)
-        return {"ok": True, "task_id": task_id, "cancelled": True}
+        return {
+            "ok": True,
+            "task_id": task_id,
+            "cancelled": False,
+            "cancellation_pending": True,
+        }

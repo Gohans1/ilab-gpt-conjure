@@ -19,7 +19,7 @@ import type { WebUITask } from "./types";
 
 interface HistoryShellOptions {
   selectHistoryTask(taskId: string): Promise<void> | void;
-  refreshHistoryTasks?(): Promise<void> | void;
+  refreshHistoryTasks?(task?: WebUITask | null): Promise<void> | void;
 }
 
 let historyShellInitialized = false;
@@ -71,7 +71,7 @@ export function initializeHistoryShell(
       if (!task?.task_id) return;
       methods.updateTaskInState(task);
       if (isTerminalTask(task)) {
-        await options.refreshHistoryTasks?.();
+        await options.refreshHistoryTasks?.(task);
       }
     },
     refreshTasks: async () => {

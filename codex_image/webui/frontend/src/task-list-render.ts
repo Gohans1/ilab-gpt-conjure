@@ -18,6 +18,9 @@ const EXPANDED_TASK_GROUP_INITIAL_CARD_COUNT = 24;
 const EXPANDED_TASK_GROUP_CHUNK_SIZE = 48;
 const TASK_SIDEBAR_GROUP_PAGE_SIZE = 50;
 const EXPANDED_TASK_GROUP_ANIMATION_FALLBACK_MS = 320;
+const TASK_THUMB_OUTER_SPIN_DURATION_MS = 1300;
+const TASK_THUMB_INNER_SPIN_DURATION_MS = 950;
+const TASK_THUMB_INNER_SPIN_OFFSET_MS = 280;
 let expandedTaskGroupRenderToken = 0;
 type QueueTaskIdSections = { running: Map<string, number>; waiting: Map<string, number> };
 type TaskListScrollAnchor = {
@@ -503,7 +506,7 @@ function activeTaskSections(tasks: any[]) {
   tasks.forEach((task: any) => {
     const taskId = String(task?.task_id || "");
     const status = String(task?.status || "");
-    if (queueIds.running.has(taskId) || status === "running") {
+    if (queueIds.running.has(taskId) || status === "running" || status === "cancelling") {
       running.push(task);
     } else if (queueIds.waiting.has(taskId) || task?.local_pending || ["submitting", "queued"].includes(status)) {
       waiting.push(task);
@@ -659,7 +662,7 @@ function waitingQueueIndex(taskId: any, queueIds = queueTaskIdsBySection()) {
 function taskQueueActionIconHtml(icon: "cancel" | "up" | "down" | "top" | "delete") {
   if (icon === "cancel") {
     return `<svg class="task-queue-action-icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
-        <path d="M5.25 5.25h5.5v5.5h-5.5z" />
+        <path d="M4 4h8v8H4z" />
       </svg>`;
   }
   if (icon === "up") {
@@ -1087,6 +1090,15 @@ function taskThumbShowsLoading(task: any) {
   return Boolean(task?.local_pending || ["submitting", "queued", "running"].includes(status));
 }
 
+function taskThumbSpinnerStyle(task: any) {
+  const origin = timestampMs(task?.created_at);
+  if (origin === null) return "";
+  const elapsed = Math.max(0, Date.now() - origin);
+  const outerDelay = -(elapsed % TASK_THUMB_OUTER_SPIN_DURATION_MS);
+  const innerDelay = -((elapsed + TASK_THUMB_INNER_SPIN_OFFSET_MS) % TASK_THUMB_INNER_SPIN_DURATION_MS);
+  return ` style="--task-spinner-outer-delay: ${outerDelay}ms; --task-spinner-inner-delay: ${innerDelay}ms"`;
+}
+
 function taskThumbHtml(task: any, className: any = "task-thumb") {
   const outputUrl = taskOutputUrls(task)[0];
   const outputThumbnailUrl = taskThumbnailUrls(task)[0];
@@ -1094,7 +1106,9 @@ function taskThumbHtml(task: any, className: any = "task-thumb") {
   const imageUrl = outputThumbnailUrl || outputUrl || task.preview_url || inputPreviewUrl;
   const safeClassName = escapeHtml(className);
   if (imageUrl && inputPreviewUrl) {
-    const loadingSpinner = taskThumbShowsLoading(task) ? '<span class="task-thumb-stack-spinner" aria-hidden="true"></span>' : "";
+    const loadingSpinner = taskThumbShowsLoading(task)
+      ? `<span class="task-thumb-stack-spinner" aria-hidden="true"${taskThumbSpinnerStyle(task)}></span>`
+      : "";
     const imageToImageLabel = escapeHtml(translate("taskCard.imageToImageThumb"));
     return `
       <div class="${safeClassName} task-thumb-stack" aria-label="${imageToImageLabel}">
@@ -1120,7 +1134,7 @@ function taskThumbHtml(task: any, className: any = "task-thumb") {
   if (task.status === "failed") {
     return `<div class="${safeClassName} failed-thumb" aria-label="${escapeHtml(translate("taskCard.failedThumb"))}"><span>!</span></div>`;
   }
-  return `<div class="${safeClassName} running-thumb"><span></span></div>`;
+  return `<div class="${safeClassName} running-thumb"><span${taskThumbSpinnerStyle(task)}></span></div>`;
 }
 
 function taskStatusLabelHtml(task: any) {
@@ -1171,7 +1185,7 @@ function taskCardElapsedLineHtml(key: string, values: Record<string, any>, elaps
 }
 
 function taskCardRunningTimerHtml(task: any, taskId: string) {
-  if (task?.status !== "running") return "";
+  if (!["running", "cancelling"].includes(String(task?.status || ""))) return "";
   const startedAt = taskProgressStartValue(task);
   if (!startedAt) return "";
   const elapsed = elapsedTimerSpan("task-card-running", startedAt);

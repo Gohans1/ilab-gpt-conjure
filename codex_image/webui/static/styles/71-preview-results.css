@@ -856,10 +856,14 @@ body.lightbox-open {
   backdrop-filter: blur(8px);
 }
 
-.empty-preview {
+.empty-preview,
+.waiting-preview {
   grid-column: 1 / -1;
-  width: min(100%, 520px);
-  min-height: 220px;
+  width: min(100%, 620px);
+  min-height: 228px;
+}
+
+.empty-preview {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -892,9 +896,6 @@ body.lightbox-open {
 }
 
 .waiting-preview {
-  grid-column: 1 / -1;
-  width: min(100%, 620px);
-  min-height: 220px;
   border-radius: 10px;
   border: 1px solid color-mix(in srgb, var(--primary) 28%, var(--line));
   background:

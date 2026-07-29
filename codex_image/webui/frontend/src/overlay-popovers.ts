@@ -78,13 +78,16 @@ function openConfirmPopover(anchor, options = {}) {
   const message = options.message ? `<p class="confirm-popover-message">${escapeHtml(options.message)}</p>` : "";
   const detail = options.detail ? `<div class="confirm-popover-detail">${escapeHtml(options.detail)}</div>` : "";
   const confirmText = options.confirmText || translate("action.confirm");
+  const confirmClass = options.danger === false
+    ? "ghost-button text-sm confirm-popover-confirm"
+    : "ghost-button text-sm danger-button confirm-popover-confirm";
   popover.innerHTML = `
     <div class="confirm-popover-title">${escapeHtml(options.title || translate("action.confirmQuestion"))}</div>
     ${message}
     ${detail}
     <div class="confirm-popover-actions">
       <button class="ghost-button text-sm" type="button" data-confirm-popover-cancel>${escapeHtml(translate("action.cancel"))}</button>
-      <button class="ghost-button text-sm danger-button confirm-popover-confirm" type="button" data-confirm-popover-confirm>${escapeHtml(confirmText)}</button>
+      <button class="${confirmClass}" type="button" data-confirm-popover-confirm>${escapeHtml(confirmText)}</button>
     </div>
   `;
   popover.querySelector("[data-confirm-popover-cancel]")?.addEventListener("click", closeConfirmPopover);

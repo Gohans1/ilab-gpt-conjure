@@ -72,6 +72,7 @@ function taskPreviewStatus(task: any) {
   const status = String(task?.status || "");
   const taskId = String(task?.task_id || "");
   if (TERMINAL_TASK_STATUSES.has(status)) return status;
+  if (status === "cancelling") return "running";
   if (queueContainsTask(state.queue.running, taskId)) return "running";
   if (queueContainsTask(state.queue.waiting, taskId)) return status === "submitting" ? "submitting" : "queued";
   return status;
@@ -882,9 +883,6 @@ function renderWaitingPreview(task: any) {
   const elapsed = elapsedTimerSpan("waiting", elapsedFrom);
   const size = escapeHtml(task.params?.size || currentSize());
   const title = submitting ? translate("preview.submittingTitle") : translate("preview.queuedTitle");
-  const detail = submitting
-    ? translate("preview.submittingDetail")
-    : translate("preview.queuedDetail");
   const retryReason = !submitting && task.last_error
     ? `<p>${escapeHtml(formatTranslation("preview.lastError", { error: task.last_error }))}</p>`
     : "";
@@ -898,7 +896,6 @@ function renderWaitingPreview(task: any) {
         <p class="elapsed-line">${previewElapsedLineHtml("preview.elapsedLine", {}, elapsed)}</p>
         <p class="elapsed-meta">${size}</p>
         ${retryStateHtml}
-        <p>${escapeHtml(detail)}</p>
         ${retryReason}
       </div>
       <div class="waiting-bar"><span></span></div>

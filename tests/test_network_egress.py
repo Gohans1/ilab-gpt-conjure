@@ -22,7 +22,7 @@ class _FakeUrlopenResponse:
         return 200
 
     @staticmethod
-    def read() -> bytes:
+    def read(_size: int = -1) -> bytes:
         return b"ok"
 
     def __enter__(self) -> "_FakeUrlopenResponse":
@@ -204,6 +204,48 @@ class NetworkEgressTransportTests(unittest.TestCase):
         self.assertEqual(response.body, b"ok")
         mocked_urlopen.assert_called_once()
         mocked_build_opener.assert_not_called()
+
+    def test_credentialed_transport_rejects_cross_origin_redirects(self) -> None:
+        from codex_image.http import _SameOriginRedirectHandler
+
+        for header_name in ("Authorization", "x-goog-api-key", "X-Api-Key", "Api-Key"):
+            with self.subTest(header_name=header_name):
+                captured_handlers, fake_build_opener = self._capture_openers()
+                with (
+                    patch(
+                        "codex_image.http.request.urlopen",
+                        return_value=_FakeUrlopenResponse(),
+                    ) as mocked_urlopen,
+                    patch(
+                        "codex_image.http.request.build_opener",
+                        fake_build_opener,
+                    ),
+                ):
+                    response = UrllibTransport().request(
+                        method="POST",
+                        url="https://provider.example/v1/images",
+                        headers={header_name: "secret"},
+                        body=b"{}",
+                    )
+
+                redirect_handler = next(
+                    handler
+                    for handlers in captured_handlers
+                    for handler in handlers
+                    if isinstance(handler, _SameOriginRedirectHandler)
+                )
+                redirected = redirect_handler.redirect_request(
+                    request.Request("https://provider.example/v1/images"),
+                    None,
+                    302,
+                    "Found",
+                    {},
+                    "https://attacker.example/collect",
+                )
+
+                self.assertEqual(response.body, b"ok")
+                self.assertIsNone(redirected)
+                mocked_urlopen.assert_not_called()
 
 
 class QueueAttemptNetworkEgressTests(unittest.TestCase):

@@ -24,16 +24,22 @@ def register_settings_routes(app: FastAPI, ctx: WebUIContext) -> None:
     def health() -> dict[str, Any]:
         auth_available = bool(ctx.auth_checker())
         queue_worker = getattr(app, "state", None) and getattr(app.state, "queue_worker_task", None)
+        queue_worker_running = bool(
+            queue_worker is not None and not queue_worker.done()
+        )
+        queue_health = ctx.queue_worker_health.snapshot()
         auth = h["auth_event_payload"]()
         return {
             "ok": True,
             "auth_available": auth_available,
             "auth": auth,
-            "input_root": str(ctx.input_root),
-            "output_root": str(ctx.output_root),
-            "gallery_root": str(ctx.gallery_root),
-            "source_data_root": str(ctx.source_data_root),
-            "queue_worker_running": bool(queue_worker is not None and not queue_worker.done()),
+            "queue": {
+                "status": queue_health["status"],
+                "worker_running": queue_worker_running,
+                "consecutive_failures": queue_health["consecutive_failures"],
+                "last_error_type": queue_health["last_error_type"],
+            },
+            "queue_worker_running": queue_worker_running,
         }
 
     @app.get("/api/app-version")
@@ -280,6 +286,7 @@ def register_settings_routes(app: FastAPI, ctx: WebUIContext) -> None:
         if ctx.queue_manager is not None:
             ctx.queue_manager.channels = channels
             ctx.queue_manager.max_attempts = h["queue_max_attempts_for_channels"](channels)
+            h["wake_queue_worker"]()
         return h["auth_status"](source)
 
     @app.get("/api/api-settings")
@@ -297,4 +304,5 @@ def register_settings_routes(app: FastAPI, ctx: WebUIContext) -> None:
             channels = h["queue_channels_for_source"]("api")
             ctx.queue_manager.channels = channels
             ctx.queue_manager.max_attempts = h["queue_max_attempts_for_channels"](channels)
+            h["wake_queue_worker"]()
         return {"settings": ctx.api_settings.public_settings()}

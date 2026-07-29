@@ -76,6 +76,7 @@ class WebUIGenerationTests(unittest.TestCase):
             "ru": "Установите соотношение сторон 9:16.",
             "it": "Imposta le proporzioni su 9:16.",
             "hi": "पक्षानुपात को 9:16 पर सेट करें।",
+            "vi": "Đặt tỷ lệ khung hình thành 9:16.",
         }
 
         for locale, instruction in expected.items():
@@ -234,7 +235,7 @@ class WebUIGenerationTests(unittest.TestCase):
             metadata = json.loads(metadata_path(root, task_id).read_text(encoding="utf-8"))
 
         self.assertTrue(fake.generate_calls[0]["web_search"])
-        self.assertIn("原始提示词模式", fake.generate_calls[0]["instructions"])
+        self.assertIsNone(fake.generate_calls[0]["instructions"])
         self.assertEqual(metadata["outputs"][0]["tool_usage"]["web_search"], {"num_requests": 1})
         self.assertEqual(metadata["tool_usages"][0]["web_search"], {"num_requests": 1})
     def test_index_and_static_assets_disable_browser_cache(self) -> None:
@@ -308,7 +309,7 @@ class WebUIGenerationTests(unittest.TestCase):
             response = TestClient(app).post(
                 "/api/generate",
                 data={"prompt": "reference", "size": "1024x1024", "codex_mode": "responses"},
-                files={"reference_images": ("input.png", b"input-bytes", "image/png")},
+                files={"reference_images": ("input.png", self._png_bytes(), "image/png")},
             )
             task_id = response.json()["task"]["task_id"]
             request_text = request_path(root, task_id).read_text(encoding="utf-8")
@@ -317,7 +318,10 @@ class WebUIGenerationTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertNotIn("data:image/", request_text)
         self.assertNotIn("base64", request_text)
-        self.assertEqual(request_payload["input"][0]["content"][1]["image_url"], "<redacted image data url, 38 chars>")
+        self.assertRegex(
+            request_payload["input"][0]["content"][1]["image_url"],
+            r"^<redacted image data url, \d+ chars>$",
+        )
         self.assertEqual(request_payload["webui_image_refs"]["input_files"], [])
         self.assertEqual(request_payload["webui_image_refs"]["reference_assets"][0]["filename"], "input.png")
     def test_edit_route_stores_slim_request_with_mask_reference(self) -> None:
@@ -330,8 +334,8 @@ class WebUIGenerationTests(unittest.TestCase):
                 "/api/edit",
                 data={"prompt": "edit reference", "size": "1024x1024", "codex_mode": "responses"},
                 files={
-                    "images": ("input.png", b"input-bytes", "image/png"),
-                    "mask": ("mask.png", b"mask-bytes", "image/png"),
+                    "images": ("input.png", self._png_bytes(), "image/png"),
+                    "mask": ("mask.png", self._png_bytes(), "image/png"),
                 },
             )
             task_id = response.json()["task"]["task_id"]
@@ -469,8 +473,7 @@ class WebUIGenerationTests(unittest.TestCase):
         self.assertEqual(task["prompt_for_model"], prompt)
         self.assertNotIn("prompt_constraints", task)
         self.assertEqual(body["request"]["input"][0]["content"][0]["text"], prompt)
-        self.assertIn("原始提示词模式", body["request"]["instructions"])
-        self.assertIn("不得优化", body["request"]["instructions"])
+        self.assertEqual(body["request"]["instructions"], "")
         self.assertNotIn("参考图 1", body["request"]["input"][0]["content"][0]["text"])
     def test_edit_route_enqueues_without_calling_client_inline(self) -> None:
         from codex_image.webui.app import create_app
@@ -481,7 +484,7 @@ class WebUIGenerationTests(unittest.TestCase):
             response = TestClient(app).post(
                 "/api/edit",
                 data={"prompt": "queued edit", "model": "gpt-image-2", "size": "1024x1024", "quality": "low", "output_format": "png"},
-                files={"images": ("input.png", b"input", "image/png")},
+                files={"images": ("input.png", self._png_bytes(), "image/png")},
             )
             task = response.json()["task"]
             metadata = json.loads(metadata_path(Path(tmp), task["task_id"]).read_text(encoding="utf-8"))
@@ -553,7 +556,7 @@ class WebUIGenerationTests(unittest.TestCase):
             response = TestClient(app, raise_server_exceptions=False).post(
                 "/api/edit",
                 data={"prompt": "queued edit without client", "model": "gpt-image-2", "size": "1024x1024", "quality": "low", "output_format": "png"},
-                files={"images": ("input.png", b"input", "image/png")},
+                files={"images": ("input.png", self._png_bytes(), "image/png")},
             )
             task = response.json()["task"]
 
@@ -573,6 +576,96 @@ class WebUIGenerationTests(unittest.TestCase):
 
         self.assertEqual(response.status_code, 400)
         self.assertEqual(task_files, [])
+
+    def test_invalid_generation_preflight_leaves_no_new_assets_task_or_queue_state(self) -> None:
+        from codex_image.webui.app import create_app
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            output_root = root / "outputs"
+            input_root = root / "inputs"
+            source_root = root / "source"
+            reference_asset_root = input_root / "reference-assets"
+            reference_file_root = input_root / "reference-files"
+            app = create_app(
+                output_root=output_root,
+                input_root=input_root,
+                source_data_root=source_root,
+                reference_asset_root=reference_asset_root,
+                reference_file_root=reference_file_root,
+                client_factory=lambda: FakeImageClient(),
+                auth_checker=lambda: True,
+                auto_start_queue=False,
+            )
+            existing = app.state.reference_asset_storage.create_or_touch(
+                "existing.png",
+                self._png_bytes((3, 2)),
+                "image/png",
+            )
+            before_existing = app.state.reference_asset_storage.read_item(
+                existing["id"]
+            )
+
+            response = TestClient(app).post(
+                "/api/generate",
+                data={
+                    "prompt": "must fail before commit",
+                    "canonical_model_id": "missing-model",
+                    "provider_id": "codex",
+                    "binding_id": "codex-gpt-image-2-responses",
+                    "parameters_json": "{}",
+                    "reference_asset_ids": existing["id"],
+                },
+                files=[
+                    (
+                        "reference_images",
+                        (
+                            "new.png",
+                            self._png_bytes((4, 3)),
+                            "image/png",
+                        ),
+                    ),
+                    (
+                        "reference_files",
+                        ("notes.txt", b"private notes", "text/plain"),
+                    ),
+                ],
+            )
+
+            after_existing = app.state.reference_asset_storage.read_item(
+                existing["id"]
+            )
+            reference_asset_ids = {
+                item["id"]
+                for item in app.state.reference_asset_storage.list_recent(
+                    limit=100
+                )
+            }
+            reference_file_entries = (
+                [path for path in reference_file_root.rglob("*") if path.is_file()]
+                if reference_file_root.exists()
+                else []
+            )
+            task_entries = (
+                [path for path in (source_root / "tasks").rglob("*")]
+                if (source_root / "tasks").exists()
+                else []
+            )
+            queue_waiting = app.state.queue_storage.read_state()["waiting"]
+            task_summaries = app.state.storage.task_index.list_summaries()
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(
+            response.json()["detail"]["code"],
+            "model_not_found",
+        )
+        self.assertEqual(after_existing, before_existing)
+        self.assertEqual(reference_asset_ids, {existing["id"]})
+        self.assertEqual(reference_file_entries, [])
+        self.assertEqual(task_entries, [])
+        self.assertEqual(queue_waiting, [])
+        self.assertEqual(task_summaries, [])
+
     def test_generate_route_exposes_input_urls(self) -> None:
         from codex_image.webui.app import create_app
 
@@ -589,7 +682,7 @@ class WebUIGenerationTests(unittest.TestCase):
                     "quality": "low",
                     "output_format": "png",
                 },
-                files={"reference_images": ("input.png", b"input-bytes", "image/png")},
+                files={"reference_images": ("input.png", self._png_bytes(), "image/png")},
             )
             task = response.json()["task"]
             list_response = client.get("/api/tasks")
@@ -610,8 +703,8 @@ class WebUIGenerationTests(unittest.TestCase):
                 "/api/generate",
                 data={"prompt": "dedupe reference", "size": "1024x1024"},
                 files=[
-                    ("reference_images", ("one.png", b"same-image-bytes", "image/png")),
-                    ("reference_images", ("two.png", b"same-image-bytes", "image/png")),
+                    ("reference_images", ("one.png", self._png_bytes(), "image/png")),
+                    ("reference_images", ("two.png", self._png_bytes(), "image/png")),
                 ],
             )
             body = response.json()
@@ -681,8 +774,8 @@ class WebUIGenerationTests(unittest.TestCase):
                     "codex_mode": "responses",
                 },
                 files={
-                    "images": ("input.png", b"input-bytes", "image/png"),
-                    "mask": ("mask.png", b"mask-bytes", "image/png"),
+                    "images": ("input.png", self._png_bytes(), "image/png"),
+                    "mask": ("mask.png", self._png_bytes(), "image/png"),
                 },
             )
             body = response.json()

@@ -24,7 +24,7 @@ export function initializeQueueFeature(): void {
   queueFeatureInitialized = true;
   exposeQueueWindowApi();
   bindQueueControls();
-  document.addEventListener(LOCALE_CHANGE_EVENT, renderQueue);
+  document.addEventListener(LOCALE_CHANGE_EVENT, () => renderQueue());
 }
 
 function exposeQueueWindowApi(): void {
@@ -93,9 +93,13 @@ export async function handleRealtimePayload(payload: RealtimePayload | null | un
     return;
   }
   if (payload?.type === "queue") {
-    applyQueueState(payload.queue);
-    await applyRealtimeTaskPayloads(payload.tasks || []);
+    const updatedTasks = payload.tasks || [];
+    applyQueueState(payload.queue, { deferTaskListRender: true });
+    await applyRealtimeTaskPayloads(updatedTasks);
     applyQueueTasks(payload.queue);
+    if (!updatedTasks.length && !queueTaskCount(payload.queue)) {
+      bridge.methods.renderTasks?.({ preserveScroll: true });
+    }
     return;
   }
   if (payload?.type === "task") {
@@ -148,14 +152,19 @@ export function invalidateQueueRequests(): void {
   getState().queueRequestSeq += 1;
 }
 
-export function applyQueueState(queue: QueueState | null | undefined): void {
+export function applyQueueState(
+  queue: QueueState | null | undefined,
+  { deferTaskListRender = false }: { deferTaskListRender?: boolean } = {},
+): void {
   const state = getState();
   invalidateQueueRequests();
   state.queue = normalizeQueueState(queue);
-  renderQueue();
+  renderQueue({ deferTaskListRender });
 }
 
-export function renderQueue(): void {
+export function renderQueue(
+  { deferTaskListRender = false }: { deferTaskListRender?: boolean } = {},
+): void {
   const bridge = getLegacyBridge();
   const state = bridge.state;
   const summary = state.queue.summary || {};
@@ -184,7 +193,14 @@ export function renderQueue(): void {
     return;
   }
   state.queueRenderKey = nextRenderKey;
-  renderActiveTaskGroupForQueueChange();
+  if (!deferTaskListRender) {
+    renderActiveTaskGroupForQueueChange();
+  }
+}
+
+function queueTaskCount(queue: QueueState | null | undefined): number {
+  return (Array.isArray(queue?.waiting) ? queue.waiting.length : 0)
+    + (Array.isArray(queue?.running) ? queue.running.length : 0);
 }
 
 function renderActiveTaskGroupForQueueChange(): void {
@@ -395,24 +411,18 @@ export function cancelRunningTask(button: Element, taskId: string | undefined): 
 
 async function performCancelRunningTask(taskId: string): Promise<void> {
   const bridge = getLegacyBridge();
-  const state = bridge.state;
   invalidateQueueRequests();
   try {
     const response = await fetch(`/api/queue/${encodeURIComponent(taskId)}`, { method: "DELETE" });
     const data = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(data.detail || translate("queue.cancelRunningFailed"));
-    applyQueueState({
-      ...state.queue,
-      running: state.queue.running.filter((item) => item.task_id !== taskId),
-      summary: {
-        ...(state.queue.summary || {}),
-        running_count: Math.max(0, Number(state.queue.summary?.running_count || 0) - 1),
-      },
-    });
     await refreshQueue();
     await bridge.methods.refreshTasks();
     bridge.methods.renderPreview();
-    bridge.methods.setStatus(translate("queue.runningCancelled"), "ok");
+    bridge.methods.setStatus(
+      data.cancellation_pending ? translate("queue.cancellationPending") : translate("queue.runningCancelled"),
+      data.cancellation_pending ? "running" : "ok",
+    );
   } catch (error: unknown) {
     bridge.methods.setStatus(errorMessage(error, translate("queue.cancelRunningFailed")), "error");
   }
@@ -531,7 +541,7 @@ function activeTasksNeedQueueReconcile(queueTaskIds: Set<string>): boolean {
     const taskId = String(task?.task_id || "");
     if (!taskId || queueTaskIds.has(taskId) || task?.local_pending) return false;
     const status = String(task?.status || "");
-    return status === "submitting" || status === "queued" || status === "running";
+    return status === "submitting" || status === "queued" || status === "running" || status === "cancelling";
   });
 }
 

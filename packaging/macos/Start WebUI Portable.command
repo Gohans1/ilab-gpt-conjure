@@ -99,6 +99,14 @@ wait_for_webui() {
   return 1
 }
 
+open_when_ready() {
+  if wait_for_webui; then
+    open "$URL" >/dev/null 2>&1 || true
+  else
+    echo "WebUI did not become ready within 30 seconds. Check ${LOG_FILE}."
+  fi
+}
+
 echo "Starting iLab CONJURE at ${URL}"
 echo "Data directory: ${DATA_DIR}"
 echo "Writing server log to ${LOG_FILE}"
@@ -109,13 +117,5 @@ if webui_is_ready; then
   exit 0
 fi
 
-"$PYTHON_BIN" -m uvicorn portable_webui_app:app --host 127.0.0.1 --port "$PORT" --no-access-log >> "$LOG_FILE" 2>&1 &
-SERVER_PID="$!"
-
-if wait_for_webui; then
-  open "$URL" >/dev/null 2>&1 || true
-else
-  echo "WebUI did not become ready within 30 seconds. Check ${LOG_FILE}."
-fi
-
-wait "$SERVER_PID"
+open_when_ready &
+exec "$PYTHON_BIN" -m codex_image.webui.server portable_webui_app:app --host 127.0.0.1 --port "$PORT" --no-access-log --timeout-graceful-shutdown 5 >> "$LOG_FILE" 2>&1

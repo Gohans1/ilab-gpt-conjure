@@ -6,7 +6,7 @@ import time
 from typing import Any, AsyncContextManager, Callable
 
 from codex_image.client import DEFAULT_MAIN_MODEL, CodexImagesImageClient, ImageResult, OpenAIImagesImageClient
-from codex_image.prompt_guard import build_original_prompt_instructions, build_prompt_guard_instructions
+from codex_image.prompt_guard import build_prompt_guard_instructions
 
 from .executor_inputs import (
     _file_to_data_url,
@@ -94,16 +94,10 @@ async def _execute_stored_task(
     params["main_model"] = effective_reference_file_main_model(params.get("main_model"))
     mode = str(metadata["mode"])
     prompt = str(metadata["prompt"])
-    model_prompt = append_ratio_prompt_instruction(str(metadata.get("prompt_for_model") or prompt), params.get("ratio"))
     prompt_fidelity = _normalize_prompt_fidelity(params.get("prompt_fidelity") or "off")
+    prompt_locale = str(metadata.get("prompt_locale") or "zh-CN")
     raw_constraints = metadata.get("prompt_constraints")
     prompt_constraints = [str(item) for item in raw_constraints] if isinstance(raw_constraints, list) else []
-    if prompt_fidelity == "strict":
-        guard_instructions = build_prompt_guard_instructions(prompt_constraints)
-    elif prompt_fidelity == "original":
-        guard_instructions = build_original_prompt_instructions()
-    else:
-        guard_instructions = ""
     assigned_auth_source = str(metadata.get("assigned_auth_source") or "")
     resolved_backend = str(metadata.get("backend") or metadata.get("requested_backend") or "")
     if resolved_backend in {"codex_responses", "openai_responses"}:
@@ -115,18 +109,47 @@ async def _execute_stored_task(
     else:
         effective_api_mode = _normalize_api_mode(params.get("api_mode"))
     web_search_enabled = bool(params.get("web_search")) and effective_api_mode == "responses"
-    transport_prompt = _prompt_for_transport(
-        model_prompt,
-        auth_source=assigned_auth_source,
-        api_mode=effective_api_mode,
-        prompt_fidelity=prompt_fidelity,
-        instructions=guard_instructions,
-    )
-    transport_instructions = _instructions_for_transport(
-        auth_source=assigned_auth_source,
-        api_mode=effective_api_mode,
-        instructions=guard_instructions,
-    )
+    if "execution_prompt" in metadata:
+        model_prompt = str(
+            metadata.get("execution_model_prompt")
+            or metadata.get("prompt_for_model")
+            or prompt
+        )
+        transport_prompt = str(metadata.get("execution_prompt") or "")
+        transport_instructions = (
+            str(metadata.get("execution_instructions") or "") or None
+        )
+    else:
+        if prompt_fidelity == "original":
+            model_prompt = prompt
+            guard_instructions = ""
+        else:
+            model_prompt = append_ratio_prompt_instruction(
+                str(metadata.get("prompt_for_model") or prompt),
+                params.get("ratio"),
+                locale=prompt_locale,
+            )
+            guard_instructions = (
+                build_prompt_guard_instructions(
+                    prompt_constraints,
+                    locale=prompt_locale,
+                )
+                if prompt_fidelity == "strict"
+                else ""
+            )
+        transport_prompt = _prompt_for_transport(
+            model_prompt,
+            auth_source=assigned_auth_source,
+            api_mode=effective_api_mode,
+            prompt_fidelity=prompt_fidelity,
+            instructions=guard_instructions,
+            locale=prompt_locale,
+        )
+        transport_instructions = _instructions_for_transport(
+            auth_source=assigned_auth_source,
+            api_mode=effective_api_mode,
+            instructions=guard_instructions,
+        )
     input_paths = [storage.input_path(str(name)) for name in metadata.get("input_files", [])]
 
     mask_name = metadata.get("mask_file")
@@ -248,6 +271,7 @@ async def _execute_stored_task(
 
             try:
                 async with semaphore:
+                    _raise_if_task_cancelled(storage, task_id)
                     request_slot = request_context(params) if request_context is not None else _noop_request_context()
                     async with request_slot:
                         slot_started_at = utc_now()
@@ -369,9 +393,16 @@ async def _execute_stored_task(
                 if isinstance(item.get("fatal_error"), Exception):
                     fatal_error = fatal_error or item["fatal_error"]
         except BaseException:
-            for task in tasks:
-                if not task.done():
-                    task.cancel()
+            current_task = asyncio.current_task()
+            externally_cancelled = bool(
+                current_task is not None and current_task.cancelling()
+            )
+            if _task_cancel_requested(storage, task_id) and not externally_cancelled:
+                await asyncio.gather(*tasks, return_exceptions=True)
+            else:
+                for task in tasks:
+                    if not task.done():
+                        task.cancel()
             raise
         if fatal_error is not None and (
             not results

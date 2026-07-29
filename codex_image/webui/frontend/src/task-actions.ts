@@ -333,7 +333,7 @@ function openTaskDeleteConfirm(deleteButton: any, taskId: any) {
   closePromptPopover();
   const task = state.tasks.find((item) => String(item.task_id) === String(taskId));
   if (!task) return;
-  if (task.status === "running" || task.local_pending) {
+  if (task.status === "running" || task.status === "cancelling" || task.local_pending) {
     setStatus(translate("taskActions.runningCannotDelete"), "error");
     return;
   }

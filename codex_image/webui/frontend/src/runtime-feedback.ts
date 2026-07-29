@@ -2,7 +2,7 @@ import { getLegacyBridge } from "./state";
 import { formatTranslation, translate } from "./i18n";
 import { cssEscape } from "./webui-utils";
 import type { WebUITask } from "./types";
-import { taskWasCancelled } from "./task-cancellation";
+import { taskCancellationPending, taskWasCancelled } from "./task-cancellation";
 
 function legacyMethod(name: string, ...args: any[]): any {
   const method = getLegacyBridge().methods[name];
@@ -55,6 +55,7 @@ export function updateTaskInState(task: WebUITask | null | undefined): boolean {
 export function formatTaskStatus(task: WebUITask | null | undefined): string {
   if (!task) return "";
   if (taskWasCancelled(task)) return translate("queue.runningCancelled");
+  if (taskCancellationPending(task)) return translate("taskStatus.cancelling");
   if (task.status === "submitting") return translate("taskStatus.submitting");
   if (task.status === "running") {
     const progressStartedAt = taskProgressStartValue(task);
@@ -70,6 +71,7 @@ export function formatTaskStatus(task: WebUITask | null | undefined): string {
 }
 
 export function formatTaskCardStatus(task: WebUITask | null | undefined): string {
+  if (taskCancellationPending(task)) return translate("taskStatus.cancelling");
   if (task?.status === "running" && !taskWasCancelled(task)) return translate("taskStatus.running");
   return formatTaskStatus(task);
 }
@@ -106,7 +108,7 @@ export function updateElapsedDisplays(): void {
   updatePreviewElapsedDisplay();
 }
 
-const ELAPSED_TICK_STATUSES = new Set(["submitting", "queued", "running"]);
+const ELAPSED_TICK_STATUSES = new Set(["submitting", "queued", "running", "cancelling"]);
 
 function taskNeedsElapsedTick(task: any): boolean {
   if (!task) return false;

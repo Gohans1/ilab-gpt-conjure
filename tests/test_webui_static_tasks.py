@@ -45,7 +45,7 @@ class WebUIStaticTaskTests(WebUIStaticTestCase):
         self.assertIn('id="historyMonthList"', history_html)
         self.assertIn('id="historyTaskList"', history_html)
         self.assertIn('id="historyDetail"', history_html)
-        self.assertIn('/static/history.js?v=history-79', history_html)
+        self.assertIn('/static/history.js?v=history-81', history_html)
         self.assertIn('fetch("/api/task-history/summary")', history_source)
         self.assertIn('new URLSearchParams', history_source)
         self.assertIn('/api/task-history/tasks?', history_source)
@@ -1358,6 +1358,10 @@ console.log(JSON.stringify({{
         self.assertRegex(styles, r"\.task-queue-action,\s*\.task-queue-drag-handle\s*\{[^}]*width:\s*24px")
         self.assertRegex(styles, r"\.task-queue-action,\s*\.task-queue-drag-handle\s*\{[^}]*padding:\s*0")
         self.assertRegex(styles, r"\.task-queue-action-icon\s*\{[^}]*stroke-linejoin:\s*round")
+        self.assertIn('<path d="M4 4h8v8H4z" />', render_source)
+        self.assertRegex(styles, r"\.task-queue-actions-running\s*\{[^}]*padding:\s*0")
+        self.assertRegex(styles, r"\.task-queue-actions-running\s*\{[^}]*border:\s*0")
+        self.assertRegex(styles, r"\.task-queue-actions-running\s*\{[^}]*background:\s*transparent")
         self.assertRegex(styles, r"\.task-queue-transparent-drag-image\s*\{[^}]*position:\s*fixed")
         self.assertRegex(styles, r"\.task-queue-transparent-drag-image\s*\{[^}]*pointer-events:\s*none")
         self.assertRegex(styles, r"\.task-queue-actions\s*\{[^}]*right:\s*12px")
@@ -1458,7 +1462,9 @@ console.log(JSON.stringify({{
         self.assertIn("function handleRealtimePayload", queue_source)
         self.assertIn("async function applyRealtimeTaskPayloads", queue_source)
         self.assertIn("applyTasksSnapshot", queue_source)
-        self.assertIn("await applyRealtimeTaskPayloads(payload.tasks || [])", queue_source)
+        self.assertIn("const updatedTasks = payload.tasks || [];", queue_source)
+        self.assertIn("await applyRealtimeTaskPayloads(updatedTasks)", queue_source)
+        self.assertIn("applyQueueState(payload.queue, { deferTaskListRender: true })", queue_source)
         self.assertIn("applyQueueTasks(payload.queue)", queue_source)
         self.assertIn("function applyQueueTasks", queue_source)
         self.assertIn("applyTaskUpdate", queue_source)
@@ -1485,7 +1491,10 @@ console.log(JSON.stringify({{
         self.assertIn("void getLegacyBridge().methods.refreshTasks({ migrateLegacyArchives: shouldMigrateArchives });", queue_source)
         self.assertIn("applyQueueState(payload.queue)", queue_source)
         self.assertIn("function activeTasksNeedQueueReconcile(", queue_source)
-        self.assertIn('status === "submitting" || status === "queued" || status === "running"', queue_source)
+        self.assertIn(
+            'status === "submitting" || status === "queued" || status === "running" || status === "cancelling"',
+            queue_source,
+        )
         self.assertIn("activeTasksNeedQueueReconcile(queueTaskIds)", queue_source)
         self.assertNotIn("function selectedTaskNeedsQueueReconcile(", queue_source)
         self.assertIn("void bridge.methods.refreshTasks();", queue_source)
@@ -1714,6 +1723,21 @@ console.log(JSON.stringify({{
         self.assertIn(".task-notification-toast-region", styles)
         self.assertIn(".task-notification-thumb", styles)
 
+    def test_task_completion_toast_stays_above_image_lightboxes(self) -> None:
+        styles = Path("codex_image/webui/static/styles.css").read_text(encoding="utf-8")
+
+        def z_index(selector: str) -> int:
+            match = re.search(
+                rf"{re.escape(selector)}\s*\{{[^}}]*z-index:\s*(\d+)",
+                styles,
+            )
+            self.assertIsNotNone(match, f"missing z-index for {selector}")
+            return int(match.group(1))
+
+        toast_z_index = z_index(".task-notification-toast-region")
+        self.assertGreater(toast_z_index, z_index(".lightbox"))
+        self.assertGreater(toast_z_index, z_index(".history-lightbox"))
+
     def test_task_feature_has_typescript_source_contract(self) -> None:
         task_source = self._task_source()
         legacy_source = self._bootstrap_source()
@@ -1886,6 +1910,7 @@ console.log(JSON.stringify({{
     def test_submit_and_queued_tasks_show_waiting_preview(self) -> None:
         source = self._task_preview_source()
         script = self._frontend_script_source()
+        styles = Path("codex_image/webui/static/styles/71-preview-results.css").read_text(encoding="utf-8")
 
         self.assertIn('status: "submitting"', script)
         self.assertIn('if (task.status === "submitting") return translate("taskStatus.submitting");', script)
@@ -1895,7 +1920,15 @@ console.log(JSON.stringify({{
         self.assertIn("function renderWaitingPreview", script)
         self.assertIn('translate("preview.submittingTitle")', script)
         self.assertIn('translate("preview.queuedTitle")', script)
+        self.assertNotIn("const detail = submitting", source)
+        self.assertNotIn("${escapeHtml(detail)}", source)
         self.assertNotIn('els.runButton.textContent = "提交中...";', script)
+        self.assertRegex(
+            styles,
+            r"\.empty-preview,\s*\.waiting-preview\s*\{"
+            r"[^}]*width:\s*min\(100%,\s*620px\)"
+            r"[^}]*min-height:\s*228px",
+        )
     def test_preview_uses_queue_membership_for_running_state(self) -> None:
         source = self._task_preview_source()
 
@@ -2122,6 +2155,8 @@ console.log(JSON.stringify({{
         self.assertRegex(styles, r"\.task-delete-button\s*\{[^}]*background:\s*var\(--surface-soft\)")
         self.assertRegex(styles, r"\.task-delete-button\s*\{[^}]*color:\s*var\(--text-secondary\)")
         self.assertRegex(styles, r"\.task-action-icon\s*\{[^}]*display:\s*block")
+        self.assertRegex(styles, r"\.task-action-icon\s*\{[^}]*width:\s*14px")
+        self.assertRegex(styles, r"\.task-action-icon\s*\{[^}]*height:\s*14px")
         self.assertRegex(styles, r"\.task-action-icon\s*\{[^}]*stroke-linecap:\s*round")
         self.assertRegex(styles, r"\.task-card:hover\s+\.task-card-actions\s*,\s*\.task-card:focus-within\s+\.task-card-actions")
         self.assertRegex(styles, r"\.task-delete-button:hover\s*,\s*\.task-delete-button:focus-visible\s*\{[^}]*color:\s*var\(--danger\)")
@@ -2655,6 +2690,7 @@ console.log(JSON.stringify({{
         self.assertRegex(styles, r"\.run-button\.running::before\s*\{[^}]*conic-gradient")
 
     def test_generation_progress_uses_dual_relay_arcs(self) -> None:
+        render_source = self._task_list_render_source()
         source_styles = Path("codex_image/webui/static/styles/20-tasks.css").read_text(encoding="utf-8")
         support_styles = Path("codex_image/webui/static/styles/75-gallery-card-image-editor.css").read_text(encoding="utf-8")
         styles = Path("codex_image/webui/static/styles.css").read_text(encoding="utf-8")
@@ -2675,6 +2711,11 @@ console.log(JSON.stringify({{
 
         self.assertNotIn("spinner-breathe", source_styles)
         self.assertNotIn("@keyframes spinner-breathe", support_styles)
+        self.assertIn("function taskThumbSpinnerStyle(task: any)", render_source)
+        self.assertIn("--task-spinner-outer-delay", render_source)
+        self.assertIn("--task-spinner-inner-delay", render_source)
+        self.assertRegex(source_styles, r"animation-delay:\s*var\(--task-spinner-outer-delay,\s*0ms\)")
+        self.assertRegex(source_styles, r"animation-delay:\s*var\(--task-spinner-inner-delay,\s*-280ms\)")
 
     def test_running_preview_shows_failed_slot_reason(self) -> None:
         source = self._task_preview_source()
@@ -2914,6 +2955,8 @@ console.log(JSON.stringify({{
         self.assertIn('if (taskWasCancelled(task)) return translate("queue.runningCancelled")', script)
         self.assertIn("if (taskWasCancelled(nextTask)) return;", script)
         self.assertIn('error === USER_CANCELLATION_ERROR', script)
+        self.assertIn("taskCancellationPending", script)
+        self.assertIn('translate("queue.cancellationPending")', script)
         self.assertIn("task-cancelled-thumb", script)
         self.assertRegex(styles, r"\.task-cancelled-thumb\s*\{[^}]*background:\s*var\(--surface-soft\)")
         self.assertIn("event.shiftKey", script)

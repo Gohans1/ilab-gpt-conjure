@@ -1346,6 +1346,7 @@ button, input, select, textarea {
   -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #111 calc(100% - 2px));
   mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #111 calc(100% - 2px));
   animation: generation-relay-spin 1.3s linear infinite;
+  animation-delay: var(--task-spinner-outer-delay, 0ms);
   opacity: 0.96;
 }
 
@@ -1361,7 +1362,7 @@ button, input, select, textarea {
   -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #111 calc(100% - 1px));
   mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #111 calc(100% - 1px));
   animation: generation-relay-spin-reverse 0.95s linear infinite;
-  animation-delay: -0.28s;
+  animation-delay: var(--task-spinner-inner-delay, -280ms);
   opacity: 0.9;
 }
 
@@ -1460,6 +1461,7 @@ button, input, select, textarea {
   -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #111 calc(100% - 3px));
   mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #111 calc(100% - 3px));
   animation: generation-relay-spin 1.3s linear infinite;
+  animation-delay: var(--task-spinner-outer-delay, 0ms);
   opacity: 0.96;
 }
 
@@ -1475,7 +1477,7 @@ button, input, select, textarea {
   -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #111 calc(100% - 2px));
   mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #111 calc(100% - 2px));
   animation: generation-relay-spin-reverse 0.95s linear infinite;
-  animation-delay: -0.28s;
+  animation-delay: var(--task-spinner-inner-delay, -280ms);
   opacity: 0.9;
 }
 
@@ -1664,8 +1666,8 @@ button, input, select, textarea {
 
 .task-action-icon {
   display: block;
-  width: 12px;
-  height: 12px;
+  width: 14px;
+  height: 14px;
   fill: none;
   stroke: currentColor;
   stroke-width: 2;
@@ -1701,6 +1703,12 @@ button, input, select, textarea {
     opacity var(--motion-base),
     transform var(--motion-base),
     border-color var(--motion-base);
+}
+
+.task-queue-actions-running {
+  padding: 0;
+  border: 0;
+  background: transparent;
 }
 
 .task-card:hover .task-queue-actions,
@@ -2515,7 +2523,7 @@ button, input, select, textarea {
   position: fixed;
   right: 22px;
   bottom: 22px;
-  z-index: 9400;
+  z-index: 10020;
   display: grid;
   gap: 10px;
   width: min(340px, calc(100vw - 24px));
@@ -4095,8 +4103,10 @@ select.themed-select-native {
 .recent-asset-list {
   display: flex;
   gap: 6px;
+  min-width: 0;
+  box-sizing: border-box;
   overflow-x: auto;
-  padding-bottom: 0;
+  padding: 5px 4px 0 0;
   overscroll-behavior-inline: contain;
   scrollbar-width: none;
   -ms-overflow-style: none;
@@ -4180,6 +4190,18 @@ select.themed-select-native {
 .recent-asset-delete:focus-visible {
   border-color: color-mix(in srgb, var(--danger) 62%, transparent);
   background: color-mix(in srgb, var(--danger) 16%, var(--surface));
+}
+
+.recent-asset-delete.is-hide {
+  border-color: color-mix(in srgb, var(--primary) 34%, transparent);
+  background: var(--primary-light);
+  color: var(--primary-strong);
+}
+
+.recent-asset-delete.is-hide:hover,
+.recent-asset-delete.is-hide:focus-visible {
+  border-color: color-mix(in srgb, var(--primary) 62%, transparent);
+  background: color-mix(in srgb, var(--primary) 18%, var(--surface));
 }
 
 .image-upload-source {
@@ -8918,10 +8940,14 @@ body.lightbox-open {
   backdrop-filter: blur(8px);
 }
 
-.empty-preview {
+.empty-preview,
+.waiting-preview {
   grid-column: 1 / -1;
-  width: min(100%, 520px);
-  min-height: 220px;
+  width: min(100%, 620px);
+  min-height: 228px;
+}
+
+.empty-preview {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -8954,9 +8980,6 @@ body.lightbox-open {
 }
 
 .waiting-preview {
-  grid-column: 1 / -1;
-  width: min(100%, 620px);
-  min-height: 220px;
   border-radius: 10px;
   border: 1px solid color-mix(in srgb, var(--primary) 28%, var(--line));
   background:

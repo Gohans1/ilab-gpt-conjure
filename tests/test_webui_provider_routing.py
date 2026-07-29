@@ -11,11 +11,19 @@ from fastapi.testclient import TestClient
 
 class WebUIProviderRoutingTests(unittest.TestCase):
     @staticmethod
-    def _png_bytes() -> bytes:
+    def _png_bytes(marker: str | None = None) -> bytes:
         from PIL import Image
+        from PIL.PngImagePlugin import PngInfo
 
         buffer = io.BytesIO()
-        Image.new("RGB", (2, 2), "white").save(buffer, format="PNG")
+        png_info = PngInfo()
+        if marker:
+            png_info.add_text("marker", marker)
+        Image.new("RGB", (2, 2), "white").save(
+            buffer,
+            format="PNG",
+            pnginfo=png_info,
+        )
         return buffer.getvalue()
 
     def assert_no_secret_field(self, value) -> None:
@@ -335,7 +343,13 @@ class WebUIProviderRoutingTests(unittest.TestCase):
             response = TestClient(app).post(
                 "/api/generate",
                 data={"prompt": "PRIVATE-PROMPT-MARKER", "size": "1024x1024", "quality": "low"},
-                files={"reference_images": ("marker.png", marker, "image/png")},
+                files={
+                    "reference_images": (
+                        "marker.png",
+                        self._png_bytes(marker.decode("ascii")),
+                        "image/png",
+                    )
+                },
             )
             task_id = response.json()["task"]["task_id"]
             metadata = app.state.storage.read_metadata(task_id)
@@ -432,6 +446,122 @@ class WebUIProviderRoutingTests(unittest.TestCase):
         self.assertEqual(fake.generate_calls[0]["quality"], "high")
         self.assertEqual(fake.generate_calls[0]["output_format"], "jpeg")
         self.assertEqual(fake.generate_calls[0]["background"], "opaque")
+
+    def test_queue_worker_uses_frozen_localized_prompt_without_retranslation(self) -> None:
+        import asyncio
+        from tests.webui_helpers import FakeImageClient
+
+        prompt = "A quiet editorial portrait"
+        expected_prompt = f"{prompt}\n\nSet the aspect ratio to 9:16."
+        with tempfile.TemporaryDirectory() as tmp:
+            app = self._app(Path(tmp))
+            fake = FakeImageClient()
+            app.state.ctx.client_factory = lambda: fake
+            app.state.client_factory = app.state.ctx.client_factory
+            response = TestClient(app).post(
+                "/api/generate",
+                data={
+                    "prompt": prompt,
+                    "canonical_model_id": "gpt-image-2",
+                    "provider_id": "codex",
+                    "binding_id": "codex-gpt-image-2-images",
+                    "parameters_json": json.dumps(
+                        {"canvas.size": "864x1536", "output.count": 1}
+                    ),
+                    "prompt_fidelity": "off",
+                    "ui_language": "en",
+                },
+            )
+            task_id = response.json()["task"]["task_id"]
+            metadata = app.state.storage.read_metadata(task_id)
+            metadata["params"]["ratio"] = "1:1"
+            app.state.storage.write_metadata(task_id, metadata)
+
+            asyncio.run(app.state.queue_manager.run_available_once())
+            completed = app.state.storage.read_metadata(task_id)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["request"]["prompt"], expected_prompt)
+        self.assertEqual(metadata["execution_prompt"], expected_prompt)
+        self.assertEqual(fake.generate_calls[0]["prompt"], expected_prompt)
+        self.assertEqual(completed["prompt_for_model"], expected_prompt)
+        self.assertNotIn("将宽高比设为", fake.generate_calls[0]["prompt"])
+
+    def test_original_mode_sends_exact_prompt_without_ratio_or_app_instructions(self) -> None:
+        import asyncio
+        from tests.webui_helpers import FakeImageClient
+
+        prompt = "Keep this text byte-for-byte: café"
+        with tempfile.TemporaryDirectory() as tmp:
+            app = self._app(Path(tmp))
+            fake = FakeImageClient()
+            app.state.ctx.client_factory = lambda: fake
+            app.state.client_factory = app.state.ctx.client_factory
+            response = TestClient(app).post(
+                "/api/generate",
+                data={
+                    "prompt": prompt,
+                    "canonical_model_id": "gpt-image-2",
+                    "provider_id": "codex",
+                    "binding_id": "codex-gpt-image-2-responses",
+                    "parameters_json": json.dumps(
+                        {"canvas.size": "864x1536", "output.count": 1}
+                    ),
+                    "prompt_fidelity": "original",
+                    "ui_language": "en",
+                },
+            )
+            task_id = response.json()["task"]["task_id"]
+            metadata = app.state.storage.read_metadata(task_id)
+
+            asyncio.run(app.state.queue_manager.run_available_once())
+
+        request = response.json()["request"]
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(request["input"][0]["content"][0]["text"], prompt)
+        self.assertEqual(request["instructions"], "")
+        self.assertEqual(metadata["execution_prompt"], prompt)
+        self.assertEqual(metadata["execution_instructions"], "")
+        self.assertEqual(fake.generate_calls[0]["prompt"], prompt)
+        self.assertIsNone(fake.generate_calls[0]["instructions"])
+
+    def test_english_faithful_mode_uses_only_english_app_guidance(self) -> None:
+        import asyncio
+        from tests.webui_helpers import FakeImageClient
+
+        prompt = "Keep the title blue and do not add a watermark."
+        with tempfile.TemporaryDirectory() as tmp:
+            app = self._app(Path(tmp))
+            fake = FakeImageClient()
+            app.state.ctx.client_factory = lambda: fake
+            app.state.client_factory = app.state.ctx.client_factory
+            response = TestClient(app).post(
+                "/api/generate",
+                data={
+                    "prompt": prompt,
+                    "canonical_model_id": "gpt-image-2",
+                    "provider_id": "codex",
+                    "binding_id": "codex-gpt-image-2-images",
+                    "parameters_json": json.dumps(
+                        {"canvas.size": "1024x1024", "output.count": 1}
+                    ),
+                    "prompt_fidelity": "strict",
+                    "ui_language": "en",
+                },
+            )
+            task_id = response.json()["task"]["task_id"]
+
+            asyncio.run(app.state.queue_manager.run_available_once())
+
+        preview_prompt = response.json()["request"]["prompt"]
+        actual_prompt = fake.generate_calls[0]["prompt"]
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(actual_prompt, preview_prompt)
+        self.assertIn("Prompt fidelity guidance:", actual_prompt)
+        self.assertIn("Original user prompt:", actual_prompt)
+        self.assertIn(prompt, actual_prompt)
+        self.assertNotIn("提示词保真规则", actual_prompt)
+        self.assertNotIn("用户原始提示词", actual_prompt)
 
     def test_canonical_output_uses_provider_asset_format_and_metadata(self) -> None:
         import asyncio
@@ -680,6 +810,132 @@ class WebUIProviderRoutingTests(unittest.TestCase):
         self.assertEqual(metadata["generation_snapshot"]["remote_model_id"], "relay/model-before")
         self.assertNotIn("unit-test-secret", json.dumps(metadata))
 
+    def test_queued_snapshot_rejects_current_key_after_provider_origin_change(self) -> None:
+        from codex_image.generation.errors import GenerationProviderError
+        from codex_image.providers.registry import default_registry
+        from codex_image.webui.queue_runtime import _validated_snapshot_plan
+
+        settings = {
+            "schema_version": 2,
+            "codex_mode": "images",
+            "active_provider_id": "relay",
+            "default_provider_by_model": {"gpt-image-2": "relay"},
+            "providers": [{
+                "id": "relay",
+                "name": "Relay",
+                "base_url": "https://before.example/v1",
+                "api_key": "old-origin-secret",
+                "concurrency": 2,
+                "bindings": [{
+                    "id": "relay-gpt",
+                    "canonical_model_id": "gpt-image-2",
+                    "remote_model_id": "relay/model",
+                    "protocol_profile": "openai_images",
+                    "parameter_codec": "gpt_openai_images",
+                    "operations": ["generate", "edit"],
+                }],
+            }],
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            app = self._app(root, api_settings=settings)
+            client = TestClient(app)
+            response = client.post(
+                "/api/generate",
+                data={
+                    "prompt": "origin-bound queue",
+                    "canonical_model_id": "gpt-image-2",
+                    "provider_id": "relay",
+                    "parameters_json": json.dumps({
+                        "canvas.size": "1024x1024",
+                        "gpt.quality": "low",
+                        "gpt.background": "auto",
+                        "output.format": "png",
+                        "gpt.moderation": "auto",
+                        "output.count": 1,
+                    }),
+                },
+            )
+            task_id = response.json()["task"]["task_id"]
+            metadata = app.state.storage.read_metadata(task_id)
+            changed = json.loads(json.dumps(settings))
+            changed["providers"][0]["base_url"] = "https://after.example/v1"
+            changed["providers"][0]["api_key"] = "new-origin-secret"
+            app.state.api_settings.write(changed)
+
+            with self.assertRaises(GenerationProviderError) as raised:
+                _validated_snapshot_plan(
+                    app.state.ctx,
+                    metadata,
+                    registry=default_registry(),
+                )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(raised.exception.detail.code, "provider_credentials_origin_changed")
+        self.assertFalse(raised.exception.detail.retryable)
+        self.assertNotIn("old-origin-secret", str(raised.exception))
+        self.assertNotIn("new-origin-secret", str(raised.exception))
+
+    def test_queued_snapshot_allows_same_origin_path_change_with_current_key(self) -> None:
+        from codex_image.providers.registry import default_registry
+        from codex_image.webui.queue_runtime import _validated_snapshot_plan
+
+        settings = {
+            "schema_version": 2,
+            "codex_mode": "images",
+            "active_provider_id": "relay",
+            "default_provider_by_model": {"gpt-image-2": "relay"},
+            "providers": [{
+                "id": "relay",
+                "name": "Relay",
+                "base_url": "https://relay.example/v1",
+                "api_key": "old-key",
+                "concurrency": 2,
+                "bindings": [{
+                    "id": "relay-gpt",
+                    "canonical_model_id": "gpt-image-2",
+                    "remote_model_id": "relay/model",
+                    "protocol_profile": "openai_images",
+                    "parameter_codec": "gpt_openai_images",
+                    "operations": ["generate", "edit"],
+                }],
+            }],
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            app = self._app(root, api_settings=settings)
+            response = TestClient(app).post(
+                "/api/generate",
+                data={
+                    "prompt": "same origin queue",
+                    "canonical_model_id": "gpt-image-2",
+                    "provider_id": "relay",
+                    "parameters_json": json.dumps({
+                        "canvas.size": "1024x1024",
+                        "gpt.quality": "low",
+                        "gpt.background": "auto",
+                        "output.format": "png",
+                        "gpt.moderation": "auto",
+                        "output.count": 1,
+                    }),
+                },
+            )
+            metadata = app.state.storage.read_metadata(response.json()["task"]["task_id"])
+            changed = json.loads(json.dumps(settings))
+            changed["providers"][0]["base_url"] = "https://relay.example/v2"
+            changed["providers"][0]["api_key"] = "current-key"
+            app.state.api_settings.write(changed)
+
+            plan = _validated_snapshot_plan(
+                app.state.ctx,
+                metadata,
+                registry=default_registry(),
+            )
+
+        self.assertIsNotNone(plan)
+        self.assertEqual(plan.provider.base_url, "https://relay.example/v1")
+        self.assertEqual(plan.provider.api_key, "current-key")
+
     def test_structured_error_sanitizes_prompt_and_credentials(self) -> None:
         from codex_image.generation.errors import provider_error, provider_error_from_exception
 
@@ -695,7 +951,7 @@ class WebUIProviderRoutingTests(unittest.TestCase):
         stable_codes = {
             "authentication_failed", "rate_limited", "invalid_parameters",
             "operation_unsupported", "upstream_error", "asset_download_failed",
-            "request_timeout",
+            "request_timeout", "provider_credentials_origin_changed",
         }
         for code in stable_codes:
             with self.subTest(code=code):

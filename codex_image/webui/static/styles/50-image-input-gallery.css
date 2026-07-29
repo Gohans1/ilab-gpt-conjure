@@ -349,8 +349,10 @@
 .recent-asset-list {
   display: flex;
   gap: 6px;
+  min-width: 0;
+  box-sizing: border-box;
   overflow-x: auto;
-  padding-bottom: 0;
+  padding: 5px 4px 0 0;
   overscroll-behavior-inline: contain;
   scrollbar-width: none;
   -ms-overflow-style: none;
@@ -434,6 +436,18 @@
 .recent-asset-delete:focus-visible {
   border-color: color-mix(in srgb, var(--danger) 62%, transparent);
   background: color-mix(in srgb, var(--danger) 16%, var(--surface));
+}
+
+.recent-asset-delete.is-hide {
+  border-color: color-mix(in srgb, var(--primary) 34%, transparent);
+  background: var(--primary-light);
+  color: var(--primary-strong);
+}
+
+.recent-asset-delete.is-hide:hover,
+.recent-asset-delete.is-hide:focus-visible {
+  border-color: color-mix(in srgb, var(--primary) 62%, transparent);
+  background: color-mix(in srgb, var(--primary) 18%, var(--surface));
 }
 
 .image-upload-source {

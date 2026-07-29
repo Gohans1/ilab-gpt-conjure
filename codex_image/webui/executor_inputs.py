@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import base64
+import hashlib
 import mimetypes
 from io import BytesIO
 from pathlib import Path
@@ -33,7 +34,20 @@ _PIL_FORMAT_MIME_TYPES = {
 
 def _file_to_data_url(path: Path, *, mime_type: str | None = None) -> str:
     data = path.read_bytes()
-    resolved_mime_type = _image_mime_type(mime_type, path.name, data) or "application/octet-stream"
+    return _bytes_to_data_url(
+        data,
+        filename=path.name,
+        mime_type=mime_type,
+    )
+
+
+def _bytes_to_data_url(
+    data: bytes,
+    *,
+    filename: str,
+    mime_type: str | None = None,
+) -> str:
+    resolved_mime_type = _image_mime_type(mime_type, filename, data) or "application/octet-stream"
     request_data, request_mime_type = _request_image_payload(data, resolved_mime_type)
     return f"data:{request_mime_type};base64,{base64.b64encode(request_data).decode('ascii')}"
 
@@ -109,6 +123,7 @@ def _resolve_reference_assets(
     asset_ids: list[str],
     *,
     touch: bool = True,
+    include_data_urls: bool = True,
 ) -> tuple[list[dict[str, Any]], list[str]]:
     refs: list[dict[str, Any]] = []
     data_urls: list[str] = []
@@ -121,11 +136,17 @@ def _resolve_reference_assets(
         except FileNotFoundError as exc:
             raise HTTPException(status_code=404, detail=f"Reference asset not found: {asset_id}") from exc
         refs.append(_reference_asset_response(item))
-        data_urls.append(_file_to_data_url(path, mime_type=str(item.get("mime_type") or "")))
+        if include_data_urls:
+            data_urls.append(_file_to_data_url(path, mime_type=str(item.get("mime_type") or "")))
     return refs, data_urls
 
 
-def _resolve_gallery_refs(gallery_storage: GalleryStorage, item_ids: list[str]) -> tuple[list[dict[str, Any]], list[str]]:
+def _resolve_gallery_refs(
+    gallery_storage: GalleryStorage,
+    item_ids: list[str],
+    *,
+    include_data_urls: bool = True,
+) -> tuple[list[dict[str, Any]], list[str]]:
     refs: list[dict[str, Any]] = []
     data_urls: list[str] = []
     for item_id in _dedupe_preserve_order(item_ids):
@@ -134,8 +155,13 @@ def _resolve_gallery_refs(gallery_storage: GalleryStorage, item_ids: list[str]) 
             path = gallery_storage.image_path(item_id)
         except (FileNotFoundError, ValueError) as exc:
             raise HTTPException(status_code=404, detail=f"Gallery item not found: {item_id}") from exc
+        item = dict(item)
+        item["size_bytes"] = path.stat().st_size
+        with path.open("rb") as handle:
+            item["sha256"] = hashlib.file_digest(handle, "sha256").hexdigest()
         refs.append(_gallery_ref_response(item))
-        data_urls.append(_file_to_data_url(path, mime_type=str(item.get("mime_type") or "")))
+        if include_data_urls:
+            data_urls.append(_file_to_data_url(path, mime_type=str(item.get("mime_type") or "")))
     return refs, data_urls
 
 

@@ -1770,10 +1770,15 @@ impl WebUiService {
         if !dependency_probe(&python, &self.config.app_dir)? {
             self.run_logged_command(
                 command_with_no_window(&python)
-                    .args(["-m", "pip", "install", "-r"])
+                    .args(["-m", "pip", "install", "--require-hashes", "-r"])
                     .arg(self.config.app_dir.join("requirements-webui.txt")),
                 "install WebUI dependencies",
             )?;
+            if !dependency_probe(&python, &self.config.app_dir)? {
+                return Err(anyhow!(
+                    "WebUI dependency verification failed after installation"
+                ));
+            }
         }
 
         Ok(python)
@@ -1796,13 +1801,15 @@ impl WebUiService {
         command
             .args([
                 "-m",
-                "uvicorn",
+                "codex_image.webui.server",
                 self.config.uvicorn_app(),
                 "--host",
                 "127.0.0.1",
                 "--port",
                 &self.config.port.to_string(),
                 "--no-access-log",
+                "--timeout-graceful-shutdown",
+                "5",
             ])
             .current_dir(&self.config.app_dir)
             .env("ILAB_CONJURE_DATA_DIR", &self.config.data_dir)
@@ -1815,9 +1822,7 @@ impl WebUiService {
             .stdout(Stdio::from(log))
             .stderr(Stdio::from(err_log));
 
-        let child = command
-            .spawn()
-            .context("failed to start Uvicorn WebUI service")?;
+        let child = command.spawn().context("failed to start WebUI service")?;
         self.child = Some(child);
         Ok(())
     }
@@ -1935,15 +1940,22 @@ pub fn rabbit_icon_rgba(size: u32) -> (Vec<u8>, u32, u32) {
     let white = [0xFF, 0xFF, 0xFF, 0xFF];
     let transparent = [0x00, 0x00, 0x00, 0x00];
 
-    fill_rotated_ellipse(&mut rgba, size, 8.3, 6.3, 1.45, 4.15, -9.0, white);
-    fill_rotated_ellipse(&mut rgba, size, 12.7, 6.6, 1.35, 4.25, 36.0, white);
+    fill_rotated_ellipse(&mut rgba, size, (8.3, 6.3), (1.45, 4.15), -9.0, white);
+    fill_rotated_ellipse(&mut rgba, size, (12.7, 6.6), (1.35, 4.25), 36.0, white);
     fill_ellipse(&mut rgba, size, 14.4, 15.6, 6.3, 4.8, white);
     fill_ellipse(&mut rgba, size, 8.9, 12.4, 4.6, 4.25, white);
     fill_ellipse(&mut rgba, size, 19.3, 13.9, 1.85, 1.95, white);
     fill_ellipse(&mut rgba, size, 9.4, 19.1, 2.7, 1.15, white);
     fill_ellipse(&mut rgba, size, 15.3, 19.2, 3.2, 1.15, white);
-    fill_rotated_ellipse(&mut rgba, size, 8.2, 5.9, 0.52, 2.25, -9.0, transparent);
-    fill_rotated_ellipse(&mut rgba, size, 12.45, 6.0, 0.48, 2.15, 36.0, transparent);
+    fill_rotated_ellipse(&mut rgba, size, (8.2, 5.9), (0.52, 2.25), -9.0, transparent);
+    fill_rotated_ellipse(
+        &mut rgba,
+        size,
+        (12.45, 6.0),
+        (0.48, 2.15),
+        36.0,
+        transparent,
+    );
     fill_ellipse(&mut rgba, size, 7.45, 11.7, 0.72, 0.72, transparent);
 
     (rgba, size, size)
@@ -1974,14 +1986,14 @@ fn fill_ellipse(rgba: &mut [u8], size: u32, cx: f32, cy: f32, rx: f32, ry: f32, 
 fn fill_rotated_ellipse(
     rgba: &mut [u8],
     size: u32,
-    cx: f32,
-    cy: f32,
-    rx: f32,
-    ry: f32,
+    center: (f32, f32),
+    radii: (f32, f32),
     angle_degrees: f32,
     color: [u8; 4],
 ) {
     let scale = size as f32 / RABBIT_ICON_SOURCE_VIEWBOX;
+    let (cx, cy) = center;
+    let (rx, ry) = radii;
     let cx = (cx + RABBIT_ICON_MENU_BAR_X_OFFSET) * scale;
     let cy = (cy + RABBIT_ICON_MENU_BAR_Y_OFFSET) * scale;
     let rx = rx * scale;
@@ -2005,8 +2017,8 @@ fn fill_rotated_ellipse(
 
 fn dependency_probe(python: &Path, app_dir: &Path) -> Result<bool> {
     let status = command_with_no_window(python)
-        .arg("-c")
-        .arg("import fastapi, uvicorn, multipart, httpx, PIL")
+        .args(["-m", "codex_image.dependency_check", "--requirements"])
+        .arg(app_dir.join("requirements-webui.txt"))
         .current_dir(app_dir)
         .env("PYTHONPATH", python_path_for_app(app_dir))
         .stdout(Stdio::null())

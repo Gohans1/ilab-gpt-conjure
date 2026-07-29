@@ -20,6 +20,7 @@ from unittest.mock import patch
 from urllib import error as urllib_error
 
 from fastapi.testclient import TestClient
+from PIL import Image
 
 from tests.webui_helpers import (
     AlwaysFailQueueTestExecutor,
@@ -67,6 +68,12 @@ def _fake_jwt(payload: dict[str, object]) -> str:
 
 
 class WebUISettingsTests(unittest.TestCase):
+    def _png_bytes(self) -> bytes:
+        image = Image.new("RGB", (12, 8), (80, 130, 180))
+        buffer = BytesIO()
+        image.save(buffer, format="PNG")
+        return buffer.getvalue()
+
     def test_api_responses_slot_claim_admits_larger_task_into_remaining_provider_capacity(self) -> None:
         from codex_image.webui.queue import QueueChannel
         from codex_image.webui.queue_runtime import _api_responses_task_slot_claim
@@ -159,6 +166,40 @@ class WebUISettingsTests(unittest.TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertFalse(response.json()["auth_available"])
+
+    def test_health_omits_local_paths_and_reports_sanitized_queue_health(self) -> None:
+        from codex_image.webui.app import create_app
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            app = create_app(
+                output_root=root / "private-output",
+                auth_checker=lambda: True,
+                auto_start_queue=False,
+            )
+            for _ in range(3):
+                app.state.queue_worker_health.record_failure(
+                    RuntimeError(
+                        f"prompt secret in {root / 'private-output'}"
+                    )
+                )
+
+            response = TestClient(app).get("/api/health")
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual(
+            payload["queue"],
+            {
+                "status": "unhealthy",
+                "worker_running": False,
+                "consecutive_failures": 3,
+                "last_error_type": "RuntimeError",
+            },
+        )
+        for key in ("input_root", "output_root", "gallery_root", "source_data_root"):
+            self.assertNotIn(key, payload)
+        self.assertNotIn(str(root), json.dumps(payload, ensure_ascii=False))
 
     def test_app_version_reports_source_version_without_portable_notice(self) -> None:
         from codex_image.version import APP_VERSION
@@ -820,6 +861,70 @@ class WebUISettingsTests(unittest.TestCase):
         self.assertNotIn("api_key_source_provider_id", persisted["providers"][1])
         self.assertNotIn("test-api-key-copy-secret", response_text)
 
+    def test_api_settings_reject_cross_origin_key_copy_without_changing_saved_settings(self) -> None:
+        from codex_image.webui.app import create_app
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            api_settings_path = root / "api-settings.json"
+            app = create_app(
+                output_root=root / "tasks",
+                auth_settings_path=root / "auth-settings.json",
+                api_settings_path=api_settings_path,
+                auto_start_queue=False,
+            )
+            client = TestClient(app)
+            original = client.patch(
+                "/api/api-settings",
+                json={
+                    "active_provider_id": "vendor-a",
+                    "providers": [
+                        {
+                            "id": "vendor-a",
+                            "name": "Vendor A",
+                            "base_url": "https://vendor-a.example.com/v1",
+                            "api_key": "test-api-key-origin-secret",
+                            "image_model": "vendor-a-image",
+                            "api_mode": "images",
+                            "images_concurrency": 4,
+                        }
+                    ],
+                },
+            )
+            before = api_settings_path.read_text(encoding="utf-8")
+
+            copied = client.patch(
+                "/api/api-settings",
+                json={
+                    "active_provider_id": "vendor-b",
+                    "providers": [
+                        {
+                            "id": "vendor-a",
+                            "name": "Vendor A",
+                            "base_url": "https://vendor-a.example.com/v1",
+                            "image_model": "vendor-a-image",
+                            "api_mode": "images",
+                            "images_concurrency": 4,
+                        },
+                        {
+                            "id": "vendor-b",
+                            "name": "Vendor B",
+                            "base_url": "https://vendor-b.example.com/v1",
+                            "image_model": "vendor-b-image",
+                            "api_mode": "images",
+                            "images_concurrency": 4,
+                            "api_key_source_provider_id": "vendor-a",
+                        },
+                    ],
+                },
+            )
+
+            self.assertEqual(original.status_code, 200)
+            self.assertEqual(copied.status_code, 400)
+            self.assertEqual(copied.json()["detail"], "api_key_origin_mismatch")
+            self.assertEqual(api_settings_path.read_text(encoding="utf-8"), before)
+            self.assertNotIn("test-api-key-origin-secret", copied.text)
+
     def test_api_settings_allows_provider_concurrency_above_single_task_output_limit(self) -> None:
         from codex_image.webui.app import create_app
 
@@ -1078,7 +1183,7 @@ class WebUISettingsTests(unittest.TestCase):
                     "output_format": "png",
                     "prompt_fidelity": "original",
                 },
-                files={"images": ("input.png", b"input-image", "image/png")},
+                files={"images": ("input.png", self._png_bytes(), "image/png")},
             )
             body = response.json()
 
@@ -1089,7 +1194,10 @@ class WebUISettingsTests(unittest.TestCase):
         self.assertEqual(body["request"]["endpoint"], "/images/edits")
         self.assertEqual(body["request"]["size"], "1152x2048")
         self.assertEqual(body["request"]["quality"], "high")
-        self.assertEqual(body["request"]["images"][0]["image_url"], "<redacted image data url, 38 chars>")
+        self.assertRegex(
+            body["request"]["images"][0]["image_url"],
+            r"^<redacted image data url, \d+ chars>$",
+        )
         self.assertNotIn("tools", body["request"])
 
     def test_codex_queue_worker_uses_images_client_by_default(self) -> None:

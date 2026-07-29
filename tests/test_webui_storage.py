@@ -20,6 +20,60 @@ def _png_bytes(size: tuple[int, int] = (400, 600)) -> bytes:
 
 
 class WebUIStorageTests(unittest.TestCase):
+    def test_stale_progress_write_cannot_erase_pending_cancellation(self) -> None:
+        from codex_image.webui.cancellation import request_task_cancellation
+        from codex_image.webui.storage import TaskStorage
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            storage = TaskStorage(
+                input_root=root / "inputs",
+                output_root=root / "outputs",
+                source_data_root=root / "outputs" / "source-data",
+            )
+            task = storage.create_task("generate")
+            running = {
+                "task_id": task.task_id,
+                "created_at": "2026-07-28T08:00:00+00:00",
+                "updated_at": "2026-07-28T08:01:00+00:00",
+                "status": "running",
+                "generated_count": 0,
+            }
+            storage.write_metadata(task.task_id, running)
+            request_task_cancellation(storage, task.task_id)
+
+            storage.write_metadata(
+                task.task_id,
+                {
+                    **running,
+                    "updated_at": "2026-07-28T08:02:00+00:00",
+                    "generated_count": 1,
+                },
+            )
+            stored = storage.read_metadata(task.task_id)
+
+        self.assertEqual(stored["status"], "cancelling")
+        self.assertTrue(stored["cancel_requested"])
+        self.assertIn("cancel_requested_at", stored)
+        self.assertNotIn("cancelled_at", stored)
+
+    def test_atomic_write_failure_preserves_existing_file_and_removes_temporary_file(self) -> None:
+        from codex_image.webui.atomic_files import atomic_write_text
+
+        with tempfile.TemporaryDirectory() as tmp:
+            target = Path(tmp) / "task.metadata.json"
+            target.write_text('{"status":"queued"}', encoding="utf-8")
+
+            with patch(
+                "codex_image.webui.atomic_files.os.replace",
+                side_effect=OSError("replace failed"),
+            ):
+                with self.assertRaises(OSError):
+                    atomic_write_text(target, '{"status":"running"}')
+
+            self.assertEqual(target.read_text(encoding="utf-8"), '{"status":"queued"}')
+            self.assertEqual(list(target.parent.glob(f".{target.name}.*.tmp")), [])
+
     def test_legacy_terminal_task_uses_created_at_when_first_maintenance_write_sets_terminal_at(self) -> None:
         from codex_image.webui.storage import TaskStorage
 
@@ -605,6 +659,32 @@ class WebUIStorageTests(unittest.TestCase):
         self.assertEqual(state["running"]["codex:local"]["task_id"], "task-c")
         self.assertEqual(state["running"]["codex:local"]["auth_source"], "codex")
 
+    def test_sqlite_queue_storage_idle_reads_do_not_use_wal_shared_memory(self) -> None:
+        import sqlite3
+
+        from codex_image.webui.storage import SQLiteQueueStorage
+
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "webui.db"
+            storage = SQLiteQueueStorage(path)
+
+            for _ in range(10):
+                self.assertEqual(storage.read_state()["waiting"], [])
+
+            with sqlite3.connect(path) as connection:
+                journal_mode = str(
+                    connection.execute("pragma journal_mode").fetchone()[0]
+                ).lower()
+
+            auxiliary_files = {
+                item.name
+                for item in path.parent.iterdir()
+                if item.name in {f"{path.name}-wal", f"{path.name}-shm"}
+            }
+
+        self.assertEqual(journal_mode, "delete")
+        self.assertEqual(auxiliary_files, set())
+
     def test_sqlite_queue_storage_imports_legacy_json_once(self) -> None:
         from codex_image.webui.storage import SQLiteQueueStorage
 
@@ -704,6 +784,71 @@ class WebUIStorageTests(unittest.TestCase):
         self.assertEqual(storage.max_active_connections, 1)
         self.assertEqual(len(state["waiting"]), 8)
 
+    def test_sqlite_queue_storage_claims_one_waiting_task_once_across_connections(self) -> None:
+        from codex_image.webui.storage import SQLiteQueueStorage
+
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "webui.db"
+            first = SQLiteQueueStorage(path)
+            second = SQLiteQueueStorage(path)
+            first.enqueue("task-a")
+            barrier = threading.Barrier(2)
+            results: list[bool] = []
+
+            def claim(storage: SQLiteQueueStorage, channel_id: str) -> None:
+                barrier.wait(timeout=2)
+                results.append(
+                    storage.claim_waiting(
+                        "task-a",
+                        channel_id,
+                        auth_source="api",
+                    )
+                )
+
+            threads = [
+                threading.Thread(target=claim, args=(first, "api:slot-a")),
+                threading.Thread(target=claim, args=(second, "api:slot-b")),
+            ]
+            for thread in threads:
+                thread.start()
+            for thread in threads:
+                thread.join(timeout=5)
+
+            state = first.read_state()
+
+        self.assertEqual(sorted(results), [False, True])
+        self.assertEqual(state["waiting"], [])
+        self.assertEqual(
+            [record["task_id"] for record in state["running"].values()],
+            ["task-a"],
+        )
+
+    def test_sqlite_queue_mutations_do_not_rewrite_unrelated_tables(self) -> None:
+        from codex_image.webui.storage import SQLiteQueueStorage
+
+        class TracedSQLiteQueueStorage(SQLiteQueueStorage):
+            def __init__(self, *args, **kwargs):
+                self.statements: list[str] = []
+                super().__init__(*args, **kwargs)
+
+            def _connect(self):
+                connection = super()._connect()
+                connection.set_trace_callback(self.statements.append)
+                return connection
+
+        with tempfile.TemporaryDirectory() as tmp:
+            storage = TracedSQLiteQueueStorage(Path(tmp) / "webui.db")
+            storage.set_running("api:slot-a", "task-running", auth_source="api")
+            storage.statements.clear()
+
+            storage.enqueue("task-waiting")
+            storage.remove_waiting("task-waiting")
+
+            normalized = [" ".join(statement.lower().split()) for statement in storage.statements]
+
+        self.assertFalse(any(statement == "delete from queue_running" for statement in normalized))
+        self.assertFalse(any(statement == "delete from queue_waiting" for statement in normalized))
+
     def test_reference_asset_storage_dedupes_identical_bytes(self) -> None:
         from codex_image.webui.storage import ReferenceAssetStorage
 
@@ -734,6 +879,30 @@ class WebUIStorageTests(unittest.TestCase):
         self.assertEqual(touched_old["id"], old["id"])
         self.assertEqual([item["id"] for item in recent], [old["id"], new["id"]])
 
+    def test_reference_asset_storage_hides_recent_without_deleting_and_reupload_restores_it(self) -> None:
+        from codex_image.webui.storage import ReferenceAssetStorage
+
+        with tempfile.TemporaryDirectory() as tmp:
+            storage = ReferenceAssetStorage(Path(tmp))
+            item = storage.create_or_touch("source.png", b"same-bytes", "image/png")
+
+            hidden = storage.hide_item(item["id"])
+            recent_after_hide = storage.list_recent(limit=10)
+            image_after_hide = storage.image_path(item["id"]).read_bytes()
+            touched = storage.touch(item["id"])
+            recent_after_touch = storage.list_recent(limit=10)
+            reuploaded = storage.create_or_touch("source-again.png", b"same-bytes", "image/png")
+            recent_after_reupload = storage.list_recent(limit=10)
+
+        self.assertTrue(hidden["hidden_from_recent_at"])
+        self.assertEqual(recent_after_hide, [])
+        self.assertEqual(image_after_hide, b"same-bytes")
+        self.assertTrue(touched["hidden_from_recent_at"])
+        self.assertEqual(recent_after_touch, [])
+        self.assertEqual(reuploaded["id"], item["id"])
+        self.assertNotIn("hidden_from_recent_at", reuploaded)
+        self.assertEqual([entry["id"] for entry in recent_after_reupload], [item["id"]])
+
     def test_reference_asset_storage_prunes_oldest_items_above_limit(self) -> None:
         from codex_image.webui.storage import ReferenceAssetStorage
 
@@ -757,6 +926,58 @@ class WebUIStorageTests(unittest.TestCase):
         self.assertIn(fourth["id"], remaining_ids)
         self.assertFalse(old_metadata_exists)
         self.assertFalse(old_image_exists)
+
+    def test_reference_asset_storage_pruning_preserves_assets_referenced_by_indexed_tasks(self) -> None:
+        from codex_image.webui.storage import ReferenceAssetStorage, TaskStorage
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            task_storage = TaskStorage(
+                input_root=root / "inputs",
+                output_root=root / "outputs",
+                source_data_root=root / "source-data",
+            )
+            storage = ReferenceAssetStorage(
+                root / "reference-assets",
+                max_items=2,
+                reference_counts_provider=task_storage.reference_asset_reference_counts,
+            )
+            protected = storage.create_or_touch(
+                "protected.png",
+                b"protected-bytes",
+                "image/png",
+            )
+            unreferenced = storage.create_or_touch(
+                "unreferenced.png",
+                b"unreferenced-bytes",
+                "image/png",
+            )
+            task = task_storage.create_task("generate")
+            task_storage.write_metadata(
+                task.task_id,
+                {
+                    "task_id": task.task_id,
+                    "created_at": "2026-07-28T00:00:00+00:00",
+                    "reference_assets": [
+                        {"id": protected["id"]},
+                        {"id": protected["id"]},
+                    ],
+                },
+            )
+
+            newest = storage.create_or_touch(
+                "newest.png",
+                b"newest-bytes",
+                "image/png",
+            )
+            remaining_ids = {
+                item["id"] for item in storage.list_recent(limit=10)
+            }
+            reference_counts = task_storage.reference_asset_reference_counts()
+
+        self.assertEqual(reference_counts, {protected["id"]: 1})
+        self.assertEqual(remaining_ids, {protected["id"], newest["id"]})
+        self.assertNotIn(unreferenced["id"], remaining_ids)
 
     def test_reference_asset_storage_rejects_invalid_ids(self) -> None:
         from codex_image.webui.storage import ReferenceAssetStorage

@@ -22,6 +22,7 @@ _RATIO_INSTRUCTION_TEMPLATES = {
     "ru": "Установите соотношение сторон {ratio}.",
     "it": "Imposta le proporzioni su {ratio}.",
     "hi": "पक्षानुपात को {ratio} पर सेट करें।",
+    "vi": "Đặt tỷ lệ khung hình thành {ratio}.",
 }
 
 
@@ -39,7 +40,7 @@ def _normalize_prompt_locale(value: Any) -> str:
         return "zh-TW"
     if language.startswith(("zh-cn", "zh-sg", "zh-hans")) or language == "zh":
         return "zh-CN"
-    for locale in ("ja", "ko", "en", "es", "pt", "fr", "de", "ru", "it", "hi"):
+    for locale in ("ja", "ko", "en", "es", "pt", "fr", "de", "ru", "it", "hi", "vi"):
         if language.startswith(locale):
             return locale
     return "zh-CN"

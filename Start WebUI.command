@@ -23,15 +23,11 @@ if [ ! -x "$PYTHON_BIN" ]; then
   python3 -m venv "$VENV_DIR"
 fi
 
-if ! "$PYTHON_BIN" - <<'PY' >/dev/null 2>&1
-import fastapi
-import uvicorn
-import multipart
-import httpx
-PY
+if ! "$PYTHON_BIN" -m codex_image.dependency_check \
+  --requirements "${PROJECT_DIR}/requirements-webui.txt" >/dev/null 2>&1
 then
   echo "Installing WebUI dependencies..."
-  "$PYTHON_BIN" -m pip install -r requirements-webui.txt
+  "$PYTHON_BIN" -m pip install --require-hashes -r requirements-webui.txt
 fi
 
 webui_is_ready() {
@@ -57,6 +53,14 @@ wait_for_webui() {
   return 1
 }
 
+open_when_ready() {
+  if wait_for_webui; then
+    open "$URL" >/dev/null 2>&1 || true
+  else
+    echo "WebUI did not become ready within 30 seconds. Check ${LOG_FILE}."
+  fi
+}
+
 echo "Starting iLab CONJURE at ${URL}"
 mkdir -p output
 AUTH_SETTINGS_PATH="${PROJECT_DIR}/output/webui-auth-settings.json"
@@ -69,13 +73,5 @@ if webui_is_ready; then
   exit 0
 fi
 
-"$PYTHON_BIN" -m uvicorn codex_image.webui.app:app --host 127.0.0.1 --port 8787 --no-access-log 2>&1 | tee -a "$LOG_FILE" &
-SERVER_PID="$!"
-
-if wait_for_webui; then
-  open "$URL" >/dev/null 2>&1 || true
-else
-  echo "WebUI did not become ready within 30 seconds. Check ${LOG_FILE}."
-fi
-
-wait "$SERVER_PID"
+open_when_ready &
+"$PYTHON_BIN" -m codex_image.webui.server codex_image.webui.app:app --host 127.0.0.1 --port 8787 --no-access-log --timeout-graceful-shutdown 5 > >(tee -a "$LOG_FILE") 2>&1

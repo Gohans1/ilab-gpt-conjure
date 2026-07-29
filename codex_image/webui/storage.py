@@ -9,6 +9,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+from .atomic_files import atomic_write_bytes, atomic_write_text
 from .schemas import (
     CreatedTask,
     DEFAULT_WEBUI_OUTPUT_ROOT,
@@ -115,6 +116,7 @@ class TaskStorage:
             self.history_organizer,
         )
         self._history_organization_lock = threading.RLock()
+        self._task_write_locks = tuple(threading.RLock() for _ in range(64))
 
     def create_task(self, mode: str) -> CreatedTask:
         task_id = datetime.now(UTC).strftime("%Y%m%d%H%M%S") + "-" + uuid.uuid4().hex[:8]
@@ -127,10 +129,15 @@ class TaskStorage:
 
     def write_metadata(self, task_id: str, metadata: dict[str, Any]) -> Path:
         path = self.metadata_path(task_id)
-        _stabilize_task_terminal_timestamp(path, metadata)
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(json.dumps(metadata, indent=2, ensure_ascii=False), encoding="utf-8")
-        self.task_index.upsert(metadata)
+        with self._task_write_lock(task_id):
+            _preserve_sticky_task_cancellation(path, metadata)
+            _stabilize_task_terminal_timestamp(path, metadata)
+            atomic_write_text(
+                path,
+                json.dumps(metadata, indent=2, ensure_ascii=False),
+                mode=0o600,
+            )
+            self.task_index.upsert(metadata)
         return path
 
     def read_metadata(self, task_id: str) -> dict[str, Any]:
@@ -139,8 +146,11 @@ class TaskStorage:
 
     def write_request(self, task_id: str, request: dict[str, Any]) -> Path:
         path = self.request_path(task_id)
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(json.dumps(request, indent=2, ensure_ascii=False), encoding="utf-8")
+        atomic_write_text(
+            path,
+            json.dumps(request, indent=2, ensure_ascii=False),
+            mode=0o600,
+        )
         return path
 
     def write_input(self, task_id: str, filename: str, data: bytes, *, kind: str = "input", index: int | None = None) -> Path:
@@ -151,8 +161,7 @@ class TaskStorage:
         prefix = f"{task_id}-{kind}-{next_index:02d}-"
         safe_name = _safe_filename(filename, max_bytes=255 - len(prefix.encode("utf-8")))
         path = self.input_root / f"{prefix}{safe_name}"
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_bytes(data)
+        atomic_write_bytes(path, data, mode=0o600)
         if kind == "input":
             create_image_thumbnail(path, self.input_thumbnail_path(task_id, next_index))
         return path
@@ -163,9 +172,11 @@ class TaskStorage:
         output_index = index if index is not None else 1
         filename = f"{task_id}-image-{output_index}.{suffix}"
         path = self.output_root / _task_date_directory(task_id) / filename
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_bytes(data)
+        atomic_write_bytes(path, data, mode=0o600)
         return path
+
+    def _task_write_lock(self, task_id: str) -> threading.RLock:
+        return self._task_write_locks[hash(task_id) % len(self._task_write_locks)]
 
     def delete_task(self, task_id: str) -> None:
         with self._history_organization_lock:
@@ -278,6 +289,23 @@ class TaskStorage:
         if not self.source_data_root.exists():
             return []
         return self.rebuild_task_index()
+
+    def reference_asset_reference_counts(self) -> dict[str, int]:
+        counts: dict[str, int] = {}
+        for task in self.task_index.list_summaries():
+            raw_references = task.get("reference_assets")
+            if not isinstance(raw_references, list):
+                continue
+            task_asset_ids: set[str] = set()
+            for reference in raw_references:
+                if not isinstance(reference, dict):
+                    continue
+                asset_id = str(reference.get("id") or "")
+                if re.fullmatch(r"[0-9a-f]{64}", asset_id):
+                    task_asset_ids.add(asset_id)
+            for asset_id in task_asset_ids:
+                counts[asset_id] = counts.get(asset_id, 0) + 1
+        return counts
 
     def list_recent_tasks(self, limit: int = 200) -> list[dict[str, Any]]:
         indexed_tasks = self.task_index.list_summaries(limit=limit)
@@ -430,6 +458,14 @@ class TaskStorage:
             return []
         return self._list_tasks_from_metadata(list(self.iter_metadata_paths()))
 
+    def read_tasks_from_metadata(self) -> list[dict[str, Any]]:
+        if not self.source_data_root.exists():
+            return []
+        return self._list_tasks_from_metadata(
+            list(self.iter_metadata_paths()),
+            update_index=False,
+        )
+
     def iter_metadata_paths(self) -> list[Path]:
         if not self.source_data_root.exists():
             return []
@@ -490,7 +526,12 @@ class TaskStorage:
                     result["debug_sse_moved"] += 1
         return result
 
-    def _list_tasks_from_metadata(self, metadata_paths: list[Path]) -> list[dict[str, Any]]:
+    def _list_tasks_from_metadata(
+        self,
+        metadata_paths: list[Path],
+        *,
+        update_index: bool = True,
+    ) -> list[dict[str, Any]]:
         tasks_by_id: dict[str, dict[str, Any]] = {}
         for metadata_path in metadata_paths:
             try:
@@ -501,7 +542,8 @@ class TaskStorage:
             if not task_id:
                 continue
             metadata["task_id"] = task_id
-            self.task_index.upsert(metadata)
+            if update_index:
+                self.task_index.upsert(metadata)
             tasks_by_id[task_id] = metadata
 
         return sorted(tasks_by_id.values(), key=lambda task: str(task.get("created_at", "")), reverse=True)
@@ -864,3 +906,32 @@ def _stabilize_task_terminal_timestamp(path: Path, metadata: dict[str, Any]) -> 
     )
     if terminal_at:
         metadata["terminal_at"] = str(terminal_at)
+
+
+def _preserve_sticky_task_cancellation(
+    path: Path,
+    metadata: dict[str, Any],
+) -> None:
+    try:
+        existing = json.loads(path.read_text(encoding="utf-8"))
+    except (FileNotFoundError, OSError, json.JSONDecodeError):
+        return
+    if not isinstance(existing, dict) or not existing.get("cancel_requested"):
+        return
+
+    metadata["cancel_requested"] = True
+    if existing.get("cancel_requested_at"):
+        metadata["cancel_requested_at"] = existing["cancel_requested_at"]
+    existing_cancelled_at = existing.get("cancelled_at")
+    proposed_cancelled_at = metadata.get("cancelled_at")
+    if proposed_cancelled_at:
+        return
+    if existing_cancelled_at:
+        metadata["cancelled_at"] = existing_cancelled_at
+        metadata["status"] = str(existing.get("status") or "failed")
+        for key in ("error", "last_error"):
+            if existing.get(key):
+                metadata[key] = existing[key]
+        return
+    metadata["status"] = "cancelling"
+    metadata.pop("terminal_at", None)

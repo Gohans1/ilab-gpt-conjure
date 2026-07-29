@@ -616,8 +616,10 @@ def _set_task_output_selected(storage: TaskStorage, task_id: str, metadata: dict
         selected_indexes.add(index)
     else:
         selected_indexes.discard(index)
+    now = utc_now()
     metadata["selected_output_indexes"] = sorted(selected_indexes)
-    metadata["updated_at"] = utc_now()
+    metadata["updated_at"] = now
+    metadata["viewed_at"] = now
     storage.write_metadata(task_id, metadata)
     return metadata
 
@@ -721,6 +723,7 @@ def _pruned_task_metadata(
         {
             "status": "completed",
             "updated_at": now,
+            "viewed_at": now,
             "generated_count": len(accepted_outputs),
             "failed_count": 0,
             "total_count": len(accepted_outputs),
@@ -830,6 +833,10 @@ def _write_queued_metadata(
     mode: str,
     prompt: str,
     prompt_for_model: str,
+    execution_model_prompt: str | None = None,
+    execution_prompt: str | None = None,
+    execution_instructions: str | None = None,
+    prompt_locale: str | None = None,
     params: dict[str, Any],
     input_files: list[str],
     mask_file: str | None,
@@ -866,6 +873,17 @@ def _write_queued_metadata(
     }
     if requested_backend:
         metadata["requested_backend"] = requested_backend
+    if execution_prompt is not None:
+        metadata["execution_model_prompt"] = str(
+            execution_model_prompt
+            if execution_model_prompt is not None
+            else prompt_for_model
+        )
+        metadata["execution_prompt"] = str(execution_prompt)
+        metadata["execution_instructions"] = str(
+            execution_instructions or ""
+        )
+        metadata["prompt_locale"] = str(prompt_locale or "zh-CN")
     _apply_api_provider_metadata(metadata, params)
     _apply_api_images_concurrency_metadata(metadata, params)
     if prompt_constraints:

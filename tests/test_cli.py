@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import base64
 import contextlib
 import io
 import json
@@ -9,7 +8,14 @@ import unittest
 from pathlib import Path
 from types import SimpleNamespace
 
-from tests.helpers import FakeResponse, FakeTransport, make_sse_completed_event, write_auth_file
+from tests.helpers import (
+    FakeResponse,
+    FakeTransport,
+    TEST_PNG_BASE64,
+    TEST_PNG_BYTES,
+    make_sse_completed_event,
+    write_auth_file,
+)
 
 
 class CLITests(unittest.TestCase):
@@ -26,7 +32,7 @@ class CLITests(unittest.TestCase):
             [
                 FakeResponse(
                     status=200,
-                    body=make_sse_completed_event(image_b64=base64.b64encode(b"cli-image").decode("ascii")),
+                    body=make_sse_completed_event(image_b64=TEST_PNG_BASE64),
                     headers={"Content-Type": "text/event-stream"},
                 )
             ]
@@ -50,7 +56,7 @@ class CLITests(unittest.TestCase):
         )
 
         self.assertEqual(exit_code, 0)
-        self.assertEqual(self.out_path.read_bytes(), b"cli-image")
+        self.assertEqual(self.out_path.read_bytes(), TEST_PNG_BYTES)
 
     def test_generate_help_lists_moderation(self) -> None:
         from codex_image.cli import build_parser
@@ -96,7 +102,7 @@ class CLITests(unittest.TestCase):
             [
                 FakeResponse(
                     status=200,
-                    body=make_sse_completed_event(image_b64=base64.b64encode(b"cli-image").decode("ascii")),
+                    body=make_sse_completed_event(image_b64=TEST_PNG_BASE64),
                     headers={"Content-Type": "text/event-stream"},
                 )
             ]
@@ -134,7 +140,7 @@ class CLITests(unittest.TestCase):
             [
                 FakeResponse(
                     status=200,
-                    body=make_sse_completed_event(image_b64=base64.b64encode(b"edited-cli-image").decode("ascii")),
+                    body=make_sse_completed_event(image_b64=TEST_PNG_BASE64),
                     headers={"Content-Type": "text/event-stream"},
                 )
             ]
@@ -158,7 +164,7 @@ class CLITests(unittest.TestCase):
         )
 
         self.assertEqual(exit_code, 0)
-        self.assertEqual(self.out_path.read_bytes(), b"edited-cli-image")
+        self.assertEqual(self.out_path.read_bytes(), TEST_PNG_BYTES)
 
     def test_run_edit_passes_moderation_to_request(self) -> None:
         write_auth_file(self.auth_path, access_token="cli-token", account_id="acct-cli")
@@ -168,7 +174,7 @@ class CLITests(unittest.TestCase):
             [
                 FakeResponse(
                     status=200,
-                    body=make_sse_completed_event(image_b64=base64.b64encode(b"edited-cli-image").decode("ascii")),
+                    body=make_sse_completed_event(image_b64=TEST_PNG_BASE64),
                     headers={"Content-Type": "text/event-stream"},
                 )
             ]
