@@ -5,15 +5,20 @@ use std::fs::{self, File, OpenOptions};
 use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
+#[cfg(target_os = "macos")]
 use std::thread;
-use std::time::{Duration, SystemTime, UNIX_EPOCH};
+#[cfg(target_os = "macos")]
+use std::time::Duration;
+use std::time::{SystemTime, UNIX_EPOCH};
 
 pub const STANDARD_APP_BUNDLE_NAME: &str = "iLab GPT CONJURE.app";
 pub const STANDARD_APP_BUNDLE_ID: &str = "com.ilab.gpt-conjure";
 pub const STANDARD_UPDATER_EXECUTABLE: &str = "ilab-conjure-standard-updater";
 const STANDARD_LAUNCHER_EXECUTABLE: &str = "ilab-conjure-launcher";
 const HANDOFF_PREFIX: &str = "ilab-gpt-conjure-standard-update-handoff-";
+#[cfg(target_os = "macos")]
 const WORKSPACE_PREFIX: &str = "ilab-gpt-conjure-standard-update-work-";
+#[cfg(target_os = "macos")]
 const PARENT_EXIT_TIMEOUT: Duration = Duration::from_secs(60);
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -320,7 +325,10 @@ pub fn show_standard_update_error(message: &str, locale: &str) {
             .status();
     }
     #[cfg(not(target_os = "macos"))]
-    eprintln!("iLab CONJURE update failed: {message}");
+    {
+        let _ = locale;
+        eprintln!("iLab CONJURE update failed: {message}");
+    }
 }
 
 pub fn cleanup_standard_updater_handoff() {
@@ -338,6 +346,7 @@ pub fn cleanup_standard_updater_handoff() {
     }
 }
 
+#[cfg(target_os = "macos")]
 fn install_standard_app(source_app: &Path, target_app: &Path, log_path: &Path) -> Result<()> {
     let parent = target_app
         .parent()
@@ -400,6 +409,7 @@ pub fn validate_mounted_standard_app(app: &Path, expected_version: &str) -> Resu
     Ok(())
 }
 
+#[cfg(target_os = "macos")]
 fn verify_mounted_app_signature_and_architecture(app: &Path) -> Result<()> {
     run_command(
         Command::new("/usr/bin/codesign")
@@ -472,6 +482,7 @@ fn plist_string(plist: &Path, key: &str) -> Result<String> {
     Ok(String::from_utf8(output.stdout)?.trim().to_string())
 }
 
+#[cfg(target_os = "macos")]
 fn download_update(url: &str, destination: &Path, log_path: &Path) -> Result<()> {
     append_update_log(log_path, &format!("downloading {url}"))?;
     run_command(
@@ -483,10 +494,12 @@ fn download_update(url: &str, destination: &Path, log_path: &Path) -> Result<()>
     )
 }
 
+#[cfg(target_os = "macos")]
 struct MountedDmg {
     mountpoint: PathBuf,
 }
 
+#[cfg(target_os = "macos")]
 impl Drop for MountedDmg {
     fn drop(&mut self) {
         let _ = Command::new("/usr/bin/hdiutil")
@@ -499,6 +512,7 @@ impl Drop for MountedDmg {
     }
 }
 
+#[cfg(target_os = "macos")]
 fn mount_dmg(dmg: &Path, mountpoint: &Path) -> Result<MountedDmg> {
     run_command(
         Command::new("/usr/bin/hdiutil")
@@ -519,6 +533,7 @@ fn relaunch_standard_app(target: &Path) -> Result<()> {
     )
 }
 
+#[cfg(target_os = "macos")]
 fn wait_for_process_exit(pid: u32, timeout: Duration) -> Result<()> {
     let started = SystemTime::now();
     loop {
@@ -542,6 +557,7 @@ fn process_is_alive(pid: u32) -> bool {
         .unwrap_or(false)
 }
 
+#[cfg(target_os = "macos")]
 fn directory_is_writable(directory: &Path) -> bool {
     let probe = directory.join(format!(
         ".ilab-conjure-update-write-test-{}",
@@ -684,12 +700,14 @@ fn normalize_update_locale(value: &str) -> String {
     }
 }
 
+#[cfg(target_os = "macos")]
 struct UpdaterMessages {
     start: &'static str,
     success: &'static str,
     error_title: &'static str,
 }
 
+#[cfg(target_os = "macos")]
 fn updater_messages(locale: &str) -> UpdaterMessages {
     match normalize_update_locale(locale).as_str() {
         "zh-CN" => UpdaterMessages {
@@ -718,6 +736,7 @@ fn shell_quote(value: &str) -> String {
     format!("'{}'", value.replace('\'', "'\"'\"'"))
 }
 
+#[cfg(target_os = "macos")]
 fn apple_script_string(value: &str) -> String {
     let mut result = String::from("\"");
     for ch in value.chars() {
@@ -733,6 +752,7 @@ fn apple_script_string(value: &str) -> String {
     result
 }
 
+#[cfg(target_os = "macos")]
 fn show_standard_update_notification(message: &str) {
     let script = format!(
         "display notification {} with title {}",
@@ -746,8 +766,10 @@ fn show_standard_update_notification(message: &str) {
         .status();
 }
 
+#[cfg(target_os = "macos")]
 struct RemoveDirOnDrop(PathBuf);
 
+#[cfg(target_os = "macos")]
 impl Drop for RemoveDirOnDrop {
     fn drop(&mut self) {
         let _ = fs::remove_dir_all(&self.0);

@@ -1,6 +1,8 @@
+#[cfg(target_os = "macos")]
+use ilab_conjure_launcher::standard_update::validate_mounted_standard_app;
 use ilab_conjure_launcher::standard_update::{
     build_privileged_replace_command, parse_standard_update_args, replace_staged_app_transaction,
-    standard_app_bundle_path, validate_mounted_standard_app, verify_sha256_file,
+    standard_app_bundle_path, verify_sha256_file,
 };
 use std::fs;
 use std::path::{Path, PathBuf};

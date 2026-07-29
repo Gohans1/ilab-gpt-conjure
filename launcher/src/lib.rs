@@ -1288,6 +1288,7 @@ fn powershell_string(value: &str) -> String {
     format!("'{}'", value.replace('\'', "''"))
 }
 
+#[cfg(target_os = "macos")]
 fn about_action_from_button(button: &str, labels: &AboutLabels) -> AboutAction {
     if button == labels.check_updates {
         AboutAction::CheckUpdates
@@ -1520,6 +1521,7 @@ Write-Output $form.Tag
     })
 }
 
+#[cfg(target_os = "macos")]
 fn update_action_from_button(button: &str, labels: &UpdateLabels) -> UpdateDialogAction {
     if button == labels.install_update || button == labels.download_update {
         UpdateDialogAction::InstallUpdate
