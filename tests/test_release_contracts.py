@@ -102,6 +102,12 @@ class ReleaseContractTests(unittest.TestCase):
         for line in package_lines:
             self.assertRegex(line, r"^[A-Za-z0-9_.-]+(?:\[[A-Za-z0-9_.-]+\])?==")
 
+        self.assertRegex(
+            requirements,
+            r"(?m)^colorama==[^=]+ \\$",
+            "Windows-only runtime dependencies must be present in the cross-platform lock",
+        )
+
         for relative in (
             "Start WebUI.command",
             "Start WebUI Debug.command",
@@ -188,6 +194,21 @@ class ReleaseContractTests(unittest.TestCase):
             "python scripts/check-release-contracts.py",
         ):
             self.assertIn(expected, workflow)
+
+    def test_ci_installs_locked_python_runtime_on_windows(self) -> None:
+        workflow = (ROOT / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
+        job = re.search(
+            r"(?ms)^  windows-python-lock:\n(?P<body>.*?)(?=^  [a-z0-9-]+:\n|\Z)",
+            workflow,
+        )
+        self.assertIsNotNone(job, "CI must verify the runtime dependency lock on Windows")
+        body = job.group("body") if job else ""
+        self.assertIn("runs-on: windows-latest", body)
+        self.assertIn('python-version: "3.11"', body)
+        self.assertIn(
+            "python -m pip install --require-hashes -r requirements-webui.txt",
+            body,
+        )
 
     def test_workflows_pin_every_action_to_a_full_commit_sha(self) -> None:
         workflows = "\n".join(
