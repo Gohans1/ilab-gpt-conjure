@@ -25,11 +25,11 @@
       document.documentElement.dataset.themePreference = preference;
     })();
   </script>
-  <link rel="stylesheet" href="/static/styles.css?v=runtime-666" />
+  <link rel="stylesheet" href="/static/styles.css?v=runtime-768" />
 </head>
 <body>
   <main class="history-page">
-    <aside class="history-sidebar">
+    <aside id="historySidebar" class="history-sidebar">
       <div class="history-sidebar-heading">
         <a
           class="history-program-brand"
@@ -134,6 +134,14 @@
         </div>
       </details>
     </aside>
+    <button
+      id="historyFiltersBackdrop"
+      class="history-filters-backdrop"
+      type="button"
+      hidden
+      aria-label="关闭任务筛选"
+      data-i18n-attr="aria-label:action.close"
+    ></button>
     <div class="history-resize-hit-area history-resize-hit-area-left" role="separator" tabindex="0" aria-orientation="vertical" aria-valuemin="220" aria-valuemax="420" aria-valuenow="280" aria-label="调整筛选栏宽度" data-history-resizer="left" data-i18n-attr="aria-label:history.resizeFilters"></div>
     <header class="top-nav history-top-nav">
       <div class="nav-actions">
@@ -188,45 +196,124 @@
           <p id="historyResultSummary" data-i18n="history.browseNewest">按时间倒序浏览</p>
         </div>
         <div class="history-toolbar-actions">
-          <div id="historyViewToggle" class="history-view-toggle" aria-label="视图" data-i18n-attr="aria-label:history.view">
-            <button class="history-view-button active" type="button" data-history-view="grid" aria-pressed="true" data-i18n="history.grid">网格</button>
-            <button class="history-view-button" type="button" data-history-view="list" aria-pressed="false" data-i18n="history.list">列表</button>
+          <button
+            id="historyMobileFiltersButton"
+            class="ghost-button text-sm history-mobile-filter-button"
+            type="button"
+            aria-controls="historySidebar"
+            aria-expanded="false"
+          ><span data-i18n="sidebar.filters">任务筛选</span><span id="historyMobileFilterCount" class="history-mobile-filter-count hidden" hidden aria-hidden="true"></span></button>
+          <div class="history-browse-controls">
+            <div id="historyViewToggle" class="history-view-toggle" aria-label="视图" data-i18n-attr="aria-label:history.view">
+              <button class="history-view-button active" type="button" data-history-view="grid" aria-pressed="true" data-i18n="history.grid">网格</button>
+              <button class="history-view-button" type="button" data-history-view="list" aria-pressed="false" data-i18n="history.list">列表</button>
+            </div>
+            <div id="historySortToggle" class="history-sort-toggle" aria-label="排序" data-i18n-attr="aria-label:history.sort">
+              <button class="history-sort-button active" type="button" data-history-sort="newest" aria-pressed="true" data-i18n="history.newest">最新优先</button>
+              <button class="history-sort-button" type="button" data-history-sort="oldest" aria-pressed="false" data-i18n="history.oldest">最早优先</button>
+            </div>
           </div>
-          <div id="historySortToggle" class="history-sort-toggle" aria-label="排序" data-i18n-attr="aria-label:history.sort">
-            <button class="history-sort-button active" type="button" data-history-sort="newest" aria-pressed="true" data-i18n="history.newest">最新优先</button>
-            <button class="history-sort-button" type="button" data-history-sort="oldest" aria-pressed="false" data-i18n="history.oldest">最早优先</button>
+          <div class="history-toolbar-utilities">
+            <button id="historyManagementButton" class="ghost-button history-toolbar-icon-button history-management-button" type="button" data-history-open-management aria-label="历史库管理" title="历史库管理">
+              <svg class="history-toolbar-button-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 8h16v12H4zM3 4h18v4H3zM9 12h6" /></svg>
+            </button>
+            <button id="historyRefreshButton" class="ghost-button history-toolbar-icon-button" type="button" aria-label="刷新" title="刷新" data-i18n-attr="aria-label:history.refresh;title:history.refresh">
+              <svg class="history-toolbar-button-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20 7v5h-5M4 17v-5h5M6.1 8.2A7 7 0 0 1 18.7 7L20 12M4 12l1.3 5A7 7 0 0 0 17.9 15.8" /></svg>
+            </button>
           </div>
-          <button id="historyRefreshButton" class="ghost-button text-sm" type="button" data-i18n="history.refresh">刷新</button>
         </div>
       </header>
-      <div id="historyBulkToolbar" class="history-bulk-toolbar hidden" hidden>
-        <span id="historyBulkCount">已选择 0 个任务</span>
-        <div class="history-bulk-actions">
-          <button id="historyBulkFavoriteButton" class="ghost-button text-sm" type="button" data-i18n="history.favoriteSelected">收藏</button>
-          <button id="historyBulkUnfavoriteButton" class="ghost-button text-sm" type="button" data-i18n="history.unfavoriteSelected">取消收藏</button>
-          <button id="historyBulkAddTagButton" class="ghost-button text-sm" type="button" data-history-open-tag-picker="add" data-i18n="history.addTag">添加标签</button>
-          <button id="historyBulkRemoveTagButton" class="ghost-button text-sm" type="button" data-history-open-tag-picker="remove" data-i18n="history.removeTag">移除标签</button>
-          <button id="historyBulkExportButton" class="ghost-button text-sm" type="button" data-history-open-export data-i18n="history.export">导出</button>
-          <button id="historyBulkArchiveButton" class="ghost-button text-sm" type="button" data-i18n="action.archive">归档</button>
-          <button id="historyBulkRestoreButton" class="ghost-button text-sm" type="button" data-i18n="archive.restore">恢复</button>
-          <button id="historyBulkDeleteButton" class="ghost-button text-sm danger-button" type="button" data-i18n="action.delete">删除</button>
-          <button id="historyBulkDeleteCancelButton" class="ghost-button text-sm hidden" type="button" data-i18n="action.cancel">取消</button>
-        </div>
+      <div
+        id="historyActiveFilters"
+        class="history-active-filters hidden"
+        role="region"
+        aria-live="polite"
+        hidden
+      >
+        <strong id="historyActiveFiltersLabel" class="history-active-filters-label"></strong>
+        <div id="historyActiveFilterList" class="history-active-filter-list" role="list"></div>
+        <button id="historyClearAllFilters" class="ghost-button text-sm history-clear-all-filters" type="button" data-history-clear-all-filters></button>
       </div>
-      <div id="historyTaskList" class="history-task-list history-view-grid" role="listbox" aria-live="polite"></div>
+      <div id="historyTaskList" class="history-task-list history-view-grid" role="list" aria-live="polite"></div>
       <div id="historyLoadSentinel" class="history-load-sentinel" data-history-load-more role="status" aria-live="polite" hidden></div>
+      <div id="historySelectionDock" class="history-selection-dock hidden" hidden>
+        <strong id="historySelectionDockCount"></strong>
+        <button class="history-selection-dock-action" type="button" data-history-open-selection-actions>
+          <span data-i18n="footer.batch">批量管理</span>
+          <svg class="history-action-row-arrow" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m9 6 6 6-6 6" /></svg>
+        </button>
+      </div>
     </section>
     <div class="history-resize-hit-area history-resize-hit-area-right" role="separator" tabindex="0" aria-orientation="vertical" aria-valuemin="300" aria-valuemax="620" aria-valuenow="380" aria-label="调整详情栏宽度" data-history-resizer="right" data-i18n-attr="aria-label:history.resizeDetail"></div>
-    <aside id="historyDetail" class="history-detail" aria-live="polite">
-      <div class="history-detail-header">
-        <div>
-          <h2 class="history-detail-title history-detail-empty-title" data-i18n="history.detail">任务详情</h2>
-        </div>
-        <button id="historyDetailClose" class="drawer-close-button history-detail-close" type="button" data-history-detail-close aria-label="关闭任务详情" data-i18n-attr="aria-label:history.closeDetail">×</button>
-      </div>
-      <div class="history-detail-empty" data-i18n="history.detailEmpty">选择一个历史任务查看详情</div>
-    </aside>
+    <aside id="historyDetail" class="history-detail" aria-live="polite"></aside>
   </main>
+  <div id="historyBackupDialog" class="modal-overlay history-backup-dialog hidden" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="historyBackupTitle" hidden>
+    <section class="modal-panel history-transfer-panel" tabindex="-1">
+      <header class="modal-heading history-transfer-heading">
+        <div><h2 id="historyBackupTitle" tabindex="-1" data-i18n="historyBackup.mode">任务备份</h2><p data-i18n="historyBackup.description">保存任务数据与相关文件，可在兼容版本的 iLab CONJURE 中导入恢复。</p></div>
+        <button class="ghost-button drawer-close-button history-transfer-close" type="button" data-history-close-backup aria-label="关闭" data-i18n-attr="aria-label:action.close">
+          <svg class="drawer-close-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 7L17 17M17 7L7 17" /></svg>
+        </button>
+      </header>
+      <fieldset id="historyBackupScopeFieldset" class="history-backup-scopes" aria-describedby="historyBackupScopeHelp historyBackupScopeEstimate historyBackupScopeState">
+        <legend data-i18n="historyBackup.scopeLegend">备份范围</legend>
+        <label><input id="historyBackupScopeSelected" type="radio" name="history-backup-scope" value="selected" /><span class="history-backup-scope-copy"><span data-i18n="historyBackup.scopeSelected">已选任务</span><small data-history-backup-scope-count="selected"></small></span></label>
+        <label><input type="radio" name="history-backup-scope" value="filtered" checked /><span class="history-backup-scope-copy"><span data-i18n="historyBackup.scopeFiltered">当前筛选结果</span><small data-history-backup-scope-count="filtered"></small></span></label>
+        <label><input type="radio" name="history-backup-scope" value="all" /><span class="history-backup-scope-copy"><span data-i18n="historyBackup.scopeAll">全部历史任务</span><small data-history-backup-scope-count="all"></small></span></label>
+      </fieldset>
+      <p id="historyBackupScopeHelp" class="history-transfer-copy" data-i18n="historyBackup.scopeHelp">当前筛选和全部范围由本机完整统计，不受当前页面显示数量影响。</p>
+      <p id="historyBackupScopeEstimate" class="history-backup-scope-estimate" aria-live="polite"></p>
+      <p id="historyBackupScopeState" class="history-backup-scope-state hidden" hidden></p>
+      <div id="historyBackupProgressSummary" class="history-transfer-progress">
+        <div id="historyBackupProgressRegion" class="history-backup-progress-region hidden" hidden>
+          <progress id="historyBackupProgress" max="100" value="0" aria-label="备份进度" data-i18n-attr="aria-label:historyBackup.progressLabel"></progress>
+        </div>
+        <p id="historyBackupStats" class="history-transfer-stats"></p>
+        <p id="historyBackupLive" class="history-transfer-live" role="status" aria-live="polite" tabindex="-1"></p>
+      </div>
+      <p id="historyBackupWarning" class="history-backup-warning hidden" hidden role="note"></p>
+      <section id="historyBackupComplete" class="history-backup-complete hidden" hidden tabindex="-1" role="status" aria-labelledby="historyBackupCompleteTitle">
+        <svg class="history-backup-complete-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m6.5 12.5 3.4 3.4 7.6-8" /></svg>
+        <div>
+          <h3 id="historyBackupCompleteTitle" data-i18n="historyBackup.downloadStartedTitle">下载已开始</h3>
+          <p data-i18n="historyBackup.downloaded">请确认浏览器已保存文件；完成后即可关闭此面板。临时文件会在传输结束后删除。</p>
+        </div>
+      </section>
+      <div class="history-transfer-actions">
+        <button id="historyBackupDismiss" class="ghost-button hidden" type="button" hidden data-history-dismiss-backup data-i18n="historyBackup.dismiss">关闭结果</button>
+        <button id="historyBackupCancel" class="ghost-button hidden" type="button" hidden data-history-cancel-backup data-i18n="historyBackup.cancel">取消备份</button>
+        <button id="historyBackupDownload" class="run-button hidden" type="button" hidden data-history-download-backup data-i18n="historyBackup.download">下载备份</button>
+        <button id="historyBackupStart" class="run-button" type="button" data-history-start-backup data-i18n="historyBackup.start">开始备份</button>
+      </div>
+    </section>
+  </div>
+
+  <div id="historyImportDialog" class="modal-overlay history-import-dialog hidden" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="historyImportTitle" hidden>
+    <section class="modal-panel history-transfer-panel history-import-panel" tabindex="-1">
+      <header class="modal-heading history-transfer-heading">
+        <div><h2 id="historyImportTitle" tabindex="-1" data-i18n="historyImport.title">导入任务备份</h2><p data-i18n="historyImport.noOverwrite">恢复只新增任务，绝不替换已有任务。</p></div>
+        <button class="ghost-button drawer-close-button history-transfer-close" type="button" data-history-close-import aria-label="关闭" data-i18n-attr="aria-label:action.close">
+          <svg class="drawer-close-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 7L17 17M17 7L7 17" /></svg>
+        </button>
+      </header>
+      <label class="history-import-file-field" for="historyImportFile"><span data-i18n="historyImport.choose">选择 ZIP 备份包</span><input id="historyImportFile" class="control" type="file" accept=".zip,application/zip" /></label>
+      <div class="history-transfer-progress"><progress id="historyImportProgress" max="100" value="0"></progress><p id="historyImportLive" class="history-transfer-live" role="status" aria-live="polite" tabindex="-1"></p></div>
+      <section id="historyImportPreview" class="history-import-summary hidden" hidden aria-labelledby="historyImportPreviewTitle">
+        <h3 id="historyImportPreviewTitle" data-i18n="historyImport.preview">恢复预览</h3>
+        <details data-history-import-group="restorable" open><summary data-i18n="historyImport.restorable">可恢复</summary><ol></ol></details>
+        <details data-history-import-group="duplicate"><summary data-i18n="historyImport.duplicate">重复</summary><ol></ol></details>
+        <details data-history-import-group="conflict"><summary data-i18n="historyImport.conflict">冲突</summary><ol></ol></details>
+        <details data-history-import-group="invalid"><summary data-i18n="historyImport.invalid">无效</summary><ol></ol></details>
+      </section>
+      <section id="historyImportResult" class="history-import-summary hidden" hidden aria-labelledby="historyImportResultTitle">
+        <h3 id="historyImportResultTitle" data-i18n="historyImport.result">恢复结果</h3>
+        <dl class="history-import-result-grid">
+          <div data-history-import-result="restored"><dt data-i18n="historyImport.restored">已恢复</dt><dd>0</dd></div><div data-history-import-result="duplicates"><dt data-i18n="historyImport.duplicate">重复</dt><dd>0</dd></div><div data-history-import-result="conflicts"><dt data-i18n="historyImport.conflict">冲突</dt><dd>0</dd></div><div data-history-import-result="invalid"><dt data-i18n="historyImport.invalid">无效</dt><dd>0</dd></div><div data-history-import-result="failed"><dt data-i18n="historyImport.failed">失败</dt><dd>0</dd></div><div data-history-import-result="thumbnail_warnings"><dt data-i18n="historyImport.thumbnailWarnings">缩略图警告</dt><dd>0</dd></div><div data-history-import-result="cleanup_warnings"><dt data-i18n="historyImport.cleanupWarnings">清理警告</dt><dd>0</dd></div>
+        </dl>
+      </section>
+      <div class="history-transfer-actions"><button id="historyImportCancel" class="ghost-button hidden" type="button" hidden data-history-cancel-import data-i18n="historyBackup.cancel">取消</button><button id="historyImportConfirm" class="run-button hidden" type="button" hidden disabled data-history-confirm-import data-i18n="historyImport.confirm">确认恢复</button></div>
+    </section>
+  </div>
   <div id="systemSettingsModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-hidden="true" aria-label="系统设置" data-i18n-attr="aria-label:systemSettings.title">
     <div class="modal-panel system-settings-modal-panel">
       <div class="modal-heading">
@@ -461,6 +548,6 @@
     </div>
   </div>
   <div id="taskNotificationToastRegion" class="task-notification-toast-region" aria-live="polite"></div>
-  <script src="/static/history.js?v=history-81"></script>
+  <script src="/static/history.js?v=history-110"></script>
 </body>
 </html>

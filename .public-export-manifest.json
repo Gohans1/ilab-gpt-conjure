@@ -8,8 +8,8 @@
     "Start WebUI.command",
     "Start WebUI Debug.command",
     "Start WebUI.bat",
-    "assets/UI_cn.png",
-    "assets/UI_en.png",
+    "assets/UI_cn.webp",
+    "assets/UI_en.webp",
     "assets/wechat-qr.jpg",
     "codex_image",
     "launcher",
@@ -17,6 +17,7 @@
     "package.json",
     "packaging/macos",
     "packaging/windows",
+    "packaging/cleanup-runtime.py",
     "pyproject.toml",
     "requirements-webui.in",
     "requirements-webui.txt",
@@ -32,6 +33,7 @@
     "tests/test_public_repo_export.py"
   ],
   "excluded_private_paths": [
+    "AGENT.md",
     "AGENTS.md",
     "DESIGN.md",
     "docs/superpowers/",

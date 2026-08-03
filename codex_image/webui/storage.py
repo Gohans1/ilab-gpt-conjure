@@ -1,15 +1,19 @@
 from __future__ import annotations
 
+import hashlib
 import json
+import os
 import re
 import shutil
+import stat
 import threading
 import uuid
+from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from .atomic_files import atomic_write_bytes, atomic_write_text
+from .atomic_files import _fsync_parent, atomic_write_bytes, atomic_write_text
 from .schemas import (
     CreatedTask,
     DEFAULT_WEBUI_OUTPUT_ROOT,
@@ -64,6 +68,52 @@ TASK_SOURCE_DATA_SUFFIXES = ("metadata.json", "request.json", "debug-sse.jsonl")
 DIMENSION_SIZE_RE = re.compile(r"^\s*(\d{1,5})\s*[xX×]\s*(\d{1,5})\s*$")
 
 
+@dataclass(frozen=True)
+class RestoredTaskBinary:
+    role: str
+    source_index: int
+    filename: str
+    data: bytes | None = None
+    staged_path: Path | None = None
+    expected_size: int | None = None
+    expected_sha256: str | None = None
+
+
+@dataclass(frozen=True)
+class RestoredTaskFilesPlan:
+    task_id: str
+    metadata: dict[str, Any]
+    request: dict[str, Any]
+    binaries: tuple[RestoredTaskBinary, ...]
+    staging_root: Path | None = None
+    failure_injector: Any = None
+
+
+@dataclass(frozen=True)
+class RestoredTaskFilesJournal:
+    task_id: str
+    created_paths: tuple[Path, ...]
+    restore_token: str | None = None
+
+
+@dataclass(frozen=True)
+class RestoredTaskRollbackJournal:
+    task_id: str
+    restore_token: str | None = None
+    pending_paths: tuple[Path, ...] = ()
+    index_pending: bool = False
+    pending_resources: tuple[dict[str, Any], ...] = ()
+    pending_staging_paths: tuple[Path, ...] = ()
+    organization_pending: bool = False
+    ownership_pending: bool = True
+
+
+class RestoredTaskRollbackIncomplete(RuntimeError):
+    def __init__(self, journal: RestoredTaskRollbackJournal) -> None:
+        self.journal = journal
+        super().__init__("backup_import_restore_rollback_incomplete")
+
+
 class HistoryTaskNotFoundError(ValueError):
     def __init__(self, task_ids: list[str]) -> None:
         self.task_ids = tuple(task_ids)
@@ -115,6 +165,12 @@ class TaskStorage:
             self.task_index,
             self.history_organizer,
         )
+        trust_root = self.source_data_root.resolve(strict=True)
+        trust_stat = trust_root.stat()
+        if not stat.S_ISDIR(trust_stat.st_mode):
+            raise OSError("backup_restore_reference_scan_invalid")
+        self._source_data_trust_root = trust_root
+        self._source_data_trust_identity = (trust_stat.st_dev, trust_stat.st_ino)
         self._history_organization_lock = threading.RLock()
         self._task_write_locks = tuple(threading.RLock() for _ in range(64))
 
@@ -177,6 +233,280 @@ class TaskStorage:
 
     def _task_write_lock(self, task_id: str) -> threading.RLock:
         return self._task_write_locks[hash(task_id) % len(self._task_write_locks)]
+
+    def restore_task_files(self, plan: RestoredTaskFilesPlan) -> RestoredTaskFilesJournal:
+        if not isinstance(plan, RestoredTaskFilesPlan):
+            raise ValueError("backup_restore_plan_invalid")
+        task_id = plan.task_id
+        self._validate_task_id(task_id)
+        staged: list[tuple[Path, Path]] = []
+        created: list[Path] = []
+        restore_token = uuid.uuid4().hex
+        with self._task_write_lock(task_id):
+            if self.metadata_path(task_id).exists() or task_id in self.task_index.existing_task_ids([task_id]):
+                raise ValueError("backup_restore_task_exists")
+            finals: list[Path] = []
+            for binary in plan.binaries:
+                if binary.role in {"input", "mask"}:
+                    prefix = f"{task_id}-{binary.role}-{binary.source_index:02d}-"
+                    safe_name = _safe_filename(binary.filename, max_bytes=255 - len(prefix.encode("utf-8")))
+                    final = self.input_root / f"{prefix}{safe_name}"
+                elif binary.role == "output":
+                    suffix = _safe_extension(Path(binary.filename).suffix.lstrip("."))
+                    final = self.output_root / _task_date_directory(task_id) / f"{task_id}-image-{binary.source_index}.{suffix}"
+                else:
+                    raise ValueError("backup_restore_binary_role_invalid")
+                finals.append(final)
+            finals.extend((self.request_path(task_id), self.metadata_path(task_id)))
+            if len(set(finals)) != len(finals) or any(path.exists() for path in finals):
+                raise ValueError("backup_restore_target_exists")
+            self._write_restore_ownership(task_id, restore_token)
+            try:
+                for binary, final in zip(plan.binaries, finals):
+                    final.parent.mkdir(parents=True, exist_ok=True)
+                    temporary = final.with_name(f".{final.name}.{uuid.uuid4().hex}.restore.tmp")
+                    staged.append((temporary, final))
+                    if binary.staged_path is not None:
+                        if binary.data is not None:
+                            raise ValueError("backup_restore_staged_binary_invalid")
+                        source_path = self._validated_restore_staged_path(
+                            binary,
+                            plan.staging_root,
+                        )
+                        descriptor = os.open(temporary, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
+                        source_descriptor = -1
+                        try:
+                            source_descriptor = os.open(
+                                source_path,
+                                os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0),
+                            )
+                            source_stat = os.fstat(source_descriptor)
+                            if not stat.S_ISREG(source_stat.st_mode):
+                                raise ValueError("backup_restore_staged_binary_invalid")
+                            if source_stat.st_size != binary.expected_size:
+                                raise ValueError("backup_restore_staged_binary_changed")
+                            digest = hashlib.sha256()
+                            actual_size = 0
+                            with os.fdopen(descriptor, "wb") as destination, os.fdopen(source_descriptor, "rb") as source:
+                                descriptor = -1
+                                source_descriptor = -1
+                                while chunk := source.read(1024 * 1024):
+                                    actual_size += len(chunk)
+                                    if actual_size > binary.expected_size:
+                                        raise ValueError("backup_restore_staged_binary_changed")
+                                    digest.update(chunk)
+                                    destination.write(chunk)
+                                destination.flush()
+                                os.fsync(destination.fileno())
+                            if (
+                                actual_size != binary.expected_size
+                                or digest.hexdigest() != binary.expected_sha256
+                            ):
+                                raise ValueError("backup_restore_staged_binary_changed")
+                        finally:
+                            if descriptor >= 0:
+                                os.close(descriptor)
+                            if source_descriptor >= 0:
+                                os.close(source_descriptor)
+                    elif isinstance(binary.data, bytes):
+                        atomic_write_bytes(temporary, binary.data, mode=0o600)
+                    else:
+                        raise ValueError("backup_restore_staged_binary_invalid")
+                if plan.failure_injector is not None:
+                    plan.failure_injector("after_binary_staging")
+                for temporary, final in staged:
+                    if final.exists():
+                        raise ValueError("backup_restore_target_exists")
+                    temporary.replace(final)
+                    _fsync_parent(final)
+                    created.append(final)
+                self.write_request(task_id, plan.request)
+                created.append(self.request_path(task_id))
+                self.write_metadata(task_id, plan.metadata)
+                created.append(self.metadata_path(task_id))
+                if plan.failure_injector is not None:
+                    plan.failure_injector("after_metadata_write")
+                return RestoredTaskFilesJournal(
+                    task_id=task_id,
+                    created_paths=tuple(created),
+                    restore_token=restore_token,
+                )
+            except Exception:
+                for source_path in (self.request_path(task_id), self.metadata_path(task_id)):
+                    if source_path.exists() and source_path not in created:
+                        created.append(source_path)
+                self.rollback_restored_task_files(
+                    RestoredTaskFilesJournal(
+                        task_id=task_id,
+                        created_paths=tuple(created),
+                        restore_token=restore_token,
+                    )
+                )
+                raise
+            finally:
+                for temporary, _ in staged:
+                    temporary.unlink(missing_ok=True)
+
+    def rollback_restored_task_files(
+        self,
+        journal: RestoredTaskFilesJournal,
+    ) -> RestoredTaskRollbackJournal:
+        if not isinstance(journal, RestoredTaskFilesJournal):
+            return RestoredTaskRollbackJournal("")
+        pending_paths: list[Path] = []
+        index_pending = False
+        with self._task_write_lock(journal.task_id):
+            if not self.restore_ownership_matches(journal.task_id, journal.restore_token):
+                raise RestoredTaskRollbackIncomplete(RestoredTaskRollbackJournal(
+                    task_id=journal.task_id,
+                    restore_token=journal.restore_token,
+                    pending_paths=journal.created_paths,
+                    index_pending=True,
+                    ownership_pending=True,
+                ))
+            for path in reversed(journal.created_paths):
+                try:
+                    self._unlink_restored_task_path(journal.task_id, path)
+                except OSError:
+                    if path.exists() or path.is_symlink():
+                        pending_paths.append(path)
+            try:
+                self.task_index.delete(journal.task_id)
+            except Exception:
+                index_pending = True
+            for path in journal.created_paths:
+                try:
+                    if path.parent.is_relative_to(self.output_root):
+                        self._prune_empty_output_dir(path.parent)
+                    if path.parent.is_relative_to(self.source_data_root / TASK_SOURCE_DATA_SUBDIR):
+                        self._prune_empty_source_data_dir(path.parent)
+                except OSError:
+                    pass
+        pending = RestoredTaskRollbackJournal(
+            task_id=journal.task_id,
+            restore_token=journal.restore_token,
+            pending_paths=tuple(reversed(pending_paths)),
+            index_pending=index_pending,
+            ownership_pending=True,
+        )
+        if pending.pending_paths or pending.index_pending:
+            raise RestoredTaskRollbackIncomplete(pending)
+        return pending
+
+    def restore_ownership_path(self, task_id: str) -> Path:
+        self._validate_task_id(task_id)
+        return self._task_source_data_dir(task_id) / f"{task_id}.restore-owner"
+
+    def _write_restore_ownership(self, task_id: str, token: str) -> None:
+        if not re.fullmatch(r"[0-9a-f]{32}", token):
+            raise ValueError("backup_restore_token_invalid")
+        atomic_write_text(self.restore_ownership_path(task_id), token, mode=0o600)
+
+    def restore_ownership_matches(self, task_id: str, token: object) -> bool:
+        if not isinstance(token, str) or not re.fullmatch(r"[0-9a-f]{32}", token):
+            return False
+        try:
+            return self.restore_ownership_path(task_id).read_text(encoding="utf-8") == token
+        except (OSError, ValueError):
+            return False
+
+    def clear_restore_ownership(self, task_id: str, token: object) -> bool:
+        with self._task_write_lock(task_id):
+            if not self.restore_ownership_matches(task_id, token):
+                return False
+            path = self.restore_ownership_path(task_id)
+            path.unlink(missing_ok=True)
+            _fsync_parent(path)
+            return True
+
+    def release_restore_ownership(self, task_id: str, token: object) -> bool:
+        if not isinstance(token, str) or not re.fullmatch(r"[0-9a-f]{32}", token):
+            return True
+        with self._task_write_lock(task_id):
+            path = self.restore_ownership_path(task_id)
+            try:
+                current = path.read_text(encoding="utf-8")
+            except FileNotFoundError:
+                return True
+            except OSError:
+                return False
+            if current != token:
+                return True
+            try:
+                path.unlink()
+                _fsync_parent(path)
+            except OSError:
+                return False
+            return True
+
+    def _unlink_restored_task_path(self, task_id: str, path: Path) -> None:
+        candidate = Path(path)
+        if not candidate.is_absolute() or candidate.is_symlink():
+            raise OSError("backup_restore_path_invalid")
+        allowed_roots = (self.input_root, self.output_root, self.source_data_root)
+        lexical_root = next(
+            (Path(os.path.abspath(root)) for root in allowed_roots if candidate.is_relative_to(Path(os.path.abspath(root)))),
+            None,
+        )
+        if lexical_root is None:
+            raise OSError("backup_restore_path_invalid")
+        relative = candidate.relative_to(lexical_root)
+        cursor = lexical_root
+        for part in relative.parts[:-1]:
+            cursor /= part
+            if cursor.is_symlink():
+                raise OSError("backup_restore_path_invalid")
+        resolved_parent = candidate.parent.resolve(strict=True)
+        if not resolved_parent.is_relative_to(lexical_root.resolve(strict=True)):
+            raise OSError("backup_restore_path_invalid")
+        name = candidate.name
+        if not (
+            candidate in {self.metadata_path(task_id), self.request_path(task_id)}
+            or name.startswith(f"{task_id}-input-")
+            or name.startswith(f"{task_id}-mask-")
+            or name.startswith(f"{task_id}-image-")
+        ):
+            raise OSError("backup_restore_path_invalid")
+        flags = os.O_RDONLY | getattr(os, "O_DIRECTORY", 0) | getattr(os, "O_NOFOLLOW", 0)
+        descriptor = os.open(candidate.parent, flags)
+        try:
+            try:
+                mode = os.stat(name, dir_fd=descriptor, follow_symlinks=False).st_mode
+            except FileNotFoundError:
+                return
+            if not stat.S_ISREG(mode):
+                raise OSError("backup_restore_path_invalid")
+            os.unlink(name, dir_fd=descriptor)
+            os.fsync(descriptor)
+        finally:
+            os.close(descriptor)
+
+    @staticmethod
+    def _validated_restore_staged_path(
+        binary: RestoredTaskBinary,
+        staging_root: Path | None,
+    ) -> Path:
+        if (
+            staging_root is None
+            or binary.expected_size is None
+            or isinstance(binary.expected_size, bool)
+            or binary.expected_size < 0
+            or not isinstance(binary.expected_sha256, str)
+            or not re.fullmatch(r"[0-9a-f]{64}", binary.expected_sha256)
+        ):
+            raise ValueError("backup_restore_staged_binary_invalid")
+        root = Path(staging_root)
+        source = Path(binary.staged_path or "")
+        if root.is_symlink() or source.is_symlink():
+            raise ValueError("backup_restore_staged_binary_invalid")
+        try:
+            resolved_root = root.resolve(strict=True)
+            resolved_parent = source.parent.resolve(strict=True)
+        except OSError as exc:
+            raise ValueError("backup_restore_staged_binary_invalid") from exc
+        if not resolved_root.is_dir() or resolved_parent != resolved_root:
+            raise ValueError("backup_restore_staged_binary_invalid")
+        return source
 
     def delete_task(self, task_id: str) -> None:
         with self._history_organization_lock:
@@ -307,6 +637,46 @@ class TaskStorage:
                 counts[asset_id] = counts.get(asset_id, 0) + 1
         return counts
 
+    def resource_reference_counts(self, kind: str) -> dict[str, int]:
+        return {
+            resource_id: len(task_ids)
+            for resource_id, task_ids in self.resource_referencing_task_ids(kind).items()
+        }
+
+    def resource_referencing_task_ids(self, kind: str) -> dict[str, set[str]]:
+        if kind not in {"reference_asset", "gallery", "reference_file"}:
+            raise ValueError("backup_restore_resource_kind_invalid")
+        return self.resource_reference_snapshot()[kind]
+
+    def resource_reference_snapshot(self) -> dict[str, dict[str, set[str]]]:
+        fields = {
+            "reference_asset": "reference_assets",
+            "gallery": "gallery_refs",
+            "reference_file": "reference_files",
+        }
+        snapshot: dict[str, dict[str, set[str]]] = {kind: {} for kind in fields}
+        for metadata in self._secure_source_metadata_records():
+            if not isinstance(metadata, dict):
+                raise OSError("backup_restore_reference_scan_invalid")
+            task_id = str(metadata.get("task_id") or "")
+            if not task_id:
+                raise OSError("backup_restore_reference_scan_invalid")
+            for kind, field in fields.items():
+                references = metadata.get(field, [])
+                if not isinstance(references, list):
+                    raise OSError("backup_restore_reference_scan_invalid")
+                resource_ids: set[str] = set()
+                for reference in references:
+                    if not isinstance(reference, dict):
+                        raise OSError("backup_restore_reference_scan_invalid")
+                    resource_id = str(reference.get("id") or "")
+                    if not resource_id:
+                        raise OSError("backup_restore_reference_scan_invalid")
+                    resource_ids.add(resource_id)
+                for resource_id in resource_ids:
+                    snapshot[kind].setdefault(resource_id, set()).add(task_id)
+        return snapshot
+
     def list_recent_tasks(self, limit: int = 200) -> list[dict[str, Any]]:
         indexed_tasks = self.task_index.list_summaries(limit=limit)
         if indexed_tasks:
@@ -367,6 +737,19 @@ class TaskStorage:
             **group,
             "tasks": [_sidebar_task_card(task) for task in group.get("tasks", [])],
         }
+
+    def generation_sidebar_group_task_position(
+        self,
+        key: str,
+        task_id: str,
+        *,
+        now: datetime | None = None,
+    ) -> dict[str, Any]:
+        return self.task_index.generation_sidebar_group_task_position(
+            key,
+            task_id,
+            now=now,
+        )
 
     def generation_sidebar_group_task_ids(
         self,
@@ -469,10 +852,156 @@ class TaskStorage:
     def iter_metadata_paths(self) -> list[Path]:
         if not self.source_data_root.exists():
             return []
-        flat_paths = list(self.source_data_root.glob("*.metadata.json"))
+        legacy = sorted(
+            self.source_data_root.glob("*.metadata.json"),
+            key=lambda path: path.as_posix(),
+        )
         sharded_root = self.source_data_root / TASK_SOURCE_DATA_SUBDIR
-        sharded_paths = list(sharded_root.glob("*/*.metadata.json")) if sharded_root.exists() else []
-        return [*flat_paths, *sharded_paths]
+        sharded = sorted(
+            sharded_root.glob("*/*.metadata.json"),
+            key=lambda path: path.as_posix(),
+        ) if sharded_root.exists() else []
+        return list(dict.fromkeys((*legacy, *sharded)))
+
+    def _secure_source_metadata_records(self) -> list[dict[str, Any]]:
+        _, records = self._secure_source_metadata_scan(read_records=True)
+        return records
+
+    def _secure_source_metadata_scan(
+        self,
+        *,
+        read_records: bool,
+    ) -> tuple[list[Path], list[dict[str, Any]]]:
+        nofollow = getattr(os, "O_NOFOLLOW", None)
+        if nofollow is None:
+            raise OSError("backup_restore_reference_scan_unavailable")
+        directory_flags = os.O_RDONLY | getattr(os, "O_DIRECTORY", 0) | nofollow
+        file_flags = os.O_RDONLY | nofollow
+        root_descriptor = -1
+        paths: list[Path] = []
+        records: list[dict[str, Any]] = []
+        scanned: list[tuple[int, str, Path, dict[str, Any] | None]] = []
+
+        def matching_stat(descriptor: int, expected: os.stat_result, *, directory: bool) -> None:
+            actual = os.fstat(descriptor)
+            expected_type = stat.S_ISDIR if directory else stat.S_ISREG
+            if (
+                not expected_type(actual.st_mode)
+                or (actual.st_dev, actual.st_ino) != (expected.st_dev, expected.st_ino)
+            ):
+                raise OSError("backup_restore_reference_scan_invalid")
+
+        def scan_metadata_file(
+            parent_descriptor: int,
+            entry: os.DirEntry[str],
+            relative: Path,
+            group: int,
+        ) -> None:
+            expected = entry.stat(follow_symlinks=False)
+            if not stat.S_ISREG(expected.st_mode):
+                raise OSError("backup_restore_reference_scan_invalid")
+            descriptor = os.open(entry.name, file_flags, dir_fd=parent_descriptor)
+            try:
+                matching_stat(descriptor, expected, directory=False)
+                path = self._source_data_trust_root / relative / entry.name
+                payload: dict[str, Any] | None = None
+                if read_records:
+                    with os.fdopen(descriptor, "r", encoding="utf-8") as source:
+                        descriptor = -1
+                        raw_payload = json.load(source)
+                    if not isinstance(raw_payload, dict):
+                        raise OSError("backup_restore_reference_scan_invalid")
+                    payload = raw_payload
+                scanned.append((group, path.as_posix(), path, payload))
+            finally:
+                if descriptor >= 0:
+                    os.close(descriptor)
+
+        def open_child_directory(parent_descriptor: int, entry: os.DirEntry[str]) -> int:
+            expected = entry.stat(follow_symlinks=False)
+            if not stat.S_ISDIR(expected.st_mode):
+                raise OSError("backup_restore_reference_scan_invalid")
+            descriptor = os.open(entry.name, directory_flags, dir_fd=parent_descriptor)
+            try:
+                matching_stat(descriptor, expected, directory=True)
+            except Exception:
+                os.close(descriptor)
+                raise
+            return descriptor
+
+        try:
+            self._assert_source_data_trust_binding()
+            root_descriptor = os.open(self._source_data_trust_root, directory_flags)
+            root_stat = os.fstat(root_descriptor)
+            if (
+                not stat.S_ISDIR(root_stat.st_mode)
+                or (root_stat.st_dev, root_stat.st_ino) != self._source_data_trust_identity
+            ):
+                raise OSError("backup_restore_reference_scan_invalid")
+            self._assert_source_data_trust_binding()
+            with os.scandir(root_descriptor) as root_entries:
+                for entry in root_entries:
+                    mode = entry.stat(follow_symlinks=False).st_mode
+                    if stat.S_ISLNK(mode):
+                        raise OSError("backup_restore_reference_scan_invalid")
+                    if entry.name.endswith(".metadata.json"):
+                        scan_metadata_file(root_descriptor, entry, Path(), 0)
+                        continue
+                    if entry.name != TASK_SOURCE_DATA_SUBDIR:
+                        continue
+                    tasks_descriptor = open_child_directory(root_descriptor, entry)
+                    try:
+                        with os.scandir(tasks_descriptor) as shard_entries:
+                            for shard in shard_entries:
+                                shard_mode = shard.stat(follow_symlinks=False).st_mode
+                                if stat.S_ISLNK(shard_mode):
+                                    raise OSError("backup_restore_reference_scan_invalid")
+                                shard_descriptor = open_child_directory(tasks_descriptor, shard)
+                                try:
+                                    with os.scandir(shard_descriptor) as file_entries:
+                                        for file in file_entries:
+                                            file_mode = file.stat(follow_symlinks=False).st_mode
+                                            if stat.S_ISLNK(file_mode):
+                                                raise OSError("backup_restore_reference_scan_invalid")
+                                            if file.name.endswith(".metadata.json"):
+                                                scan_metadata_file(
+                                                    shard_descriptor,
+                                                    file,
+                                                    Path(TASK_SOURCE_DATA_SUBDIR) / shard.name,
+                                                    1,
+                                                )
+                                finally:
+                                    os.close(shard_descriptor)
+                    finally:
+                        os.close(tasks_descriptor)
+            self._assert_source_data_trust_binding()
+            seen: set[Path] = set()
+            for _, _, path, payload in sorted(scanned, key=lambda item: (item[0], item[1])):
+                if path in seen:
+                    continue
+                seen.add(path)
+                paths.append(path)
+                if payload is not None:
+                    records.append(payload)
+            return paths, records
+        except (OSError, ValueError, TypeError, NotImplementedError, json.JSONDecodeError) as exc:
+            raise OSError("backup_restore_reference_scan_unavailable") from exc
+        finally:
+            if root_descriptor >= 0:
+                os.close(root_descriptor)
+
+    def _assert_source_data_trust_binding(self) -> None:
+        try:
+            resolved = self.source_data_root.resolve(strict=True)
+            current = resolved.stat()
+        except OSError as exc:
+            raise OSError("backup_restore_reference_scan_invalid") from exc
+        if (
+            resolved != self._source_data_trust_root
+            or not stat.S_ISDIR(current.st_mode)
+            or (current.st_dev, current.st_ino) != self._source_data_trust_identity
+        ):
+            raise OSError("backup_restore_reference_scan_invalid")
 
     def migrate_source_data_files(self) -> dict[str, int]:
         self.source_data_root.mkdir(parents=True, exist_ok=True)
@@ -559,6 +1088,17 @@ class TaskStorage:
 
     def input_path(self, filename: str) -> Path:
         return self.input_root / Path(filename).name
+
+    def task_owned_input_path(self, task_id: str, filename: str) -> Path:
+        self._validate_task_id(task_id)
+        candidate = (self.input_root / filename).resolve(strict=False)
+        try:
+            candidate.relative_to(self.input_root.resolve(strict=False))
+        except ValueError as exc:
+            raise ValueError("task_input_not_owned") from exc
+        if not candidate.name.startswith(f"{task_id}-"):
+            raise ValueError("task_input_not_owned")
+        return candidate
 
     def output_path(self, filename: str) -> Path:
         return self.output_root / _safe_output_relative_path(filename)

@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 import sqlite3
-from typing import Iterable
+from typing import Callable, Iterable
 import unicodedata
 import uuid
 
@@ -293,6 +293,93 @@ class HistoryOrganizer:
                 )
         return result
 
+    def restore_task_organization(
+        self,
+        task_id: object,
+        favorite: bool,
+        tag_names: Iterable[object],
+        *,
+        failure_injector: Callable[[str], None] | None = None,
+    ) -> HistoryOrganization:
+        clean_task_id = str(task_id or "").strip()
+        if not clean_task_id:
+            raise ValueError("task_id is required")
+        if not isinstance(favorite, bool):
+            raise ValueError("favorite must be true or false")
+        normalized: dict[str, str] = {}
+        for value in tag_names:
+            name, name_key = normalize_tag_name(value)
+            normalized.setdefault(name_key, name)
+        now = _utc_now()
+        with closing(self._connect()) as connection:
+            with connection:
+                existing = connection.execute(
+                    """
+                    select 1 from task_favorites where task_id = ?
+                    union all
+                    select 1 from task_tags where task_id = ?
+                    limit 1
+                    """,
+                    (clean_task_id, clean_task_id),
+                ).fetchone()
+                if existing is not None:
+                    raise HistoryOrganizerError("task_organization_conflict")
+                tag_ids: list[str] = []
+                for name_key, name in normalized.items():
+                    row = connection.execute(
+                        "select tag_id from tags where name_key = ?",
+                        (name_key,),
+                    ).fetchone()
+                    if row is None:
+                        # Imported archive IDs are deliberately ignored. Local IDs
+                        # are always freshly allocated for missing normalized names.
+                        tag_id = uuid.uuid4().hex
+                        connection.execute(
+                            """
+                            insert into tags(tag_id, name, name_key, created_at, updated_at)
+                            values(?, ?, ?, ?, ?)
+                            """,
+                            (tag_id, name, name_key, now, now),
+                        )
+                    else:
+                        tag_id = str(row["tag_id"])
+                    tag_ids.append(tag_id)
+                if favorite:
+                    connection.execute(
+                        """
+                        insert into task_favorites(task_id, favorite_at)
+                        values(?, ?)
+                        on conflict(task_id) do nothing
+                        """,
+                        (clean_task_id, now),
+                    )
+                for tag_id in tag_ids:
+                    connection.execute(
+                        """
+                        insert or ignore into task_tags(task_id, tag_id, assigned_at)
+                        values(?, ?, ?)
+                        """,
+                        (clean_task_id, tag_id, now),
+                    )
+                if failure_injector is not None:
+                    failure_injector("after_organizer_write")
+                return self._organizations_for_tasks(connection, [clean_task_id])[clean_task_id]
+
+    def has_task_state(self, task_id: object) -> bool:
+        clean_task_id = str(task_id or "").strip()
+        if not clean_task_id:
+            return False
+        with closing(self._connect()) as connection:
+            return connection.execute(
+                """
+                select 1 from task_favorites where task_id = ?
+                union all
+                select 1 from task_tags where task_id = ?
+                limit 1
+                """,
+                (clean_task_id, clean_task_id),
+            ).fetchone() is not None
+
     def organizations_for_tasks(
         self,
         task_ids: Iterable[object],
@@ -317,6 +404,24 @@ class HistoryOrganizer:
                     "delete from task_favorites where task_id = ?",
                     (clean_task_id,),
                 )
+
+    def delete_orphan_tags(self, tag_ids: Iterable[object]) -> None:
+        clean_ids = _unique_nonempty(tag_ids)
+        if not clean_ids:
+            return
+        with closing(self._connect()) as connection:
+            with connection:
+                for tag_id in clean_ids:
+                    connection.execute(
+                        """
+                        delete from tags
+                        where tag_id = ?
+                          and not exists (
+                              select 1 from task_tags where task_tags.tag_id = tags.tag_id
+                          )
+                        """,
+                        (tag_id,),
+                    )
 
     def _require_tags(
         self,

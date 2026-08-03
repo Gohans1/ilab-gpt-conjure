@@ -33,6 +33,8 @@ const state = bridge.state;
 const els = bridge.els;
 let promptTemplateSearchAcceptManualInput = false;
 let lastPromptTemplateTrigger: HTMLElement | null = null;
+let promptTemplateLoading = false;
+let promptTemplateLoadError = "";
 
 function legacyMethod(name: string, ...args: any[]): any {
   const method = getLegacyBridge().methods[name];
@@ -139,20 +141,22 @@ function promptTemplateDrawerIsOpen() {
 }
 
 async function refreshPromptTemplates() {
+  promptTemplateLoading = true;
+  promptTemplateLoadError = "";
+  els.promptTemplateList?.setAttribute("aria-busy", "true");
+  if (promptTemplateDrawerIsOpen()) renderPromptTemplateList();
   try {
     const response = await fetch(PROMPT_TEMPLATES_ENDPOINT);
     const data = await response.json();
     if (!response.ok) throw new Error(data.detail || translate("templates.loadFailed"));
     applyPromptTemplateSettingsResponse(data);
   } catch (error: any) {
-    console.warn(error.message || translate("templates.loadFailed"));
-    state.promptTemplates = [];
-    state.promptTemplateCategories = normalizePromptTemplateCategoryList([]);
-    renderPromptTemplateRecentDock();
-    if (promptTemplateDrawerIsOpen()) {
-      renderPromptTemplateCategories();
-      renderPromptTemplateList();
-    }
+    promptTemplateLoadError = error.message || translate("templates.loadFailed");
+    console.warn(promptTemplateLoadError);
+  } finally {
+    promptTemplateLoading = false;
+    els.promptTemplateList?.removeAttribute("aria-busy");
+    if (promptTemplateDrawerIsOpen()) renderPromptTemplateList();
   }
 }
 
@@ -325,17 +329,27 @@ function promptTemplatesForDisplay() {
 function renderPromptTemplateList() {
   if (!els.promptTemplateList) return;
   const templates = promptTemplatesForDisplay();
+  const statusHtml = promptTemplateLoading
+    ? `<div class="prompt-template-load-state is-loading" role="status">${escapeHtml(translate("history.loading"))}</div>`
+    : promptTemplateLoadError
+      ? `<div class="prompt-template-load-state is-error" role="alert">
+          <span>${escapeHtml(promptTemplateLoadError)}</span>
+          <button class="ghost-button text-sm" type="button" data-prompt-template-retry>${escapeHtml(translate("action.refresh"))}</button>
+        </div>`
+      : "";
   if (els.promptTemplateSummary) {
-    els.promptTemplateSummary.className = "prompt-template-summary";
-    els.promptTemplateSummary.textContent = templates.length
-      ? formatTranslation("templates.availableCount", { count: templates.length })
-      : translate("templates.noMatch");
+    els.promptTemplateSummary.className = `prompt-template-summary${promptTemplateLoadError ? " is-error" : ""}`;
+    els.promptTemplateSummary.textContent = promptTemplateLoadError
+      ? promptTemplateLoadError
+      : templates.length
+        ? formatTranslation("templates.availableCount", { count: templates.length })
+        : translate("templates.noMatch");
   }
   if (!templates.length) {
-    els.promptTemplateList.innerHTML = `<div class="prompt-template-empty">${translate("templates.empty")}</div>`;
+    els.promptTemplateList.innerHTML = statusHtml || `<div class="prompt-template-empty">${translate("templates.empty")}</div>`;
     return;
   }
-  els.promptTemplateList.innerHTML = templates.map((template: any) => `
+  els.promptTemplateList.innerHTML = statusHtml + templates.map((template: any) => `
     <button class="prompt-template-card" type="button" data-prompt-template-id="${escapeHtml(template.id)}">
       ${template.thumbnail_url ? `<span class="prompt-template-card-thumb"><img src="${escapeHtml(template.thumbnail_url)}" alt="" loading="lazy" decoding="async"></span>` : ""}
       <span class="prompt-template-card-title">${escapeHtml(promptTemplateCardTitle(template))}</span>
@@ -836,6 +850,7 @@ function bindPromptTemplateEvents() {
   });
   els.promptTemplateDrawer?.addEventListener("click", (event: Event) => {
     const target = event.target as HTMLElement | null;
+    const retry = target?.closest("[data-prompt-template-retry]");
     const filter = target?.closest("[data-prompt-template-filter]") as HTMLElement | null;
     const category = target?.closest("[data-prompt-template-category]") as HTMLElement | null;
     const categoryCreate = target?.closest("[data-prompt-template-category-create]") as HTMLElement | null;
@@ -850,6 +865,10 @@ function bindPromptTemplateEvents() {
     const edit = target?.closest("[data-prompt-template-edit]") as HTMLElement | null;
     const remove = target?.closest("[data-prompt-template-delete]") as HTMLElement | null;
     const back = target?.closest("[data-prompt-template-back]");
+    if (retry) {
+      void refreshPromptTemplates();
+      return;
+    }
     if (filter) {
       state.promptTemplateFilter = filter.dataset.promptTemplateFilter || "all";
       els.promptTemplateDrawer?.querySelectorAll("[data-prompt-template-filter]").forEach((button: any) => {

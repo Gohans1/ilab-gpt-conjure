@@ -6,7 +6,6 @@ import { formatTranslation, LOCALE_CHANGE_EVENT, translate } from "./i18n";
 const bridge = getLegacyBridge();
 const state = bridge.state;
 const els = bridge.els;
-let taskHistoryAnchorInsetObserver: ResizeObserver | null = null;
 let latestTaskNavigationFrameId = 0;
 let latestTaskNavigationPinToken = 0;
 let latestTaskNavigationInitialized = false;
@@ -14,7 +13,7 @@ let latestTaskNavigationPreRenderAtLatest: boolean | null = null;
 const TASK_HISTORY_LAYOUT_EASING = "ease";
 const TASK_HISTORY_LAYOUT_DURATION_MS = 180;
 
-const TASK_GROUP_ORDER = ["active", "today", "yesterday", "last7", "older", "search"];
+const TASK_GROUP_ORDER = ["active", "current", "today", "yesterday", "last7", "older", "search"];
 const TASK_HISTORY_ALL_COLLAPSED_SENTINEL = "__all_collapsed__";
 
 function legacyMethod(name: string, ...args: any[]): any {
@@ -160,14 +159,6 @@ function persistExpandedTaskGroupKey() {
   }
 }
 
-function syncTaskHistoryAnchorInset() {
-  const shell = element(els.taskHistoryShell);
-  const sidebarContent = element(els.sidebarContent);
-  if (!shell || !sidebarContent) return;
-  const scrollbarInset = Math.max(0, sidebarContent.offsetWidth - sidebarContent.clientWidth);
-  shell.style.setProperty("--task-history-scrollbar-offset", `${scrollbarInset}px`);
-}
-
 function nearestVisibleGroupKey(groups: any[], currentKey: string | null) {
   const visibleKeys = groups.map((group) => String(group.key));
   const currentIndex = TASK_GROUP_ORDER.indexOf(String(currentKey || ""));
@@ -279,7 +270,7 @@ function rememberLatestTaskNavigationBeforeRender() {
 }
 
 function focusExpandedTaskGroupHeader() {
-  const header = els.taskList?.querySelector?.(".task-group-header-split");
+  const header = els.taskHistoryCurrentAnchor?.querySelector?.(".task-group-header-split");
   if (header instanceof HTMLElement) header.focus({ preventScroll: true });
 }
 
@@ -368,7 +359,7 @@ function anchorRowHtml(group: any) {
       <span class="task-history-anchor-label">
         <span class="task-group-title">
           <span class="task-group-label">${escapeHtml(group.label)}</span>
-          <span class="task-group-count-separator" aria-hidden="true"> · </span>
+          <span class="task-group-count-separator" aria-hidden="true">·</span>
           <span class="task-group-count">${taskGroupCount(group)}</span>
         </span>
       </span>
@@ -390,7 +381,6 @@ function renderTaskHistoryAnchors(layout: { top: any[]; bottom: any[]; expandedK
   const topAnchors = element(els.taskHistoryTopAnchors);
   const bottomAnchors = element(els.taskHistoryBottomAnchors);
   if (!topAnchors || !bottomAnchors) return;
-  syncTaskHistoryAnchorInset();
   topAnchors.innerHTML = layout.top.map((group) => anchorRowHtml(group)).join("");
   bottomAnchors.innerHTML = layout.bottom.map((group) => anchorRowHtml(group)).join("");
   topAnchors.classList.toggle("hidden", !layout.top.length);
@@ -503,13 +493,6 @@ export function initTaskHistoryAnchorsFeature() {
     consumeLatestTaskNavigationScrollAnchor,
     rememberLatestTaskNavigationBeforeRender,
   });
-  if (typeof ResizeObserver === "function" && !taskHistoryAnchorInsetObserver && element(els.sidebarContent)) {
-    taskHistoryAnchorInsetObserver = new ResizeObserver(() => {
-      syncTaskHistoryAnchorInset();
-      scheduleLatestTaskNavigationRefresh();
-    });
-    taskHistoryAnchorInsetObserver.observe(element(els.sidebarContent) as Element);
-  }
   if (!latestTaskNavigationInitialized) {
     latestTaskNavigationInitialized = true;
     els.sidebarContent?.addEventListener("scroll", scheduleLatestTaskNavigationRefresh, { passive: true });
@@ -520,6 +503,5 @@ export function initTaskHistoryAnchorsFeature() {
     document.addEventListener(LOCALE_CHANGE_EVENT, scheduleLatestTaskNavigationRefresh);
     document.addEventListener("keydown", handleLatestTaskNavigationKeydown);
   }
-  syncTaskHistoryAnchorInset();
   scheduleLatestTaskNavigationRefresh();
 }

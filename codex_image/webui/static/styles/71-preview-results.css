@@ -263,11 +263,8 @@
   stroke: currentColor;
   fill: none;
   stroke-width: 1.8;
+  stroke-linecap: round;
   stroke-linejoin: round;
-}
-
-.preview-select-button[aria-pressed="true"] .preview-select-icon {
-  fill: currentColor;
 }
 
 .preview-select-label {
@@ -572,7 +569,7 @@
   border: 1px solid var(--line);
   border-radius: 999px;
   background: var(--surface-soft);
-  color: var(--muted);
+  color: var(--text-muted);
   cursor: pointer;
 }
 
@@ -608,7 +605,7 @@
 }
 
 .prompt-popover-section-empty {
-  color: var(--muted);
+  color: var(--text-muted);
 }
 
 .prompt-popover-section-head {
@@ -635,7 +632,7 @@
 
 .prompt-popover-meta {
   flex: 0 0 auto;
-  color: var(--muted);
+  color: var(--text-muted);
   font-size: 11px;
   line-height: 1.2;
 }
@@ -729,7 +726,7 @@
 .prompt-copy-button:disabled {
   border-color: var(--line);
   background: var(--surface-soft);
-  color: var(--muted);
+  color: var(--text-muted);
   cursor: not-allowed;
 }
 
@@ -748,112 +745,160 @@
   }
 }
 
-body.lightbox-open {
-  overflow: hidden;
+.lightbox-zoom-toolbar {
+  position: absolute;
+  z-index: 4;
+  bottom: 20px;
+  left: 50%;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  min-height: 40px;
+  padding: 4px;
+  transform: translateX(-50%);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  background: rgba(13, 25, 21, 0.92);
+  box-shadow: 0 8px 24px rgba(2, 12, 9, 0.22);
+  color: rgba(255, 255, 255, 0.92);
 }
 
-.lightbox {
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  display: none;
+.lightbox-zoom-button,
+.lightbox-zoom-mode {
+  display: inline-grid;
+  min-width: 32px;
+  height: 32px;
+  padding: 0 9px;
+  place-items: center;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 13px;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.lightbox-zoom-button {
+  padding-inline: 0;
+  font-size: 20px;
+  font-weight: 400;
+}
+
+.lightbox-zoom-mode {
+  min-width: 46px;
+  font-weight: 600;
+}
+
+.lightbox-zoom-button:hover,
+.lightbox-zoom-mode:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.lightbox-zoom-button:active,
+.lightbox-zoom-mode:active {
+  transform: translateY(1px);
+}
+
+.lightbox-zoom-button:focus-visible,
+.lightbox-zoom-mode:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.92);
+  outline-offset: 1px;
+}
+
+.lightbox-zoom-mode[aria-pressed="true"] {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+.lightbox-zoom-button:disabled {
+  opacity: 0.34;
+  cursor: default;
+}
+
+.lightbox-zoom-value {
+  min-width: 48px;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.lightbox-zoom-divider {
+  width: 1px;
+  height: 20px;
+  margin-inline: 2px;
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.lightbox-shortcut-hint {
+  position: absolute;
+  z-index: 4;
+  bottom: 70px;
+  left: 50%;
+  display: flex;
+  max-width: calc(100vw - 32px);
   align-items: center;
   justify-content: center;
-  padding: 52px;
-  background: rgba(10, 24, 20, 0.82);
-  backdrop-filter: blur(10px);
+  gap: 10px 16px;
+  padding: 7px 11px;
+  transform: translate(-50%, 6px);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 10px;
+  background: rgba(13, 25, 21, 0.9);
+  color: rgba(255, 255, 255, 0.82);
+  box-shadow: 0 6px 20px rgba(2, 12, 9, 0.16);
+  font-size: 12px;
+  line-height: 1.25;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--motion-fast), transform var(--motion-base);
 }
 
-.lightbox.active {
-  display: flex;
+.lightbox-shortcut-hint.is-visible {
+  transform: translate(-50%, 0);
+  opacity: 1;
 }
 
-.lightbox img {
-  position: relative;
-  z-index: 1;
-  display: block;
-  max-width: 96vw;
-  max-height: 92vh;
-  object-fit: contain;
-  border-radius: 12px;
-  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.38);
-  cursor: grab;
-  user-select: none;
-}
-
-.lightbox img:active {
-  cursor: grabbing;
-}
-
-.lightbox-close {
-  position: absolute;
-  z-index: 2;
-  top: 22px;
-  left: 22px;
-  width: 42px;
-  height: 42px;
-  padding: 0;
-  border: 1px solid rgba(255, 255, 255, 0.24);
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.14);
-  color: white;
+.lightbox-shortcut-hint > span {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  backdrop-filter: blur(8px);
+  gap: 4px;
+  white-space: nowrap;
 }
 
-.lightbox-close:hover {
-  background: rgba(255, 255, 255, 0.24);
-}
-
-.lightbox-nav {
-  position: absolute;
-  z-index: 2;
-  top: 50%;
-  width: 48px;
-  height: 72px;
-  display: grid;
+.lightbox-shortcut-hint kbd {
+  display: inline-grid;
+  min-width: 20px;
+  height: 20px;
+  padding-inline: 4px;
   place-items: center;
-  transform: translateY(-50%);
-  border: 1px solid rgba(255, 255, 255, 0.24);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.14);
-  color: white;
-  font-size: 46px;
-  line-height: 1;
-  cursor: pointer;
-  backdrop-filter: blur(8px);
-}
-
-.lightbox-nav:hover {
-  background: rgba(255, 255, 255, 0.24);
-}
-
-.lightbox-prev {
-  left: 22px;
-}
-
-.lightbox-next {
-  right: 22px;
-}
-
-.lightbox-counter {
-  position: absolute;
-  z-index: 2;
-  bottom: 22px;
-  left: 50%;
-  transform: translateX(-50%);
-  min-width: 64px;
-  padding: 7px 12px;
   border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.14);
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.08);
   color: white;
-  font-size: 13px;
-  text-align: center;
-  backdrop-filter: blur(8px);
+  font: inherit;
+  font-size: 11px;
+}
+
+@media (max-width: 540px) {
+  .lightbox-shortcut-hint {
+    flex-wrap: wrap;
+  }
+
+  .lightbox-shortcut-wheel {
+    display: none !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lightbox-shortcut-hint,
+  .lightbox-zoom-button,
+  .lightbox-zoom-mode {
+    transition: none;
+  }
 }
 
 .empty-preview,
@@ -867,7 +912,7 @@ body.lightbox-open {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--muted);
+  color: var(--text-muted);
   background: var(--surface-soft);
   border: 1px dashed color-mix(in srgb, var(--text-secondary) 30%, var(--line));
   border-radius: 8px;
@@ -1000,7 +1045,7 @@ body.lightbox-open {
 }
 
 .elapsed-meta {
-  color: var(--muted);
+  color: var(--text-muted);
   font-size: 12px;
 }
 

@@ -10,6 +10,9 @@ from typing import Any, Callable
 from fastapi import FastAPI
 
 from .history_export import HistoryExportService
+from .history_backup_export import HistoryBackupExportService
+from .history_backup_import import HistoryBackupImportService
+from .history_backup_plan import TaskBackupPlanner
 from .instance_lock import WebUIInstanceLock
 from .network_egress import NetworkEgressManager, NetworkEgressSettings
 from .provider_settings import ProviderSettings
@@ -120,6 +123,10 @@ class WebUIContext:
     prompt_snippet_settings: PromptSnippetSettings
     prompt_template_settings: PromptTemplateSettings
     history_export_service: HistoryExportService
+    history_backup_planner: TaskBackupPlanner
+    history_backup_export_service: HistoryBackupExportService
+    history_backup_import_service: HistoryBackupImportService
+    history_backup_temp_root: Path
     client_factory: ClientFactory
     auth_checker: AuthChecker
     input_root: Path
@@ -129,6 +136,7 @@ class WebUIContext:
     reference_file_root: Path
     source_data_root: Path
     auto_start_queue: bool
+    history_backup_owner_lock: WebUIInstanceLock | None = None
     instance_lock: WebUIInstanceLock | None = None
     queue_manager: QueueManager | None = None
     queue_worker_health: QueueWorkerHealth = field(default_factory=QueueWorkerHealth)
@@ -138,6 +146,7 @@ class WebUIContext:
     api_task_slot_reservations: dict[str, dict[str, Any]] = field(default_factory=dict)
     responses_file_unsupported_keys: set[tuple[str, str, str, str]] = field(default_factory=set)
     route_helpers: dict[str, Any] = field(default_factory=dict)
+    history_backup_accepting_jobs: bool = False
 
     def install_on_app_state(self) -> None:
         self.app.state.ctx = self
@@ -161,6 +170,12 @@ class WebUIContext:
         self.app.state.network_egress_manager = self.network_egress_manager
         self.app.state.prompt_template_settings = self.prompt_template_settings
         self.app.state.history_export_service = self.history_export_service
+        self.app.state.history_backup_planner = self.history_backup_planner
+        self.app.state.history_backup_export_service = self.history_backup_export_service
+        self.app.state.history_backup_import_service = self.history_backup_import_service
+        self.app.state.history_backup_temp_root = self.history_backup_temp_root
+        self.app.state.history_backup_owner_lock = self.history_backup_owner_lock
+        self.app.state.history_backup_accepting_jobs = self.history_backup_accepting_jobs
         self.app.state.client_factory = self.client_factory
         self.app.state.auth_checker = self.auth_checker
         self.app.state.active_task_ids = self.active_task_ids

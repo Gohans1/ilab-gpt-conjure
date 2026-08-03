@@ -4,7 +4,7 @@
   place-items: center;
   border: 1px dashed color-mix(in srgb, var(--text-secondary) 30%, var(--line));
   border-radius: 12px;
-  color: var(--muted);
+  color: var(--text-muted);
 }
 
 .archive-card {
@@ -51,7 +51,7 @@
 }
 
 .archive-info span {
-  color: var(--muted);
+  color: var(--text-muted);
   font-size: 12px;
 }
 
@@ -88,7 +88,7 @@
   border: 0;
   border-bottom: 1px solid color-mix(in srgb, var(--line) 72%, transparent);
   background: color-mix(in srgb, var(--surface) 68%, transparent);
-  color: var(--muted);
+  color: var(--text-muted);
   font: inherit;
   font-size: 11px;
   font-weight: 700;
@@ -171,7 +171,7 @@
 .gallery-card-body span {
   min-width: 0;
   overflow: hidden;
-  color: var(--muted);
+  color: var(--text-muted);
   font-size: 12px;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -491,7 +491,7 @@
   padding: 12px;
   border: 1px dashed var(--line);
   border-radius: 8px;
-  color: var(--muted);
+  color: var(--text-muted);
   font-size: 12px;
   line-height: 1.45;
 }
@@ -544,7 +544,7 @@
   display: grid;
   place-items: center;
   overflow: hidden;
-  color: var(--muted);
+  color: var(--text-muted);
   font-size: 11px;
   font-weight: 700;
 }
@@ -581,7 +581,7 @@
 .image-editor-layer-meta {
   min-width: 0;
   overflow: hidden;
-  color: var(--muted);
+  color: var(--text-muted);
   font-size: 11px;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -600,7 +600,7 @@
 
 .image-editor-status {
   min-height: 20px;
-  color: var(--muted);
+  color: var(--text-muted);
   font-size: 12px;
 }
 

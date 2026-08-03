@@ -686,6 +686,59 @@ class WebUITaskTests(unittest.TestCase):
         self.assertEqual(stored_metadata["output_files"], output_files)
         self.assertEqual(stored_metadata["selected_output_indexes"], [1])
 
+    def test_task_detail_api_backfills_image_url_for_restored_file_only_output(self) -> None:
+        from codex_image.webui.app import create_app
+
+        task_id = "20260801074820-57f7da69"
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            output_file = output_name(task_id, 1)
+            output_path = root / output_file
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+            output_path.write_bytes(self._png_bytes())
+            metadata_path(root, task_id).parent.mkdir(parents=True, exist_ok=True)
+            metadata_path(root, task_id).write_text(
+                json.dumps(
+                    {
+                        "task_id": task_id,
+                        "created_at": "2026-08-01T07:48:20+00:00",
+                        "status": "completed",
+                        "generated_count": 1,
+                        "total_count": 1,
+                        "output_file": output_file,
+                        "output_files": [output_file],
+                        "outputs": [
+                            {
+                                "index": 1,
+                                "status": "completed",
+                                "file": output_file,
+                            }
+                        ],
+                        "backup_import_fingerprint": "sha256:" + "a" * 64,
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            app = create_app(
+                output_root=root,
+                auth_checker=lambda: True,
+                auto_start_queue=False,
+            )
+            client = TestClient(app)
+            task_response = client.get(f"/api/tasks/{task_id}")
+            task = task_response.json()["task"]
+            image_url = task["outputs"][0]["url"]
+            image_response = client.get(image_url)
+
+        self.assertEqual(task_response.status_code, 200)
+        self.assertEqual(
+            image_url,
+            f"/api/tasks/{task_id}/outputs/1/image",
+        )
+        self.assertEqual(image_response.status_code, 200)
+        self.assertEqual(image_response.headers["content-type"], "image/png")
+
     def test_task_thumbnail_route_backfills_legacy_output_thumbnail(self) -> None:
         from codex_image.webui.app import create_app
 
@@ -731,7 +784,8 @@ class WebUITaskTests(unittest.TestCase):
     def test_sidebar_thumbnail_route_uses_cached_256px_webp(self) -> None:
         from codex_image.webui.app import create_app
 
-        task_id = "20260726010203-abcdef01"
+        task_time = datetime.now().astimezone().replace(hour=1, minute=2, second=3, microsecond=0)
+        task_id = f"{task_time:%Y%m%d%H%M%S}-abcdef01"
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             output_file = output_name(task_id, 1)
@@ -743,8 +797,8 @@ class WebUITaskTests(unittest.TestCase):
                 json.dumps(
                     {
                         "task_id": task_id,
-                        "created_at": "2026-07-26T01:02:03+08:00",
-                        "updated_at": "2026-07-26T01:03:03+08:00",
+                        "created_at": task_time.isoformat(),
+                        "updated_at": (task_time + timedelta(minutes=1)).isoformat(),
                         "status": "completed",
                         "generated_count": 1,
                         "total_count": 1,
@@ -762,7 +816,7 @@ class WebUITaskTests(unittest.TestCase):
             sidebar = client.get("/api/tasks/sidebar", params={"limit": 50}).json()
             thumbnail_url = sidebar["tasks"][0]["thumbnail_urls"][0]
             thumbnail_response = client.get(thumbnail_url)
-            thumbnail_path = root / "thumbnails" / "2026-07-26" / f"{task_id}-image-1-sidebar.webp"
+            thumbnail_path = root / "thumbnails" / f"{task_time:%Y-%m-%d}" / f"{task_id}-image-1-sidebar.webp"
             with Image.open(thumbnail_path) as thumbnail:
                 thumbnail_size = thumbnail.size
                 thumbnail_format = thumbnail.format
@@ -799,6 +853,8 @@ class WebUITaskTests(unittest.TestCase):
                         "params": {"ratio": "1:1", "orientation": "square"},
                     },
                 )
+                if number == 10:
+                    hidden_task_id = task_id
 
             client = TestClient(app)
             page = client.get(
@@ -809,6 +865,9 @@ class WebUITaskTests(unittest.TestCase):
                 "/api/tasks/sidebar/groups/today/selection",
                 params={"status": "failed", "ratio": "1:1"},
             )
+            position = client.get(
+                f"/api/tasks/sidebar/groups/today/position/{hidden_task_id}",
+            )
 
         self.assertEqual(page.status_code, 200)
         self.assertEqual(len(page.json()["tasks"]), 25)
@@ -816,6 +875,10 @@ class WebUITaskTests(unittest.TestCase):
         self.assertEqual(selection.status_code, 200)
         self.assertEqual(selection.json()["count"], 37)
         self.assertEqual(len(selection.json()["task_ids"]), 37)
+        self.assertEqual(position.status_code, 200)
+        self.assertEqual(position.json()["count"], 75)
+        self.assertTrue(position.json()["found"])
+        self.assertEqual(position.json()["position"], 64)
 
     def test_batch_delete_route_deletes_explicit_terminal_tasks_and_skips_running(self) -> None:
         from codex_image.webui.app import create_app

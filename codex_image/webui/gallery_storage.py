@@ -5,12 +5,15 @@ import json
 import re
 import shutil
 import uuid
+import threading
+from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
 from .schemas import DEFAULT_WEBUI_GALLERY_ROOT
 from .storage_utils import _guess_mime_type, _safe_filename, utc_now
+from .atomic_files import _fsync_parent, atomic_write_bytes, atomic_write_text
 
 
 DEFAULT_GALLERY_CATEGORIES = [
@@ -19,49 +22,62 @@ DEFAULT_GALLERY_CATEGORIES = [
     {"id": "product", "name": "产品", "prompt_role": "产品参考", "order": 30, "locked": False},
 ]
 GALLERY_CATEGORIES = {category["id"] for category in DEFAULT_GALLERY_CATEGORIES}
+_GALLERY_DERIVED_ITEM_FIELDS = frozenset({"category_name", "category_prompt_role"})
+
+
+@dataclass(frozen=True)
+class GalleryRestore:
+    record: dict[str, Any]
+    created: bool
+    version: int
+    restore_token: str | None = None
 
 
 class GalleryStorage:
     def __init__(self, root: Path | str = DEFAULT_WEBUI_GALLERY_ROOT) -> None:
         self.root = Path(root)
+        self._lock = threading.RLock()
+        self._restore_versions: dict[str, int] = {}
 
     def list_categories(self) -> list[dict[str, Any]]:
         categories = self._read_categories()
         return sorted(categories, key=lambda category: (int(category.get("order", 0)), str(category.get("name", ""))))
 
     def create_category(self, name: str, *, prompt_role: str | None = None, order: int | None = None) -> dict[str, Any]:
-        categories = self._read_categories()
-        clean_name = _clean_gallery_category_name(name)
-        category_id = self._new_category_id(categories)
-        now = utc_now()
-        next_order = order if order is not None else (max([int(category.get("order", 0)) for category in categories] or [0]) + 10)
-        category = {
-            "id": category_id,
-            "name": clean_name,
-            "prompt_role": _clean_gallery_prompt_role(prompt_role, fallback=clean_name),
-            "order": int(next_order),
-            "locked": False,
-            "created_at": now,
-            "updated_at": now,
-        }
-        categories.append(category)
-        self._write_categories(categories)
-        return category
+        with self._lock:
+            categories = self._read_categories()
+            clean_name = _clean_gallery_category_name(name)
+            category_id = self._new_category_id(categories)
+            now = utc_now()
+            next_order = order if order is not None else (max([int(category.get("order", 0)) for category in categories] or [0]) + 10)
+            category = {
+                "id": category_id,
+                "name": clean_name,
+                "prompt_role": _clean_gallery_prompt_role(prompt_role, fallback=clean_name),
+                "order": int(next_order),
+                "locked": False,
+                "created_at": now,
+                "updated_at": now,
+            }
+            categories.append(category)
+            self._write_categories(categories)
+            return category
 
     def reorder_categories(self, category_ids: list[str]) -> list[dict[str, Any]]:
-        categories = self._read_categories()
-        current_ids = [str(category.get("id") or "") for category in self.list_categories()]
-        reordered_ids = _clean_reorder_ids(category_ids, current_ids, clean_id=_clean_gallery_category_id, label="Gallery category")
-        categories_by_id = {str(category.get("id") or ""): dict(category) for category in categories}
-        updated: list[dict[str, Any]] = []
-        now = utc_now()
-        for index, category_id in enumerate(reordered_ids, start=1):
-            category = categories_by_id[category_id]
-            category["order"] = index * 10
-            category["updated_at"] = now
-            updated.append(category)
-        self._write_categories(updated)
-        return self.list_categories()
+        with self._lock:
+            categories = self._read_categories()
+            current_ids = [str(category.get("id") or "") for category in self.list_categories()]
+            reordered_ids = _clean_reorder_ids(category_ids, current_ids, clean_id=_clean_gallery_category_id, label="Gallery category")
+            categories_by_id = {str(category.get("id") or ""): dict(category) for category in categories}
+            updated: list[dict[str, Any]] = []
+            now = utc_now()
+            for index, category_id in enumerate(reordered_ids, start=1):
+                category = categories_by_id[category_id]
+                category["order"] = index * 10
+                category["updated_at"] = now
+                updated.append(category)
+            self._write_categories(updated)
+            return self.list_categories()
 
     def update_category(
         self,
@@ -71,45 +87,64 @@ class GalleryStorage:
         prompt_role: str | None = None,
         order: int | None = None,
     ) -> dict[str, Any]:
-        clean_id = _clean_gallery_category_id(category_id)
-        categories = self._read_categories()
-        for category in categories:
-            if category["id"] != clean_id:
-                continue
-            if name is not None:
-                category["name"] = _clean_gallery_category_name(name)
-            if prompt_role is not None:
-                category["prompt_role"] = _clean_gallery_prompt_role(prompt_role, fallback=str(category.get("name") or "参考图"))
-            if order is not None:
-                category["order"] = int(order)
-            category["updated_at"] = utc_now()
-            self._write_categories(categories)
-            return dict(category)
-        raise FileNotFoundError(category_id)
+        with self._lock:
+            clean_id = _clean_gallery_category_id(category_id)
+            categories = self._read_categories()
+            for category in categories:
+                if category["id"] != clean_id:
+                    continue
+                if name is not None:
+                    category["name"] = _clean_gallery_category_name(name)
+                if prompt_role is not None:
+                    category["prompt_role"] = _clean_gallery_prompt_role(prompt_role, fallback=str(category.get("name") or "参考图"))
+                if order is not None:
+                    category["order"] = int(order)
+                category["updated_at"] = utc_now()
+                self._write_categories(categories)
+                return dict(category)
+            raise FileNotFoundError(category_id)
 
     def delete_category(self, category_id: str, *, move_to: str | None = None) -> None:
-        clean_id = _clean_gallery_category_id(category_id)
-        categories = self._read_categories()
-        if not any(category["id"] == clean_id for category in categories):
-            raise FileNotFoundError(category_id)
-        target_id = _clean_gallery_category_id(move_to) if move_to is not None else None
-        if target_id == clean_id:
-            raise ValueError("Move target must be different from deleted category")
-        if target_id is not None and not any(category["id"] == target_id for category in categories):
-            raise ValueError("Move target category does not exist")
+        with self._lock:
+            clean_id = _clean_gallery_category_id(category_id)
+            categories = self._read_categories()
+            if not any(category["id"] == clean_id for category in categories):
+                raise FileNotFoundError(category_id)
+            target_id = _clean_gallery_category_id(move_to) if move_to is not None else None
+            if target_id == clean_id:
+                raise ValueError("Move target must be different from deleted category")
+            if target_id is not None and not any(category["id"] == target_id for category in categories):
+                raise ValueError("Move target category does not exist")
 
-        items = [item for item in self.list_items() if item.get("category") == clean_id]
-        if items and target_id is None:
-            raise ValueError("Category is not empty")
-        if len(categories) <= 1:
-            raise ValueError("At least one gallery category is required")
+            items = [item for item in self.list_items() if item.get("category") == clean_id]
+            if items and target_id is None:
+                raise ValueError("Category is not empty")
+            if len(categories) <= 1:
+                raise ValueError("At least one gallery category is required")
 
-        if target_id is not None:
-            for item in items:
-                self.update_item(str(item["id"]), category=target_id)
-        self._write_categories([category for category in categories if category["id"] != clean_id])
+            if target_id is not None:
+                for item in items:
+                    self.update_item(str(item["id"]), category=target_id)
+            self._write_categories([category for category in categories if category["id"] != clean_id])
 
     def create_item(
+        self,
+        name: str,
+        category: str,
+        filename: str,
+        data: bytes,
+        content_type: str | None = None,
+        prompt_note: str | None = None,
+        order: int | None = None,
+    ) -> dict[str, Any]:
+        with self._lock:
+            record = self._create_item_unlocked(
+                name, category, filename, data, content_type, prompt_note, order
+            )
+            self._bump_restore_version(str(record["id"]))
+            return record
+
+    def _create_item_unlocked(
         self,
         name: str,
         category: str,
@@ -127,24 +162,147 @@ class GalleryStorage:
         item_path.mkdir(parents=True, exist_ok=False)
         safe_name = _safe_filename(filename)
         image_path = item_path / safe_name
-        image_path.write_bytes(data)
-        now = utc_now()
-        metadata = {
-            "id": item_id,
-            "name": clean_name,
-            "name_key": _gallery_name_key(clean_name),
-            "category": clean_category,
-            "filename": safe_name,
-            "mime_type": content_type or _guess_mime_type(safe_name),
-            "sha256": hashlib.sha256(data).hexdigest(),
-            "size_bytes": len(data),
-            "prompt_note": _clean_gallery_prompt_note(prompt_note),
-            "order": _clean_gallery_item_order(order, fallback=self._next_item_order(clean_category)),
-            "created_at": now,
-            "updated_at": now,
-        }
-        self._write_item_metadata(item_id, metadata)
-        return self._normalize_item_metadata(metadata)
+        try:
+            atomic_write_bytes(image_path, data, mode=0o600)
+            now = utc_now()
+            metadata = {
+                "id": item_id,
+                "name": clean_name,
+                "name_key": _gallery_name_key(clean_name),
+                "category": clean_category,
+                "filename": safe_name,
+                "mime_type": content_type or _guess_mime_type(safe_name),
+                "sha256": hashlib.sha256(data).hexdigest(),
+                "size_bytes": len(data),
+                "prompt_note": _clean_gallery_prompt_note(prompt_note),
+                "order": _clean_gallery_item_order(order, fallback=self._next_item_order(clean_category)),
+                "created_at": now,
+                "updated_at": now,
+            }
+            self._write_item_metadata(item_id, metadata)
+            return self._normalize_item_metadata(metadata)
+        except Exception:
+            for path in list(item_path.iterdir()):
+                if path.is_file():
+                    path.unlink(missing_ok=True)
+            try:
+                item_path.rmdir()
+            except OSError:
+                pass
+            raise
+
+    def restore_content(
+        self,
+        name: str,
+        category: str,
+        filename: str,
+        data: bytes,
+        content_type: str | None = None,
+    ) -> GalleryRestore:
+        digest = hashlib.sha256(data).hexdigest()
+        with self._lock:
+            for item in self.list_items():
+                if str(item.get("sha256") or "") != digest:
+                    continue
+                try:
+                    path = self.image_path(str(item.get("id") or ""))
+                except (FileNotFoundError, OSError, ValueError):
+                    continue
+                if path.stat().st_size == len(data) and _sha256_file(path) == digest:
+                    item_id = str(item["id"])
+                    version = self._restore_versions.get(item_id, 0) + 1
+                    self._restore_versions[item_id] = version
+                    self._invalidate_restore_ownership(item_id)
+                    return GalleryRestore(dict(item), False, version, None)
+            clean_name = _unique_restore_name(self, name)
+            try:
+                record = self._create_item_unlocked(clean_name, category, filename, data, content_type)
+            except ValueError:
+                record = self._create_item_unlocked(clean_name, "portrait", filename, data, content_type)
+            item_id = str(record["id"])
+            version = self._restore_versions.get(item_id, 0) + 1
+            self._restore_versions[item_id] = version
+            restore_token = uuid.uuid4().hex
+            atomic_write_text(self._restore_token_path(item_id), restore_token, mode=0o600)
+            return GalleryRestore(record, True, version, restore_token)
+
+    def rollback_restore(self, handle: GalleryRestore) -> bool:
+        if not isinstance(handle, GalleryRestore) or not handle.created or not handle.restore_token:
+            return False
+        item_id = str(handle.record.get("id") or "")
+        with self._lock:
+            if not self.restore_identity_matches(handle):
+                return False
+            item_path = self._item_path(item_id)
+            token_path = self._restore_token_path(item_id)
+            for path in list(item_path.iterdir()):
+                if path == token_path:
+                    continue
+                if path.is_file():
+                    path.unlink()
+            token_path.unlink()
+            item_path.rmdir()
+            self._restore_versions.pop(item_id, None)
+            return True
+
+    def restore_identity_matches(self, handle: GalleryRestore) -> bool:
+        if not isinstance(handle, GalleryRestore) or not handle.created:
+            return False
+        item_id = str(handle.record.get("id") or "")
+        with self._lock:
+            try:
+                if self._restore_token_path(item_id).read_text(encoding="utf-8") != handle.restore_token:
+                    return False
+            except OSError:
+                return False
+            try:
+                current = json.loads(
+                    (self._item_path(item_id) / "metadata.json").read_text(encoding="utf-8")
+                )
+            except (FileNotFoundError, OSError, ValueError, json.JSONDecodeError):
+                return False
+            if not isinstance(current, dict):
+                return False
+            expected = {
+                key: value
+                for key, value in handle.record.items()
+                if key not in _GALLERY_DERIVED_ITEM_FIELDS
+            }
+            return current == expected
+
+    def restore_target_exists(self, handle: GalleryRestore) -> bool:
+        return self._item_path(str(handle.record.get("id") or "")).exists()
+
+    def release_restore_ownership(self, handle: GalleryRestore) -> bool:
+        if not isinstance(handle, GalleryRestore) or not handle.created or not handle.restore_token:
+            return True
+        with self._lock:
+            path = self._restore_token_path(str(handle.record.get("id") or ""))
+            try:
+                current = path.read_text(encoding="utf-8")
+            except FileNotFoundError:
+                return True
+            except OSError:
+                return False
+            if current != handle.restore_token:
+                return True
+            try:
+                path.unlink()
+                _fsync_parent(path)
+            except OSError:
+                return False
+            return True
+
+    def _invalidate_restore_ownership(self, item_id: str) -> None:
+        path = self._restore_token_path(item_id)
+        try:
+            path.unlink()
+        except FileNotFoundError:
+            return
+        _fsync_parent(path)
+
+    def _restore_token_path(self, item_id: str) -> Path:
+        return self._item_path(item_id) / ".restore-owner"
 
     def list_items(self, category: str | None = None) -> list[dict[str, Any]]:
         if not self.root.exists():
@@ -185,46 +343,50 @@ class GalleryStorage:
         prompt_note: str | None = None,
         order: int | None = None,
     ) -> dict[str, Any]:
-        metadata = self.read_item(item_id)
-        original_category = str(metadata.get("category") or "")
-        target_category = original_category
-        if name is not None:
-            clean_name = _clean_gallery_name(name)
-            if _gallery_name_key(clean_name) != metadata.get("name_key"):
-                self._ensure_unique_name(clean_name, ignore_id=item_id)
-            metadata["name"] = clean_name
-            metadata["name_key"] = _gallery_name_key(clean_name)
-        if category is not None:
-            target_category = self._clean_category(category)
-            metadata["category"] = target_category
-        if prompt_note is not None:
-            metadata["prompt_note"] = _clean_gallery_prompt_note(prompt_note)
-        if order is not None:
-            metadata["order"] = _clean_gallery_item_order(order, fallback=int(metadata.get("order") or 0))
-        elif category is not None and target_category != original_category:
-            metadata["order"] = self._next_item_order(target_category)
-        metadata["updated_at"] = utc_now()
-        metadata.pop("category_name", None)
-        metadata.pop("category_prompt_role", None)
-        self._write_item_metadata(item_id, metadata)
-        if category is not None and target_category != original_category:
-            self._compact_category_item_orders(original_category)
-        return self._normalize_item_metadata(metadata)
-
-    def reorder_items(self, category: str, item_ids: list[str]) -> list[dict[str, Any]]:
-        clean_category = self._clean_category(category)
-        current_items = self.list_items(category=clean_category)
-        current_ids = [str(item.get("id") or "") for item in current_items]
-        reordered_ids = _clean_reorder_ids(item_ids, current_ids, clean_id=_clean_gallery_item_id, label="Gallery item")
-        now = utc_now()
-        for index, item_id in enumerate(reordered_ids, start=1):
+        with self._lock:
             metadata = self.read_item(item_id)
-            metadata["order"] = index * 10
-            metadata["updated_at"] = now
+            original_category = str(metadata.get("category") or "")
+            target_category = original_category
+            if name is not None:
+                clean_name = _clean_gallery_name(name)
+                if _gallery_name_key(clean_name) != metadata.get("name_key"):
+                    self._ensure_unique_name(clean_name, ignore_id=item_id)
+                metadata["name"] = clean_name
+                metadata["name_key"] = _gallery_name_key(clean_name)
+            if category is not None:
+                target_category = self._clean_category(category)
+                metadata["category"] = target_category
+            if prompt_note is not None:
+                metadata["prompt_note"] = _clean_gallery_prompt_note(prompt_note)
+            if order is not None:
+                metadata["order"] = _clean_gallery_item_order(order, fallback=int(metadata.get("order") or 0))
+            elif category is not None and target_category != original_category:
+                metadata["order"] = self._next_item_order(target_category)
+            metadata["updated_at"] = utc_now()
             metadata.pop("category_name", None)
             metadata.pop("category_prompt_role", None)
             self._write_item_metadata(item_id, metadata)
-        return self.list_items(category=clean_category)
+            self._bump_restore_version(item_id)
+            if category is not None and target_category != original_category:
+                self._compact_category_item_orders(original_category)
+            return self._normalize_item_metadata(metadata)
+
+    def reorder_items(self, category: str, item_ids: list[str]) -> list[dict[str, Any]]:
+        with self._lock:
+            clean_category = self._clean_category(category)
+            current_items = self.list_items(category=clean_category)
+            current_ids = [str(item.get("id") or "") for item in current_items]
+            reordered_ids = _clean_reorder_ids(item_ids, current_ids, clean_id=_clean_gallery_item_id, label="Gallery item")
+            now = utc_now()
+            for index, item_id in enumerate(reordered_ids, start=1):
+                metadata = self.read_item(item_id)
+                metadata["order"] = index * 10
+                metadata["updated_at"] = now
+                metadata.pop("category_name", None)
+                metadata.pop("category_prompt_role", None)
+                self._write_item_metadata(item_id, metadata)
+                self._bump_restore_version(item_id)
+            return self.list_items(category=clean_category)
 
     def replace_item_image(
         self,
@@ -234,31 +396,35 @@ class GalleryStorage:
         data: bytes,
         content_type: str | None = None,
     ) -> dict[str, Any]:
-        if not data:
-            raise ValueError("Image is required")
-        metadata = self.read_item(item_id)
-        item_path = self._item_path(item_id)
-        old_path = item_path / str(metadata.get("filename", ""))
-        safe_name = _safe_filename(filename)
-        image_path = item_path / safe_name
-        image_path.write_bytes(data)
-        metadata["filename"] = safe_name
-        metadata["mime_type"] = content_type or _guess_mime_type(safe_name)
-        metadata["sha256"] = hashlib.sha256(data).hexdigest()
-        metadata["size_bytes"] = len(data)
-        metadata["updated_at"] = utc_now()
-        metadata.pop("category_name", None)
-        metadata.pop("category_prompt_role", None)
-        self._write_item_metadata(item_id, metadata)
-        if old_path != image_path and old_path.exists() and old_path.parent == item_path:
-            old_path.unlink()
-        return self._normalize_item_metadata(metadata)
+        with self._lock:
+            if not data:
+                raise ValueError("Image is required")
+            metadata = self.read_item(item_id)
+            item_path = self._item_path(item_id)
+            old_path = item_path / str(metadata.get("filename", ""))
+            safe_name = _safe_filename(filename)
+            image_path = item_path / safe_name
+            atomic_write_bytes(image_path, data, mode=0o600)
+            metadata["filename"] = safe_name
+            metadata["mime_type"] = content_type or _guess_mime_type(safe_name)
+            metadata["sha256"] = hashlib.sha256(data).hexdigest()
+            metadata["size_bytes"] = len(data)
+            metadata["updated_at"] = utc_now()
+            metadata.pop("category_name", None)
+            metadata.pop("category_prompt_role", None)
+            self._write_item_metadata(item_id, metadata)
+            self._bump_restore_version(item_id)
+            if old_path != image_path and old_path.exists() and old_path.parent == item_path:
+                old_path.unlink()
+            return self._normalize_item_metadata(metadata)
 
     def delete_item(self, item_id: str) -> None:
-        item_path = self._item_path(item_id)
-        if not item_path.exists():
-            raise FileNotFoundError(item_id)
-        shutil.rmtree(item_path)
+        with self._lock:
+            item_path = self._item_path(item_id)
+            if not item_path.exists():
+                raise FileNotFoundError(item_id)
+            self._bump_restore_version(item_id)
+            shutil.rmtree(item_path)
 
     def image_path(self, item_id: str) -> Path:
         metadata = self.read_item(item_id)
@@ -270,8 +436,13 @@ class GalleryStorage:
     def _write_item_metadata(self, item_id: str, metadata: dict[str, Any]) -> Path:
         path = self._item_path(item_id) / "metadata.json"
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(json.dumps(metadata, indent=2, ensure_ascii=False), encoding="utf-8")
+        atomic_write_text(path, json.dumps(metadata, indent=2, ensure_ascii=False), mode=0o600)
         return path
+
+    def _bump_restore_version(self, item_id: str) -> int:
+        version = self._restore_versions.get(item_id, 0) + 1
+        self._restore_versions[item_id] = version
+        return version
 
     def _ensure_unique_name(self, name: str, *, ignore_id: str | None = None) -> None:
         name_key = _gallery_name_key(name)
@@ -342,6 +513,7 @@ class GalleryStorage:
             metadata.pop("category_name", None)
             metadata.pop("category_prompt_role", None)
             self._write_item_metadata(str(item.get("id") or ""), metadata)
+            self._bump_restore_version(str(item.get("id") or ""))
             normalized.append(self._normalize_item_metadata(metadata, category_map=category_map))
         return normalized
 
@@ -355,6 +527,7 @@ class GalleryStorage:
             metadata.pop("category_name", None)
             metadata.pop("category_prompt_role", None)
             self._write_item_metadata(str(item.get("id") or ""), metadata)
+            self._bump_restore_version(str(item.get("id") or ""))
             normalized.append(self._normalize_item_metadata(metadata, category_map=category_map))
         return normalized
 
@@ -392,6 +565,18 @@ def _clean_gallery_name(name: str) -> str:
 
 def _gallery_name_key(name: str) -> str:
     return _clean_gallery_name(name).casefold()
+
+
+def _unique_restore_name(storage: GalleryStorage, preferred: str) -> str:
+    base = _clean_gallery_name(preferred)[:48]
+    existing = {str(item.get("name") or "").casefold() for item in storage.list_items()}
+    if base.casefold() not in existing:
+        return base
+    for index in range(2, 10_000):
+        candidate = f"{base} ({index})"[:64]
+        if candidate.casefold() not in existing:
+            return candidate
+    raise ValueError("Gallery name unavailable")
 
 
 def _clean_gallery_category(category: str | None) -> str:
@@ -486,3 +671,11 @@ def _normalize_gallery_category(category: dict[str, Any]) -> dict[str, Any]:
         "created_at": str(category.get("created_at") or ""),
         "updated_at": str(category.get("updated_at") or ""),
     }
+
+
+def _sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as source:
+        while chunk := source.read(1024 * 1024):
+            digest.update(chunk)
+    return digest.hexdigest()

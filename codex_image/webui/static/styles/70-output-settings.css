@@ -276,7 +276,7 @@
 }
 
 .model-parameter-number-value {
-  color: var(--muted);
+  color: var(--text-muted);
   font-variant-numeric: tabular-nums;
 }
 
@@ -286,7 +286,7 @@
   border: 1px solid var(--panel-border);
   border-radius: 10px;
   background: var(--surface-soft);
-  color: var(--muted);
+  color: var(--text-muted);
   overflow-wrap: anywhere;
 }
 
@@ -340,7 +340,7 @@
 }
 
 .task-parameter-unknown-list dt {
-  color: var(--muted);
+  color: var(--text-muted);
 }
 
 .output-settings-stage.is-inspecting-task > #settingsGrid,
@@ -441,7 +441,7 @@
 .output-settings-summary-model-label,
 .output-settings-summary-card-label,
 .output-settings-summary-detail-label {
-  color: var(--muted);
+  color: var(--text-muted);
   font-size: 12px;
   font-weight: 600;
   line-height: 1.35;
@@ -608,7 +608,7 @@
 
 .output-settings-card-meta {
   justify-self: center;
-  color: var(--muted);
+  color: var(--text-muted);
   font-size: 12px;
   font-weight: 500;
   font-variant-numeric: tabular-nums;
@@ -676,7 +676,7 @@
 .output-settings-summary-hint {
   min-width: 0;
   margin: 0;
-  color: var(--muted);
+  color: var(--text-muted);
   font-size: 12px;
   line-height: 1.55;
 }
@@ -759,6 +759,11 @@
   font-size: 13px;
   font-weight: 500;
   color: var(--text-secondary);
+}
+
+.controls-col .output-panel .field > span,
+.controls-col .output-panel .field-label {
+  padding-inline-start: var(--control-label-optical-inset);
 }
 
 #orientationGroup .radio-btn {
@@ -852,7 +857,7 @@
   border-radius: 50%;
   background: transparent;
   box-shadow: none;
-  color: var(--muted);
+  color: var(--text-muted);
   cursor: help;
   transition: color var(--motion-fast);
 }
@@ -939,7 +944,7 @@
 
 .prompt-fidelity-help-header span {
   font-size: 11px;
-  color: var(--muted);
+  color: var(--text-muted);
   white-space: nowrap;
 }
 
@@ -1062,7 +1067,7 @@
 .api-direct-settings-header span {
   min-width: 0;
   overflow: hidden;
-  color: var(--muted);
+  color: var(--text-muted);
   font-size: 12px;
   font-weight: 500;
   text-overflow: ellipsis;
@@ -1153,7 +1158,7 @@
 
 .web-search-field.is-disabled .web-search-toggle {
   cursor: not-allowed;
-  color: var(--muted);
+  color: var(--text-muted);
   background: color-mix(in srgb, var(--surface-soft) 70%, transparent);
 }
 
@@ -1237,7 +1242,7 @@
 
 .stepper-hint {
   font-size: 12px;
-  color: var(--muted);
+  color: var(--text-muted);
 }
 
 /* Switch Toggle */
@@ -1319,7 +1324,7 @@ input:checked + .slider.round:before {
 .custom-ratio-header > span {
   font-size: 12px;
   font-weight: 500;
-  color: var(--muted);
+  color: var(--text-muted);
 }
 
 .custom-ratio-image-button {
@@ -1343,7 +1348,7 @@ input:checked + .slider.round:before {
   opacity: 0.48;
   cursor: not-allowed;
   background: transparent;
-  color: var(--muted);
+  color: var(--text-muted);
 }
 
 .custom-measure-row {
@@ -1404,7 +1409,7 @@ input:checked + .slider.round:before {
   align-items: center;
   justify-content: center;
   width: var(--measure-mid-width);
-  color: var(--muted);
+  color: var(--text-muted);
   font-weight: 600;
 }
 
@@ -1500,7 +1505,7 @@ input:checked + .slider.round:before {
   height: 30px;
   border: 1px solid color-mix(in srgb, var(--line) 68%, transparent);
   border-radius: 7px;
-  color: var(--muted);
+  color: var(--text-muted);
   background: transparent;
   cursor: pointer;
   transition: border-color var(--motion-fast), color var(--motion-fast), background var(--motion-fast), transform var(--motion-fast);
@@ -1531,7 +1536,7 @@ input:checked + .slider.round:before {
 .custom-size-hint {
   grid-column: 1 / -1;
   margin: 0;
-  color: var(--muted);
+  color: var(--text-muted);
   font-size: 12px;
 }
 
@@ -1702,7 +1707,7 @@ input:checked + .slider.round:before {
   min-width: 86px;
   border-color: var(--line);
   background: var(--surface-soft);
-  color: var(--muted);
+  color: var(--text-muted);
   box-shadow: none;
 }
 
@@ -1807,7 +1812,7 @@ input[type=range].slider:disabled::-moz-range-thumb {
   overflow-wrap: anywhere;
   word-break: break-word;
   font-size: 13px;
-  color: var(--muted);
+  color: var(--text-muted);
   line-height: 1.5;
   text-align: center;
 }

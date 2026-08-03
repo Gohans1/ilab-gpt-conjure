@@ -17,6 +17,16 @@ export interface WebUIState {
   queueDragTaskId: string | null;
   activeTaskGroupCollapsed: boolean;
   expandedTaskGroupKey: string | null;
+  historyTaskReveal: {
+    taskId: string;
+    task: WebUITask;
+    kind: "group" | "transient";
+    groupKey: "today" | "yesterday" | "last7" | "current";
+    ready: boolean;
+    groupTasks: WebUITask[];
+    loadedCount: number;
+  } | null;
+  historyTaskRevealSeq: number;
   latestTaskNoticeCount: number;
   latestTaskKeepAtTop: boolean;
   latestTaskKeepAtTopExpiresAt: number;
@@ -61,11 +71,19 @@ declare global {
     ) => void;
     applyQueueTasks?: (queue: QueueState | null | undefined) => void;
     updateQueueElapsedDisplays?: () => void;
-    openLightbox?: (url: string, urls?: string[], index?: number) => void;
+    openLightbox?: (
+      url: string,
+      urls?: string[],
+      index?: number,
+      options?: {
+        taskId?: string;
+        onTaskNavigate?: (
+          direction: "previous" | "next",
+          context: { taskId: string; imageIndex: number },
+        ) => void | Promise<void>;
+      },
+    ) => void;
     closeLightbox?: () => void;
-    showLightboxImage?: (index: number) => void;
-    showPreviousLightboxImage?: () => void;
-    showNextLightboxImage?: () => void;
     addToInput?: (url: string) => Promise<void>;
   }
 }

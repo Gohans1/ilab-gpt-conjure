@@ -31,11 +31,14 @@ function revokeUploadPreviewUrls(sources) { legacyMethod("revokeUploadPreviewUrl
 function renderImageStrip() { legacyMethod("renderImageStrip"); }
 function updateRequestPreview() { legacyMethod("updateRequestPreview"); }
 function taskInputUrls(task) { return legacyMethod("taskInputUrls", task); }
+function taskOutputUrls(task) { return legacyMethod("taskOutputUrls", task); }
 function uploadSource(file) { return legacyMethod("uploadSource", file); }
 function gallerySource(item) { return legacyMethod("gallerySource", item); }
 function assetSource(item) { return legacyMethod("assetSource", item); }
 function inspectTaskParameters(task) { legacyMethod("inspectTaskParameters", task); }
 function clearTaskParameterInspection() { legacyMethod("clearTaskParameterInspection"); }
+function renderTasks(options = {}) { legacyMethod("renderTasks", options); }
+function revealHistoryTaskInSidebar(task) { return legacyMethod("revealHistoryTaskInSidebar", task); }
 
 function applyTaskToFormWithOutputLock(task) {
   const outputSettingsLocked = Boolean(legacyMethod("isOutputSettingsLocked"));
@@ -259,7 +262,17 @@ async function restoreTaskInputs(task, options = {}) {
 
 async function selectTask(taskId) {
   closePromptPopover();
+  const leavingHistoryReveal = Boolean(
+    state.historyTaskReveal
+    && String(state.historyTaskReveal.taskId || "") !== String(taskId || ""),
+  );
+  if (leavingHistoryReveal) {
+    state.historyTaskReveal = null;
+    state.historyTaskRevealSeq += 1;
+    state.tasksRenderKey = null;
+  }
   state.selectedTaskId = taskId;
+  if (leavingHistoryReveal) renderTasks({ preserveScroll: true });
   let task = state.tasks.find((item) => String(item.task_id) === String(taskId));
   if (!task) return;
   if (task.summary_only) {
@@ -297,6 +310,44 @@ async function selectTask(taskId) {
   if (!["running", "cancelling"].includes(String(task.status || ""))) renderSelectedTask(task, taskId);
 }
 
+function mainLightboxTaskIds() {
+  const root = els.taskHistoryShell || els.sidebarContent || els.taskList;
+  if (!root) return [];
+  const seen = new Set();
+  return Array.from(root.querySelectorAll(".task-card[data-task-id]"))
+    .map((card) => String(card.dataset.taskId || ""))
+    .filter((taskId) => {
+      if (!taskId || seen.has(taskId)) return false;
+      seen.add(taskId);
+      const task = state.tasks.find((item) => String(item.task_id) === taskId);
+      if (!task) return false;
+      return taskOutputUrls(task).length > 0
+        || (Array.isArray(task.thumbnail_urls) && task.thumbnail_urls.length > 0)
+        || Number(task.generated_count || 0) > 0;
+    });
+}
+
+async function openMainTaskLightboxByDirection(direction, context) {
+  const taskIds = mainLightboxTaskIds();
+  const currentTaskId = String(context?.taskId || state.selectedTaskId || "");
+  const currentIndex = taskIds.indexOf(currentTaskId);
+  if (currentIndex < 0) return;
+  const step = direction === "previous" ? -1 : 1;
+  for (let index = currentIndex + step; index >= 0 && index < taskIds.length; index += step) {
+    const taskId = taskIds[index];
+    await selectTask(taskId);
+    const task = state.tasks.find((item) => String(item.task_id) === taskId);
+    const urls = taskOutputUrls(task);
+    if (!urls.length) continue;
+    const imageIndex = Math.min(Math.max(0, Number(context?.imageIndex) || 0), urls.length - 1);
+    window.openLightbox?.(urls[imageIndex], urls, imageIndex, {
+      taskId,
+      onTaskNavigate: openMainTaskLightboxByDirection,
+    });
+    return;
+  }
+}
+
 async function restoreHistoryTaskReuseHandoff() {
   let raw = "";
   try {
@@ -312,7 +363,7 @@ async function restoreHistoryTaskReuseHandoff() {
     }
     closePromptPopover();
     state.selectedTaskId = taskId;
-    replaceSelectedTaskDetail(taskId, task);
+    await revealHistoryTaskInSidebar(task);
     const restoreSeq = ++state.taskInputRestoreSeq;
     applyTaskToFormWithOutputLock(task);
     await restoreTaskReferenceFiles(task, { taskId, restoreSeq });
@@ -343,6 +394,7 @@ export function initTaskSelectionFeature() {
   taskSelectionInitialized = true;
   Object.assign(getLegacyBridge().methods, {
     ensureSelectedTaskDetail,
+    openMainTaskLightboxByDirection,
     selectTask,
     restoreHistoryTaskReuseHandoff,
   });

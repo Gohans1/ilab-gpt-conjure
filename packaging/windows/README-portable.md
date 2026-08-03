@@ -30,15 +30,16 @@ launcher and run `Update WebUI Portable.bat` manually.
 - `Start WebUI Portable.bat`: legacy one-click terminal launcher.
 - `Update WebUI Portable.bat`: one-click updater for the latest GitHub Release
   manifest entry matching Windows x64.
-- `app/`: iLab CONJURE source code, prebuilt static WebUI assets, and
-  frontend package metadata/build config for source rebuilds.
+- `app/`: iLab CONJURE runtime source, prebuilt static WebUI assets, and
+  installed WebUI Python dependencies.
 - `python/`: embedded CPython runtime and installed WebUI dependencies.
 - `data/`: local settings, gallery files, inputs, outputs, queue database, and
   logs created while using the app.
 
-The portable startup launcher does not run `npm install` or rebuild frontend
-assets. Node.js is only needed if you intentionally edit TypeScript or CSS and
-rebuild `app/codex_image/webui/static/app.js` from source.
+Frontend TypeScript/CSS source, source maps, and frontend build metadata are
+omitted from this runtime package to reduce its download size. Complete source
+and rebuild instructions remain available in the public repository. The
+portable startup launcher does not run `npm install` or rebuild frontend assets.
 
 ## Security notes
 

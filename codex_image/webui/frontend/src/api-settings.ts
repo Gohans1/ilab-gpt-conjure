@@ -62,12 +62,13 @@ import {
   taskApiProviderLabel,
   taskBackendLabel,
   taskBackendValue,
-  moveApiProvider,
+  reorderApiProviders,
   removeProviderBinding,
   toggleApiProviderSortMode,
   updateApiKeyRevealButton,
   updateApiRequestEndpointPreview,
 } from "./api-provider-settings";
+import { initApiProviderSortFeature } from "./api-provider-sort";
 
 let apiSettingsFeatureInitialized = false;
 
@@ -125,7 +126,7 @@ export function initApiSettingsFeature(): void {
     revealApiKeyWhilePressed,
     renderApiProviderList,
     syncCodexModeNotes,
-    moveApiProvider,
+    reorderApiProviders,
     removeProviderBinding,
     toggleApiProviderSortMode,
     openGenerationProviderSettings,
@@ -145,4 +146,5 @@ export function initApiSettingsFeature(): void {
     setApiSettingsFeedback,
     saveApiSettings,
   });
+  initApiProviderSortFeature();
 }

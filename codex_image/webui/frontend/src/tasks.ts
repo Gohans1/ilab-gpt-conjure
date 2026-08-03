@@ -1,4 +1,11 @@
 import { getLegacyBridge } from "./state";
+import {
+  historyTaskRevealDestination,
+  historyTaskRevealLayoutReady,
+  sidebarTaskDateBucket,
+  sidebarTaskRevealPagePlan,
+} from "./history-task-reveal-model";
+import { cssEscape } from "./webui-utils";
 
 const bridge = getLegacyBridge();
 const state = bridge.state;
@@ -26,7 +33,52 @@ const ensureSelectedTaskDetail = (...args: any[]) => legacyMethod("ensureSelecte
 const TASK_SEARCH_HISTORY_LIMIT = 100;
 const TASK_SEARCH_HISTORY_DEBOUNCE_MS = 180;
 const TASK_SIDEBAR_GROUP_PAGE_SIZE = 50;
+const TASK_SIDEBAR_REVEAL_PAGE_SIZE = 100;
+const HISTORY_TASK_REVEAL_LAYOUT_TIMEOUT_MS = 5000;
 let taskSearchHistoryTimerId = 0;
+
+function activeHistoryTaskReveal() {
+  const reveal = state.historyTaskReveal;
+  if (!reveal?.ready) return null;
+  if (String(reveal.taskId || "") !== String(state.selectedTaskId || "")) return null;
+  return reveal;
+}
+
+function mergeSidebarTasks(baseTasks: any[], incomingTasks: any[]) {
+  const merged = [...baseTasks];
+  const indexById = new Map(
+    merged.map((task: any, index: number) => [String(task?.task_id || ""), index]),
+  );
+  incomingTasks.forEach((incoming: any) => {
+    const taskId = String(incoming?.task_id || "");
+    if (!taskId) return;
+    const index = indexById.get(taskId);
+    if (index === undefined) {
+      indexById.set(taskId, merged.length);
+      merged.push(incoming);
+      return;
+    }
+    const existing = merged[index];
+    if (existing?.summary_only !== true && incoming?.summary_only === true) return;
+    merged[index] = incoming;
+  });
+  return merged;
+}
+
+function retainHistoryTaskRevealAfterSnapshot() {
+  const reveal = activeHistoryTaskReveal();
+  if (!reveal) return;
+  const retained = reveal.kind === "group" && reveal.groupTasks.length
+    ? reveal.groupTasks
+    : [reveal.task];
+  state.tasks = mergeSidebarTasks(state.tasks, retained);
+  if (reveal.kind === "group") {
+    state.taskSidebarGroupLoadedCounts[reveal.groupKey] = Math.max(
+      Number(state.taskSidebarGroupLoadedCounts?.[reveal.groupKey] || 0),
+      Number(reveal.loadedCount || 0),
+    );
+  }
+}
 
 function normalizedTaskSearchResultQuery(query: string): string {
   return String(query || "").trim().toLowerCase();
@@ -63,6 +115,7 @@ async function applyTasksSnapshot(
       taskGroups.map((group: any) => [String(group?.key || ""), Array.isArray(group?.tasks) ? group.tasks.length : 0]),
     );
   }
+  retainHistoryTaskRevealAfterSnapshot();
   if (pendingTask?.local_pending && !state.tasks.some((task: any) => task.task_id === pendingTask.task_id)) {
     state.tasks.unshift(pendingTask);
   }
@@ -134,6 +187,140 @@ async function loadMoreSidebarTaskGroup(groupKey: any) {
     state.tasksRenderKey = null;
     renderTasks({ preserveScroll: true });
   }
+}
+
+async function fetchSidebarRevealPage(groupKey: string, offset: number) {
+  const response = await fetch(
+    `/api/tasks/sidebar/groups/${encodeURIComponent(groupKey)}?offset=${offset}&limit=${TASK_SIDEBAR_REVEAL_PAGE_SIZE}`,
+  );
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.detail || "Task group loading failed");
+  return data;
+}
+
+async function loadSidebarTaskGroupThroughTarget(reveal: any): Promise<boolean> {
+  const groupKey = String(reveal.groupKey || "");
+  const taskId = String(reveal.taskId || "");
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    const positionResponse = await fetch(
+      `/api/tasks/sidebar/groups/${encodeURIComponent(groupKey)}/position/${encodeURIComponent(taskId)}`,
+    );
+    const positionData = await positionResponse.json().catch(() => ({}));
+    if (!positionResponse.ok) throw new Error(positionData.detail || "Task position loading failed");
+    if (!positionData.found) return false;
+    const targetLoaded = state.tasks.some((task: any) => String(task?.task_id || "") === taskId);
+    const loadedCount = Math.max(0, Number(state.taskSidebarGroupLoadedCounts?.[groupKey] || 0));
+    const plan = sidebarTaskRevealPagePlan({
+      targetIndex: Number(positionData.position),
+      targetLoaded,
+      loadedCount,
+      pageSize: TASK_SIDEBAR_REVEAL_PAGE_SIZE,
+    });
+    if (!plan.found) return false;
+    const pages = await Promise.all(plan.offsets.map((offset) => fetchSidebarRevealPage(groupKey, offset)));
+    const fetchedTasks = pages.flatMap((page: any) => Array.isArray(page.tasks) ? page.tasks : []);
+    if (!targetLoaded && !fetchedTasks.some((task: any) => String(task?.task_id || "") === taskId)) {
+      continue;
+    }
+    const existingGroupTasks = state.tasks.filter((task: any) => (
+      sidebarTaskDateBucket(task) === groupKey && !task?.archived_at
+    ));
+    const groupTasks = mergeSidebarTasks(
+      mergeSidebarTasks(existingGroupTasks, fetchedTasks),
+      [reveal.task],
+    );
+    const loadedThrough = pages.reduce((maximum: number, page: any, index: number) => {
+      const offset = plan.offsets[index] || 0;
+      return Math.max(maximum, Number(page.next_offset || offset + (page.tasks?.length || 0)));
+    }, loadedCount);
+    reveal.ready = true;
+    reveal.groupTasks = groupTasks;
+    reveal.loadedCount = loadedThrough;
+    state.tasks = mergeSidebarTasks(state.tasks, groupTasks);
+    state.taskSidebarGroupCounts[groupKey] = Math.max(
+      Number(state.taskSidebarGroupCounts?.[groupKey] || 0),
+      Number(positionData.count || 0),
+      ...pages.map((page: any) => Number(page.count || 0)),
+    );
+    state.taskSidebarGroupLoadedCounts[groupKey] = loadedThrough;
+    return true;
+  }
+  return false;
+}
+
+function activateTransientHistoryTaskReveal(reveal: any) {
+  reveal.kind = "transient";
+  reveal.groupKey = "current";
+  reveal.ready = true;
+  reveal.groupTasks = [reveal.task];
+  reveal.loadedCount = 1;
+  state.tasks = mergeSidebarTasks(state.tasks, [reveal.task]);
+}
+
+async function scrollHistoryTaskCardIntoView(taskId: string): Promise<boolean> {
+  const selector = `.task-card[data-task-id="${cssEscape(taskId)}"]`;
+  const deadline = Date.now() + HISTORY_TASK_REVEAL_LAYOUT_TIMEOUT_MS;
+  while (Date.now() <= deadline) {
+    const card = (els.taskHistoryShell || els.taskList)?.querySelector?.(selector);
+    const groupItems = card instanceof HTMLElement
+      ? card.closest("[data-task-group]")?.querySelector(".task-group-items-expanded")
+      : null;
+    if (historyTaskRevealLayoutReady({
+      cardFound: card instanceof HTMLElement,
+      groupRenderComplete: groupItems instanceof HTMLElement && groupItems.dataset.renderComplete === "true",
+      groupLayoutStable: groupItems instanceof HTMLElement && groupItems.style.maxHeight === "none",
+    }) && card instanceof HTMLElement) {
+      card.scrollIntoView({
+        block: "center",
+        inline: "nearest",
+        behavior: "auto",
+      });
+      card.focus({ preventScroll: true });
+      return true;
+    }
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+  }
+  return false;
+}
+
+async function revealHistoryTaskInSidebar(task: any): Promise<boolean> {
+  const taskId = String(task?.task_id || "");
+  if (!taskId) return false;
+  const sequence = ++state.historyTaskRevealSeq;
+  const destination = historyTaskRevealDestination(task);
+  const reveal = {
+    taskId,
+    task,
+    kind: destination.kind,
+    groupKey: destination.groupKey,
+    ready: false,
+    groupTasks: [],
+    loadedCount: 0,
+  };
+  state.historyTaskReveal = reveal;
+  try {
+    await refreshTasks();
+  } catch (error) {
+    console.warn(error);
+  }
+  if (sequence !== state.historyTaskRevealSeq || state.historyTaskReveal !== reveal) return false;
+  if (reveal.kind === "group") {
+    try {
+      const located = await loadSidebarTaskGroupThroughTarget(reveal);
+      if (!located) activateTransientHistoryTaskReveal(reveal);
+    } catch (error) {
+      console.warn(error);
+      activateTransientHistoryTaskReveal(reveal);
+    }
+  } else {
+    activateTransientHistoryTaskReveal(reveal);
+  }
+  if (sequence !== state.historyTaskRevealSeq || state.historyTaskReveal !== reveal) return false;
+  legacyMethod("setExpandedTaskGroupKey", reveal.groupKey, { immediate: true });
+  state.expandedTaskGroupAnimationPending = false;
+  state.tasksRenderKey = null;
+  renderTasks();
+  return scrollHistoryTaskCardIntoView(taskId);
 }
 
 async function refreshTasksAfterDeletion() {
@@ -303,6 +490,8 @@ export function initTaskFeature() {
     applyTasksSnapshot,
     applyTaskUpdate,
     loadMoreSidebarTaskGroup,
+    revealHistoryTaskInSidebar,
+    scrollHistoryTaskCardIntoView,
     refreshTasksAfterDeletion,
     syncTaskSearchHistoryResults,
   });

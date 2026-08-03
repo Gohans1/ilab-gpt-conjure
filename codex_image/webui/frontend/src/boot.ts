@@ -29,6 +29,7 @@ export function bootWebUI(state: WebUIState, els: WebUIElements, methods: Legacy
   call(methods, "updateCustomSize");
   call(methods, "restoreOutputSettingsLock");
   call(methods, "renderImageStrip");
+  call(methods, "restoreCollectedReferences");
   void call(methods, "restoreHistoryReferenceHandoff");
   void call(methods, "restoreHistoryTaskReuseHandoff");
   call(methods, "refreshSettings");

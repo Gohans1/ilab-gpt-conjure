@@ -2,9 +2,10 @@ from __future__ import annotations
 
 import base64
 from contextlib import closing
+from dataclasses import dataclass
 import json
 import sqlite3
-from typing import Any, TYPE_CHECKING
+from typing import Any, Iterator, Literal, TYPE_CHECKING
 
 from .history_organizer import HistoryOrganizer
 
@@ -13,6 +14,46 @@ if TYPE_CHECKING:
 
 
 RATIO_OTHER_VALUE = "__other__"
+_HISTORY_SELECT_SQL = (
+    "select task_id, created_at, updated_at, completed_at, "
+    "terminal_at, status, mode, size, quality, prompt_mode, "
+    "ratio, orientation, backend, provider, archived_at, "
+    "generated_count, failed_count, total_count, thumbnail_url, "
+    "prompt_preview from task_index"
+)
+
+
+@dataclass(frozen=True)
+class HistoryFilter:
+    q: str = ""
+    month: str = ""
+    mode: str = ""
+    status: str = ""
+    prompt_mode: str = ""
+    size: str = ""
+    quality: str = ""
+    ratio: str = ""
+    orientation: str = ""
+    backend: str = ""
+    provider: str = ""
+    archived: bool | None = None
+    favorite: bool | None = None
+    tag_ids: tuple[str, ...] = ()
+    untagged: bool = False
+    sort: Literal["newest", "oldest"] = "newest"
+
+    def __post_init__(self) -> None:
+        clean_tag_ids = tuple(
+            dict.fromkeys(
+                tag_id
+                for value in self.tag_ids
+                if (tag_id := str(value or "").strip())
+            )
+        )
+        object.__setattr__(self, "tag_ids", clean_tag_ids)
+        object.__setattr__(self, "sort", "oldest" if self.sort == "oldest" else "newest")
+        if self.untagged and clean_tag_ids:
+            raise ValueError("untagged cannot be combined with tag filters")
 
 
 class HistoryQueryService:
@@ -59,58 +100,42 @@ class HistoryQueryService:
         direction: str = "next",
     ) -> dict[str, Any]:
         safe_limit = min(100, max(1, int(limit or 50)))
-        sort_order = "oldest" if sort == "oldest" else "newest"
         page_direction = "previous" if direction == "previous" else "next"
-        clean_tag_ids = list(
-            dict.fromkeys(
-                tag_id
-                for value in (tag_ids or [])
-                if (tag_id := str(value or "").strip())
-            )
+        filters = HistoryFilter(
+            q=q,
+            month=month,
+            mode=mode,
+            status=status,
+            prompt_mode=prompt_mode,
+            size=size,
+            quality=quality,
+            ratio=ratio,
+            orientation=orientation,
+            backend=backend,
+            provider=provider,
+            archived=archived,
+            favorite=favorite,
+            tag_ids=tuple(tag_ids or ()),
+            untagged=untagged,
+            sort="oldest" if sort == "oldest" else "newest",
         )
-        if untagged and clean_tag_ids:
-            raise ValueError(
-                "untagged cannot be combined with tag filters"
-            )
 
         filter_values = {
             "cursor": cursor,
-            "q": q,
-            "month": month,
-            "mode": mode,
-            "status": status,
-            "prompt_mode": prompt_mode,
-            "size": size,
-            "quality": quality,
-            "ratio": ratio,
-            "orientation": orientation,
-            "backend": backend,
-            "provider": provider,
-            "archived": archived,
-            "favorite": favorite,
-            "tag_ids": clean_tag_ids,
-            "untagged": untagged,
-            "sort_order": sort_order,
+            **_history_filter_values(filters),
             "page_direction": page_direction,
             "ratio_other_value": RATIO_OTHER_VALUE,
         }
-        use_fts = bool(q.strip() and self.task_index.fts_enabled)
+        use_fts = bool(filters.q.strip() and self.task_index.fts_enabled)
         where, params = _history_where(
             use_fts=use_fts,
             **filter_values,
         )
-        select_sql = (
-            "select task_id, created_at, updated_at, completed_at, "
-            "terminal_at, status, mode, size, quality, prompt_mode, "
-            "ratio, orientation, backend, provider, archived_at, "
-            "generated_count, failed_count, total_count, thumbnail_url, "
-            "prompt_preview from task_index"
-        )
         order_clause = _history_order_clause(
-            sort_order,
+            filters.sort,
             page_direction,
         )
-        sql = _history_sql(select_sql, where, order_clause)
+        sql = _history_sql(_HISTORY_SELECT_SQL, where, order_clause)
         query_params = [*params, safe_limit + 1]
 
         with closing(self._connect()) as connection:
@@ -126,7 +151,7 @@ class HistoryQueryService:
                     use_fts=False,
                     **filter_values,
                 )
-                sql = _history_sql(select_sql, where, order_clause)
+                sql = _history_sql(_HISTORY_SELECT_SQL, where, order_clause)
                 rows = connection.execute(
                     sql,
                     (*params, safe_limit + 1),
@@ -169,6 +194,267 @@ class HistoryQueryService:
             "next_cursor": next_cursor,
             "previous_cursor": previous_cursor,
         }
+
+    def query_around(
+        self,
+        anchor_task_id: str,
+        filters: HistoryFilter,
+        limit: int = 50,
+    ) -> dict[str, Any]:
+        safe_limit = min(100, max(1, int(limit or 50)))
+        clean_anchor = str(anchor_task_id or "").strip()
+        if not isinstance(filters, HistoryFilter):
+            raise ValueError("history filters are invalid")
+        if not clean_anchor:
+            return _missing_anchor_page()
+        use_fts = bool(filters.q.strip() and self.task_index.fts_enabled)
+
+        with closing(self._connect()) as connection:
+            connection.execute("begin")
+            try:
+                result = self._query_around_rows(
+                    connection,
+                    clean_anchor,
+                    filters,
+                    safe_limit,
+                    use_fts=use_fts,
+                )
+            except sqlite3.OperationalError:
+                if not use_fts:
+                    raise
+                result = self._query_around_rows(
+                    connection,
+                    clean_anchor,
+                    filters,
+                    safe_limit,
+                    use_fts=False,
+                )
+        return result
+
+    def _query_around_rows(
+        self,
+        connection: sqlite3.Connection,
+        anchor_task_id: str,
+        filters: HistoryFilter,
+        limit: int,
+        *,
+        use_fts: bool,
+    ) -> dict[str, Any]:
+        filter_values = {
+            "cursor": None,
+            **_history_filter_values(filters),
+            "page_direction": "next",
+            "ratio_other_value": RATIO_OTHER_VALUE,
+        }
+        where, params = _history_where(use_fts=use_fts, **filter_values)
+        anchor_rows = connection.execute(
+            _history_sql(
+                _HISTORY_SELECT_SQL,
+                [*where, "task_id = ?"],
+                "limit 1",
+            ),
+            (*params, anchor_task_id),
+        ).fetchall()
+        if not anchor_rows:
+            return _missing_anchor_page()
+        anchor = anchor_rows[0]
+        anchor_created_at = str(anchor["created_at"])
+        before_count = limit // 2
+        after_count = limit - before_count - 1
+
+        before_condition, before_order = _anchor_side_sql(filters.sort, "before")
+        before_rows = connection.execute(
+            _history_sql(
+                _HISTORY_SELECT_SQL,
+                [*where, before_condition],
+                f"{before_order} limit ?",
+            ),
+            (
+                *params,
+                anchor_created_at,
+                anchor_created_at,
+                anchor_task_id,
+                before_count + 1,
+            ),
+        ).fetchall()
+        more_before = len(before_rows) > before_count
+        selected_before = list(reversed(before_rows[:before_count]))
+
+        after_condition, after_order = _anchor_side_sql(filters.sort, "after")
+        after_rows = connection.execute(
+            _history_sql(
+                _HISTORY_SELECT_SQL,
+                [*where, after_condition],
+                f"{after_order} limit ?",
+            ),
+            (
+                *params,
+                anchor_created_at,
+                anchor_created_at,
+                anchor_task_id,
+                after_count + 1,
+            ),
+        ).fetchall()
+        more_after = len(after_rows) > after_count
+        selected_after = list(after_rows[:after_count])
+        page_rows = [*selected_before, anchor, *selected_after]
+        organizations = _organization_payloads(
+            connection,
+            [str(row["task_id"]) for row in page_rows],
+        )
+        tasks: list[dict[str, Any]] = []
+        for row in page_rows:
+            task_id = str(row["task_id"])
+            task = _history_row_response(row)
+            task.update(organizations[task_id])
+            tasks.append(task)
+        return {
+            "tasks": tasks,
+            "previous_cursor": (
+                encode_history_cursor(
+                    str(page_rows[0]["created_at"]),
+                    str(page_rows[0]["task_id"]),
+                )
+                if more_before and page_rows
+                else None
+            ),
+            "next_cursor": (
+                encode_history_cursor(
+                    str(page_rows[-1]["created_at"]),
+                    str(page_rows[-1]["task_id"]),
+                )
+                if more_after and page_rows
+                else None
+            ),
+            "anchor_found": True,
+        }
+
+    def iter_task_ids(self, filters: HistoryFilter) -> Iterator[str]:
+        from .task_index import TERMINAL_TASK_STATUSES
+
+        normalized = filters if isinstance(filters, HistoryFilter) else HistoryFilter()
+        filter_values = {
+            "cursor": None,
+            **_history_filter_values(normalized),
+            "page_direction": "next",
+            "ratio_other_value": RATIO_OTHER_VALUE,
+        }
+        use_fts = bool(normalized.q.strip() and self.task_index.fts_enabled)
+        where, params = _history_where(use_fts=use_fts, **filter_values)
+        terminal_statuses = tuple(sorted(TERMINAL_TASK_STATUSES))
+        where.append(
+            "status in (" + ", ".join("?" for _ in terminal_statuses) + ")"
+        )
+        params.extend(terminal_statuses)
+        order = "asc" if normalized.sort == "oldest" else "desc"
+        sql = _history_sql(
+            "select task_id from task_index",
+            where,
+            f"order by created_at {order}, task_id {order}",
+        )
+
+        with closing(self._connect()) as connection:
+            try:
+                cursor = connection.execute(sql, tuple(params))
+            except sqlite3.OperationalError:
+                if not use_fts:
+                    raise
+                where, params = _history_where(
+                    use_fts=False,
+                    **filter_values,
+                )
+                where.append(
+                    "status in (" + ", ".join("?" for _ in terminal_statuses) + ")"
+                )
+                params.extend(terminal_statuses)
+                cursor = connection.execute(
+                    _history_sql(
+                        "select task_id from task_index",
+                        where,
+                        f"order by created_at {order}, task_id {order}",
+                    ),
+                    tuple(params),
+                )
+            while rows := cursor.fetchmany(512):
+                for row in rows:
+                    yield str(row["task_id"])
+
+    def iter_matching_task_statuses(
+        self,
+        filters: HistoryFilter,
+    ) -> Iterator[tuple[str, str]]:
+        filter_values = {
+            "cursor": None,
+            **_history_filter_values(filters),
+            "page_direction": "next",
+            "ratio_other_value": RATIO_OTHER_VALUE,
+        }
+        use_fts = bool(filters.q.strip() and self.task_index.fts_enabled)
+        where, params = _history_where(use_fts=use_fts, **filter_values)
+        order = "asc" if filters.sort == "oldest" else "desc"
+        sql = _history_sql(
+            "select task_id, status from task_index",
+            where,
+            f"order by created_at {order}, task_id {order}",
+        )
+        with closing(self._connect()) as connection:
+            connection.execute("begin")
+            try:
+                cursor = connection.execute(sql, tuple(params))
+            except sqlite3.OperationalError:
+                if not use_fts:
+                    raise
+                where, params = _history_where(use_fts=False, **filter_values)
+                cursor = connection.execute(
+                    _history_sql(
+                        "select task_id, status from task_index",
+                        where,
+                        f"order by created_at {order}, task_id {order}",
+                    ),
+                    tuple(params),
+                )
+            while rows := cursor.fetchmany(512):
+                for row in rows:
+                    yield str(row["task_id"]), str(row["status"])
+
+    def count_task_ids(
+        self,
+        filters: HistoryFilter,
+        *,
+        terminal_only: bool = False,
+    ) -> int:
+        from .task_index import TERMINAL_TASK_STATUSES
+
+        filter_values = {
+            "cursor": None,
+            **_history_filter_values(filters),
+            "page_direction": "next",
+            "ratio_other_value": RATIO_OTHER_VALUE,
+        }
+        use_fts = bool(filters.q.strip() and self.task_index.fts_enabled)
+        where, params = _history_where(use_fts=use_fts, **filter_values)
+        if terminal_only:
+            statuses = tuple(sorted(TERMINAL_TASK_STATUSES))
+            where.append("status in (" + ", ".join("?" for _ in statuses) + ")")
+            params.extend(statuses)
+        sql = _history_sql("select count(*) from task_index", where, "")
+        with closing(self._connect()) as connection:
+            try:
+                return int(connection.execute(sql, tuple(params)).fetchone()[0])
+            except sqlite3.OperationalError:
+                if not use_fts:
+                    raise
+                where, params = _history_where(use_fts=False, **filter_values)
+                if terminal_only:
+                    statuses = tuple(sorted(TERMINAL_TASK_STATUSES))
+                    where.append("status in (" + ", ".join("?" for _ in statuses) + ")")
+                    params.extend(statuses)
+                return int(
+                    connection.execute(
+                        _history_sql("select count(*) from task_index", where, ""),
+                        tuple(params),
+                    ).fetchone()[0]
+                )
 
     def summary(self) -> dict[str, Any]:
         with closing(self._connect()) as connection:
@@ -302,6 +588,27 @@ def encode_history_cursor(created_at: str, task_id: str) -> str:
         ensure_ascii=False,
     ).encode("utf-8")
     return base64.urlsafe_b64encode(raw).decode("ascii").rstrip("=")
+
+
+def _history_filter_values(filters: HistoryFilter) -> dict[str, Any]:
+    return {
+        "q": filters.q,
+        "month": filters.month,
+        "mode": filters.mode,
+        "status": filters.status,
+        "prompt_mode": filters.prompt_mode,
+        "size": filters.size,
+        "quality": filters.quality,
+        "ratio": filters.ratio,
+        "orientation": filters.orientation,
+        "backend": filters.backend,
+        "provider": filters.provider,
+        "archived": filters.archived,
+        "favorite": filters.favorite,
+        "tag_ids": list(filters.tag_ids),
+        "untagged": filters.untagged,
+        "sort_order": filters.sort,
+    }
 
 
 def _decode_history_cursor(
@@ -577,6 +884,33 @@ def _history_order_clause(
     if sort_order == "oldest":
         return "order by created_at asc, task_id asc limit ?"
     return "order by created_at desc, task_id desc limit ?"
+
+
+def _anchor_side_sql(
+    sort_order: str,
+    side: Literal["before", "after"],
+) -> tuple[str, str]:
+    oldest = sort_order == "oldest"
+    if side == "before":
+        comparison = "<" if oldest else ">"
+        order = "desc" if oldest else "asc"
+    else:
+        comparison = ">" if oldest else "<"
+        order = "asc" if oldest else "desc"
+    return (
+        f"(created_at {comparison} ? or "
+        f"(created_at = ? and task_id {comparison} ?))",
+        f"order by created_at {order}, task_id {order}",
+    )
+
+
+def _missing_anchor_page() -> dict[str, Any]:
+    return {
+        "tasks": [],
+        "next_cursor": None,
+        "previous_cursor": None,
+        "anchor_found": False,
+    }
 
 
 def _history_sql(

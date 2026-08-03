@@ -21,6 +21,7 @@
     "batch.selected": "0 selected",
     "batch.selectedCount": "{count} selected",
     "batch.selectCurrentGroup": "Select all in group",
+    "batch.selectWaiting": "Select all waiting",
     "batch.archivedCount": "Archived {count} chats",
     "batch.archiveFailed": "Batch archive failed",
     "batch.runningCannotDeleteSelected": "Selected chats are running and cannot be deleted",
@@ -42,6 +43,7 @@
     "action.archive": "Archive",
     "action.delete": "Delete",
     "action.cancel": "Cancel",
+    "action.stop": "Stop",
     "action.edit": "Edit",
     "action.clear": "Clear",
     "action.paste": "Paste",
@@ -69,7 +71,7 @@
     "queue.waitingActions": "Waiting task queue actions",
     "queue.cancelRunning": "Cancel",
     "queue.cancelRunningTitle": "Cancel running task",
-    "queue.dragWaiting": "Drag to reorder waiting task",
+    "queue.dragWaiting": "Drag card vertically to reorder",
     "queue.dragSort": "Drag to sort",
     "queue.moveUp": "Up",
     "queue.moveUpTitle": "Move waiting task up",
@@ -92,7 +94,7 @@
     "queue.runningCancelled": "Task cancelled",
     "queue.reorderFailed": "Failed to reorder queue",
     "queue.realtimeUpdateFailed": "Failed to update live status",
-    "queue.realtimeDisconnected": "Live status connection was lost. Refresh the page to recover.",
+    "queue.realtimeDisconnected": "Live status connection was interrupted. Reconnecting automatically\u2026",
     "queue.readFailed": "Failed to load queue",
     "status.waiting": "Waiting",
     "status.shownActiveTasks": "Showing active tasks",
@@ -129,7 +131,6 @@
     "taskCard.textToImageThumb": "Text-to-image task thumbnail",
     "taskCard.imageToImageThumb": "Image-to-image task thumbnail",
     "taskCard.failedThumb": "Task failed",
-    "taskCard.textBadge": "T",
     "taskMode.edit": "Edit",
     "taskMode.generate": "Generate",
     "document.generatingQueue": "Generating \xB7 queue {total}",
@@ -151,6 +152,10 @@
     "history.search": "Search",
     "history.searchPlaceholder": "Search prompts or task ID",
     "history.clear": "Clear",
+    "history.activeFilterCount": "Filtered \xB7 {count}",
+    "history.clearAllFilters": "Clear all",
+    "history.removeFilter": "Remove filter: {label}",
+    "history.filtersActive": "Task filters, {count} active",
     "history.favorites": "Favorites",
     "history.onlyFavorites": "Favorites only",
     "history.favoriteTask": "Add to favorites",
@@ -166,6 +171,8 @@
     "history.removeTag": "Remove tag",
     "history.favoriteSelected": "Favorite",
     "history.unfavoriteSelected": "Unfavorite",
+    "history.organizeSelected": "Organize",
+    "history.exitSelection": "Exit bulk selection",
     "history.organizationFailed": "Could not update favorites or tags",
     "history.tagNameConflict": "This tag name already exists",
     "history.noTags": "No tags yet",
@@ -177,6 +184,73 @@
     "history.exportStarted": "Download started",
     "history.exportSummary": "{taskCount} tasks \xB7 {imageCount} images",
     "history.exportFailed": "Export failed",
+    "historyBackup.open": "Back up tasks",
+    "historyBackup.importOpen": "Import backup",
+    "historyBackup.mode": "Task backup",
+    "historyBackup.description": "Save task data and related files to restore in a compatible iLab CONJURE installation.",
+    "historyBackup.scopeLegend": "Backup scope",
+    "historyBackup.scopeHelp": "Filtered and all scopes are counted locally and are not limited by tasks shown on this page.",
+    "historyBackup.scopeSelected": "Selected tasks",
+    "historyBackup.scopeFiltered": "Current filtered results",
+    "historyBackup.scopeAll": "All task history",
+    "historyBackup.scopeCount": "{eligible} of {total} eligible",
+    "historyBackup.scopeCounting": "Counting\u2026",
+    "historyBackup.scopeCountUnavailable": "Count unavailable",
+    "historyBackup.scopeNoneSelected": "No tasks selected",
+    "historyBackup.willBackup": "Will back up {eligible} tasks; {excluded} unfinished tasks will be excluded.",
+    "historyBackup.selectTasksFirst": "Select at least one task first.",
+    "historyBackup.scopeLockedUnknown": "Original backup scope",
+    "historyBackup.scopeLocked": "Scope locked: {scope} \xB7 {eligible} tasks will be backed up",
+    "historyBackup.scopeLockedPending": "Scope locked: {scope} \xB7 counting eligible tasks",
+    "historyBackup.progressLabel": "Backup progress",
+    "historyBackup.start": "Start backup",
+    "historyBackup.cancel": "Cancel backup",
+    "historyBackup.download": "Download backup",
+    "historyBackup.dismiss": "Dismiss result",
+    "historyBackup.discard": "Close without downloading",
+    "historyBackup.closePanel": "Close panel",
+    "historyBackup.downloadStartedTitle": "Download started",
+    "historyBackup.idle": "Ready",
+    "historyBackup.queued": "Queued",
+    "historyBackup.planning": "Planning",
+    "historyBackup.packing": "Packing",
+    "historyBackup.ready": "Ready to download",
+    "historyBackup.readyDetail": "Backup is ready. Download it within 1 hour; closing without downloading deletes the temporary file immediately.",
+    "historyBackup.downloaded": "Confirm that your browser saved the file, then you can close this panel. The temporary file is deleted after transfer.",
+    "historyBackup.missingInputsWarning": "{tasks} tasks are missing {files} input files. Those files will be omitted; prompts and output results will still be exported.",
+    "historyBackup.failed": "Backup failed",
+    "historyBackup.cancelled": "Cancelled",
+    "historyBackup.expired": "Expired",
+    "historyBackup.interrupted": "Interrupted",
+    "historyBackup.stats": "Total {total} \xB7 eligible {eligible} \xB7 excluded {excluded} \xB7 {bytes}",
+    "historyBackup.errorDisk": "Not enough disk space.",
+    "historyBackup.errorSourceChanged": "Source data changed during backup.",
+    "historyBackup.errorEmpty": "No eligible tasks were found.",
+    "historyBackup.errorIo": "The backup could not be created.",
+    "historyImport.title": "Import task backup",
+    "historyImport.choose": "Choose ZIP backup",
+    "historyImport.uploading": "Uploading",
+    "historyImport.validating": "Validating",
+    "historyImport.validated": "Validated",
+    "historyImport.preview": "Restore preview",
+    "historyImport.restorable": "Restorable",
+    "historyImport.duplicate": "Duplicates",
+    "historyImport.conflict": "Conflicts",
+    "historyImport.invalid": "Invalid",
+    "historyImport.confirm": "Confirm restore",
+    "historyImport.restoring": "Restoring",
+    "historyImport.restored": "Restored",
+    "historyImport.failed": "Restore failed",
+    "historyImport.interrupted": "Interrupted",
+    "historyImport.cancelled": "Cancelled",
+    "historyImport.result": "Result",
+    "historyImport.thumbnailWarnings": "Thumbnail warnings",
+    "historyImport.cleanupWarnings": "Cleanup warnings",
+    "historyImport.reselect": "Choose the original ZIP again to continue.",
+    "historyImport.noOverwrite": "Existing tasks are never overwritten.",
+    "historyImport.reasonInvalid": "Invalid backup data",
+    "historyImport.reasonSensitive": "Contains protected data",
+    "historyImport.reasonMismatch": "Does not match the backup manifest",
     "history.closeExport": "Close export choices",
     "history.type": "Type",
     "history.allTypes": "All types",
@@ -391,6 +465,8 @@
     "recentAssets.hideMessage": "This image is used by {count} tasks and cannot be permanently deleted. Hiding removes it only from Recent uploads; the original, current input, and historical tasks are preserved.",
     "recentAssets.hideFailed": "Failed to hide recent upload",
     "recentAssets.hidden": "Hidden from Recent uploads; the original and historical tasks were preserved",
+    "recentAssets.hidePreviews": "Hide recent upload previews",
+    "recentAssets.showPreviews": "Show recent upload previews",
     "recentAssets.deleteTitle": "Delete recent upload?",
     "recentAssets.deleteMessage": "This image is not used by any task. Its original will be permanently deleted, and the same image will be removed from the current input. The public gallery is not affected.",
     "recentAssets.loadFailed": "Failed to load recent uploads",
@@ -417,11 +493,13 @@
     "referenceCollector.alreadyStaged": "Already staged as a reference",
     "referenceCollector.staged": "Staged {count} reference images",
     "referenceCollector.title": "Pending references \xB7 {count}",
-    "referenceCollector.addAll": "Add all references",
+    "referenceCollector.addAll": "Add all",
+    "referenceCollector.replaceAll": "Replace current",
     "referenceCollector.itemFallback": "Pending reference",
     "referenceCollector.remove": "Remove pending reference",
     "referenceCollector.cleared": "Pending references cleared",
     "referenceCollector.added": "Added {count} reference images",
+    "referenceCollector.replaced": "Replaced references with {count} images",
     "referenceCollector.addFailed": "Failed to add pending references",
     "referenceCollector.readFailed": "Failed to read image: {status}",
     "gallery.quick": "Quick gallery",
@@ -634,6 +712,16 @@
     "lightbox.close": "Close preview",
     "lightbox.previous": "Previous image",
     "lightbox.next": "Next image",
+    "lightbox.zoomControls": "Zoom controls",
+    "lightbox.zoomOut": "Zoom out",
+    "lightbox.zoomIn": "Zoom in",
+    "lightbox.fit": "Fit",
+    "lightbox.fitPage": "Fit to page",
+    "lightbox.actualSize": "100% actual size",
+    "lightbox.shortcuts": "Keyboard shortcuts",
+    "lightbox.switchImage": "Switch image",
+    "lightbox.switchTask": "Switch task",
+    "lightbox.wheelZoom": "Wheel to zoom",
     "promptPopover.title": "Prompt Comparison",
     "promptPopover.summary": "Original {original} \xB7 optimized {optimized}",
     "promptPopover.original": "Original prompt",
@@ -797,6 +885,7 @@
     "colors.modifyValue": "Edit color {value}",
     "colors.removeValue": "Remove color {value}",
     "taskGroup.today": "Today",
+    "taskGroup.current": "Current task",
     "taskGroup.yesterday": "Yesterday",
     "taskGroup.last7": "Last 7 days",
     "taskGroup.older": "Older",
@@ -891,7 +980,8 @@
     "apiSettings.copyProviderWithoutKeyStatus": "Provider copied. Edit the name, model, or add an API key before saving.",
     "apiSettings.sortProviders": "Sort",
     "apiSettings.finishSortProviders": "Done",
-    "apiSettings.sortProviderModeStatus": "Sorting providers",
+    "apiSettings.sortProviderModeStatus": "Drag the handles to sort, or use the arrow keys",
+    "apiSettings.sortProviderHandleAria": "Drag to reorder {provider}, or use the arrow, Home, and End keys",
     "apiSettings.sortProviderStatus": "Provider order changed. Autosaving...",
     "apiSettings.moveProviderUp": "Up",
     "apiSettings.moveProviderDown": "Down",
@@ -1118,6 +1208,7 @@
     "batch.selected": "0 ausgew\xE4hlt",
     "batch.selectedCount": "{count} ausgew\xE4hlt",
     "batch.selectCurrentGroup": "Alle in Gruppe",
+    "batch.selectWaiting": "Alle wartenden ausw\xE4hlen",
     "batch.archivedCount": "Archivierte {count}-Chats",
     "batch.archiveFailed": "Batch-Archivierung fehlgeschlagen",
     "batch.runningCannotDeleteSelected": "Ausgew\xE4hlte Chats laufen und k\xF6nnen nicht gel\xF6scht werden",
@@ -1139,6 +1230,7 @@
     "action.archive": "Archiv",
     "action.delete": "L\xF6schen",
     "action.cancel": "Abbrechen",
+    "action.stop": "Stoppen",
     "action.edit": "Bearbeiten",
     "action.clear": "Klar",
     "action.paste": "Einf\xFCgen",
@@ -1189,7 +1281,7 @@
     "queue.runningCancelled": "Aufgabe abgebrochen",
     "queue.reorderFailed": "Die Warteschlange konnte nicht neu angeordnet werden",
     "queue.realtimeUpdateFailed": "Der Live-Status konnte nicht aktualisiert werden",
-    "queue.realtimeDisconnected": "Die Live-Statusverbindung wurde unterbrochen. Aktualisieren Sie die Seite, um sie wiederherzustellen.",
+    "queue.realtimeDisconnected": "Die Live-Statusverbindung wurde unterbrochen. Automatische Wiederverbindung l\xE4uft\u2026",
     "queue.readFailed": "Die Warteschlange konnte nicht geladen werden",
     "status.waiting": "Warten",
     "status.shownActiveTasks": "Aktive Aufgaben anzeigen",
@@ -1226,7 +1318,6 @@
     "taskCard.textToImageThumb": "Miniaturansicht der Text-zu-Bild-Aufgabe",
     "taskCard.imageToImageThumb": "Miniaturansicht der Bild-zu-Bild-Aufgabe",
     "taskCard.failedThumb": "Aufgabe fehlgeschlagen",
-    "taskCard.textBadge": "T",
     "taskMode.edit": "Bearbeiten",
     "taskMode.generate": "Generieren",
     "document.generatingQueue": "Generieren \xB7 Warteschlange {total}",
@@ -1248,6 +1339,10 @@
     "history.search": "Suchen",
     "history.searchPlaceholder": "Suchaufforderungen oder Aufgabe ID",
     "history.clear": "Klar",
+    "history.activeFilterCount": "Gefiltert \xB7 {count}",
+    "history.clearAllFilters": "Alle l\xF6schen",
+    "history.removeFilter": "Filter entfernen: {label}",
+    "history.filtersActive": "Aufgabenfilter, {count} aktiv",
     "history.favorites": "Favoriten",
     "history.onlyFavorites": "Nur Favoriten",
     "history.favoriteTask": "Zu Favoriten hinzuf\xFCgen",
@@ -1263,6 +1358,8 @@
     "history.removeTag": "Tag entfernen",
     "history.favoriteSelected": "Favorisieren",
     "history.unfavoriteSelected": "Favorit entfernen",
+    "history.organizeSelected": "Organisieren",
+    "history.exitSelection": "Mehrfachauswahl beenden",
     "history.organizationFailed": "Favoriten oder Tags konnten nicht aktualisiert werden",
     "history.tagNameConflict": "Dieser Tag-Name ist bereits vorhanden",
     "history.noTags": "Noch keine Tags",
@@ -1274,6 +1371,73 @@
     "history.exportStarted": "Download gestartet",
     "history.exportSummary": "{taskCount} Aufgaben \xB7 {imageCount} Bilder",
     "history.exportFailed": "Export fehlgeschlagen",
+    "historyBackup.open": "Aufgaben sichern",
+    "historyBackup.importOpen": "Sicherung importieren",
+    "historyBackup.mode": "Aufgabensicherung",
+    "historyBackup.description": "Speichert Aufgabendaten und zugeh\xF6rige Dateien zur Wiederherstellung in einer kompatiblen iLab-CONJURE-Installation.",
+    "historyBackup.scopeLegend": "Sicherungsumfang",
+    "historyBackup.scopeHelp": "Gefilterte und alle Aufgaben werden lokal gez\xE4hlt und sind nicht auf die hier angezeigten Aufgaben begrenzt.",
+    "historyBackup.scopeSelected": "Ausgew\xE4hlte Aufgaben",
+    "historyBackup.scopeFiltered": "Aktuelle Filterergebnisse",
+    "historyBackup.scopeAll": "Gesamter Verlauf",
+    "historyBackup.scopeCount": "{eligible} von {total} geeignet",
+    "historyBackup.scopeCounting": "Wird gez\xE4hlt\u2026",
+    "historyBackup.scopeCountUnavailable": "Anzahl nicht verf\xFCgbar",
+    "historyBackup.scopeNoneSelected": "Keine Aufgaben ausgew\xE4hlt",
+    "historyBackup.willBackup": "{eligible} Aufgaben werden gesichert; {excluded} unfertige Aufgaben werden ausgeschlossen.",
+    "historyBackup.selectTasksFirst": "W\xE4hlen Sie zuerst mindestens eine Aufgabe aus.",
+    "historyBackup.scopeLockedUnknown": "Urspr\xFCnglicher Sicherungsumfang",
+    "historyBackup.scopeLocked": "Umfang gesperrt: {scope} \xB7 {eligible} Aufgaben werden gesichert",
+    "historyBackup.scopeLockedPending": "Umfang gesperrt: {scope} \xB7 geeignete Aufgaben werden gez\xE4hlt",
+    "historyBackup.progressLabel": "Sicherungsfortschritt",
+    "historyBackup.start": "Sicherung starten",
+    "historyBackup.cancel": "Sicherung abbrechen",
+    "historyBackup.download": "Sicherung herunterladen",
+    "historyBackup.dismiss": "Ergebnis schlie\xDFen",
+    "historyBackup.discard": "Ohne Download schlie\xDFen",
+    "historyBackup.closePanel": "Fenster schlie\xDFen",
+    "historyBackup.downloadStartedTitle": "Download gestartet",
+    "historyBackup.idle": "Bereit",
+    "historyBackup.queued": "In Warteschlange",
+    "historyBackup.planning": "Planung l\xE4uft",
+    "historyBackup.packing": "Paket wird erstellt",
+    "historyBackup.ready": "Bereit zum Download",
+    "historyBackup.readyDetail": "Die Sicherung ist bereit. Laden Sie sie innerhalb von 1 Stunde herunter; beim Schlie\xDFen ohne Download wird die tempor\xE4re Datei sofort gel\xF6scht.",
+    "historyBackup.downloaded": "Pr\xFCfen Sie, ob der Browser die Datei gespeichert hat. Danach k\xF6nnen Sie dieses Fenster schlie\xDFen. Die tempor\xE4re Datei wird nach der \xDCbertragung gel\xF6scht.",
+    "historyBackup.missingInputsWarning": "Bei {tasks} Aufgaben fehlen {files} Eingabedateien. Diese Dateien werden ausgelassen; Prompts und Ausgaben werden weiterhin exportiert.",
+    "historyBackup.failed": "Sicherung fehlgeschlagen",
+    "historyBackup.cancelled": "Abgebrochen",
+    "historyBackup.expired": "Abgelaufen",
+    "historyBackup.interrupted": "Unterbrochen",
+    "historyBackup.stats": "Gesamt {total} \xB7 geeignet {eligible} \xB7 ausgeschlossen {excluded} \xB7 {bytes}",
+    "historyBackup.errorDisk": "Nicht gen\xFCgend Speicherplatz.",
+    "historyBackup.errorSourceChanged": "Quelldaten wurden w\xE4hrend der Sicherung ge\xE4ndert.",
+    "historyBackup.errorEmpty": "Keine geeigneten Aufgaben gefunden.",
+    "historyBackup.errorIo": "Sicherung konnte nicht erstellt werden.",
+    "historyImport.title": "Sicherung importieren",
+    "historyImport.choose": "ZIP-Sicherung ausw\xE4hlen",
+    "historyImport.uploading": "Wird hochgeladen",
+    "historyImport.validating": "Wird gepr\xFCft",
+    "historyImport.validated": "Gepr\xFCft",
+    "historyImport.preview": "Wiederherstellungsvorschau",
+    "historyImport.restorable": "Wiederherstellbar",
+    "historyImport.duplicate": "Duplikate",
+    "historyImport.conflict": "Konflikte",
+    "historyImport.invalid": "Ung\xFCltig",
+    "historyImport.confirm": "Wiederherstellung best\xE4tigen",
+    "historyImport.restoring": "Wiederherstellung l\xE4uft",
+    "historyImport.restored": "Wiederhergestellt",
+    "historyImport.failed": "Wiederherstellung fehlgeschlagen",
+    "historyImport.interrupted": "Unterbrochen",
+    "historyImport.cancelled": "Abgebrochen",
+    "historyImport.result": "Ergebnis",
+    "historyImport.thumbnailWarnings": "Vorschaubild-Warnungen",
+    "historyImport.cleanupWarnings": "Bereinigungswarnungen",
+    "historyImport.reselect": "Bitte w\xE4hlen Sie das urspr\xFCngliche ZIP erneut aus.",
+    "historyImport.noOverwrite": "Vorhandene Aufgaben werden niemals \xFCberschrieben.",
+    "historyImport.reasonInvalid": "Ung\xFCltige Sicherungsdaten",
+    "historyImport.reasonSensitive": "Enth\xE4lt gesch\xFCtzte Daten",
+    "historyImport.reasonMismatch": "Stimmt nicht mit dem Sicherungsmanifest \xFCberein",
     "history.closeExport": "Exportauswahl schlie\xDFen",
     "history.type": "Typ",
     "history.allTypes": "Alle Typen",
@@ -1478,6 +1642,8 @@
     "recentAssets.hideMessage": "Dieses Bild wird von {count} Aufgaben verwendet und kann nicht dauerhaft gel\xF6scht werden. Beim Ausblenden wird es nur aus den letzten Uploads entfernt; Original, aktuelle Eingabe und historische Aufgaben bleiben erhalten.",
     "recentAssets.hideFailed": "Der letzte Upload konnte nicht ausgeblendet werden",
     "recentAssets.hidden": "Aus den letzten Uploads ausgeblendet; Original und historische Aufgaben bleiben erhalten",
+    "recentAssets.hidePreviews": "Bilder der letzten Uploads ausblenden",
+    "recentAssets.showPreviews": "Bilder der letzten Uploads anzeigen",
     "recentAssets.deleteTitle": "Letzten Upload l\xF6schen?",
     "recentAssets.deleteMessage": "Dieses Bild wird von keiner Aufgabe verwendet. Das Original wird dauerhaft gel\xF6scht und dasselbe Bild aus der aktuellen Eingabe entfernt. Die \xF6ffentliche Galerie ist nicht betroffen.",
     "recentAssets.loadFailed": "Die letzten Uploads konnten nicht geladen werden",
@@ -1504,11 +1670,13 @@
     "referenceCollector.alreadyStaged": "Bereits als Referenz inszeniert",
     "referenceCollector.staged": "Inszenierte {count}-Referenzbilder",
     "referenceCollector.title": "Ausstehende Referenzen \xB7 {count}",
-    "referenceCollector.addAll": "F\xFCgen Sie alle Referenzen hinzu",
+    "referenceCollector.addAll": "Alle hinzuf\xFCgen",
+    "referenceCollector.replaceAll": "Aktuelle ersetzen",
     "referenceCollector.itemFallback": "Ausstehende Referenz",
     "referenceCollector.remove": "Ausstehende Referenz entfernen",
     "referenceCollector.cleared": "Ausstehende Referenzen gel\xF6scht",
     "referenceCollector.added": "{count}-Referenzbilder hinzugef\xFCgt",
+    "referenceCollector.replaced": "Referenzen durch {count} Bilder ersetzt",
     "referenceCollector.addFailed": "Ausstehende Referenzen konnten nicht hinzugef\xFCgt werden",
     "referenceCollector.readFailed": "Bild konnte nicht gelesen werden: {status}",
     "gallery.quick": "Schnelle Galerie",
@@ -1721,6 +1889,16 @@
     "lightbox.close": "Vorschau schlie\xDFen",
     "lightbox.previous": "Vorheriges Bild",
     "lightbox.next": "N\xE4chstes Bild",
+    "lightbox.zoomControls": "Zoomsteuerung",
+    "lightbox.zoomOut": "Verkleinern",
+    "lightbox.zoomIn": "Vergr\xF6\xDFern",
+    "lightbox.fit": "Einpassen",
+    "lightbox.fitPage": "An Seite anpassen",
+    "lightbox.actualSize": "100% Originalgr\xF6\xDFe",
+    "lightbox.shortcuts": "Tastenk\xFCrzel",
+    "lightbox.switchImage": "Bild wechseln",
+    "lightbox.switchTask": "Aufgabe wechseln",
+    "lightbox.wheelZoom": "Mausrad zoomt",
     "promptPopover.title": "Schneller Vergleich",
     "promptPopover.summary": "Original {original} \xB7 optimiert {optimized}",
     "promptPopover.original": "Urspr\xFCngliche Aufforderung",
@@ -1884,6 +2062,7 @@
     "colors.modifyValue": "Farbe bearbeiten {value}",
     "colors.removeValue": "Farbe entfernen {value}",
     "taskGroup.today": "Heute",
+    "taskGroup.current": "Aktuell angezeigt",
     "taskGroup.yesterday": "Gestern",
     "taskGroup.last7": "Letzte 7 Tage",
     "taskGroup.older": "\xC4lter",
@@ -1978,7 +2157,8 @@
     "apiSettings.copyProviderWithoutKeyStatus": "Anbieter kopiert. Bearbeiten Sie vor dem Speichern den Namen und das Modell oder f\xFCgen Sie einen API-Schl\xFCssel hinzu.",
     "apiSettings.sortProviders": "Sortieren",
     "apiSettings.finishSortProviders": "Fertig",
-    "apiSettings.sortProviderModeStatus": "Sortieranbieter",
+    "apiSettings.sortProviderModeStatus": "Zum Sortieren am Griff ziehen oder die Pfeiltasten verwenden",
+    "apiSettings.sortProviderHandleAria": "{provider} durch Ziehen oder mit Pfeil-, Pos1- und Ende-Taste verschieben",
     "apiSettings.sortProviderStatus": "Anbieterreihenfolge ge\xE4ndert. Wird automatisch gespeichert...",
     "apiSettings.moveProviderUp": "Auf",
     "apiSettings.moveProviderDown": "Runter",
@@ -2205,6 +2385,7 @@
     "batch.selected": "0 seleccionado",
     "batch.selectedCount": "{count} seleccionado",
     "batch.selectCurrentGroup": "Seleccionar todo el grupo",
+    "batch.selectWaiting": "Seleccionar todas en espera",
     "batch.archivedCount": "Chats {count} archivados",
     "batch.archiveFailed": "Error al archivar por lotes",
     "batch.runningCannotDeleteSelected": "Los chats seleccionados se est\xE1n ejecutando y no se pueden eliminar",
@@ -2226,6 +2407,7 @@
     "action.archive": "Archivo",
     "action.delete": "Eliminar",
     "action.cancel": "Cancelar",
+    "action.stop": "Detener",
     "action.edit": "Editar",
     "action.clear": "Borrar",
     "action.paste": "Pegar",
@@ -2276,7 +2458,7 @@
     "queue.runningCancelled": "Tarea cancelada",
     "queue.reorderFailed": "No se pudo reordenar la cola",
     "queue.realtimeUpdateFailed": "No se pudo actualizar el estado en vivo",
-    "queue.realtimeDisconnected": "Se perdi\xF3 la conexi\xF3n del estado en vivo. Actualiza la p\xE1gina para recuperarla.",
+    "queue.realtimeDisconnected": "Se interrumpi\xF3 la conexi\xF3n del estado en tiempo real. Reconectando autom\xE1ticamente\u2026",
     "queue.readFailed": "No se pudo cargar la cola",
     "status.waiting": "esperando",
     "status.shownActiveTasks": "Mostrando tareas activas",
@@ -2313,7 +2495,6 @@
     "taskCard.textToImageThumb": "Miniatura de tarea de conversi\xF3n de texto a imagen",
     "taskCard.imageToImageThumb": "Miniatura de tarea de imagen a imagen",
     "taskCard.failedThumb": "Tarea fallida",
-    "taskCard.textBadge": "t",
     "taskMode.edit": "Editar",
     "taskMode.generate": "generar",
     "document.generatingQueue": "Generando \xB7 cola {total}",
@@ -2335,6 +2516,10 @@
     "history.search": "Buscar",
     "history.searchPlaceholder": "Mensajes de b\xFAsqueda o tarea ID",
     "history.clear": "Borrar",
+    "history.activeFilterCount": "Filtrado \xB7 {count}",
+    "history.clearAllFilters": "Borrar todo",
+    "history.removeFilter": "Quitar filtro: {label}",
+    "history.filtersActive": "Filtros de tareas, {count} activos",
     "history.favorites": "Favoritos",
     "history.onlyFavorites": "Solo favoritos",
     "history.favoriteTask": "A\xF1adir a favoritos",
@@ -2350,6 +2535,8 @@
     "history.removeTag": "Quitar etiqueta",
     "history.favoriteSelected": "Marcar favorito",
     "history.unfavoriteSelected": "Quitar favorito",
+    "history.organizeSelected": "Organizar",
+    "history.exitSelection": "Salir de la selecci\xF3n m\xFAltiple",
     "history.organizationFailed": "No se pudieron actualizar favoritos o etiquetas",
     "history.tagNameConflict": "Este nombre de etiqueta ya existe",
     "history.noTags": "A\xFAn no hay etiquetas",
@@ -2361,6 +2548,73 @@
     "history.exportStarted": "Descarga iniciada",
     "history.exportSummary": "{taskCount} tareas \xB7 {imageCount} im\xE1genes",
     "history.exportFailed": "Error al exportar",
+    "historyBackup.open": "Crear copia de tareas",
+    "historyBackup.importOpen": "Importar copia",
+    "historyBackup.mode": "Copia de tareas",
+    "historyBackup.description": "Guarda los datos y archivos relacionados para restaurarlos en una instalaci\xF3n compatible de iLab CONJURE.",
+    "historyBackup.scopeLegend": "Alcance de la copia",
+    "historyBackup.scopeHelp": "Los resultados filtrados y todo el historial se cuentan localmente sin limitarse a lo mostrado en esta p\xE1gina.",
+    "historyBackup.scopeSelected": "Tareas seleccionadas",
+    "historyBackup.scopeFiltered": "Resultados filtrados actuales",
+    "historyBackup.scopeAll": "Todo el historial",
+    "historyBackup.scopeCount": "{eligible} de {total} aptas",
+    "historyBackup.scopeCounting": "Contando\u2026",
+    "historyBackup.scopeCountUnavailable": "Recuento no disponible",
+    "historyBackup.scopeNoneSelected": "No hay tareas seleccionadas",
+    "historyBackup.willBackup": "Se copiar\xE1n {eligible} tareas; se excluir\xE1n {excluded} tareas sin terminar.",
+    "historyBackup.selectTasksFirst": "Selecciona al menos una tarea.",
+    "historyBackup.scopeLockedUnknown": "Alcance original de la copia",
+    "historyBackup.scopeLocked": "Alcance bloqueado: {scope} \xB7 se copiar\xE1n {eligible} tareas",
+    "historyBackup.scopeLockedPending": "Alcance bloqueado: {scope} \xB7 contando tareas aptas",
+    "historyBackup.progressLabel": "Progreso de la copia",
+    "historyBackup.start": "Iniciar copia",
+    "historyBackup.cancel": "Cancelar copia",
+    "historyBackup.download": "Descargar copia",
+    "historyBackup.dismiss": "Cerrar resultado",
+    "historyBackup.discard": "Cerrar sin descargar",
+    "historyBackup.closePanel": "Cerrar panel",
+    "historyBackup.downloadStartedTitle": "Descarga iniciada",
+    "historyBackup.idle": "Listo",
+    "historyBackup.queued": "En cola",
+    "historyBackup.planning": "Planificando",
+    "historyBackup.packing": "Empaquetando",
+    "historyBackup.ready": "Lista para descargar",
+    "historyBackup.readyDetail": "La copia est\xE1 lista. Desc\xE1rgala en 1 hora; cerrar sin descargar elimina el archivo temporal de inmediato.",
+    "historyBackup.downloaded": "Confirma que el navegador guard\xF3 el archivo y luego podr\xE1s cerrar este panel. El archivo temporal se elimina al terminar la transferencia.",
+    "historyBackup.missingInputsWarning": "A {tasks} tareas les faltan {files} archivos de entrada. Esos archivos se omitir\xE1n; los prompts y resultados se exportar\xE1n normalmente.",
+    "historyBackup.failed": "Fall\xF3 la copia",
+    "historyBackup.cancelled": "Cancelada",
+    "historyBackup.expired": "Caducada",
+    "historyBackup.interrupted": "Interrumpida",
+    "historyBackup.stats": "Total {total} \xB7 aptas {eligible} \xB7 excluidas {excluded} \xB7 {bytes}",
+    "historyBackup.errorDisk": "No hay espacio suficiente.",
+    "historyBackup.errorSourceChanged": "Los datos de origen cambiaron durante la copia.",
+    "historyBackup.errorEmpty": "No se encontraron tareas aptas.",
+    "historyBackup.errorIo": "No se pudo crear la copia.",
+    "historyImport.title": "Importar copia de tareas",
+    "historyImport.choose": "Elegir copia ZIP",
+    "historyImport.uploading": "Subiendo",
+    "historyImport.validating": "Validando",
+    "historyImport.validated": "Validada",
+    "historyImport.preview": "Vista previa de restauraci\xF3n",
+    "historyImport.restorable": "Restaurables",
+    "historyImport.duplicate": "Duplicadas",
+    "historyImport.conflict": "Conflictos",
+    "historyImport.invalid": "No v\xE1lidas",
+    "historyImport.confirm": "Confirmar restauraci\xF3n",
+    "historyImport.restoring": "Restaurando",
+    "historyImport.restored": "Restauradas",
+    "historyImport.failed": "Fall\xF3 la restauraci\xF3n",
+    "historyImport.interrupted": "Interrumpida",
+    "historyImport.cancelled": "Cancelada",
+    "historyImport.result": "Resultado",
+    "historyImport.thumbnailWarnings": "Avisos de miniaturas",
+    "historyImport.cleanupWarnings": "Avisos de limpieza",
+    "historyImport.reselect": "Vuelve a elegir el ZIP original para continuar.",
+    "historyImport.noOverwrite": "Las tareas existentes nunca se sobrescriben.",
+    "historyImport.reasonInvalid": "Datos de copia no v\xE1lidos",
+    "historyImport.reasonSensitive": "Contiene datos protegidos",
+    "historyImport.reasonMismatch": "No coincide con el manifiesto de copia",
     "history.closeExport": "Cerrar opciones de exportaci\xF3n",
     "history.type": "Tipo",
     "history.allTypes": "Todos los tipos",
@@ -2565,6 +2819,8 @@
     "recentAssets.hideMessage": "Esta imagen se usa en {count} tareas y no se puede eliminar de forma permanente. Ocultarla solo la quita de Cargas recientes; se conservan el original, la entrada actual y las tareas hist\xF3ricas.",
     "recentAssets.hideFailed": "No se pudo ocultar la carga reciente",
     "recentAssets.hidden": "Ocultada de Cargas recientes; se conservaron el original y las tareas hist\xF3ricas",
+    "recentAssets.hidePreviews": "Ocultar im\xE1genes de cargas recientes",
+    "recentAssets.showPreviews": "Mostrar im\xE1genes de cargas recientes",
     "recentAssets.deleteTitle": "\xBFEliminar carga reciente?",
     "recentAssets.deleteMessage": "Ninguna tarea usa esta imagen. El original se eliminar\xE1 de forma permanente y la misma imagen se quitar\xE1 de la entrada actual. La galer\xEDa p\xFAblica no se ve afectada.",
     "recentAssets.loadFailed": "No se pudieron cargar las cargas recientes",
@@ -2591,11 +2847,13 @@
     "referenceCollector.alreadyStaged": "Ya puesto en escena como referencia.",
     "referenceCollector.staged": "Im\xE1genes de referencia preparadas {count}",
     "referenceCollector.title": "Referencias pendientes \xB7 {count}",
-    "referenceCollector.addAll": "Agregar todas las referencias",
+    "referenceCollector.addAll": "Agregar todo",
+    "referenceCollector.replaceAll": "Reemplazar actuales",
     "referenceCollector.itemFallback": "Referencia pendiente",
     "referenceCollector.remove": "Eliminar referencia pendiente",
     "referenceCollector.cleared": "Referencias pendientes borradas",
     "referenceCollector.added": "Se agregaron im\xE1genes de referencia {count}",
+    "referenceCollector.replaced": "Referencias reemplazadas por {count} im\xE1genes",
     "referenceCollector.addFailed": "No se pudieron agregar referencias pendientes",
     "referenceCollector.readFailed": "No se pudo leer la imagen: {status}",
     "gallery.quick": "galer\xEDa r\xE1pida",
@@ -2808,6 +3066,16 @@
     "lightbox.close": "Cerrar vista previa",
     "lightbox.previous": "Imagen anterior",
     "lightbox.next": "Siguiente imagen",
+    "lightbox.zoomControls": "Controles de zoom",
+    "lightbox.zoomOut": "Alejar",
+    "lightbox.zoomIn": "Acercar",
+    "lightbox.fit": "Ajustar",
+    "lightbox.fitPage": "Ajustar a la p\xE1gina",
+    "lightbox.actualSize": "100% tama\xF1o real",
+    "lightbox.shortcuts": "Atajos de teclado",
+    "lightbox.switchImage": "Cambiar imagen",
+    "lightbox.switchTask": "Cambiar tarea",
+    "lightbox.wheelZoom": "Rueda para ampliar",
     "promptPopover.title": "Comparaci\xF3n r\xE1pida",
     "promptPopover.summary": "Original {original} \xB7 optimizado {optimized}",
     "promptPopover.original": "Aviso original",
@@ -2971,6 +3239,7 @@
     "colors.modifyValue": "Editar color {value}",
     "colors.removeValue": "Quitar color {value}",
     "taskGroup.today": "hoy",
+    "taskGroup.current": "Tarea actual",
     "taskGroup.yesterday": "ayer",
     "taskGroup.last7": "\xFAltimos 7 d\xEDas",
     "taskGroup.older": "mayor",
@@ -3065,7 +3334,8 @@
     "apiSettings.copyProviderWithoutKeyStatus": "Proveedor copiado. Edite el nombre, modelo o agregue una clave API antes de guardar.",
     "apiSettings.sortProviders": "ordenar",
     "apiSettings.finishSortProviders": "hecho",
-    "apiSettings.sortProviderModeStatus": "Clasificaci\xF3n de proveedores",
+    "apiSettings.sortProviderModeStatus": "Arrastra los tiradores para ordenar o usa las flechas",
+    "apiSettings.sortProviderHandleAria": "Arrastra para reordenar {provider} o usa las flechas, Inicio y Fin",
     "apiSettings.sortProviderStatus": "El orden del proveedor cambi\xF3. Guardando autom\xE1ticamente...",
     "apiSettings.moveProviderUp": "arriba",
     "apiSettings.moveProviderDown": "abajo",
@@ -3292,6 +3562,7 @@
     "batch.selected": "0 s\xE9lectionn\xE9",
     "batch.selectedCount": "{count} s\xE9lectionn\xE9",
     "batch.selectCurrentGroup": "Tout s\xE9lectionner",
+    "batch.selectWaiting": "S\xE9lectionner toutes les t\xE2ches en attente",
     "batch.archivedCount": "Discussions {count} archiv\xE9es",
     "batch.archiveFailed": "L'archivage par lots a \xE9chou\xE9",
     "batch.runningCannotDeleteSelected": "Les discussions s\xE9lectionn\xE9es sont en cours et ne peuvent pas \xEAtre supprim\xE9es",
@@ -3313,6 +3584,7 @@
     "action.archive": "Archiver",
     "action.delete": "Supprimer",
     "action.cancel": "Annuler",
+    "action.stop": "Arr\xEAter",
     "action.edit": "Modifier",
     "action.clear": "Effacer",
     "action.paste": "Coller",
@@ -3363,7 +3635,7 @@
     "queue.runningCancelled": "T\xE2che annul\xE9e",
     "queue.reorderFailed": "\xC9chec de la r\xE9organisation de la file d'attente",
     "queue.realtimeUpdateFailed": "\xC9chec de la mise \xE0 jour du statut en direct",
-    "queue.realtimeDisconnected": "La connexion avec l'\xE9tat en direct a \xE9t\xE9 perdue. Actualisez la page pour r\xE9cup\xE9rer.",
+    "queue.realtimeDisconnected": "La connexion au statut en direct a \xE9t\xE9 interrompue. Reconnexion automatique\u2026",
     "queue.readFailed": "\xC9chec du chargement de la file d'attente",
     "status.waiting": "En attente",
     "status.shownActiveTasks": "Afficher les t\xE2ches actives",
@@ -3400,7 +3672,6 @@
     "taskCard.textToImageThumb": "Miniature de la t\xE2che de conversion texte-image",
     "taskCard.imageToImageThumb": "Vignette de la t\xE2che image \xE0 image",
     "taskCard.failedThumb": "La t\xE2che a \xE9chou\xE9",
-    "taskCard.textBadge": "T",
     "taskMode.edit": "Modifier",
     "taskMode.generate": "G\xE9n\xE9rer",
     "document.generatingQueue": "G\xE9n\xE9ration \xB7 file d'attente {total}",
@@ -3422,6 +3693,10 @@
     "history.search": "Rechercher",
     "history.searchPlaceholder": "Rechercher des invites ou une t\xE2che ID",
     "history.clear": "Effacer",
+    "history.activeFilterCount": "Filtr\xE9 \xB7 {count}",
+    "history.clearAllFilters": "Tout effacer",
+    "history.removeFilter": "Retirer le filtre : {label}",
+    "history.filtersActive": "Filtres de t\xE2ches, {count} actifs",
     "history.favorites": "Favoris",
     "history.onlyFavorites": "Favoris uniquement",
     "history.favoriteTask": "Ajouter aux favoris",
@@ -3437,6 +3712,8 @@
     "history.removeTag": "Retirer l\u2019\xE9tiquette",
     "history.favoriteSelected": "Ajouter aux favoris",
     "history.unfavoriteSelected": "Retirer des favoris",
+    "history.organizeSelected": "Organiser",
+    "history.exitSelection": "Quitter la s\xE9lection multiple",
     "history.organizationFailed": "Impossible de mettre \xE0 jour les favoris ou les \xE9tiquettes",
     "history.tagNameConflict": "Ce nom d\u2019\xE9tiquette existe d\xE9j\xE0",
     "history.noTags": "Aucune \xE9tiquette",
@@ -3448,6 +3725,73 @@
     "history.exportStarted": "T\xE9l\xE9chargement lanc\xE9",
     "history.exportSummary": "{taskCount} t\xE2ches \xB7 {imageCount} images",
     "history.exportFailed": "\xC9chec de l\u2019export",
+    "historyBackup.open": "Sauvegarder les t\xE2ches",
+    "historyBackup.importOpen": "Importer une sauvegarde",
+    "historyBackup.mode": "Sauvegarde des t\xE2ches",
+    "historyBackup.description": "Enregistrez les donn\xE9es et fichiers associ\xE9s pour les restaurer dans une installation compatible d\u2019iLab CONJURE.",
+    "historyBackup.scopeLegend": "\xC9tendue de la sauvegarde",
+    "historyBackup.scopeHelp": "Les r\xE9sultats filtr\xE9s et tout l\u2019historique sont compt\xE9s localement, sans d\xE9pendre des t\xE2ches affich\xE9es sur cette page.",
+    "historyBackup.scopeSelected": "T\xE2ches s\xE9lectionn\xE9es",
+    "historyBackup.scopeFiltered": "R\xE9sultats filtr\xE9s actuels",
+    "historyBackup.scopeAll": "Tout l\u2019historique",
+    "historyBackup.scopeCount": "{eligible} sur {total} \xE9ligibles",
+    "historyBackup.scopeCounting": "Comptage\u2026",
+    "historyBackup.scopeCountUnavailable": "Comptage indisponible",
+    "historyBackup.scopeNoneSelected": "Aucune t\xE2che s\xE9lectionn\xE9e",
+    "historyBackup.willBackup": "{eligible} t\xE2ches seront sauvegard\xE9es ; {excluded} t\xE2ches inachev\xE9es seront exclues.",
+    "historyBackup.selectTasksFirst": "S\xE9lectionnez d\u2019abord au moins une t\xE2che.",
+    "historyBackup.scopeLockedUnknown": "\xC9tendue initiale de la sauvegarde",
+    "historyBackup.scopeLocked": "\xC9tendue verrouill\xE9e : {scope} \xB7 {eligible} t\xE2ches seront sauvegard\xE9es",
+    "historyBackup.scopeLockedPending": "\xC9tendue verrouill\xE9e : {scope} \xB7 comptage des t\xE2ches \xE9ligibles",
+    "historyBackup.progressLabel": "Progression de la sauvegarde",
+    "historyBackup.start": "D\xE9marrer la sauvegarde",
+    "historyBackup.cancel": "Annuler la sauvegarde",
+    "historyBackup.download": "T\xE9l\xE9charger la sauvegarde",
+    "historyBackup.dismiss": "Fermer le r\xE9sultat",
+    "historyBackup.discard": "Fermer sans t\xE9l\xE9charger",
+    "historyBackup.closePanel": "Fermer le panneau",
+    "historyBackup.downloadStartedTitle": "T\xE9l\xE9chargement lanc\xE9",
+    "historyBackup.idle": "Pr\xEAt",
+    "historyBackup.queued": "En attente",
+    "historyBackup.planning": "Planification",
+    "historyBackup.packing": "Cr\xE9ation du paquet",
+    "historyBackup.ready": "Pr\xEAte \xE0 t\xE9l\xE9charger",
+    "historyBackup.readyDetail": "La sauvegarde est pr\xEAte. T\xE9l\xE9chargez-la sous 1 heure ; fermer sans t\xE9l\xE9charger supprime imm\xE9diatement le fichier temporaire.",
+    "historyBackup.downloaded": "V\xE9rifiez que le navigateur a enregistr\xE9 le fichier, puis vous pourrez fermer ce panneau. Le fichier temporaire sera supprim\xE9 apr\xE8s le transfert.",
+    "historyBackup.missingInputsWarning": "Il manque {files} fichiers d\u2019entr\xE9e dans {tasks} t\xE2ches. Ils seront omis ; les prompts et r\xE9sultats seront tout de m\xEAme export\xE9s.",
+    "historyBackup.failed": "\xC9chec de la sauvegarde",
+    "historyBackup.cancelled": "Annul\xE9e",
+    "historyBackup.expired": "Expir\xE9e",
+    "historyBackup.interrupted": "Interrompue",
+    "historyBackup.stats": "Total {total} \xB7 \xE9ligibles {eligible} \xB7 exclues {excluded} \xB7 {bytes}",
+    "historyBackup.errorDisk": "Espace disque insuffisant.",
+    "historyBackup.errorSourceChanged": "Les donn\xE9es source ont chang\xE9 pendant la sauvegarde.",
+    "historyBackup.errorEmpty": "Aucune t\xE2che \xE9ligible.",
+    "historyBackup.errorIo": "Impossible de cr\xE9er la sauvegarde.",
+    "historyImport.title": "Importer une sauvegarde de t\xE2ches",
+    "historyImport.choose": "Choisir la sauvegarde ZIP",
+    "historyImport.uploading": "T\xE9l\xE9versement",
+    "historyImport.validating": "Validation",
+    "historyImport.validated": "Valid\xE9e",
+    "historyImport.preview": "Aper\xE7u de restauration",
+    "historyImport.restorable": "Restaurables",
+    "historyImport.duplicate": "Doublons",
+    "historyImport.conflict": "Conflits",
+    "historyImport.invalid": "Invalides",
+    "historyImport.confirm": "Confirmer la restauration",
+    "historyImport.restoring": "Restauration",
+    "historyImport.restored": "Restaur\xE9es",
+    "historyImport.failed": "\xC9chec de la restauration",
+    "historyImport.interrupted": "Interrompue",
+    "historyImport.cancelled": "Annul\xE9e",
+    "historyImport.result": "R\xE9sultat",
+    "historyImport.thumbnailWarnings": "Alertes de miniatures",
+    "historyImport.cleanupWarnings": "Alertes de nettoyage",
+    "historyImport.reselect": "S\xE9lectionnez \xE0 nouveau le ZIP d\u2019origine.",
+    "historyImport.noOverwrite": "Les t\xE2ches existantes ne sont jamais remplac\xE9es.",
+    "historyImport.reasonInvalid": "Donn\xE9es de sauvegarde invalides",
+    "historyImport.reasonSensitive": "Contient des donn\xE9es prot\xE9g\xE9es",
+    "historyImport.reasonMismatch": "Ne correspond pas au manifeste de sauvegarde",
     "history.closeExport": "Fermer les choix d\u2019export",
     "history.type": "Type",
     "history.allTypes": "Tous les types",
@@ -3652,6 +3996,8 @@
     "recentAssets.hideMessage": "Cette image est utilis\xE9e par {count} t\xE2ches et ne peut pas \xEAtre supprim\xE9e d\xE9finitivement. La masquer la retire uniquement des t\xE9l\xE9chargements r\xE9cents\xA0; l\u2019original, l\u2019entr\xE9e actuelle et les t\xE2ches historiques sont conserv\xE9s.",
     "recentAssets.hideFailed": "Impossible de masquer le t\xE9l\xE9chargement r\xE9cent",
     "recentAssets.hidden": "Masqu\xE9e des t\xE9l\xE9chargements r\xE9cents\xA0; l\u2019original et les t\xE2ches historiques ont \xE9t\xE9 conserv\xE9s",
+    "recentAssets.hidePreviews": "Masquer les images r\xE9cemment t\xE9l\xE9vers\xE9es",
+    "recentAssets.showPreviews": "Afficher les images r\xE9cemment t\xE9l\xE9vers\xE9es",
     "recentAssets.deleteTitle": "Supprimer le t\xE9l\xE9chargement r\xE9cent?",
     "recentAssets.deleteMessage": "Cette image n\u2019est utilis\xE9e par aucune t\xE2che. L\u2019original sera supprim\xE9 d\xE9finitivement et la m\xEAme image sera retir\xE9e de l\u2019entr\xE9e actuelle. La galerie publique n\u2019est pas concern\xE9e.",
     "recentAssets.loadFailed": "\xC9chec du chargement des t\xE9l\xE9chargements r\xE9cents",
@@ -3678,11 +4024,13 @@
     "referenceCollector.alreadyStaged": "D\xE9j\xE0 mis en sc\xE8ne comme r\xE9f\xE9rence",
     "referenceCollector.staged": "Images de r\xE9f\xE9rence {count} mises en sc\xE8ne",
     "referenceCollector.title": "R\xE9f\xE9rences en attente \xB7 {count}",
-    "referenceCollector.addAll": "Ajouter toutes les r\xE9f\xE9rences",
+    "referenceCollector.addAll": "Tout ajouter",
+    "referenceCollector.replaceAll": "Remplacer l\u2019existant",
     "referenceCollector.itemFallback": "R\xE9f\xE9rence en attente",
     "referenceCollector.remove": "Supprimer la r\xE9f\xE9rence en attente",
     "referenceCollector.cleared": "R\xE9f\xE9rences en attente effac\xE9es",
     "referenceCollector.added": "Ajout d'images de r\xE9f\xE9rence {count}",
+    "referenceCollector.replaced": "R\xE9f\xE9rences remplac\xE9es par {count} images",
     "referenceCollector.addFailed": "\xC9chec de l'ajout de r\xE9f\xE9rences en attente",
     "referenceCollector.readFailed": "\xC9chec de la lecture de l'image: {status}",
     "gallery.quick": "Galerie rapide",
@@ -3895,6 +4243,16 @@
     "lightbox.close": "Fermer l'aper\xE7u",
     "lightbox.previous": "Image pr\xE9c\xE9dente",
     "lightbox.next": "Image suivante",
+    "lightbox.zoomControls": "Commandes de zoom",
+    "lightbox.zoomOut": "R\xE9duire",
+    "lightbox.zoomIn": "Agrandir",
+    "lightbox.fit": "Adapter",
+    "lightbox.fitPage": "Adapter \xE0 la page",
+    "lightbox.actualSize": "100% taille r\xE9elle",
+    "lightbox.shortcuts": "Raccourcis clavier",
+    "lightbox.switchImage": "Changer d'image",
+    "lightbox.switchTask": "Changer de t\xE2che",
+    "lightbox.wheelZoom": "Molette pour zoomer",
     "promptPopover.title": "Comparaison rapide",
     "promptPopover.summary": "Original {original} \xB7 optimis\xE9 {optimized}",
     "promptPopover.original": "Invite d'origine",
@@ -4058,6 +4416,7 @@
     "colors.modifyValue": "Modifier la couleur {value}",
     "colors.removeValue": "Supprimer la couleur {value}",
     "taskGroup.today": "Aujourd'hui",
+    "taskGroup.current": "T\xE2che actuelle",
     "taskGroup.yesterday": "Hier",
     "taskGroup.last7": "7 derniers jours",
     "taskGroup.older": "Plus \xE2g\xE9",
@@ -4152,7 +4511,8 @@
     "apiSettings.copyProviderWithoutKeyStatus": "Fournisseur copi\xE9. Modifiez le nom, le mod\xE8le ou ajoutez une cl\xE9 API avant d'enregistrer.",
     "apiSettings.sortProviders": "Trier",
     "apiSettings.finishSortProviders": "Termin\xE9",
-    "apiSettings.sortProviderModeStatus": "Fournisseurs de tri",
+    "apiSettings.sortProviderModeStatus": "Faites glisser les poign\xE9es ou utilisez les fl\xE8ches pour trier",
+    "apiSettings.sortProviderHandleAria": "Faites glisser pour r\xE9ordonner {provider}, ou utilisez les fl\xE8ches, D\xE9but et Fin",
     "apiSettings.sortProviderStatus": "L'ordre des fournisseurs a \xE9t\xE9 modifi\xE9. Enregistrement automatique...",
     "apiSettings.moveProviderUp": "Vers le haut",
     "apiSettings.moveProviderDown": "Vers le bas",
@@ -4379,6 +4739,7 @@
     "batch.selected": "0 \u500B\u304C\u9078\u629E\u3055\u308C\u307E\u3057\u305F",
     "batch.selectedCount": "{count} \u4EF6\u3092\u9078\u629E\u4E2D",
     "batch.selectCurrentGroup": "\u30B0\u30EB\u30FC\u30D7\u3092\u3059\u3079\u3066\u9078\u629E",
+    "batch.selectWaiting": "\u5F85\u6A5F\u4E2D\u3092\u3059\u3079\u3066\u9078\u629E",
     "batch.archivedCount": "{count} \u4EF6\u306E\u30C1\u30E3\u30C3\u30C8\u3092\u30A2\u30FC\u30AB\u30A4\u30D6\u3057\u307E\u3057\u305F",
     "batch.archiveFailed": "\u30D0\u30C3\u30C1 \u30A2\u30FC\u30AB\u30A4\u30D6\u306B\u5931\u6557\u3057\u307E\u3057\u305F",
     "batch.runningCannotDeleteSelected": "\u9078\u629E\u3057\u305F\u30C1\u30E3\u30C3\u30C8\u306F\u5B9F\u884C\u4E2D\u306E\u305F\u3081\u524A\u9664\u3067\u304D\u307E\u305B\u3093",
@@ -4400,6 +4761,7 @@
     "action.archive": "\u30A2\u30FC\u30AB\u30A4\u30D6",
     "action.delete": "\u524A\u9664",
     "action.cancel": "\u30AD\u30E3\u30F3\u30BB\u30EB",
+    "action.stop": "\u505C\u6B62",
     "action.edit": "\u7DE8\u96C6",
     "action.clear": "\u30AF\u30EA\u30A2",
     "action.paste": "\u8CBC\u308A\u4ED8\u3051",
@@ -4450,7 +4812,7 @@
     "queue.runningCancelled": "\u30BF\u30B9\u30AF\u304C\u30AD\u30E3\u30F3\u30BB\u30EB\u3055\u308C\u307E\u3057\u305F",
     "queue.reorderFailed": "\u30AD\u30E5\u30FC\u306E\u4E26\u3079\u66FF\u3048\u306B\u5931\u6557\u3057\u307E\u3057\u305F",
     "queue.realtimeUpdateFailed": "\u30E9\u30A4\u30D6\u30B9\u30C6\u30FC\u30BF\u30B9\u3092\u66F4\u65B0\u3067\u304D\u307E\u305B\u3093\u3067\u3057\u305F",
-    "queue.realtimeDisconnected": "\u30E9\u30A4\u30D6 \u30B9\u30C6\u30FC\u30BF\u30B9\u63A5\u7D9A\u304C\u5931\u308F\u308C\u307E\u3057\u305F\u3002\u56DE\u5FA9\u3059\u308B\u306B\u306F\u30DA\u30FC\u30B8\u3092\u66F4\u65B0\u3057\u3066\u304F\u3060\u3055\u3044\u3002",
+    "queue.realtimeDisconnected": "\u30E9\u30A4\u30D6\u30B9\u30C6\u30FC\u30BF\u30B9\u63A5\u7D9A\u304C\u4E2D\u65AD\u3055\u308C\u307E\u3057\u305F\u3002\u81EA\u52D5\u7684\u306B\u518D\u63A5\u7D9A\u3057\u3066\u3044\u307E\u3059\u2026",
     "queue.readFailed": "\u30AD\u30E5\u30FC\u306E\u30ED\u30FC\u30C9\u306B\u5931\u6557\u3057\u307E\u3057\u305F",
     "status.waiting": "\u30BF\u30B9\u30AF\u5F85\u6A5F\u4E2D",
     "status.shownActiveTasks": "\u30A2\u30AF\u30C6\u30A3\u30D6\u306A\u30BF\u30B9\u30AF\u3092\u8868\u793A\u3057\u3066\u3044\u307E\u3059",
@@ -4487,7 +4849,6 @@
     "taskCard.textToImageThumb": "\u30C6\u30AD\u30B9\u30C8\u304B\u3089\u753B\u50CF\u3078\u306E\u30BF\u30B9\u30AF\u306E\u30B5\u30E0\u30CD\u30A4\u30EB",
     "taskCard.imageToImageThumb": "\u753B\u50CF\u304B\u3089\u753B\u50CF\u3078\u306E\u30BF\u30B9\u30AF\u306E\u30B5\u30E0\u30CD\u30A4\u30EB",
     "taskCard.failedThumb": "\u30BF\u30B9\u30AF\u304C\u5931\u6557\u3057\u307E\u3057\u305F",
-    "taskCard.textBadge": "T",
     "taskMode.edit": "\u7DE8\u96C6",
     "taskMode.generate": "\u751F\u6210",
     "document.generatingQueue": "\u30AD\u30E5\u30FC{total}\u3092\u751F\u6210\u4E2D",
@@ -4509,6 +4870,10 @@
     "history.search": "\u691C\u7D22",
     "history.searchPlaceholder": "\u30D7\u30ED\u30F3\u30D7\u30C8\u307E\u305F\u306F\u30BF\u30B9\u30AF ID \u3092\u691C\u7D22",
     "history.clear": "\u30AF\u30EA\u30A2",
+    "history.activeFilterCount": "\u9069\u7528\u4E2D\u306E\u30D5\u30A3\u30EB\u30BF\u30FC \xB7 {count}\u4EF6",
+    "history.clearAllFilters": "\u3059\u3079\u3066\u89E3\u9664",
+    "history.removeFilter": "\u30D5\u30A3\u30EB\u30BF\u30FC\u3092\u524A\u9664\uFF1A{label}",
+    "history.filtersActive": "\u30BF\u30B9\u30AF\u30D5\u30A3\u30EB\u30BF\u30FC\u3001{count}\u4EF6\u9069\u7528\u4E2D",
     "history.favorites": "\u304A\u6C17\u306B\u5165\u308A",
     "history.onlyFavorites": "\u304A\u6C17\u306B\u5165\u308A\u306E\u307F",
     "history.favoriteTask": "\u304A\u6C17\u306B\u5165\u308A\u306B\u8FFD\u52A0",
@@ -4524,6 +4889,8 @@
     "history.removeTag": "\u30BF\u30B0\u3092\u524A\u9664",
     "history.favoriteSelected": "\u304A\u6C17\u306B\u5165\u308A",
     "history.unfavoriteSelected": "\u304A\u6C17\u306B\u5165\u308A\u89E3\u9664",
+    "history.organizeSelected": "\u6574\u7406",
+    "history.exitSelection": "\u8907\u6570\u9078\u629E\u3092\u7D42\u4E86",
     "history.organizationFailed": "\u304A\u6C17\u306B\u5165\u308A\u307E\u305F\u306F\u30BF\u30B0\u3092\u66F4\u65B0\u3067\u304D\u307E\u305B\u3093\u3067\u3057\u305F",
     "history.tagNameConflict": "\u540C\u3058\u30BF\u30B0\u540D\u304C\u3059\u3067\u306B\u3042\u308A\u307E\u3059",
     "history.noTags": "\u30BF\u30B0\u306F\u307E\u3060\u3042\u308A\u307E\u305B\u3093",
@@ -4535,6 +4902,73 @@
     "history.exportStarted": "\u30C0\u30A6\u30F3\u30ED\u30FC\u30C9\u3092\u958B\u59CB\u3057\u307E\u3057\u305F",
     "history.exportSummary": "{taskCount}\u4EF6\u306E\u30BF\u30B9\u30AF \xB7 {imageCount}\u679A\u306E\u753B\u50CF",
     "history.exportFailed": "\u66F8\u304D\u51FA\u3057\u306B\u5931\u6557\u3057\u307E\u3057\u305F",
+    "historyBackup.open": "\u30BF\u30B9\u30AF\u3092\u30D0\u30C3\u30AF\u30A2\u30C3\u30D7",
+    "historyBackup.importOpen": "\u30D0\u30C3\u30AF\u30A2\u30C3\u30D7\u3092\u8AAD\u307F\u8FBC\u3080",
+    "historyBackup.mode": "\u30BF\u30B9\u30AF\u30D0\u30C3\u30AF\u30A2\u30C3\u30D7",
+    "historyBackup.description": "\u30BF\u30B9\u30AF\u30C7\u30FC\u30BF\u3068\u95A2\u9023\u30D5\u30A1\u30A4\u30EB\u3092\u4FDD\u5B58\u3057\u3001\u4E92\u63DB\u6027\u306E\u3042\u308B iLab CONJURE \u306B\u5FA9\u5143\u3067\u304D\u307E\u3059\u3002",
+    "historyBackup.scopeLegend": "\u30D0\u30C3\u30AF\u30A2\u30C3\u30D7\u7BC4\u56F2",
+    "historyBackup.scopeHelp": "\u7D5E\u308A\u8FBC\u307F\u7D50\u679C\u3068\u5168\u5C65\u6B74\u306F\u30ED\u30FC\u30AB\u30EB\u3067\u96C6\u8A08\u3055\u308C\u3001\u3053\u306E\u30DA\u30FC\u30B8\u306E\u8868\u793A\u4EF6\u6570\u306B\u306F\u5236\u9650\u3055\u308C\u307E\u305B\u3093\u3002",
+    "historyBackup.scopeSelected": "\u9078\u629E\u3057\u305F\u30BF\u30B9\u30AF",
+    "historyBackup.scopeFiltered": "\u73FE\u5728\u306E\u7D5E\u308A\u8FBC\u307F\u7D50\u679C",
+    "historyBackup.scopeAll": "\u3059\u3079\u3066\u306E\u5C65\u6B74",
+    "historyBackup.scopeCount": "{total} \u4EF6\u4E2D {eligible} \u4EF6\u304C\u5BFE\u8C61",
+    "historyBackup.scopeCounting": "\u96C6\u8A08\u4E2D\u2026",
+    "historyBackup.scopeCountUnavailable": "\u4EF6\u6570\u3092\u53D6\u5F97\u3067\u304D\u307E\u305B\u3093",
+    "historyBackup.scopeNoneSelected": "\u30BF\u30B9\u30AF\u304C\u9078\u629E\u3055\u308C\u3066\u3044\u307E\u305B\u3093",
+    "historyBackup.willBackup": "{eligible} \u4EF6\u3092\u30D0\u30C3\u30AF\u30A2\u30C3\u30D7\u3057\u3001\u672A\u5B8C\u4E86\u306E {excluded} \u4EF6\u306F\u9664\u5916\u3057\u307E\u3059\u3002",
+    "historyBackup.selectTasksFirst": "\u5148\u306B 1 \u4EF6\u4EE5\u4E0A\u306E\u30BF\u30B9\u30AF\u3092\u9078\u629E\u3057\u3066\u304F\u3060\u3055\u3044\u3002",
+    "historyBackup.scopeLockedUnknown": "\u5143\u306E\u30D0\u30C3\u30AF\u30A2\u30C3\u30D7\u7BC4\u56F2",
+    "historyBackup.scopeLocked": "\u7BC4\u56F2\u3092\u56FA\u5B9A\uFF1A{scope} \xB7 {eligible} \u4EF6\u3092\u30D0\u30C3\u30AF\u30A2\u30C3\u30D7",
+    "historyBackup.scopeLockedPending": "\u7BC4\u56F2\u3092\u56FA\u5B9A\uFF1A{scope} \xB7 \u5BFE\u8C61\u30BF\u30B9\u30AF\u3092\u96C6\u8A08\u4E2D",
+    "historyBackup.progressLabel": "\u30D0\u30C3\u30AF\u30A2\u30C3\u30D7\u306E\u9032\u884C\u72B6\u6CC1",
+    "historyBackup.start": "\u30D0\u30C3\u30AF\u30A2\u30C3\u30D7\u958B\u59CB",
+    "historyBackup.cancel": "\u30D0\u30C3\u30AF\u30A2\u30C3\u30D7\u3092\u30AD\u30E3\u30F3\u30BB\u30EB",
+    "historyBackup.download": "\u30D0\u30C3\u30AF\u30A2\u30C3\u30D7\u3092\u30C0\u30A6\u30F3\u30ED\u30FC\u30C9",
+    "historyBackup.dismiss": "\u7D50\u679C\u3092\u9589\u3058\u308B",
+    "historyBackup.discard": "\u30C0\u30A6\u30F3\u30ED\u30FC\u30C9\u305B\u305A\u9589\u3058\u308B",
+    "historyBackup.closePanel": "\u30D1\u30CD\u30EB\u3092\u9589\u3058\u308B",
+    "historyBackup.downloadStartedTitle": "\u30C0\u30A6\u30F3\u30ED\u30FC\u30C9\u3092\u958B\u59CB\u3057\u307E\u3057\u305F",
+    "historyBackup.idle": "\u6E96\u5099\u5B8C\u4E86",
+    "historyBackup.queued": "\u5F85\u6A5F\u4E2D",
+    "historyBackup.planning": "\u8A08\u753B\u4E2D",
+    "historyBackup.packing": "\u30D1\u30C3\u30B1\u30FC\u30B8\u4F5C\u6210\u4E2D",
+    "historyBackup.ready": "\u30C0\u30A6\u30F3\u30ED\u30FC\u30C9\u53EF\u80FD",
+    "historyBackup.readyDetail": "\u30D0\u30C3\u30AF\u30A2\u30C3\u30D7\u306E\u6E96\u5099\u304C\u3067\u304D\u307E\u3057\u305F\u30021 \u6642\u9593\u4EE5\u5185\u306B\u30C0\u30A6\u30F3\u30ED\u30FC\u30C9\u3057\u3066\u304F\u3060\u3055\u3044\u3002\u30C0\u30A6\u30F3\u30ED\u30FC\u30C9\u305B\u305A\u9589\u3058\u308B\u3068\u4E00\u6642\u30D5\u30A1\u30A4\u30EB\u306F\u3059\u3050\u306B\u524A\u9664\u3055\u308C\u307E\u3059\u3002",
+    "historyBackup.downloaded": "\u30D6\u30E9\u30A6\u30B6\u306B\u30D5\u30A1\u30A4\u30EB\u304C\u4FDD\u5B58\u3055\u308C\u305F\u3053\u3068\u3092\u78BA\u8A8D\u3057\u305F\u3089\u3001\u3053\u306E\u30D1\u30CD\u30EB\u3092\u9589\u3058\u3089\u308C\u307E\u3059\u3002\u4E00\u6642\u30D5\u30A1\u30A4\u30EB\u306F\u8EE2\u9001\u5F8C\u306B\u524A\u9664\u3055\u308C\u307E\u3059\u3002",
+    "historyBackup.missingInputsWarning": "{tasks} \u4EF6\u306E\u30BF\u30B9\u30AF\u3067 {files} \u500B\u306E\u5165\u529B\u30D5\u30A1\u30A4\u30EB\u304C\u898B\u3064\u304B\u308A\u307E\u305B\u3093\u3002\u3053\u308C\u3089\u306F\u30D0\u30C3\u30AF\u30A2\u30C3\u30D7\u306B\u542B\u307E\u308C\u307E\u305B\u3093\u304C\u3001\u30D7\u30ED\u30F3\u30D7\u30C8\u3068\u51FA\u529B\u7D50\u679C\u306F\u901A\u5E38\u3069\u304A\u308A\u4FDD\u5B58\u3055\u308C\u307E\u3059\u3002",
+    "historyBackup.failed": "\u30D0\u30C3\u30AF\u30A2\u30C3\u30D7\u5931\u6557",
+    "historyBackup.cancelled": "\u30AD\u30E3\u30F3\u30BB\u30EB\u6E08\u307F",
+    "historyBackup.expired": "\u671F\u9650\u5207\u308C",
+    "historyBackup.interrupted": "\u4E2D\u65AD",
+    "historyBackup.stats": "\u5408\u8A08 {total} \xB7 \u5BFE\u8C61 {eligible} \xB7 \u9664\u5916 {excluded} \xB7 {bytes}",
+    "historyBackup.errorDisk": "\u30C7\u30A3\u30B9\u30AF\u5BB9\u91CF\u304C\u4E0D\u8DB3\u3057\u3066\u3044\u307E\u3059\u3002",
+    "historyBackup.errorSourceChanged": "\u30D0\u30C3\u30AF\u30A2\u30C3\u30D7\u4E2D\u306B\u5143\u30C7\u30FC\u30BF\u304C\u5909\u66F4\u3055\u308C\u307E\u3057\u305F\u3002",
+    "historyBackup.errorEmpty": "\u5FA9\u5143\u5BFE\u8C61\u306E\u30BF\u30B9\u30AF\u304C\u3042\u308A\u307E\u305B\u3093\u3002",
+    "historyBackup.errorIo": "\u30D0\u30C3\u30AF\u30A2\u30C3\u30D7\u3092\u4F5C\u6210\u3067\u304D\u307E\u305B\u3093\u3067\u3057\u305F\u3002",
+    "historyImport.title": "\u30BF\u30B9\u30AF\u30D0\u30C3\u30AF\u30A2\u30C3\u30D7\u3092\u8AAD\u307F\u8FBC\u3080",
+    "historyImport.choose": "ZIP \u30D0\u30C3\u30AF\u30A2\u30C3\u30D7\u3092\u9078\u629E",
+    "historyImport.uploading": "\u30A2\u30C3\u30D7\u30ED\u30FC\u30C9\u4E2D",
+    "historyImport.validating": "\u691C\u8A3C\u4E2D",
+    "historyImport.validated": "\u691C\u8A3C\u6E08\u307F",
+    "historyImport.preview": "\u5FA9\u5143\u30D7\u30EC\u30D3\u30E5\u30FC",
+    "historyImport.restorable": "\u5FA9\u5143\u53EF\u80FD",
+    "historyImport.duplicate": "\u91CD\u8907",
+    "historyImport.conflict": "\u7AF6\u5408",
+    "historyImport.invalid": "\u7121\u52B9",
+    "historyImport.confirm": "\u5FA9\u5143\u3092\u78BA\u5B9A",
+    "historyImport.restoring": "\u5FA9\u5143\u4E2D",
+    "historyImport.restored": "\u5FA9\u5143\u6E08\u307F",
+    "historyImport.failed": "\u5FA9\u5143\u5931\u6557",
+    "historyImport.interrupted": "\u4E2D\u65AD",
+    "historyImport.cancelled": "\u30AD\u30E3\u30F3\u30BB\u30EB\u6E08\u307F",
+    "historyImport.result": "\u7D50\u679C",
+    "historyImport.thumbnailWarnings": "\u30B5\u30E0\u30CD\u30A4\u30EB\u8B66\u544A",
+    "historyImport.cleanupWarnings": "\u30AF\u30EA\u30FC\u30F3\u30A2\u30C3\u30D7\u8B66\u544A",
+    "historyImport.reselect": "\u7D9A\u884C\u3059\u308B\u306B\u306F\u5143\u306E ZIP \u3092\u9078\u3073\u76F4\u3057\u3066\u304F\u3060\u3055\u3044\u3002",
+    "historyImport.noOverwrite": "\u65E2\u5B58\u306E\u30BF\u30B9\u30AF\u306F\u4E0A\u66F8\u304D\u3055\u308C\u307E\u305B\u3093\u3002",
+    "historyImport.reasonInvalid": "\u30D0\u30C3\u30AF\u30A2\u30C3\u30D7\u30C7\u30FC\u30BF\u304C\u7121\u52B9\u3067\u3059",
+    "historyImport.reasonSensitive": "\u4FDD\u8B77\u5BFE\u8C61\u30C7\u30FC\u30BF\u304C\u542B\u307E\u308C\u3066\u3044\u307E\u3059",
+    "historyImport.reasonMismatch": "\u30D0\u30C3\u30AF\u30A2\u30C3\u30D7\u30DE\u30CB\u30D5\u30A7\u30B9\u30C8\u3068\u4E00\u81F4\u3057\u307E\u305B\u3093",
     "history.closeExport": "\u66F8\u304D\u51FA\u3057\u9078\u629E\u3092\u9589\u3058\u308B",
     "history.type": "\u7A2E\u985E",
     "history.allTypes": "\u3059\u3079\u3066\u306E\u7A2E\u985E",
@@ -4739,6 +5173,8 @@
     "recentAssets.hideMessage": "\u3053\u306E\u753B\u50CF\u306F {count} \u4EF6\u306E\u30BF\u30B9\u30AF\u3067\u4F7F\u7528\u3055\u308C\u3066\u3044\u308B\u305F\u3081\u3001\u5B8C\u5168\u306B\u306F\u524A\u9664\u3067\u304D\u307E\u305B\u3093\u3002\u975E\u8868\u793A\u306B\u3059\u308B\u3068\u6700\u8FD1\u306E\u30A2\u30C3\u30D7\u30ED\u30FC\u30C9\u304B\u3089\u306E\u307F\u9664\u304B\u308C\u3001\u539F\u672C\u3001\u73FE\u5728\u306E\u5165\u529B\u3001\u5C65\u6B74\u30BF\u30B9\u30AF\u306F\u4FDD\u6301\u3055\u308C\u307E\u3059\u3002",
     "recentAssets.hideFailed": "\u6700\u8FD1\u306E\u30A2\u30C3\u30D7\u30ED\u30FC\u30C9\u3092\u975E\u8868\u793A\u306B\u3067\u304D\u307E\u305B\u3093\u3067\u3057\u305F",
     "recentAssets.hidden": "\u6700\u8FD1\u306E\u30A2\u30C3\u30D7\u30ED\u30FC\u30C9\u304B\u3089\u975E\u8868\u793A\u306B\u3057\u307E\u3057\u305F\u3002\u539F\u672C\u3068\u5C65\u6B74\u30BF\u30B9\u30AF\u306F\u4FDD\u6301\u3055\u308C\u3066\u3044\u307E\u3059",
+    "recentAssets.hidePreviews": "\u6700\u8FD1\u306E\u30A2\u30C3\u30D7\u30ED\u30FC\u30C9\u753B\u50CF\u3092\u96A0\u3059",
+    "recentAssets.showPreviews": "\u6700\u8FD1\u306E\u30A2\u30C3\u30D7\u30ED\u30FC\u30C9\u753B\u50CF\u3092\u8868\u793A",
     "recentAssets.deleteTitle": "\u6700\u8FD1\u306E\u30A2\u30C3\u30D7\u30ED\u30FC\u30C9\u3092\u524A\u9664\u3057\u307E\u3059\u304B?",
     "recentAssets.deleteMessage": "\u3053\u306E\u753B\u50CF\u306F\u3069\u306E\u30BF\u30B9\u30AF\u3067\u3082\u4F7F\u7528\u3055\u308C\u3066\u3044\u307E\u305B\u3093\u3002\u539F\u672C\u3092\u5B8C\u5168\u306B\u524A\u9664\u3057\u3001\u73FE\u5728\u306E\u5165\u529B\u304B\u3089\u540C\u3058\u753B\u50CF\u3092\u53D6\u308A\u9664\u304D\u307E\u3059\u3002\u516C\u958B\u30AE\u30E3\u30E9\u30EA\u30FC\u306F\u5F71\u97FF\u3092\u53D7\u3051\u307E\u305B\u3093\u3002",
     "recentAssets.loadFailed": "\u6700\u8FD1\u306E\u30A2\u30C3\u30D7\u30ED\u30FC\u30C9\u3092\u30ED\u30FC\u30C9\u3067\u304D\u307E\u305B\u3093\u3067\u3057\u305F",
@@ -4765,11 +5201,13 @@
     "referenceCollector.alreadyStaged": "\u3059\u3067\u306B\u4E00\u6642\u53C2\u7167\u306B\u8FFD\u52A0\u3055\u308C\u3066\u3044\u307E\u3059",
     "referenceCollector.staged": "\u53C2\u7167\u753B\u50CF {count} \u679A\u3092\u4E00\u6642\u8FFD\u52A0\u3057\u307E\u3057\u305F",
     "referenceCollector.title": "\u4E00\u6642\u53C2\u7167 \xB7 {count}",
-    "referenceCollector.addAll": "\u3059\u3079\u3066\u306E\u53C2\u7167\u3092\u8FFD\u52A0",
+    "referenceCollector.addAll": "\u3059\u3079\u3066\u8FFD\u52A0",
+    "referenceCollector.replaceAll": "\u73FE\u5728\u3092\u7F6E\u63DB",
     "referenceCollector.itemFallback": "\u4E00\u6642\u53C2\u7167",
     "referenceCollector.remove": "\u4E00\u6642\u53C2\u7167\u3092\u524A\u9664",
     "referenceCollector.cleared": "\u4E00\u6642\u53C2\u7167\u3092\u30AF\u30EA\u30A2\u3057\u307E\u3057\u305F",
     "referenceCollector.added": "\u53C2\u7167\u753B\u50CF {count} \u679A\u3092\u8FFD\u52A0\u3057\u307E\u3057\u305F",
+    "referenceCollector.replaced": "\u53C2\u7167\u753B\u50CF\u3092 {count} \u679A\u306B\u7F6E\u304D\u63DB\u3048\u307E\u3057\u305F",
     "referenceCollector.addFailed": "\u4E00\u6642\u53C2\u7167\u3092\u8FFD\u52A0\u3067\u304D\u307E\u305B\u3093\u3067\u3057\u305F",
     "referenceCollector.readFailed": "\u753B\u50CF\u306E\u8AAD\u307F\u53D6\u308A\u306B\u5931\u6557\u3057\u307E\u3057\u305F:{status}",
     "gallery.quick": "\u30AF\u30A4\u30C3\u30AF\u30AE\u30E3\u30E9\u30EA\u30FC",
@@ -4982,6 +5420,16 @@
     "lightbox.close": "\u30D7\u30EC\u30D3\u30E5\u30FC\u3092\u9589\u3058\u308B",
     "lightbox.previous": "\u524D\u306E\u753B\u50CF",
     "lightbox.next": "\u6B21\u306E\u753B\u50CF",
+    "lightbox.zoomControls": "\u30BA\u30FC\u30E0\u64CD\u4F5C",
+    "lightbox.zoomOut": "\u7E2E\u5C0F",
+    "lightbox.zoomIn": "\u62E1\u5927",
+    "lightbox.fit": "\u5168\u4F53\u8868\u793A",
+    "lightbox.fitPage": "\u30DA\u30FC\u30B8\u306B\u5408\u308F\u305B\u308B",
+    "lightbox.actualSize": "100% \u5B9F\u5BF8",
+    "lightbox.shortcuts": "\u30AD\u30FC\u30DC\u30FC\u30C9\u30B7\u30E7\u30FC\u30C8\u30AB\u30C3\u30C8",
+    "lightbox.switchImage": "\u753B\u50CF\u3092\u5207\u308A\u66FF\u3048",
+    "lightbox.switchTask": "\u30BF\u30B9\u30AF\u3092\u5207\u308A\u66FF\u3048",
+    "lightbox.wheelZoom": "\u30DB\u30A4\u30FC\u30EB\u3067\u30BA\u30FC\u30E0",
     "promptPopover.title": "\u5373\u6642\u6BD4\u8F03",
     "promptPopover.summary": "\u30AA\u30EA\u30B8\u30CA\u30EB{original}\xB7 \u6700\u9069\u5316\u3055\u308C\u305F{optimized}",
     "promptPopover.original": "\u5143\u306E\u30D7\u30ED\u30F3\u30D7\u30C8",
@@ -5145,6 +5593,7 @@
     "colors.modifyValue": "\u30AB\u30E9\u30FC\u3092\u7DE8\u96C6{value}",
     "colors.removeValue": "\u30AB\u30E9\u30FC\u3092\u524A\u9664{value}",
     "taskGroup.today": "\u4ECA\u65E5",
+    "taskGroup.current": "\u73FE\u5728\u8868\u793A\u4E2D",
     "taskGroup.yesterday": "\u6628\u65E5",
     "taskGroup.last7": "\u904E\u53BB 7 \u65E5\u9593",
     "taskGroup.older": "\u5E74\u4E0A",
@@ -5239,7 +5688,8 @@
     "apiSettings.copyProviderWithoutKeyStatus": "\u30D7\u30ED\u30D0\u30A4\u30C0\u30FC\u3092\u30B3\u30D4\u30FC\u3057\u307E\u3057\u305F\u3002\u4FDD\u5B58\u3059\u308B\u524D\u306B\u3001\u540D\u524D\u3084\u30E2\u30C7\u30EB\u3092\u7DE8\u96C6\u3059\u308B\u304B\u3001API Key \u3092\u8FFD\u52A0\u3057\u3066\u304F\u3060\u3055\u3044\u3002",
     "apiSettings.sortProviders": "\u4E26\u3079\u66FF\u3048",
     "apiSettings.finishSortProviders": "\u5B8C\u4E86",
-    "apiSettings.sortProviderModeStatus": "\u30D7\u30ED\u30D0\u30A4\u30C0\u30FC\u306E\u4E26\u3079\u66FF\u3048",
+    "apiSettings.sortProviderModeStatus": "\u30CF\u30F3\u30C9\u30EB\u3092\u30C9\u30E9\u30C3\u30B0\u3059\u308B\u304B\u77E2\u5370\u30AD\u30FC\u3067\u4E26\u3079\u66FF\u3048\u307E\u3059",
+    "apiSettings.sortProviderHandleAria": "{provider}\u3092\u30C9\u30E9\u30C3\u30B0\u3001\u77E2\u5370\u3001Home\u3001End\u30AD\u30FC\u3067\u4E26\u3079\u66FF\u3048",
     "apiSettings.sortProviderStatus": "\u30D7\u30ED\u30D0\u30A4\u30C0\u30FC\u306E\u9806\u5E8F\u304C\u5909\u66F4\u3055\u308C\u307E\u3057\u305F\u3002\u81EA\u52D5\u4FDD\u5B58\u4E2D...",
     "apiSettings.moveProviderUp": "\u4E0A",
     "apiSettings.moveProviderDown": "\u4E0B\u3078",
@@ -5466,6 +5916,7 @@
     "batch.selected": "0 \uC120\uD0DD\uB428",
     "batch.selectedCount": "{count}\uAC1C \uC120\uD0DD\uB428",
     "batch.selectCurrentGroup": "\uADF8\uB8F9 \uC804\uCCB4 \uC120\uD0DD",
+    "batch.selectWaiting": "\uB300\uAE30 \uC911 \uBAA8\uB450 \uC120\uD0DD",
     "batch.archivedCount": "\uCC44\uD305 {count}\uAC1C \uBCF4\uAD00\uB428",
     "batch.archiveFailed": "\uC77C\uAD04 \uBCF4\uAD00 \uC2E4\uD328",
     "batch.runningCannotDeleteSelected": "\uC120\uD0DD\uD55C \uCC44\uD305\uC774 \uC2E4\uD589 \uC911\uC774\uBBC0\uB85C \uC0AD\uC81C\uD560 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4.",
@@ -5487,6 +5938,7 @@
     "action.archive": "\uBCF4\uAD00",
     "action.delete": "\uC0AD\uC81C",
     "action.cancel": "\uCDE8\uC18C",
+    "action.stop": "\uC911\uC9C0",
     "action.edit": "\uD3B8\uC9D1",
     "action.clear": "\uC9C0\uC6B0\uAE30",
     "action.paste": "\uBD99\uC5EC\uB123\uAE30",
@@ -5537,7 +5989,7 @@
     "queue.runningCancelled": "\uC791\uC5C5\uC774 \uCDE8\uC18C\uB418\uC5C8\uC2B5\uB2C8\uB2E4.",
     "queue.reorderFailed": "\uB300\uAE30\uC5F4\uC744 \uC7AC\uC815\uB82C\uD558\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4.",
     "queue.realtimeUpdateFailed": "\uB77C\uC774\uBE0C \uC0C1\uD0DC\uB97C \uC5C5\uB370\uC774\uD2B8\uD558\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4.",
-    "queue.realtimeDisconnected": "\uB77C\uC774\uBE0C \uC0C1\uD0DC \uC5F0\uACB0\uC774 \uB04A\uC5B4\uC84C\uC2B5\uB2C8\uB2E4. \uBCF5\uAD6C\uD558\uB824\uBA74 \uD398\uC774\uC9C0\uB97C \uC0C8\uB85C \uACE0\uCE58\uC138\uC694.",
+    "queue.realtimeDisconnected": "\uC2E4\uC2DC\uAC04 \uC0C1\uD0DC \uC5F0\uACB0\uC774 \uB04A\uC5B4\uC84C\uC2B5\uB2C8\uB2E4. \uC790\uB3D9\uC73C\uB85C \uB2E4\uC2DC \uC5F0\uACB0\uD558\uB294 \uC911\uC785\uB2C8\uB2E4\u2026",
     "queue.readFailed": "\uB300\uAE30\uC5F4\uC744 \uB85C\uB4DC\uD558\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4.",
     "status.waiting": "\uC791\uC5C5 \uB300\uAE30 \uC911",
     "status.shownActiveTasks": "\uD65C\uC131 \uC791\uC5C5 \uD45C\uC2DC \uC911",
@@ -5574,7 +6026,6 @@
     "taskCard.textToImageThumb": "\uD14D\uC2A4\uD2B8-\uC774\uBBF8\uC9C0 \uC791\uC5C5 \uCD95\uC18C\uD310",
     "taskCard.imageToImageThumb": "\uC774\uBBF8\uC9C0 \uB300 \uC774\uBBF8\uC9C0 \uC791\uC5C5 \uC378\uB124\uC77C",
     "taskCard.failedThumb": "\uC791\uC5C5\uC774 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4.",
-    "taskCard.textBadge": "T",
     "taskMode.edit": "\uD3B8\uC9D1",
     "taskMode.generate": "\uC0DD\uC131",
     "document.generatingQueue": "\uC0DD\uC131 \uC911 \xB7 \uB300\uAE30\uC5F4 {total}",
@@ -5596,6 +6047,10 @@
     "history.search": "\uAC80\uC0C9",
     "history.searchPlaceholder": "\uD504\uB86C\uD504\uD2B8 \uB610\uB294 \uC791\uC5C5 ID \uAC80\uC0C9",
     "history.clear": "\uC9C0\uC6B0\uAE30",
+    "history.activeFilterCount": "\uD544\uD130 \uC801\uC6A9 \xB7 {count}\uAC1C",
+    "history.clearAllFilters": "\uBAA8\uB450 \uC9C0\uC6B0\uAE30",
+    "history.removeFilter": "\uD544\uD130 \uC81C\uAC70: {label}",
+    "history.filtersActive": "\uC791\uC5C5 \uD544\uD130, {count}\uAC1C \uC801\uC6A9\uB428",
     "history.favorites": "\uC990\uACA8\uCC3E\uAE30",
     "history.onlyFavorites": "\uC990\uACA8\uCC3E\uAE30\uB9CC",
     "history.favoriteTask": "\uC990\uACA8\uCC3E\uAE30\uC5D0 \uCD94\uAC00",
@@ -5611,6 +6066,8 @@
     "history.removeTag": "\uD0DC\uADF8 \uC81C\uAC70",
     "history.favoriteSelected": "\uC990\uACA8\uCC3E\uAE30",
     "history.unfavoriteSelected": "\uC990\uACA8\uCC3E\uAE30 \uD574\uC81C",
+    "history.organizeSelected": "\uC815\uB9AC",
+    "history.exitSelection": "\uB2E4\uC911 \uC120\uD0DD \uC885\uB8CC",
     "history.organizationFailed": "\uC990\uACA8\uCC3E\uAE30 \uB610\uB294 \uD0DC\uADF8\uB97C \uC5C5\uB370\uC774\uD2B8\uD558\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4",
     "history.tagNameConflict": "\uAC19\uC740 \uD0DC\uADF8 \uC774\uB984\uC774 \uC774\uBBF8 \uC788\uC2B5\uB2C8\uB2E4",
     "history.noTags": "\uC544\uC9C1 \uD0DC\uADF8\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4",
@@ -5622,6 +6079,73 @@
     "history.exportStarted": "\uB2E4\uC6B4\uB85C\uB4DC \uC2DC\uC791\uB428",
     "history.exportSummary": "\uC791\uC5C5 {taskCount}\uAC1C \xB7 \uC774\uBBF8\uC9C0 {imageCount}\uAC1C",
     "history.exportFailed": "\uB0B4\uBCF4\uB0B4\uAE30 \uC2E4\uD328",
+    "historyBackup.open": "\uC791\uC5C5 \uBC31\uC5C5",
+    "historyBackup.importOpen": "\uBC31\uC5C5 \uAC00\uC838\uC624\uAE30",
+    "historyBackup.mode": "\uC791\uC5C5 \uBC31\uC5C5",
+    "historyBackup.description": "\uC791\uC5C5 \uB370\uC774\uD130\uC640 \uAD00\uB828 \uD30C\uC77C\uC744 \uC800\uC7A5\uD558\uC5EC \uD638\uD658\uB418\uB294 iLab CONJURE\uC5D0\uC11C \uBCF5\uC6D0\uD569\uB2C8\uB2E4.",
+    "historyBackup.scopeLegend": "\uBC31\uC5C5 \uBC94\uC704",
+    "historyBackup.scopeHelp": "\uD544\uD130 \uACB0\uACFC\uC640 \uC804\uCCB4 \uAE30\uB85D\uC740 \uB85C\uCEEC\uC5D0\uC11C \uC9D1\uACC4\uB418\uBA70 \uC774 \uD398\uC774\uC9C0\uC5D0 \uD45C\uC2DC\uB41C \uC791\uC5C5 \uC218\uC758 \uC81C\uD55C\uC744 \uBC1B\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4.",
+    "historyBackup.scopeSelected": "\uC120\uD0DD\uD55C \uC791\uC5C5",
+    "historyBackup.scopeFiltered": "\uD604\uC7AC \uD544\uD130 \uACB0\uACFC",
+    "historyBackup.scopeAll": "\uC804\uCCB4 \uC791\uC5C5 \uAE30\uB85D",
+    "historyBackup.scopeCount": "\uC804\uCCB4 {total}\uAC1C \uC911 {eligible}\uAC1C \uAC00\uB2A5",
+    "historyBackup.scopeCounting": "\uC9D1\uACC4 \uC911\u2026",
+    "historyBackup.scopeCountUnavailable": "\uAC1C\uC218\uB97C \uD655\uC778\uD560 \uC218 \uC5C6\uC74C",
+    "historyBackup.scopeNoneSelected": "\uC120\uD0DD\uD55C \uC791\uC5C5 \uC5C6\uC74C",
+    "historyBackup.willBackup": "{eligible}\uAC1C \uC791\uC5C5\uC744 \uBC31\uC5C5\uD558\uBA70 \uC644\uB8CC\uB418\uC9C0 \uC54A\uC740 {excluded}\uAC1C\uB294 \uC81C\uC678\uD569\uB2C8\uB2E4.",
+    "historyBackup.selectTasksFirst": "\uBA3C\uC800 \uC791\uC5C5\uC744 \uD558\uB098 \uC774\uC0C1 \uC120\uD0DD\uD558\uC138\uC694.",
+    "historyBackup.scopeLockedUnknown": "\uC6D0\uB798 \uBC31\uC5C5 \uBC94\uC704",
+    "historyBackup.scopeLocked": "\uBC94\uC704 \uC7A0\uAE40: {scope} \xB7 {eligible}\uAC1C \uC791\uC5C5 \uBC31\uC5C5",
+    "historyBackup.scopeLockedPending": "\uBC94\uC704 \uC7A0\uAE40: {scope} \xB7 \uBC31\uC5C5 \uAC00\uB2A5\uD55C \uC791\uC5C5 \uC9D1\uACC4 \uC911",
+    "historyBackup.progressLabel": "\uBC31\uC5C5 \uC9C4\uD589\uB960",
+    "historyBackup.start": "\uBC31\uC5C5 \uC2DC\uC791",
+    "historyBackup.cancel": "\uBC31\uC5C5 \uCDE8\uC18C",
+    "historyBackup.download": "\uBC31\uC5C5 \uB2E4\uC6B4\uB85C\uB4DC",
+    "historyBackup.dismiss": "\uACB0\uACFC \uB2EB\uAE30",
+    "historyBackup.discard": "\uB2E4\uC6B4\uB85C\uB4DC\uD558\uC9C0 \uC54A\uACE0 \uB2EB\uAE30",
+    "historyBackup.closePanel": "\uD328\uB110 \uB2EB\uAE30",
+    "historyBackup.downloadStartedTitle": "\uB2E4\uC6B4\uB85C\uB4DC \uC2DC\uC791\uB428",
+    "historyBackup.idle": "\uC900\uBE44\uB428",
+    "historyBackup.queued": "\uB300\uAE30 \uC911",
+    "historyBackup.planning": "\uACC4\uD68D \uC911",
+    "historyBackup.packing": "\uD328\uD0A4\uC9C0 \uC0DD\uC131 \uC911",
+    "historyBackup.ready": "\uB2E4\uC6B4\uB85C\uB4DC \uC900\uBE44\uB428",
+    "historyBackup.readyDetail": "\uBC31\uC5C5\uC774 \uC900\uBE44\uB418\uC5C8\uC2B5\uB2C8\uB2E4. 1\uC2DC\uAC04 \uC548\uC5D0 \uB2E4\uC6B4\uB85C\uB4DC\uD558\uC138\uC694. \uB2E4\uC6B4\uB85C\uB4DC\uD558\uC9C0 \uC54A\uACE0 \uB2EB\uC73C\uBA74 \uC784\uC2DC \uD30C\uC77C\uC774 \uC989\uC2DC \uC0AD\uC81C\uB429\uB2C8\uB2E4.",
+    "historyBackup.downloaded": "\uBE0C\uB77C\uC6B0\uC800\uC5D0 \uD30C\uC77C\uC774 \uC800\uC7A5\uB418\uC5C8\uB294\uC9C0 \uD655\uC778\uD55C \uB4A4 \uC774 \uD328\uB110\uC744 \uB2EB\uC744 \uC218 \uC788\uC2B5\uB2C8\uB2E4. \uC784\uC2DC \uD30C\uC77C\uC740 \uC804\uC1A1 \uD6C4 \uC0AD\uC81C\uB429\uB2C8\uB2E4.",
+    "historyBackup.missingInputsWarning": "{tasks}\uAC1C \uC791\uC5C5\uC5D0\uC11C \uC785\uB825 \uD30C\uC77C {files}\uAC1C\uAC00 \uB204\uB77D\uB418\uC5C8\uC2B5\uB2C8\uB2E4. \uD574\uB2F9 \uD30C\uC77C\uC740 \uC81C\uC678\uB418\uC9C0\uB9CC \uD504\uB86C\uD504\uD2B8\uC640 \uCD9C\uB825 \uACB0\uACFC\uB294 \uC815\uC0C1\uC801\uC73C\uB85C \uB0B4\uBCF4\uB0C5\uB2C8\uB2E4.",
+    "historyBackup.failed": "\uBC31\uC5C5 \uC2E4\uD328",
+    "historyBackup.cancelled": "\uCDE8\uC18C\uB428",
+    "historyBackup.expired": "\uB9CC\uB8CC\uB428",
+    "historyBackup.interrupted": "\uC911\uB2E8\uB428",
+    "historyBackup.stats": "\uC804\uCCB4 {total} \xB7 \uAC00\uB2A5 {eligible} \xB7 \uC81C\uC678 {excluded} \xB7 {bytes}",
+    "historyBackup.errorDisk": "\uB514\uC2A4\uD06C \uACF5\uAC04\uC774 \uBD80\uC871\uD569\uB2C8\uB2E4.",
+    "historyBackup.errorSourceChanged": "\uBC31\uC5C5 \uC911 \uC6D0\uBCF8 \uB370\uC774\uD130\uAC00 \uBCC0\uACBD\uB418\uC5C8\uC2B5\uB2C8\uB2E4.",
+    "historyBackup.errorEmpty": "\uBC31\uC5C5 \uAC00\uB2A5\uD55C \uC791\uC5C5\uC774 \uC5C6\uC2B5\uB2C8\uB2E4.",
+    "historyBackup.errorIo": "\uBC31\uC5C5\uC744 \uB9CC\uB4E4 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4.",
+    "historyImport.title": "\uC791\uC5C5 \uBC31\uC5C5 \uAC00\uC838\uC624\uAE30",
+    "historyImport.choose": "ZIP \uBC31\uC5C5 \uC120\uD0DD",
+    "historyImport.uploading": "\uC5C5\uB85C\uB4DC \uC911",
+    "historyImport.validating": "\uAC80\uC99D \uC911",
+    "historyImport.validated": "\uAC80\uC99D\uB428",
+    "historyImport.preview": "\uBCF5\uC6D0 \uBBF8\uB9AC\uBCF4\uAE30",
+    "historyImport.restorable": "\uBCF5\uC6D0 \uAC00\uB2A5",
+    "historyImport.duplicate": "\uC911\uBCF5",
+    "historyImport.conflict": "\uCDA9\uB3CC",
+    "historyImport.invalid": "\uC720\uD6A8\uD558\uC9C0 \uC54A\uC74C",
+    "historyImport.confirm": "\uBCF5\uC6D0 \uD655\uC778",
+    "historyImport.restoring": "\uBCF5\uC6D0 \uC911",
+    "historyImport.restored": "\uBCF5\uC6D0\uB428",
+    "historyImport.failed": "\uBCF5\uC6D0 \uC2E4\uD328",
+    "historyImport.interrupted": "\uC911\uB2E8\uB428",
+    "historyImport.cancelled": "\uCDE8\uC18C\uB428",
+    "historyImport.result": "\uACB0\uACFC",
+    "historyImport.thumbnailWarnings": "\uC378\uB124\uC77C \uACBD\uACE0",
+    "historyImport.cleanupWarnings": "\uC815\uB9AC \uACBD\uACE0",
+    "historyImport.reselect": "\uACC4\uC18D\uD558\uB824\uBA74 \uC6D0\uBCF8 ZIP\uC744 \uB2E4\uC2DC \uC120\uD0DD\uD558\uC138\uC694.",
+    "historyImport.noOverwrite": "\uAE30\uC874 \uC791\uC5C5\uC740 \uC808\uB300 \uB36E\uC5B4\uC4F0\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4.",
+    "historyImport.reasonInvalid": "\uBC31\uC5C5 \uB370\uC774\uD130\uAC00 \uC62C\uBC14\uB974\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4",
+    "historyImport.reasonSensitive": "\uBCF4\uD638\uB41C \uB370\uC774\uD130\uAC00 \uD3EC\uD568\uB418\uC5B4 \uC788\uC2B5\uB2C8\uB2E4",
+    "historyImport.reasonMismatch": "\uBC31\uC5C5 \uB9E4\uB2C8\uD398\uC2A4\uD2B8\uC640 \uC77C\uCE58\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4",
     "history.closeExport": "\uB0B4\uBCF4\uB0B4\uAE30 \uC120\uD0DD \uB2EB\uAE30",
     "history.type": "\uC720\uD615",
     "history.allTypes": "\uBAA8\uB4E0 \uC720\uD615",
@@ -5826,6 +6350,8 @@
     "recentAssets.hideMessage": "\uC774 \uC774\uBBF8\uC9C0\uB294 {count}\uAC1C \uC791\uC5C5\uC5D0\uC11C \uC0AC\uC6A9 \uC911\uC774\uBBC0\uB85C \uC601\uAD6C \uC0AD\uC81C\uD560 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4. \uC228\uAE30\uBA74 \uCD5C\uADFC \uC5C5\uB85C\uB4DC \uBAA9\uB85D\uC5D0\uC11C\uB9CC \uC81C\uAC70\uB418\uBA70 \uC6D0\uBCF8, \uD604\uC7AC \uC785\uB825 \uBC0F \uAE30\uB85D \uC791\uC5C5\uC740 \uC720\uC9C0\uB429\uB2C8\uB2E4.",
     "recentAssets.hideFailed": "\uCD5C\uADFC \uC5C5\uB85C\uB4DC\uB97C \uC228\uAE30\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4.",
     "recentAssets.hidden": "\uCD5C\uADFC \uC5C5\uB85C\uB4DC\uC5D0\uC11C \uC228\uACBC\uC2B5\uB2C8\uB2E4. \uC6D0\uBCF8\uACFC \uAE30\uB85D \uC791\uC5C5\uC740 \uC720\uC9C0\uB429\uB2C8\uB2E4.",
+    "recentAssets.hidePreviews": "\uCD5C\uADFC \uC5C5\uB85C\uB4DC \uC774\uBBF8\uC9C0 \uC228\uAE30\uAE30",
+    "recentAssets.showPreviews": "\uCD5C\uADFC \uC5C5\uB85C\uB4DC \uC774\uBBF8\uC9C0 \uD45C\uC2DC",
     "recentAssets.deleteTitle": "\uCD5C\uADFC \uC5C5\uB85C\uB4DC\uB97C \uC0AD\uC81C\uD558\uC2DC\uACA0\uC2B5\uB2C8\uAE4C?",
     "recentAssets.deleteMessage": "\uC5B4\uB5A4 \uC791\uC5C5\uC5D0\uC11C\uB3C4 \uC0AC\uC6A9\uD558\uC9C0 \uC54A\uB294 \uC774\uBBF8\uC9C0\uC785\uB2C8\uB2E4. \uC6D0\uBCF8\uC744 \uC601\uAD6C \uC0AD\uC81C\uD558\uACE0 \uD604\uC7AC \uC785\uB825\uC5D0\uC11C\uB3C4 \uAC19\uC740 \uC774\uBBF8\uC9C0\uB97C \uC81C\uAC70\uD569\uB2C8\uB2E4. \uACF5\uAC1C \uAC24\uB7EC\uB9AC\uB294 \uC601\uD5A5\uC744 \uBC1B\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4.",
     "recentAssets.loadFailed": "\uCD5C\uADFC \uC5C5\uB85C\uB4DC\uB97C \uB85C\uB4DC\uD558\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4.",
@@ -5852,11 +6378,13 @@
     "referenceCollector.alreadyStaged": "\uC774\uBBF8 \uC784\uC2DC \uCC38\uC870\uB85C \uCD94\uAC00\uB418\uC5C8\uC2B5\uB2C8\uB2E4",
     "referenceCollector.staged": "\uCC38\uC870 \uC774\uBBF8\uC9C0 {count}\uAC1C\uB97C \uC784\uC2DC \uCD94\uAC00\uD588\uC2B5\uB2C8\uB2E4",
     "referenceCollector.title": "\uC784\uC2DC \uCC38\uC870 \xB7 {count}",
-    "referenceCollector.addAll": "\uBAA8\uB4E0 \uCC38\uC870 \uCD94\uAC00",
+    "referenceCollector.addAll": "\uBAA8\uB450 \uCD94\uAC00",
+    "referenceCollector.replaceAll": "\uAE30\uC874 \uD56D\uBAA9 \uAD50\uCCB4",
     "referenceCollector.itemFallback": "\uC784\uC2DC \uCC38\uC870",
     "referenceCollector.remove": "\uC784\uC2DC \uCC38\uC870 \uC81C\uAC70",
     "referenceCollector.cleared": "\uC784\uC2DC \uCC38\uC870\uB97C \uC9C0\uC6E0\uC2B5\uB2C8\uB2E4",
     "referenceCollector.added": "\uCC38\uC870 \uC774\uBBF8\uC9C0 {count}\uAC1C\uB97C \uCD94\uAC00\uD588\uC2B5\uB2C8\uB2E4",
+    "referenceCollector.replaced": "\uCC38\uC870 \uC774\uBBF8\uC9C0\uB97C {count}\uAC1C\uB85C \uAD50\uCCB4\uD588\uC2B5\uB2C8\uB2E4",
     "referenceCollector.addFailed": "\uC784\uC2DC \uCC38\uC870\uB97C \uCD94\uAC00\uD558\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4",
     "referenceCollector.readFailed": "\uC774\uBBF8\uC9C0\uB97C \uC77D\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4:{status}",
     "gallery.quick": "\uBE60\uB978 \uAC24\uB7EC\uB9AC",
@@ -6069,6 +6597,16 @@
     "lightbox.close": "\uBBF8\uB9AC\uBCF4\uAE30 \uB2EB\uAE30",
     "lightbox.previous": "\uC774\uC804 \uC774\uBBF8\uC9C0",
     "lightbox.next": "\uB2E4\uC74C \uC774\uBBF8\uC9C0",
+    "lightbox.zoomControls": "\uD655\uB300/\uCD95\uC18C \uCEE8\uD2B8\uB864",
+    "lightbox.zoomOut": "\uCD95\uC18C",
+    "lightbox.zoomIn": "\uD655\uB300",
+    "lightbox.fit": "\uB9DE\uCDA4",
+    "lightbox.fitPage": "\uD398\uC774\uC9C0\uC5D0 \uB9DE\uCDA4",
+    "lightbox.actualSize": "100% \uC2E4\uC81C \uD06C\uAE30",
+    "lightbox.shortcuts": "\uD0A4\uBCF4\uB4DC \uB2E8\uCD95\uD0A4",
+    "lightbox.switchImage": "\uC774\uBBF8\uC9C0 \uC804\uD658",
+    "lightbox.switchTask": "\uC791\uC5C5 \uC804\uD658",
+    "lightbox.wheelZoom": "\uD720\uB85C \uD655\uB300/\uCD95\uC18C",
     "promptPopover.title": "\uD504\uB86C\uD504\uD2B8 \uBE44\uAD50",
     "promptPopover.summary": "\uC6D0\uBCF8{original}\xB7 \uCD5C\uC801\uD654{optimized}",
     "promptPopover.original": "\uC6D0\uB798 \uD504\uB86C\uD504\uD2B8",
@@ -6232,6 +6770,7 @@
     "colors.modifyValue": "\uC0C9\uC0C1 \uC218\uC815{value}",
     "colors.removeValue": "\uC0C9\uC0C1 \uC81C\uAC70{value}",
     "taskGroup.today": "\uC624\uB298",
+    "taskGroup.current": "\uD604\uC7AC \uC791\uC5C5",
     "taskGroup.yesterday": "\uC5B4\uC81C",
     "taskGroup.last7": "\uC9C0\uB09C 7\uC77C",
     "taskGroup.older": "\uC774\uC804",
@@ -6326,7 +6865,8 @@
     "apiSettings.copyProviderWithoutKeyStatus": "\uACF5\uAE09\uC790\uAC00 \uBCF5\uC0AC\uB418\uC5C8\uC2B5\uB2C8\uB2E4. \uC800\uC7A5\uD558\uAE30 \uC804\uC5D0 \uC774\uB984, \uBAA8\uB378\uC744 \uD3B8\uC9D1\uD558\uAC70\uB098 API \uD0A4\uB97C \uCD94\uAC00\uD558\uC138\uC694.",
     "apiSettings.sortProviders": "\uC815\uB82C",
     "apiSettings.finishSortProviders": "\uC644\uB8CC",
-    "apiSettings.sortProviderModeStatus": "\uACF5\uAE09\uC790 \uC815\uB82C \uC911",
+    "apiSettings.sortProviderModeStatus": "\uD578\uB4E4\uC744 \uB4DC\uB798\uADF8\uD558\uAC70\uB098 \uBC29\uD5A5\uD0A4\uB85C \uC815\uB82C\uD558\uC138\uC694",
+    "apiSettings.sortProviderHandleAria": "{provider}\uC744(\uB97C) \uB4DC\uB798\uADF8\uD558\uAC70\uB098 \uBC29\uD5A5\uD0A4, Home, End \uD0A4\uB85C \uC21C\uC11C \uBCC0\uACBD",
     "apiSettings.sortProviderStatus": "\uACF5\uAE09\uC790 \uC21C\uC11C\uAC00 \uBCC0\uACBD\uB418\uC5C8\uC2B5\uB2C8\uB2E4. \uC790\uB3D9 \uC800\uC7A5 \uC911...",
     "apiSettings.moveProviderUp": "\uC704\uB85C",
     "apiSettings.moveProviderDown": "\uC544\uB798\uB85C",
@@ -6553,6 +7093,7 @@
     "batch.selected": "0 selecionado",
     "batch.selectedCount": "{count} selecionado",
     "batch.selectCurrentGroup": "Selecionar todo o grupo",
+    "batch.selectWaiting": "Selecionar todas em espera",
     "batch.archivedCount": "Bate-papos {count} arquivados",
     "batch.archiveFailed": "Falha no arquivamento em lote",
     "batch.runningCannotDeleteSelected": "Os bate-papos selecionados est\xE3o em execu\xE7\xE3o e n\xE3o podem ser exclu\xEDdos",
@@ -6574,6 +7115,7 @@
     "action.archive": "Arquivo",
     "action.delete": "Excluir",
     "action.cancel": "Cancelar",
+    "action.stop": "Parar",
     "action.edit": "Editar",
     "action.clear": "Limpar",
     "action.paste": "Colar",
@@ -6624,7 +7166,7 @@
     "queue.runningCancelled": "Tarefa cancelada",
     "queue.reorderFailed": "Falha ao reordenar a fila",
     "queue.realtimeUpdateFailed": "Falha ao atualizar o status ativo",
-    "queue.realtimeDisconnected": "A conex\xE3o de status ao vivo foi perdida. Atualize a p\xE1gina para recuperar.",
+    "queue.realtimeDisconnected": "A conex\xE3o de status ao vivo foi interrompida. Reconectando automaticamente\u2026",
     "queue.readFailed": "Falha ao carregar a fila",
     "status.waiting": "Esperando",
     "status.shownActiveTasks": "Mostrando tarefas ativas",
@@ -6661,7 +7203,6 @@
     "taskCard.textToImageThumb": "Miniatura da tarefa de texto para imagem",
     "taskCard.imageToImageThumb": "Miniatura da tarefa imagem a imagem",
     "taskCard.failedThumb": "Falha na tarefa",
-    "taskCard.textBadge": "T",
     "taskMode.edit": "Editar",
     "taskMode.generate": "Gerar",
     "document.generatingQueue": "Gerando \xB7 fila {total}",
@@ -6683,6 +7224,10 @@
     "history.search": "Pesquisar",
     "history.searchPlaceholder": "Solicita\xE7\xF5es de pesquisa ou tarefa ID",
     "history.clear": "Limpar",
+    "history.activeFilterCount": "Filtrado \xB7 {count}",
+    "history.clearAllFilters": "Limpar tudo",
+    "history.removeFilter": "Remover filtro: {label}",
+    "history.filtersActive": "Filtros de tarefas, {count} ativos",
     "history.favorites": "Favoritos",
     "history.onlyFavorites": "Somente favoritos",
     "history.favoriteTask": "Adicionar aos favoritos",
@@ -6698,6 +7243,8 @@
     "history.removeTag": "Remover etiqueta",
     "history.favoriteSelected": "Favoritar",
     "history.unfavoriteSelected": "Desfavoritar",
+    "history.organizeSelected": "Organizar",
+    "history.exitSelection": "Sair da sele\xE7\xE3o m\xFAltipla",
     "history.organizationFailed": "N\xE3o foi poss\xEDvel atualizar favoritos ou etiquetas",
     "history.tagNameConflict": "Este nome de etiqueta j\xE1 existe",
     "history.noTags": "Ainda n\xE3o h\xE1 etiquetas",
@@ -6709,6 +7256,73 @@
     "history.exportStarted": "Download iniciado",
     "history.exportSummary": "{taskCount} tarefas \xB7 {imageCount} imagens",
     "history.exportFailed": "Falha na exporta\xE7\xE3o",
+    "historyBackup.open": "Fazer backup das tarefas",
+    "historyBackup.importOpen": "Importar backup",
+    "historyBackup.mode": "Backup de tarefas",
+    "historyBackup.description": "Salve os dados e arquivos relacionados para restaur\xE1-los em uma instala\xE7\xE3o compat\xEDvel do iLab CONJURE.",
+    "historyBackup.scopeLegend": "Escopo do backup",
+    "historyBackup.scopeHelp": "Os resultados filtrados e todo o hist\xF3rico s\xE3o contados localmente, sem limite pelas tarefas exibidas nesta p\xE1gina.",
+    "historyBackup.scopeSelected": "Tarefas selecionadas",
+    "historyBackup.scopeFiltered": "Resultados filtrados atuais",
+    "historyBackup.scopeAll": "Todo o hist\xF3rico",
+    "historyBackup.scopeCount": "{eligible} de {total} eleg\xEDveis",
+    "historyBackup.scopeCounting": "Contando\u2026",
+    "historyBackup.scopeCountUnavailable": "Contagem indispon\xEDvel",
+    "historyBackup.scopeNoneSelected": "Nenhuma tarefa selecionada",
+    "historyBackup.willBackup": "Ser\xE3o salvas {eligible} tarefas; {excluded} tarefas inacabadas ser\xE3o exclu\xEDdas.",
+    "historyBackup.selectTasksFirst": "Selecione primeiro pelo menos uma tarefa.",
+    "historyBackup.scopeLockedUnknown": "Escopo original do backup",
+    "historyBackup.scopeLocked": "Escopo bloqueado: {scope} \xB7 {eligible} tarefas ser\xE3o salvas",
+    "historyBackup.scopeLockedPending": "Escopo bloqueado: {scope} \xB7 contando tarefas eleg\xEDveis",
+    "historyBackup.progressLabel": "Progresso do backup",
+    "historyBackup.start": "Iniciar backup",
+    "historyBackup.cancel": "Cancelar backup",
+    "historyBackup.download": "Baixar backup",
+    "historyBackup.dismiss": "Fechar resultado",
+    "historyBackup.discard": "Fechar sem baixar",
+    "historyBackup.closePanel": "Fechar painel",
+    "historyBackup.downloadStartedTitle": "Download iniciado",
+    "historyBackup.idle": "Pronto",
+    "historyBackup.queued": "Na fila",
+    "historyBackup.planning": "Planejando",
+    "historyBackup.packing": "Criando pacote",
+    "historyBackup.ready": "Pronto para baixar",
+    "historyBackup.readyDetail": "O backup est\xE1 pronto. Baixe em at\xE9 1 hora; fechar sem baixar exclui o arquivo tempor\xE1rio imediatamente.",
+    "historyBackup.downloaded": "Confirme que o navegador salvou o arquivo e ent\xE3o feche este painel. O arquivo tempor\xE1rio ser\xE1 exclu\xEDdo ap\xF3s a transfer\xEAncia.",
+    "historyBackup.missingInputsWarning": "H\xE1 {files} arquivos de entrada ausentes em {tasks} tarefas. Eles ser\xE3o omitidos; prompts e resultados ainda ser\xE3o exportados.",
+    "historyBackup.failed": "Falha no backup",
+    "historyBackup.cancelled": "Cancelado",
+    "historyBackup.expired": "Expirado",
+    "historyBackup.interrupted": "Interrompido",
+    "historyBackup.stats": "Total {total} \xB7 eleg\xEDveis {eligible} \xB7 exclu\xEDdas {excluded} \xB7 {bytes}",
+    "historyBackup.errorDisk": "Espa\xE7o em disco insuficiente.",
+    "historyBackup.errorSourceChanged": "Os dados de origem mudaram durante o backup.",
+    "historyBackup.errorEmpty": "Nenhuma tarefa eleg\xEDvel.",
+    "historyBackup.errorIo": "N\xE3o foi poss\xEDvel criar o backup.",
+    "historyImport.title": "Importar backup de tarefas",
+    "historyImport.choose": "Escolher backup ZIP",
+    "historyImport.uploading": "Enviando",
+    "historyImport.validating": "Validando",
+    "historyImport.validated": "Validado",
+    "historyImport.preview": "Pr\xE9via da restaura\xE7\xE3o",
+    "historyImport.restorable": "Restaur\xE1veis",
+    "historyImport.duplicate": "Duplicadas",
+    "historyImport.conflict": "Conflitos",
+    "historyImport.invalid": "Inv\xE1lidas",
+    "historyImport.confirm": "Confirmar restaura\xE7\xE3o",
+    "historyImport.restoring": "Restaurando",
+    "historyImport.restored": "Restauradas",
+    "historyImport.failed": "Falha na restaura\xE7\xE3o",
+    "historyImport.interrupted": "Interrompida",
+    "historyImport.cancelled": "Cancelada",
+    "historyImport.result": "Resultado",
+    "historyImport.thumbnailWarnings": "Avisos de miniatura",
+    "historyImport.cleanupWarnings": "Avisos de limpeza",
+    "historyImport.reselect": "Escolha novamente o ZIP original.",
+    "historyImport.noOverwrite": "As tarefas existentes nunca s\xE3o sobrescritas.",
+    "historyImport.reasonInvalid": "Dados de backup inv\xE1lidos",
+    "historyImport.reasonSensitive": "Cont\xE9m dados protegidos",
+    "historyImport.reasonMismatch": "N\xE3o corresponde ao manifesto do backup",
     "history.closeExport": "Fechar op\xE7\xF5es de exporta\xE7\xE3o",
     "history.type": "Tipo",
     "history.allTypes": "Todos os tipos",
@@ -6913,6 +7527,8 @@
     "recentAssets.hideMessage": "Esta imagem \xE9 usada por {count} tarefas e n\xE3o pode ser exclu\xEDda permanentemente. Ocultar remove apenas dos uploads recentes; o original, a entrada atual e as tarefas hist\xF3ricas s\xE3o preservados.",
     "recentAssets.hideFailed": "Falha ao ocultar upload recente",
     "recentAssets.hidden": "Ocultada dos uploads recentes; o original e as tarefas hist\xF3ricas foram preservados",
+    "recentAssets.hidePreviews": "Ocultar imagens de uploads recentes",
+    "recentAssets.showPreviews": "Mostrar imagens de uploads recentes",
     "recentAssets.deleteTitle": "Excluir upload recente?",
     "recentAssets.deleteMessage": "Esta imagem n\xE3o \xE9 usada por nenhuma tarefa. O original ser\xE1 exclu\xEDdo permanentemente e a mesma imagem ser\xE1 removida da entrada atual. A galeria p\xFAblica n\xE3o \xE9 afetada.",
     "recentAssets.loadFailed": "Falha ao carregar uploads recentes",
@@ -6939,11 +7555,13 @@
     "referenceCollector.alreadyStaged": "J\xE1 encenado como refer\xEAncia",
     "referenceCollector.staged": "Imagens de refer\xEAncia {count} encenadas",
     "referenceCollector.title": "Refer\xEAncias pendentes \xB7 {count}",
-    "referenceCollector.addAll": "Adicione todas as refer\xEAncias",
+    "referenceCollector.addAll": "Adicionar tudo",
+    "referenceCollector.replaceAll": "Substituir atuais",
     "referenceCollector.itemFallback": "Refer\xEAncia pendente",
     "referenceCollector.remove": "Remover refer\xEAncia pendente",
     "referenceCollector.cleared": "Refer\xEAncias pendentes apagadas",
     "referenceCollector.added": "Adicionadas imagens de refer\xEAncia {count}",
+    "referenceCollector.replaced": "Refer\xEAncias substitu\xEDdas por {count} imagens",
     "referenceCollector.addFailed": "Falha ao adicionar refer\xEAncias pendentes",
     "referenceCollector.readFailed": "Falha ao ler a imagem: {status}",
     "gallery.quick": "Galeria r\xE1pida",
@@ -7156,6 +7774,16 @@
     "lightbox.close": "Fechar visualiza\xE7\xE3o",
     "lightbox.previous": "Imagem anterior",
     "lightbox.next": "Pr\xF3xima imagem",
+    "lightbox.zoomControls": "Controles de zoom",
+    "lightbox.zoomOut": "Diminuir",
+    "lightbox.zoomIn": "Aumentar",
+    "lightbox.fit": "Ajustar",
+    "lightbox.fitPage": "Ajustar \xE0 p\xE1gina",
+    "lightbox.actualSize": "100% tamanho real",
+    "lightbox.shortcuts": "Atalhos do teclado",
+    "lightbox.switchImage": "Trocar imagem",
+    "lightbox.switchTask": "Trocar tarefa",
+    "lightbox.wheelZoom": "Roda para ampliar",
     "promptPopover.title": "Compara\xE7\xE3o imediata",
     "promptPopover.summary": "{original} original \xB7 {optimized} otimizado",
     "promptPopover.original": "Solicita\xE7\xE3o original",
@@ -7319,6 +7947,7 @@
     "colors.modifyValue": "Editar cor {value}",
     "colors.removeValue": "Remover cor {value}",
     "taskGroup.today": "Hoje",
+    "taskGroup.current": "Tarefa atual",
     "taskGroup.yesterday": "Ontem",
     "taskGroup.last7": "\xDAltimos 7 dias",
     "taskGroup.older": "Mais velho",
@@ -7413,7 +8042,8 @@
     "apiSettings.copyProviderWithoutKeyStatus": "Provedor copiado. Edite o nome, modelo ou adicione uma chave API antes de salvar.",
     "apiSettings.sortProviders": "Classificar",
     "apiSettings.finishSortProviders": "Conclu\xEDdo",
-    "apiSettings.sortProviderModeStatus": "Classificando provedores",
+    "apiSettings.sortProviderModeStatus": "Arraste as al\xE7as para ordenar ou use as setas",
+    "apiSettings.sortProviderHandleAria": "Arraste para reordenar {provider} ou use as setas, Home e End",
     "apiSettings.sortProviderStatus": "Ordem do provedor alterada. Salvando automaticamente...",
     "apiSettings.moveProviderUp": "Acima",
     "apiSettings.moveProviderDown": "Para baixo",
@@ -7640,6 +8270,7 @@
     "batch.selected": "0 \u0432\u044B\u0431\u0440\u0430\u043D\u043E",
     "batch.selectedCount": "{count} \u0432\u044B\u0431\u0440\u0430\u043D\u043E",
     "batch.selectCurrentGroup": "\u0412\u044B\u0431\u0440\u0430\u0442\u044C \u0432\u0441\u044E \u0433\u0440\u0443\u043F\u043F\u0443",
+    "batch.selectWaiting": "\u0412\u044B\u0431\u0440\u0430\u0442\u044C \u0432\u0441\u0435 \u043E\u0436\u0438\u0434\u0430\u044E\u0449\u0438\u0435",
     "batch.archivedCount": "\u0410\u0440\u0445\u0438\u0432\u0438\u0440\u043E\u0432\u0430\u043D\u043D\u044B\u0435 \u0447\u0430\u0442\u044B {count}",
     "batch.archiveFailed": "\u041F\u0430\u043A\u0435\u0442\u043D\u044B\u0439 \u0430\u0440\u0445\u0438\u0432 \u043D\u0435 \u0432\u044B\u043F\u043E\u043B\u043D\u0435\u043D",
     "batch.runningCannotDeleteSelected": "\u0412\u044B\u0431\u0440\u0430\u043D\u043D\u044B\u0435 \u0447\u0430\u0442\u044B \u0430\u043A\u0442\u0438\u0432\u043D\u044B \u0438 \u043D\u0435 \u043C\u043E\u0433\u0443\u0442 \u0431\u044B\u0442\u044C \u0443\u0434\u0430\u043B\u0435\u043D\u044B.",
@@ -7661,6 +8292,7 @@
     "action.archive": "\u0410\u0440\u0445\u0438\u0432",
     "action.delete": "\u0423\u0434\u0430\u043B\u0438\u0442\u044C",
     "action.cancel": "\u041E\u0442\u043C\u0435\u043D\u0430",
+    "action.stop": "\u041E\u0441\u0442\u0430\u043D\u043E\u0432\u0438\u0442\u044C",
     "action.edit": "\u0420\u0435\u0434\u0430\u043A\u0442\u0438\u0440\u043E\u0432\u0430\u0442\u044C",
     "action.clear": "\u041E\u0447\u0438\u0441\u0442\u0438\u0442\u044C",
     "action.paste": "\u0412\u0441\u0442\u0430\u0432\u0438\u0442\u044C",
@@ -7711,7 +8343,7 @@
     "queue.runningCancelled": "\u0417\u0430\u0434\u0430\u0447\u0430 \u043E\u0442\u043C\u0435\u043D\u0435\u043D\u0430",
     "queue.reorderFailed": "\u041D\u0435 \u0443\u0434\u0430\u043B\u043E\u0441\u044C \u0438\u0437\u043C\u0435\u043D\u0438\u0442\u044C \u043F\u043E\u0440\u044F\u0434\u043E\u043A \u043E\u0447\u0435\u0440\u0435\u0434\u0438.",
     "queue.realtimeUpdateFailed": "\u041D\u0435 \u0443\u0434\u0430\u043B\u043E\u0441\u044C \u043E\u0431\u043D\u043E\u0432\u0438\u0442\u044C \u0442\u0435\u043A\u0443\u0449\u0438\u0439 \u0441\u0442\u0430\u0442\u0443\u0441.",
-    "queue.realtimeDisconnected": "\u0421\u043E\u0435\u0434\u0438\u043D\u0435\u043D\u0438\u0435 \u0441\u043E \u0441\u0442\u0430\u0442\u0443\u0441\u043E\u043C Live \u0431\u044B\u043B\u043E \u043F\u043E\u0442\u0435\u0440\u044F\u043D\u043E. \u041E\u0431\u043D\u043E\u0432\u0438\u0442\u0435 \u0441\u0442\u0440\u0430\u043D\u0438\u0446\u0443 \u0434\u043B\u044F \u0432\u043E\u0441\u0441\u0442\u0430\u043D\u043E\u0432\u043B\u0435\u043D\u0438\u044F.",
+    "queue.realtimeDisconnected": "\u0421\u043E\u0435\u0434\u0438\u043D\u0435\u043D\u0438\u0435 \u0441\u043E \u0441\u0442\u0430\u0442\u0443\u0441\u043E\u043C \u0432 \u0440\u0435\u0430\u043B\u044C\u043D\u043E\u043C \u0432\u0440\u0435\u043C\u0435\u043D\u0438 \u043F\u0440\u0435\u0440\u0432\u0430\u043D\u043E. \u0412\u044B\u043F\u043E\u043B\u043D\u044F\u0435\u0442\u0441\u044F \u0430\u0432\u0442\u043E\u043C\u0430\u0442\u0438\u0447\u0435\u0441\u043A\u043E\u0435 \u043F\u0435\u0440\u0435\u043F\u043E\u0434\u043A\u043B\u044E\u0447\u0435\u043D\u0438\u0435\u2026",
     "queue.readFailed": "\u041D\u0435 \u0443\u0434\u0430\u043B\u043E\u0441\u044C \u0437\u0430\u0433\u0440\u0443\u0437\u0438\u0442\u044C \u043E\u0447\u0435\u0440\u0435\u0434\u044C",
     "status.waiting": "\u041E\u0436\u0438\u0434\u0430\u043D\u0438\u0435",
     "status.shownActiveTasks": "\u041F\u043E\u043A\u0430\u0437 \u0430\u043A\u0442\u0438\u0432\u043D\u044B\u0445 \u0437\u0430\u0434\u0430\u0447",
@@ -7748,7 +8380,6 @@
     "taskCard.textToImageThumb": "\u041C\u0438\u043D\u0438\u0430\u0442\u044E\u0440\u0430 \u0437\u0430\u0434\u0430\u0447\u0438 \u043F\u0440\u0435\u043E\u0431\u0440\u0430\u0437\u043E\u0432\u0430\u043D\u0438\u044F \u0442\u0435\u043A\u0441\u0442\u0430 \u0432 image",
     "taskCard.imageToImageThumb": "\u041C\u0438\u043D\u0438\u0430\u0442\u044E\u0440\u0430 \u0437\u0430\u0434\u0430\u0447\u0438 \u043E\u0442 Image \u0434\u043E image",
     "taskCard.failedThumb": "\u0417\u0430\u0434\u0430\u0447\u0430 \u043D\u0435 \u0432\u044B\u043F\u043E\u043B\u043D\u0435\u043D\u0430",
-    "taskCard.textBadge": "\u0422",
     "taskMode.edit": "\u0420\u0435\u0434\u0430\u043A\u0442\u0438\u0440\u043E\u0432\u0430\u0442\u044C",
     "taskMode.generate": "\u0413\u0435\u043D\u0435\u0440\u0438\u0440\u043E\u0432\u0430\u0442\u044C",
     "document.generatingQueue": "\u0421\u043E\u0437\u0434\u0430\u043D\u0438\u0435 \xB7 \u043E\u0447\u0435\u0440\u0435\u0434\u0438 {total}",
@@ -7770,6 +8401,10 @@
     "history.search": "\u041F\u043E\u0438\u0441\u043A",
     "history.searchPlaceholder": "\u041F\u043E\u0438\u0441\u043A\u043E\u0432\u044B\u0435 \u0437\u0430\u043F\u0440\u043E\u0441\u044B \u0438\u043B\u0438 \u0437\u0430\u0434\u0430\u0447\u0430 ID",
     "history.clear": "\u041E\u0447\u0438\u0441\u0442\u0438\u0442\u044C",
+    "history.activeFilterCount": "\u0424\u0438\u043B\u044C\u0442\u0440\u044B \xB7 {count}",
+    "history.clearAllFilters": "\u041E\u0447\u0438\u0441\u0442\u0438\u0442\u044C \u0432\u0441\u0435",
+    "history.removeFilter": "\u0423\u0434\u0430\u043B\u0438\u0442\u044C \u0444\u0438\u043B\u044C\u0442\u0440: {label}",
+    "history.filtersActive": "\u0424\u0438\u043B\u044C\u0442\u0440\u044B \u0437\u0430\u0434\u0430\u0447: \u0430\u043A\u0442\u0438\u0432\u043D\u043E {count}",
     "history.favorites": "\u0418\u0437\u0431\u0440\u0430\u043D\u043D\u043E\u0435",
     "history.onlyFavorites": "\u0422\u043E\u043B\u044C\u043A\u043E \u0438\u0437\u0431\u0440\u0430\u043D\u043D\u043E\u0435",
     "history.favoriteTask": "\u0414\u043E\u0431\u0430\u0432\u0438\u0442\u044C \u0432 \u0438\u0437\u0431\u0440\u0430\u043D\u043D\u043E\u0435",
@@ -7785,6 +8420,8 @@
     "history.removeTag": "\u0423\u0434\u0430\u043B\u0438\u0442\u044C \u0442\u0435\u0433",
     "history.favoriteSelected": "\u0412 \u0438\u0437\u0431\u0440\u0430\u043D\u043D\u043E\u0435",
     "history.unfavoriteSelected": "\u0423\u0431\u0440\u0430\u0442\u044C \u0438\u0437 \u0438\u0437\u0431\u0440\u0430\u043D\u043D\u043E\u0433\u043E",
+    "history.organizeSelected": "\u0423\u043F\u043E\u0440\u044F\u0434\u043E\u0447\u0438\u0442\u044C",
+    "history.exitSelection": "\u0412\u044B\u0439\u0442\u0438 \u0438\u0437 \u043C\u043D\u043E\u0436\u0435\u0441\u0442\u0432\u0435\u043D\u043D\u043E\u0433\u043E \u0432\u044B\u0431\u043E\u0440\u0430",
     "history.organizationFailed": "\u041D\u0435 \u0443\u0434\u0430\u043B\u043E\u0441\u044C \u043E\u0431\u043D\u043E\u0432\u0438\u0442\u044C \u0438\u0437\u0431\u0440\u0430\u043D\u043D\u043E\u0435 \u0438\u043B\u0438 \u0442\u0435\u0433\u0438",
     "history.tagNameConflict": "\u0422\u0430\u043A\u043E\u0435 \u0438\u043C\u044F \u0442\u0435\u0433\u0430 \u0443\u0436\u0435 \u0441\u0443\u0449\u0435\u0441\u0442\u0432\u0443\u0435\u0442",
     "history.noTags": "\u0422\u0435\u0433\u043E\u0432 \u043F\u043E\u043A\u0430 \u043D\u0435\u0442",
@@ -7796,6 +8433,73 @@
     "history.exportStarted": "\u0417\u0430\u0433\u0440\u0443\u0437\u043A\u0430 \u043D\u0430\u0447\u0430\u043B\u0430\u0441\u044C",
     "history.exportSummary": "{taskCount} \u0437\u0430\u0434\u0430\u0447 \xB7 {imageCount} \u0438\u0437\u043E\u0431\u0440\u0430\u0436\u0435\u043D\u0438\u0439",
     "history.exportFailed": "\u041D\u0435 \u0443\u0434\u0430\u043B\u043E\u0441\u044C \u044D\u043A\u0441\u043F\u043E\u0440\u0442\u0438\u0440\u043E\u0432\u0430\u0442\u044C",
+    "historyBackup.open": "\u0421\u043E\u0437\u0434\u0430\u0442\u044C \u0440\u0435\u0437\u0435\u0440\u0432\u043D\u0443\u044E \u043A\u043E\u043F\u0438\u044E",
+    "historyBackup.importOpen": "\u0418\u043C\u043F\u043E\u0440\u0442\u0438\u0440\u043E\u0432\u0430\u0442\u044C \u043A\u043E\u043F\u0438\u044E",
+    "historyBackup.mode": "\u0420\u0435\u0437\u0435\u0440\u0432\u043D\u0430\u044F \u043A\u043E\u043F\u0438\u044F \u0437\u0430\u0434\u0430\u0447",
+    "historyBackup.description": "\u0421\u043E\u0445\u0440\u0430\u043D\u0438\u0442\u0435 \u0434\u0430\u043D\u043D\u044B\u0435 \u0437\u0430\u0434\u0430\u0447 \u0438 \u0441\u0432\u044F\u0437\u0430\u043D\u043D\u044B\u0435 \u0444\u0430\u0439\u043B\u044B \u0434\u043B\u044F \u0432\u043E\u0441\u0441\u0442\u0430\u043D\u043E\u0432\u043B\u0435\u043D\u0438\u044F \u0432 \u0441\u043E\u0432\u043C\u0435\u0441\u0442\u0438\u043C\u043E\u0439 \u0432\u0435\u0440\u0441\u0438\u0438 iLab CONJURE.",
+    "historyBackup.scopeLegend": "\u041E\u0431\u043B\u0430\u0441\u0442\u044C \u043A\u043E\u043F\u0438\u0438",
+    "historyBackup.scopeHelp": "\u0420\u0435\u0437\u0443\u043B\u044C\u0442\u0430\u0442\u044B \u0444\u0438\u043B\u044C\u0442\u0440\u0430 \u0438 \u0432\u0441\u044F \u0438\u0441\u0442\u043E\u0440\u0438\u044F \u043F\u043E\u0434\u0441\u0447\u0438\u0442\u044B\u0432\u0430\u044E\u0442\u0441\u044F \u043B\u043E\u043A\u0430\u043B\u044C\u043D\u043E \u0438 \u043D\u0435 \u043E\u0433\u0440\u0430\u043D\u0438\u0447\u0435\u043D\u044B \u0437\u0430\u0434\u0430\u0447\u0430\u043C\u0438 \u043D\u0430 \u044D\u0442\u043E\u0439 \u0441\u0442\u0440\u0430\u043D\u0438\u0446\u0435.",
+    "historyBackup.scopeSelected": "\u0412\u044B\u0431\u0440\u0430\u043D\u043D\u044B\u0435 \u0437\u0430\u0434\u0430\u0447\u0438",
+    "historyBackup.scopeFiltered": "\u0422\u0435\u043A\u0443\u0449\u0438\u0435 \u0440\u0435\u0437\u0443\u043B\u044C\u0442\u0430\u0442\u044B \u0444\u0438\u043B\u044C\u0442\u0440\u0430",
+    "historyBackup.scopeAll": "\u0412\u0441\u044F \u0438\u0441\u0442\u043E\u0440\u0438\u044F",
+    "historyBackup.scopeCount": "\u0414\u043E\u0441\u0442\u0443\u043F\u043D\u043E {eligible} \u0438\u0437 {total}",
+    "historyBackup.scopeCounting": "\u041F\u043E\u0434\u0441\u0447\u0451\u0442\u2026",
+    "historyBackup.scopeCountUnavailable": "\u041A\u043E\u043B\u0438\u0447\u0435\u0441\u0442\u0432\u043E \u043D\u0435\u0434\u043E\u0441\u0442\u0443\u043F\u043D\u043E",
+    "historyBackup.scopeNoneSelected": "\u0417\u0430\u0434\u0430\u0447\u0438 \u043D\u0435 \u0432\u044B\u0431\u0440\u0430\u043D\u044B",
+    "historyBackup.willBackup": "\u0411\u0443\u0434\u0435\u0442 \u0441\u043E\u0445\u0440\u0430\u043D\u0435\u043D\u043E {eligible} \u0437\u0430\u0434\u0430\u0447; {excluded} \u043D\u0435\u0437\u0430\u0432\u0435\u0440\u0448\u0451\u043D\u043D\u044B\u0445 \u0437\u0430\u0434\u0430\u0447 \u0431\u0443\u0434\u0443\u0442 \u0438\u0441\u043A\u043B\u044E\u0447\u0435\u043D\u044B.",
+    "historyBackup.selectTasksFirst": "\u0421\u043D\u0430\u0447\u0430\u043B\u0430 \u0432\u044B\u0431\u0435\u0440\u0438\u0442\u0435 \u0445\u043E\u0442\u044F \u0431\u044B \u043E\u0434\u043D\u0443 \u0437\u0430\u0434\u0430\u0447\u0443.",
+    "historyBackup.scopeLockedUnknown": "\u0418\u0441\u0445\u043E\u0434\u043D\u0430\u044F \u043E\u0431\u043B\u0430\u0441\u0442\u044C \u043A\u043E\u043F\u0438\u0438",
+    "historyBackup.scopeLocked": "\u041E\u0431\u043B\u0430\u0441\u0442\u044C \u0437\u0430\u0444\u0438\u043A\u0441\u0438\u0440\u043E\u0432\u0430\u043D\u0430: {scope} \xB7 \u0431\u0443\u0434\u0435\u0442 \u0441\u043E\u0445\u0440\u0430\u043D\u0435\u043D\u043E {eligible} \u0437\u0430\u0434\u0430\u0447",
+    "historyBackup.scopeLockedPending": "\u041E\u0431\u043B\u0430\u0441\u0442\u044C \u0437\u0430\u0444\u0438\u043A\u0441\u0438\u0440\u043E\u0432\u0430\u043D\u0430: {scope} \xB7 \u043F\u043E\u0434\u0441\u0447\u0438\u0442\u044B\u0432\u0430\u044E\u0442\u0441\u044F \u0434\u043E\u0441\u0442\u0443\u043F\u043D\u044B\u0435 \u0437\u0430\u0434\u0430\u0447\u0438",
+    "historyBackup.progressLabel": "\u0425\u043E\u0434 \u0440\u0435\u0437\u0435\u0440\u0432\u043D\u043E\u0433\u043E \u043A\u043E\u043F\u0438\u0440\u043E\u0432\u0430\u043D\u0438\u044F",
+    "historyBackup.start": "\u041D\u0430\u0447\u0430\u0442\u044C \u043A\u043E\u043F\u0438\u0440\u043E\u0432\u0430\u043D\u0438\u0435",
+    "historyBackup.cancel": "\u041E\u0442\u043C\u0435\u043D\u0438\u0442\u044C \u043A\u043E\u043F\u0438\u0440\u043E\u0432\u0430\u043D\u0438\u0435",
+    "historyBackup.download": "\u0421\u043A\u0430\u0447\u0430\u0442\u044C \u043A\u043E\u043F\u0438\u044E",
+    "historyBackup.dismiss": "\u0417\u0430\u043A\u0440\u044B\u0442\u044C \u0440\u0435\u0437\u0443\u043B\u044C\u0442\u0430\u0442",
+    "historyBackup.discard": "\u0417\u0430\u043A\u0440\u044B\u0442\u044C \u0431\u0435\u0437 \u0441\u043A\u0430\u0447\u0438\u0432\u0430\u043D\u0438\u044F",
+    "historyBackup.closePanel": "\u0417\u0430\u043A\u0440\u044B\u0442\u044C \u043F\u0430\u043D\u0435\u043B\u044C",
+    "historyBackup.downloadStartedTitle": "\u0421\u043A\u0430\u0447\u0438\u0432\u0430\u043D\u0438\u0435 \u043D\u0430\u0447\u0430\u043B\u043E\u0441\u044C",
+    "historyBackup.idle": "\u0413\u043E\u0442\u043E\u0432\u043E",
+    "historyBackup.queued": "\u0412 \u043E\u0447\u0435\u0440\u0435\u0434\u0438",
+    "historyBackup.planning": "\u041F\u043B\u0430\u043D\u0438\u0440\u043E\u0432\u0430\u043D\u0438\u0435",
+    "historyBackup.packing": "\u0421\u043E\u0437\u0434\u0430\u043D\u0438\u0435 \u043F\u0430\u043A\u0435\u0442\u0430",
+    "historyBackup.ready": "\u0413\u043E\u0442\u043E\u0432\u043E \u043A \u0441\u043A\u0430\u0447\u0438\u0432\u0430\u043D\u0438\u044E",
+    "historyBackup.readyDetail": "\u041A\u043E\u043F\u0438\u044F \u0433\u043E\u0442\u043E\u0432\u0430. \u0421\u043A\u0430\u0447\u0430\u0439\u0442\u0435 \u0435\u0451 \u0432 \u0442\u0435\u0447\u0435\u043D\u0438\u0435 1 \u0447\u0430\u0441\u0430; \u0437\u0430\u043A\u0440\u044B\u0442\u0438\u0435 \u0431\u0435\u0437 \u0441\u043A\u0430\u0447\u0438\u0432\u0430\u043D\u0438\u044F \u043D\u0435\u043C\u0435\u0434\u043B\u0435\u043D\u043D\u043E \u0443\u0434\u0430\u043B\u0438\u0442 \u0432\u0440\u0435\u043C\u0435\u043D\u043D\u044B\u0439 \u0444\u0430\u0439\u043B.",
+    "historyBackup.downloaded": "\u0423\u0431\u0435\u0434\u0438\u0442\u0435\u0441\u044C, \u0447\u0442\u043E \u0431\u0440\u0430\u0443\u0437\u0435\u0440 \u0441\u043E\u0445\u0440\u0430\u043D\u0438\u043B \u0444\u0430\u0439\u043B, \u043F\u043E\u0441\u043B\u0435 \u0447\u0435\u0433\u043E \u044D\u0442\u0443 \u043F\u0430\u043D\u0435\u043B\u044C \u043C\u043E\u0436\u043D\u043E \u0437\u0430\u043A\u0440\u044B\u0442\u044C. \u0412\u0440\u0435\u043C\u0435\u043D\u043D\u044B\u0439 \u0444\u0430\u0439\u043B \u0431\u0443\u0434\u0435\u0442 \u0443\u0434\u0430\u043B\u0451\u043D \u043F\u043E\u0441\u043B\u0435 \u043F\u0435\u0440\u0435\u0434\u0430\u0447\u0438.",
+    "historyBackup.missingInputsWarning": "\u0412 {tasks} \u0437\u0430\u0434\u0430\u0447\u0430\u0445 \u043E\u0442\u0441\u0443\u0442\u0441\u0442\u0432\u0443\u044E\u0442 {files} \u0432\u0445\u043E\u0434\u043D\u044B\u0445 \u0444\u0430\u0439\u043B\u043E\u0432. \u041E\u043D\u0438 \u043D\u0435 \u0432\u043E\u0439\u0434\u0443\u0442 \u0432 \u043A\u043E\u043F\u0438\u044E, \u043D\u043E \u043F\u0440\u043E\u043C\u043F\u0442\u044B \u0438 \u0440\u0435\u0437\u0443\u043B\u044C\u0442\u0430\u0442\u044B \u0431\u0443\u0434\u0443\u0442 \u044D\u043A\u0441\u043F\u043E\u0440\u0442\u0438\u0440\u043E\u0432\u0430\u043D\u044B.",
+    "historyBackup.failed": "\u041E\u0448\u0438\u0431\u043A\u0430 \u043A\u043E\u043F\u0438\u0440\u043E\u0432\u0430\u043D\u0438\u044F",
+    "historyBackup.cancelled": "\u041E\u0442\u043C\u0435\u043D\u0435\u043D\u043E",
+    "historyBackup.expired": "\u0418\u0441\u0442\u0435\u043A\u043B\u043E",
+    "historyBackup.interrupted": "\u041F\u0440\u0435\u0440\u0432\u0430\u043D\u043E",
+    "historyBackup.stats": "\u0412\u0441\u0435\u0433\u043E {total} \xB7 \u0434\u043E\u0441\u0442\u0443\u043F\u043D\u043E {eligible} \xB7 \u0438\u0441\u043A\u043B\u044E\u0447\u0435\u043D\u043E {excluded} \xB7 {bytes}",
+    "historyBackup.errorDisk": "\u041D\u0435\u0434\u043E\u0441\u0442\u0430\u0442\u043E\u0447\u043D\u043E \u043C\u0435\u0441\u0442\u0430 \u043D\u0430 \u0434\u0438\u0441\u043A\u0435.",
+    "historyBackup.errorSourceChanged": "\u0418\u0441\u0445\u043E\u0434\u043D\u044B\u0435 \u0434\u0430\u043D\u043D\u044B\u0435 \u0438\u0437\u043C\u0435\u043D\u0438\u043B\u0438\u0441\u044C \u0432\u043E \u0432\u0440\u0435\u043C\u044F \u043A\u043E\u043F\u0438\u0440\u043E\u0432\u0430\u043D\u0438\u044F.",
+    "historyBackup.errorEmpty": "\u041D\u0435\u0442 \u043F\u043E\u0434\u0445\u043E\u0434\u044F\u0449\u0438\u0445 \u0437\u0430\u0434\u0430\u0447.",
+    "historyBackup.errorIo": "\u041D\u0435 \u0443\u0434\u0430\u043B\u043E\u0441\u044C \u0441\u043E\u0437\u0434\u0430\u0442\u044C \u043A\u043E\u043F\u0438\u044E.",
+    "historyImport.title": "\u0418\u043C\u043F\u043E\u0440\u0442 \u0440\u0435\u0437\u0435\u0440\u0432\u043D\u043E\u0439 \u043A\u043E\u043F\u0438\u0438",
+    "historyImport.choose": "\u0412\u044B\u0431\u0440\u0430\u0442\u044C ZIP-\u043A\u043E\u043F\u0438\u044E",
+    "historyImport.uploading": "\u0417\u0430\u0433\u0440\u0443\u0437\u043A\u0430",
+    "historyImport.validating": "\u041F\u0440\u043E\u0432\u0435\u0440\u043A\u0430",
+    "historyImport.validated": "\u041F\u0440\u043E\u0432\u0435\u0440\u0435\u043D\u043E",
+    "historyImport.preview": "\u041F\u0440\u0435\u0434\u043F\u0440\u043E\u0441\u043C\u043E\u0442\u0440 \u0432\u043E\u0441\u0441\u0442\u0430\u043D\u043E\u0432\u043B\u0435\u043D\u0438\u044F",
+    "historyImport.restorable": "\u041C\u043E\u0436\u043D\u043E \u0432\u043E\u0441\u0441\u0442\u0430\u043D\u043E\u0432\u0438\u0442\u044C",
+    "historyImport.duplicate": "\u0414\u0443\u0431\u043B\u0438\u043A\u0430\u0442\u044B",
+    "historyImport.conflict": "\u041A\u043E\u043D\u0444\u043B\u0438\u043A\u0442\u044B",
+    "historyImport.invalid": "\u041D\u0435\u0434\u0435\u0439\u0441\u0442\u0432\u0438\u0442\u0435\u043B\u044C\u043D\u044B\u0435",
+    "historyImport.confirm": "\u041F\u043E\u0434\u0442\u0432\u0435\u0440\u0434\u0438\u0442\u044C \u0432\u043E\u0441\u0441\u0442\u0430\u043D\u043E\u0432\u043B\u0435\u043D\u0438\u0435",
+    "historyImport.restoring": "\u0412\u043E\u0441\u0441\u0442\u0430\u043D\u043E\u0432\u043B\u0435\u043D\u0438\u0435",
+    "historyImport.restored": "\u0412\u043E\u0441\u0441\u0442\u0430\u043D\u043E\u0432\u043B\u0435\u043D\u043E",
+    "historyImport.failed": "\u041E\u0448\u0438\u0431\u043A\u0430 \u0432\u043E\u0441\u0441\u0442\u0430\u043D\u043E\u0432\u043B\u0435\u043D\u0438\u044F",
+    "historyImport.interrupted": "\u041F\u0440\u0435\u0440\u0432\u0430\u043D\u043E",
+    "historyImport.cancelled": "\u041E\u0442\u043C\u0435\u043D\u0435\u043D\u043E",
+    "historyImport.result": "\u0420\u0435\u0437\u0443\u043B\u044C\u0442\u0430\u0442",
+    "historyImport.thumbnailWarnings": "\u041F\u0440\u0435\u0434\u0443\u043F\u0440\u0435\u0436\u0434\u0435\u043D\u0438\u044F \u043C\u0438\u043D\u0438\u0430\u0442\u044E\u0440",
+    "historyImport.cleanupWarnings": "\u041F\u0440\u0435\u0434\u0443\u043F\u0440\u0435\u0436\u0434\u0435\u043D\u0438\u044F \u043E\u0447\u0438\u0441\u0442\u043A\u0438",
+    "historyImport.reselect": "\u0421\u043D\u043E\u0432\u0430 \u0432\u044B\u0431\u0435\u0440\u0438\u0442\u0435 \u0438\u0441\u0445\u043E\u0434\u043D\u044B\u0439 ZIP.",
+    "historyImport.noOverwrite": "\u0421\u0443\u0449\u0435\u0441\u0442\u0432\u0443\u044E\u0449\u0438\u0435 \u0437\u0430\u0434\u0430\u0447\u0438 \u043D\u0438\u043A\u043E\u0433\u0434\u0430 \u043D\u0435 \u043F\u0435\u0440\u0435\u0437\u0430\u043F\u0438\u0441\u044B\u0432\u0430\u044E\u0442\u0441\u044F.",
+    "historyImport.reasonInvalid": "\u041D\u0435\u0434\u043E\u043F\u0443\u0441\u0442\u0438\u043C\u044B\u0435 \u0434\u0430\u043D\u043D\u044B\u0435 \u0440\u0435\u0437\u0435\u0440\u0432\u043D\u043E\u0439 \u043A\u043E\u043F\u0438\u0438",
+    "historyImport.reasonSensitive": "\u0421\u043E\u0434\u0435\u0440\u0436\u0438\u0442 \u0437\u0430\u0449\u0438\u0449\u0451\u043D\u043D\u044B\u0435 \u0434\u0430\u043D\u043D\u044B\u0435",
+    "historyImport.reasonMismatch": "\u041D\u0435 \u0441\u043E\u043E\u0442\u0432\u0435\u0442\u0441\u0442\u0432\u0443\u0435\u0442 \u043C\u0430\u043D\u0438\u0444\u0435\u0441\u0442\u0443 \u0440\u0435\u0437\u0435\u0440\u0432\u043D\u043E\u0439 \u043A\u043E\u043F\u0438\u0438",
     "history.closeExport": "\u0417\u0430\u043A\u0440\u044B\u0442\u044C \u0432\u044B\u0431\u043E\u0440 \u044D\u043A\u0441\u043F\u043E\u0440\u0442\u0430",
     "history.type": "\u0422\u0438\u043F",
     "history.allTypes": "\u0412\u0441\u0435 \u0442\u0438\u043F\u044B",
@@ -8000,6 +8704,8 @@
     "recentAssets.hideMessage": "\u042D\u0442\u043E \u0438\u0437\u043E\u0431\u0440\u0430\u0436\u0435\u043D\u0438\u0435 \u0438\u0441\u043F\u043E\u043B\u044C\u0437\u0443\u0435\u0442\u0441\u044F \u0432 {count} \u0437\u0430\u0434\u0430\u0447\u0430\u0445 \u0438 \u043D\u0435 \u043C\u043E\u0436\u0435\u0442 \u0431\u044B\u0442\u044C \u0443\u0434\u0430\u043B\u0435\u043D\u043E \u043D\u0430\u0432\u0441\u0435\u0433\u0434\u0430. \u0421\u043A\u0440\u044B\u0442\u0438\u0435 \u0443\u0431\u0435\u0440\u0451\u0442 \u0435\u0433\u043E \u0442\u043E\u043B\u044C\u043A\u043E \u0438\u0437 \u043F\u043E\u0441\u043B\u0435\u0434\u043D\u0438\u0445 \u0437\u0430\u0433\u0440\u0443\u0437\u043E\u043A; \u043E\u0440\u0438\u0433\u0438\u043D\u0430\u043B, \u0442\u0435\u043A\u0443\u0449\u0438\u0439 \u0432\u0432\u043E\u0434 \u0438 \u0438\u0441\u0442\u043E\u0440\u0438\u0447\u0435\u0441\u043A\u0438\u0435 \u0437\u0430\u0434\u0430\u0447\u0438 \u0441\u043E\u0445\u0440\u0430\u043D\u044F\u0442\u0441\u044F.",
     "recentAssets.hideFailed": "\u041D\u0435 \u0443\u0434\u0430\u043B\u043E\u0441\u044C \u0441\u043A\u0440\u044B\u0442\u044C \u043D\u0435\u0434\u0430\u0432\u043D\u044E\u044E \u0437\u0430\u0433\u0440\u0443\u0437\u043A\u0443",
     "recentAssets.hidden": "\u0421\u043A\u0440\u044B\u0442\u043E \u0438\u0437 \u043F\u043E\u0441\u043B\u0435\u0434\u043D\u0438\u0445 \u0437\u0430\u0433\u0440\u0443\u0437\u043E\u043A; \u043E\u0440\u0438\u0433\u0438\u043D\u0430\u043B \u0438 \u0438\u0441\u0442\u043E\u0440\u0438\u0447\u0435\u0441\u043A\u0438\u0435 \u0437\u0430\u0434\u0430\u0447\u0438 \u0441\u043E\u0445\u0440\u0430\u043D\u0435\u043D\u044B",
+    "recentAssets.hidePreviews": "\u0421\u043A\u0440\u044B\u0442\u044C \u0438\u0437\u043E\u0431\u0440\u0430\u0436\u0435\u043D\u0438\u044F \u043F\u043E\u0441\u043B\u0435\u0434\u043D\u0438\u0445 \u0437\u0430\u0433\u0440\u0443\u0437\u043E\u043A",
+    "recentAssets.showPreviews": "\u041F\u043E\u043A\u0430\u0437\u0430\u0442\u044C \u0438\u0437\u043E\u0431\u0440\u0430\u0436\u0435\u043D\u0438\u044F \u043F\u043E\u0441\u043B\u0435\u0434\u043D\u0438\u0445 \u0437\u0430\u0433\u0440\u0443\u0437\u043E\u043A",
     "recentAssets.deleteTitle": "\u0423\u0434\u0430\u043B\u0438\u0442\u044C \u043D\u0435\u0434\u0430\u0432\u043D\u044E\u044E \u0437\u0430\u0433\u0440\u0443\u0437\u043A\u0443?",
     "recentAssets.deleteMessage": "\u042D\u0442\u043E \u0438\u0437\u043E\u0431\u0440\u0430\u0436\u0435\u043D\u0438\u0435 \u043D\u0435 \u0438\u0441\u043F\u043E\u043B\u044C\u0437\u0443\u0435\u0442\u0441\u044F \u043D\u0438 \u0432 \u043E\u0434\u043D\u043E\u0439 \u0437\u0430\u0434\u0430\u0447\u0435. \u041E\u0440\u0438\u0433\u0438\u043D\u0430\u043B \u0431\u0443\u0434\u0435\u0442 \u0443\u0434\u0430\u043B\u0451\u043D \u043D\u0430\u0432\u0441\u0435\u0433\u0434\u0430, \u0430 \u0442\u0430\u043A\u043E\u0435 \u0436\u0435 \u0438\u0437\u043E\u0431\u0440\u0430\u0436\u0435\u043D\u0438\u0435 \u2014 \u0438\u0437 \u0442\u0435\u043A\u0443\u0449\u0435\u0433\u043E \u0432\u0432\u043E\u0434\u0430. \u041F\u0443\u0431\u043B\u0438\u0447\u043D\u0430\u044F \u0433\u0430\u043B\u0435\u0440\u0435\u044F \u043D\u0435 \u0437\u0430\u0442\u0440\u043E\u043D\u0443\u0442\u0430.",
     "recentAssets.loadFailed": "\u041D\u0435 \u0443\u0434\u0430\u043B\u043E\u0441\u044C \u0437\u0430\u0433\u0440\u0443\u0437\u0438\u0442\u044C \u043F\u043E\u0441\u043B\u0435\u0434\u043D\u0438\u0435 \u0437\u0430\u0433\u0440\u0443\u0437\u043A\u0438.",
@@ -8026,11 +8732,13 @@
     "referenceCollector.alreadyStaged": "\u0423\u0436\u0435 \u043F\u043E\u0441\u0442\u0430\u0432\u043B\u0435\u043D \u0432 \u043A\u0430\u0447\u0435\u0441\u0442\u0432\u0435 \u0440\u0435\u0444\u0435\u0440\u0435\u043D\u0441\u0430",
     "referenceCollector.staged": "\u041F\u043E\u044D\u0442\u0430\u043F\u043D\u0430\u044F \u0441\u0441\u044B\u043B\u043A\u0430 {count} images",
     "referenceCollector.title": "\u041E\u0436\u0438\u0434\u0430\u0435\u043C\u044B\u0435 \u0441\u0441\u044B\u043B\u043A\u0438 \xB7 {count}",
-    "referenceCollector.addAll": "\u0414\u043E\u0431\u0430\u0432\u0438\u0442\u044C \u0432\u0441\u0435 \u0441\u0441\u044B\u043B\u043A\u0438",
+    "referenceCollector.addAll": "\u0414\u043E\u0431\u0430\u0432\u0438\u0442\u044C \u0432\u0441\u0435",
+    "referenceCollector.replaceAll": "\u0417\u0430\u043C\u0435\u043D\u0438\u0442\u044C \u0442\u0435\u043A\u0443\u0449\u0438\u0435",
     "referenceCollector.itemFallback": "\u041E\u0436\u0438\u0434\u0430\u0435\u0442\u0441\u044F \u0441\u0441\u044B\u043B\u043A\u0430",
     "referenceCollector.remove": "\u0423\u0434\u0430\u043B\u0438\u0442\u044C \u043E\u0436\u0438\u0434\u0430\u044E\u0449\u0443\u044E \u0441\u0441\u044B\u043B\u043A\u0443",
     "referenceCollector.cleared": "\u041E\u0436\u0438\u0434\u0430\u044E\u0449\u0438\u0435 \u0441\u0441\u044B\u043B\u043A\u0438 \u0443\u0434\u0430\u043B\u0435\u043D\u044B",
     "referenceCollector.added": "\u0414\u043E\u0431\u0430\u0432\u043B\u0435\u043D\u0430 \u0441\u0441\u044B\u043B\u043A\u0430 {count} images.",
+    "referenceCollector.replaced": "\u0420\u0435\u0444\u0435\u0440\u0435\u043D\u0441\u044B \u0437\u0430\u043C\u0435\u043D\u0435\u043D\u044B: {count} \u0438\u0437\u043E\u0431\u0440.",
     "referenceCollector.addFailed": "\u041D\u0435 \u0443\u0434\u0430\u043B\u043E\u0441\u044C \u0434\u043E\u0431\u0430\u0432\u0438\u0442\u044C \u043E\u0436\u0438\u0434\u0430\u044E\u0449\u0438\u0435 \u0441\u0441\u044B\u043B\u043A\u0438.",
     "referenceCollector.readFailed": "\u041D\u0435 \u0443\u0434\u0430\u043B\u043E\u0441\u044C \u043F\u0440\u043E\u0447\u0438\u0442\u0430\u0442\u044C image: {status}.",
     "gallery.quick": "\u0411\u044B\u0441\u0442\u0440\u0430\u044F \u0433\u0430\u043B\u0435\u0440\u0435\u044F",
@@ -8243,6 +8951,16 @@
     "lightbox.close": "\u0417\u0430\u043A\u0440\u044B\u0442\u044C \u043F\u0440\u0435\u0434\u0432\u0430\u0440\u0438\u0442\u0435\u043B\u044C\u043D\u044B\u0439 \u043F\u0440\u043E\u0441\u043C\u043E\u0442\u0440",
     "lightbox.previous": "\u041F\u0440\u0435\u0434\u044B\u0434\u0443\u0449\u0438\u0439 image",
     "lightbox.next": "\u0421\u043B\u0435\u0434\u0443\u044E\u0449\u0438\u0439 image",
+    "lightbox.zoomControls": "\u0423\u043F\u0440\u0430\u0432\u043B\u0435\u043D\u0438\u0435 \u043C\u0430\u0441\u0448\u0442\u0430\u0431\u043E\u043C",
+    "lightbox.zoomOut": "\u0423\u043C\u0435\u043D\u044C\u0448\u0438\u0442\u044C",
+    "lightbox.zoomIn": "\u0423\u0432\u0435\u043B\u0438\u0447\u0438\u0442\u044C",
+    "lightbox.fit": "\u0412\u043F\u0438\u0441\u0430\u0442\u044C",
+    "lightbox.fitPage": "\u0412\u043F\u0438\u0441\u0430\u0442\u044C \u0432 \u0441\u0442\u0440\u0430\u043D\u0438\u0446\u0443",
+    "lightbox.actualSize": "100% \u0438\u0441\u0445\u043E\u0434\u043D\u044B\u0439 \u0440\u0430\u0437\u043C\u0435\u0440",
+    "lightbox.shortcuts": "\u0421\u043E\u0447\u0435\u0442\u0430\u043D\u0438\u044F \u043A\u043B\u0430\u0432\u0438\u0448",
+    "lightbox.switchImage": "\u0421\u043C\u0435\u043D\u0438\u0442\u044C \u0438\u0437\u043E\u0431\u0440\u0430\u0436\u0435\u043D\u0438\u0435",
+    "lightbox.switchTask": "\u0421\u043C\u0435\u043D\u0438\u0442\u044C \u0437\u0430\u0434\u0430\u0447\u0443",
+    "lightbox.wheelZoom": "\u041C\u0430\u0441\u0448\u0442\u0430\u0431 \u043A\u043E\u043B\u0435\u0441\u043E\u043C",
     "promptPopover.title": "\u0411\u044B\u0441\u0442\u0440\u043E\u0435 \u0441\u0440\u0430\u0432\u043D\u0435\u043D\u0438\u0435",
     "promptPopover.summary": "\u0418\u0441\u0445\u043E\u0434\u043D\u044B\u0439 {original} \xB7 \u043E\u043F\u0442\u0438\u043C\u0438\u0437\u0438\u0440\u043E\u0432\u0430\u043D\u043D\u044B\u0439 {optimized}",
     "promptPopover.original": "\u041E\u0440\u0438\u0433\u0438\u043D\u0430\u043B\u044C\u043D\u0430\u044F \u043F\u043E\u0434\u0441\u043A\u0430\u0437\u043A\u0430",
@@ -8406,6 +9124,7 @@
     "colors.modifyValue": "\u0418\u0437\u043C\u0435\u043D\u0438\u0442\u044C \u0446\u0432\u0435\u0442 {value}",
     "colors.removeValue": "\u0423\u0434\u0430\u043B\u0438\u0442\u044C \u0446\u0432\u0435\u0442 {value}",
     "taskGroup.today": "\u0421\u0435\u0433\u043E\u0434\u043D\u044F",
+    "taskGroup.current": "\u0422\u0435\u043A\u0443\u0449\u0430\u044F \u0437\u0430\u0434\u0430\u0447\u0430",
     "taskGroup.yesterday": "\u0412\u0447\u0435\u0440\u0430",
     "taskGroup.last7": "\u041F\u043E\u0441\u043B\u0435\u0434\u043D\u0438\u0435 7\xA0\u0434\u043D\u0435\u0439",
     "taskGroup.older": "\u0421\u0442\u0430\u0440\u0448\u0435",
@@ -8500,7 +9219,8 @@
     "apiSettings.copyProviderWithoutKeyStatus": "\u041F\u0440\u043E\u0432\u0430\u0439\u0434\u0435\u0440 \u0441\u043A\u043E\u043F\u0438\u0440\u043E\u0432\u0430\u043B. \u041F\u0435\u0440\u0435\u0434 \u0441\u043E\u0445\u0440\u0430\u043D\u0435\u043D\u0438\u0435\u043C \u043E\u0442\u0440\u0435\u0434\u0430\u043A\u0442\u0438\u0440\u0443\u0439\u0442\u0435 \u0438\u043C\u044F, \u043C\u043E\u0434\u0435\u043B\u044C \u0438\u043B\u0438 \u0434\u043E\u0431\u0430\u0432\u044C\u0442\u0435 \u043A\u043B\u044E\u0447 API.",
     "apiSettings.sortProviders": "\u0421\u043E\u0440\u0442\u0438\u0440\u043E\u0432\u0430\u0442\u044C",
     "apiSettings.finishSortProviders": "\u0413\u043E\u0442\u043E\u0432\u043E",
-    "apiSettings.sortProviderModeStatus": "\u0421\u043E\u0440\u0442\u0438\u0440\u043E\u0432\u043A\u0430 \u043F\u043E\u0441\u0442\u0430\u0432\u0449\u0438\u043A\u043E\u0432",
+    "apiSettings.sortProviderModeStatus": "\u041F\u0435\u0440\u0435\u0442\u0430\u0441\u043A\u0438\u0432\u0430\u0439\u0442\u0435 \u043C\u0430\u0440\u043A\u0435\u0440\u044B \u0438\u043B\u0438 \u0438\u0441\u043F\u043E\u043B\u044C\u0437\u0443\u0439\u0442\u0435 \u0441\u0442\u0440\u0435\u043B\u043A\u0438 \u0434\u043B\u044F \u0441\u043E\u0440\u0442\u0438\u0440\u043E\u0432\u043A\u0438",
+    "apiSettings.sortProviderHandleAria": "\u041F\u0435\u0440\u0435\u0442\u0430\u0449\u0438\u0442\u0435 {provider} \u0438\u043B\u0438 \u0438\u0441\u043F\u043E\u043B\u044C\u0437\u0443\u0439\u0442\u0435 \u0441\u0442\u0440\u0435\u043B\u043A\u0438, Home \u0438 End",
     "apiSettings.sortProviderStatus": "\u041F\u043E\u0440\u044F\u0434\u043E\u043A \u043F\u0440\u043E\u0432\u0430\u0439\u0434\u0435\u0440\u043E\u0432 \u0438\u0437\u043C\u0435\u043D\u0435\u043D. \u0410\u0432\u0442\u043E\u0441\u043E\u0445\u0440\u0430\u043D\u0435\u043D\u0438\u0435...",
     "apiSettings.moveProviderUp": "\u0412\u0432\u0435\u0440\u0445",
     "apiSettings.moveProviderDown": "\u0412\u043D\u0438\u0437",
@@ -8727,6 +9447,7 @@
     "batch.selected": "0 selezionato",
     "batch.selectedCount": "{count} selezionato",
     "batch.selectCurrentGroup": "Seleziona tutto il gruppo",
+    "batch.selectWaiting": "Seleziona tutte in attesa",
     "batch.archivedCount": "Chat {count} archiviate",
     "batch.archiveFailed": "L'archiviazione batch non \xE8 riuscita",
     "batch.runningCannotDeleteSelected": "Le chat selezionate sono in esecuzione e non possono essere eliminate",
@@ -8748,6 +9469,7 @@
     "action.archive": "Archivio",
     "action.delete": "Elimina",
     "action.cancel": "Annulla",
+    "action.stop": "Ferma",
     "action.edit": "Modifica",
     "action.clear": "Chiaro",
     "action.paste": "Incolla",
@@ -8798,7 +9520,7 @@
     "queue.runningCancelled": "Attivit\xE0 annullata",
     "queue.reorderFailed": "Impossibile riordinare la coda",
     "queue.realtimeUpdateFailed": "Impossibile aggiornare lo stato in tempo reale",
-    "queue.realtimeDisconnected": "La connessione allo stato in tempo reale \xE8 stata interrotta. Aggiorna la pagina per ripristinare.",
+    "queue.realtimeDisconnected": "La connessione allo stato in tempo reale \xE8 stata interrotta. Riconnessione automatica in corso\u2026",
     "queue.readFailed": "Impossibile caricare la coda",
     "status.waiting": "In attesa",
     "status.shownActiveTasks": "Visualizzazione delle attivit\xE0 attive",
@@ -8835,7 +9557,6 @@
     "taskCard.textToImageThumb": "Miniatura dell'attivit\xE0 Text-to-image",
     "taskCard.imageToImageThumb": "Miniatura dell'attivit\xE0 Image-to-image",
     "taskCard.failedThumb": "Attivit\xE0 fallita",
-    "taskCard.textBadge": "t",
     "taskMode.edit": "Modifica",
     "taskMode.generate": "Genera",
     "document.generatingQueue": "Generazione \xB7 coda {total}",
@@ -8857,6 +9578,10 @@
     "history.search": "Cerca",
     "history.searchPlaceholder": "Richieste di ricerca o attivit\xE0 ID",
     "history.clear": "Chiaro",
+    "history.activeFilterCount": "Filtrato \xB7 {count}",
+    "history.clearAllFilters": "Cancella tutto",
+    "history.removeFilter": "Rimuovi filtro: {label}",
+    "history.filtersActive": "Filtri attivit\xE0, {count} attivi",
     "history.favorites": "Preferiti",
     "history.onlyFavorites": "Solo preferiti",
     "history.favoriteTask": "Aggiungi ai preferiti",
@@ -8872,6 +9597,8 @@
     "history.removeTag": "Rimuovi tag",
     "history.favoriteSelected": "Aggiungi ai preferiti",
     "history.unfavoriteSelected": "Rimuovi dai preferiti",
+    "history.organizeSelected": "Organizza",
+    "history.exitSelection": "Esci dalla selezione multipla",
     "history.organizationFailed": "Impossibile aggiornare preferiti o tag",
     "history.tagNameConflict": "Questo nome di tag esiste gi\xE0",
     "history.noTags": "Nessun tag",
@@ -8883,6 +9610,73 @@
     "history.exportStarted": "Download avviato",
     "history.exportSummary": "{taskCount} attivit\xE0 \xB7 {imageCount} immagini",
     "history.exportFailed": "Esportazione non riuscita",
+    "historyBackup.open": "Backup delle attivit\xE0",
+    "historyBackup.importOpen": "Importa backup",
+    "historyBackup.mode": "Backup attivit\xE0",
+    "historyBackup.description": "Salva i dati e i file correlati per ripristinarli in un\u2019installazione compatibile di iLab CONJURE.",
+    "historyBackup.scopeLegend": "Ambito del backup",
+    "historyBackup.scopeHelp": "I risultati filtrati e l\u2019intera cronologia vengono conteggiati localmente senza limiti dovuti alle attivit\xE0 mostrate in questa pagina.",
+    "historyBackup.scopeSelected": "Attivit\xE0 selezionate",
+    "historyBackup.scopeFiltered": "Risultati filtrati correnti",
+    "historyBackup.scopeAll": "Tutta la cronologia",
+    "historyBackup.scopeCount": "{eligible} di {total} idonee",
+    "historyBackup.scopeCounting": "Conteggio\u2026",
+    "historyBackup.scopeCountUnavailable": "Conteggio non disponibile",
+    "historyBackup.scopeNoneSelected": "Nessuna attivit\xE0 selezionata",
+    "historyBackup.willBackup": "Verranno salvate {eligible} attivit\xE0; {excluded} attivit\xE0 incomplete saranno escluse.",
+    "historyBackup.selectTasksFirst": "Seleziona prima almeno un\u2019attivit\xE0.",
+    "historyBackup.scopeLockedUnknown": "Ambito originale del backup",
+    "historyBackup.scopeLocked": "Ambito bloccato: {scope} \xB7 verranno salvate {eligible} attivit\xE0",
+    "historyBackup.scopeLockedPending": "Ambito bloccato: {scope} \xB7 conteggio delle attivit\xE0 idonee",
+    "historyBackup.progressLabel": "Avanzamento backup",
+    "historyBackup.start": "Avvia backup",
+    "historyBackup.cancel": "Annulla backup",
+    "historyBackup.download": "Scarica backup",
+    "historyBackup.dismiss": "Chiudi risultato",
+    "historyBackup.discard": "Chiudi senza scaricare",
+    "historyBackup.closePanel": "Chiudi pannello",
+    "historyBackup.downloadStartedTitle": "Download avviato",
+    "historyBackup.idle": "Pronto",
+    "historyBackup.queued": "In coda",
+    "historyBackup.planning": "Pianificazione",
+    "historyBackup.packing": "Creazione pacchetto",
+    "historyBackup.ready": "Pronto per il download",
+    "historyBackup.readyDetail": "Il backup \xE8 pronto. Scaricalo entro 1 ora; chiudere senza scaricare elimina subito il file temporaneo.",
+    "historyBackup.downloaded": "Verifica che il browser abbia salvato il file, quindi puoi chiudere questo pannello. Il file temporaneo verr\xE0 eliminato al termine del trasferimento.",
+    "historyBackup.missingInputsWarning": "In {tasks} attivit\xE0 mancano {files} file di input. Saranno omessi; prompt e risultati verranno comunque esportati.",
+    "historyBackup.failed": "Backup non riuscito",
+    "historyBackup.cancelled": "Annullato",
+    "historyBackup.expired": "Scaduto",
+    "historyBackup.interrupted": "Interrotto",
+    "historyBackup.stats": "Totale {total} \xB7 idonee {eligible} \xB7 escluse {excluded} \xB7 {bytes}",
+    "historyBackup.errorDisk": "Spazio su disco insufficiente.",
+    "historyBackup.errorSourceChanged": "I dati sorgente sono cambiati durante il backup.",
+    "historyBackup.errorEmpty": "Nessuna attivit\xE0 idonea.",
+    "historyBackup.errorIo": "Impossibile creare il backup.",
+    "historyImport.title": "Importa backup attivit\xE0",
+    "historyImport.choose": "Scegli backup ZIP",
+    "historyImport.uploading": "Caricamento",
+    "historyImport.validating": "Convalida",
+    "historyImport.validated": "Convalidato",
+    "historyImport.preview": "Anteprima ripristino",
+    "historyImport.restorable": "Ripristinabili",
+    "historyImport.duplicate": "Duplicati",
+    "historyImport.conflict": "Conflitti",
+    "historyImport.invalid": "Non validi",
+    "historyImport.confirm": "Conferma ripristino",
+    "historyImport.restoring": "Ripristino",
+    "historyImport.restored": "Ripristinati",
+    "historyImport.failed": "Ripristino non riuscito",
+    "historyImport.interrupted": "Interrotto",
+    "historyImport.cancelled": "Annullato",
+    "historyImport.result": "Risultato",
+    "historyImport.thumbnailWarnings": "Avvisi miniature",
+    "historyImport.cleanupWarnings": "Avvisi pulizia",
+    "historyImport.reselect": "Seleziona di nuovo lo ZIP originale.",
+    "historyImport.noOverwrite": "Le attivit\xE0 esistenti non vengono mai sovrascritte.",
+    "historyImport.reasonInvalid": "Dati di backup non validi",
+    "historyImport.reasonSensitive": "Contiene dati protetti",
+    "historyImport.reasonMismatch": "Non corrisponde al manifesto del backup",
     "history.closeExport": "Chiudi opzioni di esportazione",
     "history.type": "Tipo",
     "history.allTypes": "Tutti i tipi",
@@ -9087,6 +9881,8 @@
     "recentAssets.hideMessage": "Questa immagine \xE8 usata da {count} attivit\xE0 e non pu\xF2 essere eliminata definitivamente. Nasconderla la rimuove solo dai caricamenti recenti; l\u2019originale, l\u2019input corrente e le attivit\xE0 storiche restano disponibili.",
     "recentAssets.hideFailed": "Impossibile nascondere il caricamento recente",
     "recentAssets.hidden": "Nascosta dai caricamenti recenti; l\u2019originale e le attivit\xE0 storiche sono stati conservati",
+    "recentAssets.hidePreviews": "Nascondi le immagini caricate di recente",
+    "recentAssets.showPreviews": "Mostra le immagini caricate di recente",
     "recentAssets.deleteTitle": "Eliminare il caricamento recente?",
     "recentAssets.deleteMessage": "Questa immagine non \xE8 usata da alcuna attivit\xE0. L\u2019originale verr\xE0 eliminato definitivamente e la stessa immagine sar\xE0 rimossa dall\u2019input corrente. La galleria pubblica non \xE8 interessata.",
     "recentAssets.loadFailed": "Impossibile caricare i caricamenti recenti",
@@ -9113,11 +9909,13 @@
     "referenceCollector.alreadyStaged": "Gi\xE0 messo in scena come riferimento",
     "referenceCollector.staged": "Stage {count} riferimento images",
     "referenceCollector.title": "Riferimenti in sospeso \xB7 {count}",
-    "referenceCollector.addAll": "Aggiungi tutti i riferimenti",
+    "referenceCollector.addAll": "Aggiungi tutto",
+    "referenceCollector.replaceAll": "Sostituisci attuali",
     "referenceCollector.itemFallback": "Riferimento in attesa",
     "referenceCollector.remove": "Rimuovere il riferimento in sospeso",
     "referenceCollector.cleared": "I riferimenti in sospeso sono stati cancellati",
     "referenceCollector.added": "Aggiunto {count} riferimento images",
+    "referenceCollector.replaced": "Riferimenti sostituiti con {count} immagini",
     "referenceCollector.addFailed": "Impossibile aggiungere riferimenti in sospeso",
     "referenceCollector.readFailed": "Impossibile leggere image: {status}",
     "gallery.quick": "Galleria veloce",
@@ -9330,6 +10128,16 @@
     "lightbox.close": "Chiudi l'anteprima",
     "lightbox.previous": "Precedente image",
     "lightbox.next": "Successivo image",
+    "lightbox.zoomControls": "Controlli zoom",
+    "lightbox.zoomOut": "Riduci",
+    "lightbox.zoomIn": "Ingrandisci",
+    "lightbox.fit": "Adatta",
+    "lightbox.fitPage": "Adatta alla pagina",
+    "lightbox.actualSize": "100% dimensione reale",
+    "lightbox.shortcuts": "Scorciatoie da tastiera",
+    "lightbox.switchImage": "Cambia immagine",
+    "lightbox.switchTask": "Cambia attivit\xE0",
+    "lightbox.wheelZoom": "Rotella per zoomare",
     "promptPopover.title": "Confronto immediato",
     "promptPopover.summary": "Originale {original} \xB7 ottimizzato {optimized}",
     "promptPopover.original": "Richiesta originale",
@@ -9493,6 +10301,7 @@
     "colors.modifyValue": "Modifica colore {value}",
     "colors.removeValue": "Rimuovi colore {value}",
     "taskGroup.today": "Oggi",
+    "taskGroup.current": "Attivit\xE0 corrente",
     "taskGroup.yesterday": "Ieri",
     "taskGroup.last7": "Ultimi 7 giorni",
     "taskGroup.older": "Pi\xF9 vecchio",
@@ -9587,7 +10396,8 @@
     "apiSettings.copyProviderWithoutKeyStatus": "Fornitore copiato. Modifica il nome, il modello o aggiungi una chiave API prima di salvare.",
     "apiSettings.sortProviders": "Ordina",
     "apiSettings.finishSortProviders": "Fatto",
-    "apiSettings.sortProviderModeStatus": "Ordinamento dei fornitori",
+    "apiSettings.sortProviderModeStatus": "Trascina le maniglie per ordinare o usa i tasti freccia",
+    "apiSettings.sortProviderHandleAria": "Trascina per riordinare {provider} o usa frecce, Home e Fine",
     "apiSettings.sortProviderStatus": "L'ordine dei fornitori \xE8 cambiato. Salvataggio automatico...",
     "apiSettings.moveProviderUp": "Su",
     "apiSettings.moveProviderDown": "Gi\xF9",
@@ -9814,6 +10624,7 @@
     "batch.selected": "0 \u091A\u092F\u0928\u093F\u0924",
     "batch.selectedCount": "{count} \u091A\u092F\u0928\u093F\u0924",
     "batch.selectCurrentGroup": "\u0938\u092E\u0942\u0939 \u092E\u0947\u0902 \u0938\u092D\u0940 \u091A\u0941\u0928\u0947\u0902",
+    "batch.selectWaiting": "\u0938\u092D\u0940 \u092A\u094D\u0930\u0924\u0940\u0915\u094D\u0937\u093E\u0930\u0924 \u091A\u0941\u0928\u0947\u0902",
     "batch.archivedCount": "\u0938\u0902\u0917\u094D\u0930\u0939\u0940\u0924 {count} \u091A\u0948\u091F",
     "batch.archiveFailed": "\u092C\u0948\u091A \u0938\u0902\u0917\u094D\u0930\u0939 \u0935\u093F\u092B\u0932 \u0930\u0939\u093E",
     "batch.runningCannotDeleteSelected": "\u091A\u092F\u0928\u093F\u0924 \u091A\u0948\u091F \u091A\u0932 \u0930\u0939\u0940 \u0939\u0948\u0902 \u0914\u0930 \u0909\u0928\u094D\u0939\u0947\u0902 \u0939\u091F\u093E\u092F\u093E \u0928\u0939\u0940\u0902 \u091C\u093E \u0938\u0915\u0924\u093E",
@@ -9835,6 +10646,7 @@
     "action.archive": "\u0938\u0902\u0917\u094D\u0930\u0939\u093F\u0924 \u0915\u0930\u0947\u0902",
     "action.delete": "\u0939\u091F\u093E\u090F\u0901",
     "action.cancel": "\u0930\u0926\u094D\u0926 \u0915\u0930\u0947\u0902",
+    "action.stop": "\u0930\u094B\u0915\u0947\u0902",
     "action.edit": "\u0938\u0902\u092A\u093E\u0926\u093F\u0924 \u0915\u0930\u0947\u0902",
     "action.clear": "\u0938\u093E\u092B\u093C \u0915\u0930\u0947\u0902",
     "action.paste": "\u091A\u093F\u092A\u0915\u093E\u090F\u0901",
@@ -9885,7 +10697,7 @@
     "queue.runningCancelled": "\u0915\u093E\u0930\u094D\u092F \u0930\u0926\u094D\u0926 \u0915\u0930 \u0926\u093F\u092F\u093E \u0917\u092F\u093E",
     "queue.reorderFailed": "\u0915\u0924\u093E\u0930 \u0915\u094B \u092A\u0941\u0928: \u0935\u094D\u092F\u0935\u0938\u094D\u0925\u093F\u0924 \u0915\u0930\u0928\u0947 \u092E\u0947\u0902 \u0935\u093F\u092B\u0932",
     "queue.realtimeUpdateFailed": "\u0932\u093E\u0907\u0935 \u0938\u094D\u0925\u093F\u0924\u093F \u0905\u092A\u0921\u0947\u091F \u0915\u0930\u0928\u0947 \u092E\u0947\u0902 \u0935\u093F\u092B\u0932",
-    "queue.realtimeDisconnected": "\u0932\u093E\u0907\u0935 \u0938\u094D\u0925\u093F\u0924\u093F \u0915\u0928\u0947\u0915\u094D\u0936\u0928 \u0916\u094B \u0917\u092F\u093E \u0925\u093E. \u092A\u0941\u0928\u0930\u094D\u092A\u094D\u0930\u093E\u092A\u094D\u0924 \u0915\u0930\u0928\u0947 \u0915\u0947 \u0932\u093F\u090F \u092A\u0943\u0937\u094D\u0920 \u0915\u094B \u0924\u093E\u091C\u093C\u093E \u0915\u0930\u0947\u0902.",
+    "queue.realtimeDisconnected": "\u0932\u093E\u0907\u0935 \u0938\u094D\u0925\u093F\u0924\u093F \u0915\u0928\u0947\u0915\u094D\u0936\u0928 \u091F\u0942\u091F \u0917\u092F\u093E\u0964 \u0905\u092A\u0928\u0947 \u0906\u092A \u092B\u093F\u0930 \u0938\u0947 \u0915\u0928\u0947\u0915\u094D\u091F \u0915\u093F\u092F\u093E \u091C\u093E \u0930\u0939\u093E \u0939\u0948\u2026",
     "queue.readFailed": "\u0915\u0924\u093E\u0930 \u0932\u094B\u0921 \u0915\u0930\u0928\u0947 \u092E\u0947\u0902 \u0935\u093F\u092B\u0932",
     "status.waiting": "\u092A\u094D\u0930\u0924\u0940\u0915\u094D\u0937\u093E \u092E\u0947\u0902",
     "status.shownActiveTasks": "\u0938\u0915\u094D\u0930\u093F\u092F \u0915\u093E\u0930\u094D\u092F \u0926\u093F\u0916\u093E \u0930\u0939\u093E \u0939\u0948",
@@ -9922,7 +10734,6 @@
     "taskCard.textToImageThumb": "\u091F\u0947\u0915\u094D\u0938\u094D\u091F-\u0938\u0947-\u091A\u093F\u0924\u094D\u0930 \u0915\u093E\u0930\u094D\u092F \u0925\u0902\u092C\u0928\u0947\u0932",
     "taskCard.imageToImageThumb": "\u091A\u093F\u0924\u094D\u0930-\u0938\u0947-\u091A\u093F\u0924\u094D\u0930 \u0915\u093E\u0930\u094D\u092F \u0925\u0902\u092C\u0928\u0947\u0932",
     "taskCard.failedThumb": "\u0915\u093E\u0930\u094D\u092F \u0935\u093F\u092B\u0932",
-    "taskCard.textBadge": "\u091F\u0940",
     "taskMode.edit": "\u0938\u0902\u092A\u093E\u0926\u093F\u0924 \u0915\u0930\u0947\u0902",
     "taskMode.generate": "\u091C\u0928\u0930\u0947\u091F \u0915\u0930\u0947\u0902",
     "document.generatingQueue": "\u091C\u0928\u0930\u0947\u091F \u0939\u094B \u0930\u0939\u093E \u0939\u0948 \xB7 \u0915\u0924\u093E\u0930 {total}",
@@ -9944,6 +10755,10 @@
     "history.search": "\u0916\u094B\u091C\u0947\u0902",
     "history.searchPlaceholder": "\u092A\u094D\u0930\u0949\u092E\u094D\u092A\u094D\u091F \u092F\u093E \u0915\u093E\u0930\u094D\u092F ID \u0916\u094B\u091C\u0947\u0902",
     "history.clear": "\u0938\u093E\u092B\u093C \u0915\u0930\u0947\u0902",
+    "history.activeFilterCount": "\u092B\u093C\u093F\u0932\u094D\u091F\u0930 \u0932\u093E\u0917\u0942 \xB7 {count}",
+    "history.clearAllFilters": "\u0938\u092D\u0940 \u0938\u093E\u092B\u093C \u0915\u0930\u0947\u0902",
+    "history.removeFilter": "\u092B\u093C\u093F\u0932\u094D\u091F\u0930 \u0939\u091F\u093E\u090F\u0901: {label}",
+    "history.filtersActive": "\u0915\u093E\u0930\u094D\u092F \u092B\u093C\u093F\u0932\u094D\u091F\u0930, {count} \u0938\u0915\u094D\u0930\u093F\u092F",
     "history.favorites": "\u092A\u0938\u0902\u0926\u0940\u0926\u093E",
     "history.onlyFavorites": "\u0915\u0947\u0935\u0932 \u092A\u0938\u0902\u0926\u0940\u0926\u093E",
     "history.favoriteTask": "\u092A\u0938\u0902\u0926\u0940\u0926\u093E \u092E\u0947\u0902 \u091C\u094B\u0921\u093C\u0947\u0902",
@@ -9959,6 +10774,8 @@
     "history.removeTag": "\u091F\u0948\u0917 \u0939\u091F\u093E\u090F\u0901",
     "history.favoriteSelected": "\u092A\u0938\u0902\u0926\u0940\u0926\u093E \u092C\u0928\u093E\u090F\u0901",
     "history.unfavoriteSelected": "\u092A\u0938\u0902\u0926\u0940\u0926\u093E \u0939\u091F\u093E\u090F\u0901",
+    "history.organizeSelected": "\u0935\u094D\u092F\u0935\u0938\u094D\u0925\u093F\u0924 \u0915\u0930\u0947\u0902",
+    "history.exitSelection": "\u092C\u0939\u0941-\u091A\u092F\u0928 \u0938\u0947 \u092C\u093E\u0939\u0930 \u0928\u093F\u0915\u0932\u0947\u0902",
     "history.organizationFailed": "\u092A\u0938\u0902\u0926\u0940\u0926\u093E \u092F\u093E \u091F\u0948\u0917 \u0905\u092A\u0921\u0947\u091F \u0928\u0939\u0940\u0902 \u0939\u094B \u0938\u0915\u0947",
     "history.tagNameConflict": "\u092F\u0939 \u091F\u0948\u0917 \u0928\u093E\u092E \u092A\u0939\u0932\u0947 \u0938\u0947 \u092E\u094C\u091C\u0942\u0926 \u0939\u0948",
     "history.noTags": "\u0905\u092D\u0940 \u0915\u094B\u0908 \u091F\u0948\u0917 \u0928\u0939\u0940\u0902",
@@ -9970,6 +10787,73 @@
     "history.exportStarted": "\u0921\u093E\u0909\u0928\u0932\u094B\u0921 \u0936\u0941\u0930\u0942 \u0939\u0941\u0906",
     "history.exportSummary": "{taskCount} \u0915\u093E\u0930\u094D\u092F \xB7 {imageCount} \u091A\u093F\u0924\u094D\u0930",
     "history.exportFailed": "\u0928\u093F\u0930\u094D\u092F\u093E\u0924 \u0935\u093F\u092B\u0932",
+    "historyBackup.open": "\u0915\u093E\u0930\u094D\u092F \u092C\u0948\u0915\u0905\u092A \u0915\u0930\u0947\u0902",
+    "historyBackup.importOpen": "\u092C\u0948\u0915\u0905\u092A \u0906\u092F\u093E\u0924 \u0915\u0930\u0947\u0902",
+    "historyBackup.mode": "\u0915\u093E\u0930\u094D\u092F \u092C\u0948\u0915\u0905\u092A",
+    "historyBackup.description": "\u0915\u093E\u0930\u094D\u092F \u0921\u0947\u091F\u093E \u0914\u0930 \u0938\u0902\u092C\u0902\u0927\u093F\u0924 \u092B\u093C\u093E\u0907\u0932\u0947\u0902 \u0938\u0939\u0947\u091C\u0947\u0902 \u0924\u093E\u0915\u093F \u0909\u0928\u094D\u0939\u0947\u0902 iLab CONJURE \u0915\u0947 \u0938\u0902\u0917\u0924 \u0938\u0902\u0938\u094D\u0915\u0930\u0923 \u092E\u0947\u0902 \u092A\u0941\u0928\u0930\u094D\u0938\u094D\u0925\u093E\u092A\u093F\u0924 \u0915\u093F\u092F\u093E \u091C\u093E \u0938\u0915\u0947\u0964",
+    "historyBackup.scopeLegend": "\u092C\u0948\u0915\u0905\u092A \u0926\u093E\u092F\u0930\u093E",
+    "historyBackup.scopeHelp": "\u092B\u093C\u093F\u0932\u094D\u091F\u0930 \u092A\u0930\u093F\u0923\u093E\u092E \u0914\u0930 \u092A\u0942\u0930\u093E \u0907\u0924\u093F\u0939\u093E\u0938 \u0938\u094D\u0925\u093E\u0928\u0940\u092F \u0930\u0942\u092A \u0938\u0947 \u0917\u093F\u0928\u0947 \u091C\u093E\u0924\u0947 \u0939\u0948\u0902; \u092F\u0939 \u0907\u0938 \u092A\u0943\u0937\u094D\u0920 \u092A\u0930 \u0926\u093F\u0916\u0947 \u0915\u093E\u0930\u094D\u092F\u094B\u0902 \u0924\u0915 \u0938\u0940\u092E\u093F\u0924 \u0928\u0939\u0940\u0902 \u0939\u0948\u0964",
+    "historyBackup.scopeSelected": "\u091A\u0941\u0928\u0947 \u0917\u090F \u0915\u093E\u0930\u094D\u092F",
+    "historyBackup.scopeFiltered": "\u0935\u0930\u094D\u0924\u092E\u093E\u0928 \u092B\u093C\u093F\u0932\u094D\u091F\u0930 \u092A\u0930\u093F\u0923\u093E\u092E",
+    "historyBackup.scopeAll": "\u092A\u0942\u0930\u093E \u0907\u0924\u093F\u0939\u093E\u0938",
+    "historyBackup.scopeCount": "{total} \u092E\u0947\u0902 \u0938\u0947 {eligible} \u092F\u094B\u0917\u094D\u092F",
+    "historyBackup.scopeCounting": "\u0917\u093F\u0928\u0924\u0940 \u091C\u093E\u0930\u0940\u2026",
+    "historyBackup.scopeCountUnavailable": "\u0917\u093F\u0928\u0924\u0940 \u0909\u092A\u0932\u092C\u094D\u0927 \u0928\u0939\u0940\u0902",
+    "historyBackup.scopeNoneSelected": "\u0915\u094B\u0908 \u0915\u093E\u0930\u094D\u092F \u0928\u0939\u0940\u0902 \u091A\u0941\u0928\u093E",
+    "historyBackup.willBackup": "{eligible} \u0915\u093E\u0930\u094D\u092F\u094B\u0902 \u0915\u093E \u092C\u0948\u0915\u0905\u092A \u0939\u094B\u0917\u093E; {excluded} \u0905\u0927\u0942\u0930\u0947 \u0915\u093E\u0930\u094D\u092F \u092C\u093E\u0939\u0930 \u0930\u0939\u0947\u0902\u0917\u0947\u0964",
+    "historyBackup.selectTasksFirst": "\u092A\u0939\u0932\u0947 \u0915\u092E \u0938\u0947 \u0915\u092E \u090F\u0915 \u0915\u093E\u0930\u094D\u092F \u091A\u0941\u0928\u0947\u0902\u0964",
+    "historyBackup.scopeLockedUnknown": "\u092E\u0942\u0932 \u092C\u0948\u0915\u0905\u092A \u0926\u093E\u092F\u0930\u093E",
+    "historyBackup.scopeLocked": "\u0926\u093E\u092F\u0930\u093E \u0932\u0949\u0915: {scope} \xB7 {eligible} \u0915\u093E\u0930\u094D\u092F\u094B\u0902 \u0915\u093E \u092C\u0948\u0915\u0905\u092A \u0939\u094B\u0917\u093E",
+    "historyBackup.scopeLockedPending": "\u0926\u093E\u092F\u0930\u093E \u0932\u0949\u0915: {scope} \xB7 \u092F\u094B\u0917\u094D\u092F \u0915\u093E\u0930\u094D\u092F \u0917\u093F\u0928\u0947 \u091C\u093E \u0930\u0939\u0947 \u0939\u0948\u0902",
+    "historyBackup.progressLabel": "\u092C\u0948\u0915\u0905\u092A \u092A\u094D\u0930\u0917\u0924\u093F",
+    "historyBackup.start": "\u092C\u0948\u0915\u0905\u092A \u0936\u0941\u0930\u0942 \u0915\u0930\u0947\u0902",
+    "historyBackup.cancel": "\u092C\u0948\u0915\u0905\u092A \u0930\u0926\u094D\u0926 \u0915\u0930\u0947\u0902",
+    "historyBackup.download": "\u092C\u0948\u0915\u0905\u092A \u0921\u093E\u0909\u0928\u0932\u094B\u0921 \u0915\u0930\u0947\u0902",
+    "historyBackup.dismiss": "\u092A\u0930\u093F\u0923\u093E\u092E \u092C\u0902\u0926 \u0915\u0930\u0947\u0902",
+    "historyBackup.discard": "\u0921\u093E\u0909\u0928\u0932\u094B\u0921 \u0915\u093F\u090F \u092C\u093F\u0928\u093E \u092C\u0902\u0926 \u0915\u0930\u0947\u0902",
+    "historyBackup.closePanel": "\u092A\u0948\u0928\u0932 \u092C\u0902\u0926 \u0915\u0930\u0947\u0902",
+    "historyBackup.downloadStartedTitle": "\u0921\u093E\u0909\u0928\u0932\u094B\u0921 \u0936\u0941\u0930\u0942 \u0939\u0941\u0906",
+    "historyBackup.idle": "\u0924\u0948\u092F\u093E\u0930",
+    "historyBackup.queued": "\u0915\u0924\u093E\u0930 \u092E\u0947\u0902",
+    "historyBackup.planning": "\u092F\u094B\u091C\u0928\u093E \u092C\u0928 \u0930\u0939\u0940 \u0939\u0948",
+    "historyBackup.packing": "\u092A\u0948\u0915\u0947\u091C \u092C\u0928 \u0930\u0939\u093E \u0939\u0948",
+    "historyBackup.ready": "\u0921\u093E\u0909\u0928\u0932\u094B\u0921 \u0915\u0947 \u0932\u093F\u090F \u0924\u0948\u092F\u093E\u0930",
+    "historyBackup.readyDetail": "\u092C\u0948\u0915\u0905\u092A \u0924\u0948\u092F\u093E\u0930 \u0939\u0948\u0964 \u0907\u0938\u0947 1 \u0918\u0902\u091F\u0947 \u0915\u0947 \u092D\u0940\u0924\u0930 \u0921\u093E\u0909\u0928\u0932\u094B\u0921 \u0915\u0930\u0947\u0902; \u0921\u093E\u0909\u0928\u0932\u094B\u0921 \u0915\u093F\u090F \u092C\u093F\u0928\u093E \u092C\u0902\u0926 \u0915\u0930\u0928\u0947 \u092A\u0930 \u0905\u0938\u094D\u0925\u093E\u092F\u0940 \u092B\u093C\u093E\u0907\u0932 \u0924\u0941\u0930\u0902\u0924 \u092E\u093F\u091F \u091C\u093E\u090F\u0917\u0940\u0964",
+    "historyBackup.downloaded": "\u092A\u0941\u0937\u094D\u091F\u093F \u0915\u0930\u0947\u0902 \u0915\u093F \u092C\u094D\u0930\u093E\u0909\u091C\u093C\u0930 \u0928\u0947 \u092B\u093C\u093E\u0907\u0932 \u0938\u0939\u0947\u091C \u0932\u0940 \u0939\u0948, \u092B\u093F\u0930 \u092F\u0939 \u092A\u0948\u0928\u0932 \u092C\u0902\u0926 \u0915\u093F\u092F\u093E \u091C\u093E \u0938\u0915\u0924\u093E \u0939\u0948\u0964 \u0905\u0938\u094D\u0925\u093E\u092F\u0940 \u092B\u093C\u093E\u0907\u0932 \u0938\u094D\u0925\u093E\u0928\u093E\u0902\u0924\u0930\u0923 \u0915\u0947 \u092C\u093E\u0926 \u092E\u093F\u091F\u093E \u0926\u0940 \u091C\u093E\u090F\u0917\u0940\u0964",
+    "historyBackup.missingInputsWarning": "{tasks} \u0915\u093E\u0930\u094D\u092F\u094B\u0902 \u092E\u0947\u0902 {files} \u0907\u0928\u092A\u0941\u091F \u092B\u093C\u093E\u0907\u0932\u0947\u0902 \u0928\u0939\u0940\u0902 \u092E\u093F\u0932\u0940\u0902\u0964 \u0935\u0947 \u092B\u093C\u093E\u0907\u0932\u0947\u0902 \u091B\u094B\u0921\u093C \u0926\u0940 \u091C\u093E\u090F\u0901\u0917\u0940; \u092A\u094D\u0930\u0949\u092E\u094D\u092A\u094D\u091F \u0914\u0930 \u0906\u0909\u091F\u092A\u0941\u091F \u092A\u0930\u093F\u0923\u093E\u092E \u092B\u093F\u0930 \u092D\u0940 \u0928\u093F\u0930\u094D\u092F\u093E\u0924 \u0939\u094B\u0902\u0917\u0947\u0964",
+    "historyBackup.failed": "\u092C\u0948\u0915\u0905\u092A \u0935\u093F\u092B\u0932",
+    "historyBackup.cancelled": "\u0930\u0926\u094D\u0926",
+    "historyBackup.expired": "\u0938\u092E\u092F \u0938\u092E\u093E\u092A\u094D\u0924",
+    "historyBackup.interrupted": "\u092C\u093E\u0927\u093F\u0924",
+    "historyBackup.stats": "\u0915\u0941\u0932 {total} \xB7 \u092F\u094B\u0917\u094D\u092F {eligible} \xB7 \u092C\u093E\u0939\u0930 {excluded} \xB7 {bytes}",
+    "historyBackup.errorDisk": "\u0921\u093F\u0938\u094D\u0915 \u092E\u0947\u0902 \u092A\u0930\u094D\u092F\u093E\u092A\u094D\u0924 \u0938\u094D\u0925\u093E\u0928 \u0928\u0939\u0940\u0902 \u0939\u0948\u0964",
+    "historyBackup.errorSourceChanged": "\u092C\u0948\u0915\u0905\u092A \u0915\u0947 \u0926\u094C\u0930\u093E\u0928 \u0938\u094D\u0930\u094B\u0924 \u0921\u0947\u091F\u093E \u092C\u0926\u0932 \u0917\u092F\u093E\u0964",
+    "historyBackup.errorEmpty": "\u0915\u094B\u0908 \u092F\u094B\u0917\u094D\u092F \u0915\u093E\u0930\u094D\u092F \u0928\u0939\u0940\u0902 \u092E\u093F\u0932\u093E\u0964",
+    "historyBackup.errorIo": "\u092C\u0948\u0915\u0905\u092A \u0928\u0939\u0940\u0902 \u092C\u0928\u093E\u092F\u093E \u091C\u093E \u0938\u0915\u093E\u0964",
+    "historyImport.title": "\u0915\u093E\u0930\u094D\u092F \u092C\u0948\u0915\u0905\u092A \u0906\u092F\u093E\u0924 \u0915\u0930\u0947\u0902",
+    "historyImport.choose": "ZIP \u092C\u0948\u0915\u0905\u092A \u091A\u0941\u0928\u0947\u0902",
+    "historyImport.uploading": "\u0905\u092A\u0932\u094B\u0921 \u0939\u094B \u0930\u0939\u093E \u0939\u0948",
+    "historyImport.validating": "\u0938\u0924\u094D\u092F\u093E\u092A\u0928 \u0939\u094B \u0930\u0939\u093E \u0939\u0948",
+    "historyImport.validated": "\u0938\u0924\u094D\u092F\u093E\u092A\u093F\u0924",
+    "historyImport.preview": "\u092A\u0941\u0928\u0930\u094D\u0938\u094D\u0925\u093E\u092A\u0928\u093E \u092A\u0942\u0930\u094D\u0935\u093E\u0935\u0932\u094B\u0915\u0928",
+    "historyImport.restorable": "\u092A\u0941\u0928\u0930\u094D\u0938\u094D\u0925\u093E\u092A\u093F\u0924 \u092F\u094B\u0917\u094D\u092F",
+    "historyImport.duplicate": "\u0921\u0941\u092A\u094D\u0932\u093F\u0915\u0947\u091F",
+    "historyImport.conflict": "\u091F\u0915\u0930\u093E\u0935",
+    "historyImport.invalid": "\u0905\u092E\u093E\u0928\u094D\u092F",
+    "historyImport.confirm": "\u092A\u0941\u0928\u0930\u094D\u0938\u094D\u0925\u093E\u092A\u0928\u093E \u0915\u0940 \u092A\u0941\u0937\u094D\u091F\u093F \u0915\u0930\u0947\u0902",
+    "historyImport.restoring": "\u092A\u0941\u0928\u0930\u094D\u0938\u094D\u0925\u093E\u092A\u093F\u0924 \u0939\u094B \u0930\u0939\u093E \u0939\u0948",
+    "historyImport.restored": "\u092A\u0941\u0928\u0930\u094D\u0938\u094D\u0925\u093E\u092A\u093F\u0924",
+    "historyImport.failed": "\u092A\u0941\u0928\u0930\u094D\u0938\u094D\u0925\u093E\u092A\u0928\u093E \u0935\u093F\u092B\u0932",
+    "historyImport.interrupted": "\u092C\u093E\u0927\u093F\u0924",
+    "historyImport.cancelled": "\u0930\u0926\u094D\u0926",
+    "historyImport.result": "\u092A\u0930\u093F\u0923\u093E\u092E",
+    "historyImport.thumbnailWarnings": "\u0925\u0902\u092C\u0928\u0947\u0932 \u091A\u0947\u0924\u093E\u0935\u0928\u093F\u092F\u093E\u0901",
+    "historyImport.cleanupWarnings": "\u0938\u092B\u093C\u093E\u0908 \u091A\u0947\u0924\u093E\u0935\u0928\u093F\u092F\u093E\u0901",
+    "historyImport.reselect": "\u091C\u093E\u0930\u0940 \u0930\u0916\u0928\u0947 \u0915\u0947 \u0932\u093F\u090F \u092E\u0942\u0932 ZIP \u092B\u093F\u0930 \u091A\u0941\u0928\u0947\u0902\u0964",
+    "historyImport.noOverwrite": "\u092E\u094C\u091C\u0942\u0926\u093E \u0915\u093E\u0930\u094D\u092F \u0915\u092D\u0940 \u0913\u0935\u0930\u0930\u093E\u0907\u091F \u0928\u0939\u0940\u0902 \u0939\u094B\u0924\u0947\u0964",
+    "historyImport.reasonInvalid": "\u092C\u0948\u0915\u0905\u092A \u0921\u0947\u091F\u093E \u0905\u092E\u093E\u0928\u094D\u092F \u0939\u0948",
+    "historyImport.reasonSensitive": "\u0907\u0938\u092E\u0947\u0902 \u0938\u0941\u0930\u0915\u094D\u0937\u093F\u0924 \u0921\u0947\u091F\u093E \u0939\u0948",
+    "historyImport.reasonMismatch": "\u092C\u0948\u0915\u0905\u092A \u092E\u0948\u0928\u093F\u092B\u093C\u0947\u0938\u094D\u091F \u0938\u0947 \u092E\u0947\u0932 \u0928\u0939\u0940\u0902 \u0916\u093E\u0924\u093E",
     "history.closeExport": "\u0928\u093F\u0930\u094D\u092F\u093E\u0924 \u0935\u093F\u0915\u0932\u094D\u092A \u092C\u0902\u0926 \u0915\u0930\u0947\u0902",
     "history.type": "\u092A\u094D\u0930\u0915\u093E\u0930",
     "history.allTypes": "\u0938\u092D\u0940 \u092A\u094D\u0930\u0915\u093E\u0930",
@@ -10174,6 +11058,8 @@
     "recentAssets.hideMessage": "\u092F\u0939 \u091A\u093F\u0924\u094D\u0930 {count} \u0915\u093E\u0930\u094D\u092F\u094B\u0902 \u0926\u094D\u0935\u093E\u0930\u093E \u0909\u092A\u092F\u094B\u0917 \u092E\u0947\u0902 \u0939\u0948 \u0914\u0930 \u0907\u0938\u0947 \u0938\u094D\u0925\u093E\u092F\u0940 \u0930\u0942\u092A \u0938\u0947 \u0939\u091F\u093E\u092F\u093E \u0928\u0939\u0940\u0902 \u091C\u093E \u0938\u0915\u0924\u093E\u0964 \u091B\u093F\u092A\u093E\u0928\u0947 \u092A\u0930 \u092F\u0939 \u0915\u0947\u0935\u0932 \u0939\u093E\u0932\u093F\u092F\u093E \u0905\u092A\u0932\u094B\u0921 \u0938\u0947 \u0939\u091F\u0947\u0917\u093E; \u092E\u0942\u0932 \u091A\u093F\u0924\u094D\u0930, \u0935\u0930\u094D\u0924\u092E\u093E\u0928 \u0907\u0928\u092A\u0941\u091F \u0914\u0930 \u092A\u0941\u0930\u093E\u0928\u0947 \u0915\u093E\u0930\u094D\u092F \u0938\u0941\u0930\u0915\u094D\u0937\u093F\u0924 \u0930\u0939\u0947\u0902\u0917\u0947\u0964",
     "recentAssets.hideFailed": "\u0939\u093E\u0932\u093F\u092F\u093E \u0905\u092A\u0932\u094B\u0921 \u091B\u093F\u092A\u093E\u0928\u0947 \u092E\u0947\u0902 \u0935\u093F\u092B\u0932",
     "recentAssets.hidden": "\u0939\u093E\u0932\u093F\u092F\u093E \u0905\u092A\u0932\u094B\u0921 \u0938\u0947 \u091B\u093F\u092A\u093E\u092F\u093E \u0917\u092F\u093E; \u092E\u0942\u0932 \u091A\u093F\u0924\u094D\u0930 \u0914\u0930 \u092A\u0941\u0930\u093E\u0928\u0947 \u0915\u093E\u0930\u094D\u092F \u0938\u0941\u0930\u0915\u094D\u0937\u093F\u0924 \u0939\u0948\u0902",
+    "recentAssets.hidePreviews": "\u0939\u093E\u0932\u093F\u092F\u093E \u0905\u092A\u0932\u094B\u0921 \u091A\u093F\u0924\u094D\u0930 \u091B\u093F\u092A\u093E\u090F\u0901",
+    "recentAssets.showPreviews": "\u0939\u093E\u0932\u093F\u092F\u093E \u0905\u092A\u0932\u094B\u0921 \u091A\u093F\u0924\u094D\u0930 \u0926\u093F\u0916\u093E\u090F\u0901",
     "recentAssets.deleteTitle": "\u0939\u093E\u0932\u093F\u092F\u093E \u0905\u092A\u0932\u094B\u0921 \u0939\u091F\u093E\u090F\u0902?",
     "recentAssets.deleteMessage": "\u0907\u0938 \u091A\u093F\u0924\u094D\u0930 \u0915\u093E \u0915\u094B\u0908 \u0915\u093E\u0930\u094D\u092F \u0909\u092A\u092F\u094B\u0917 \u0928\u0939\u0940\u0902 \u0915\u0930 \u0930\u0939\u093E \u0939\u0948\u0964 \u092E\u0942\u0932 \u091A\u093F\u0924\u094D\u0930 \u0938\u094D\u0925\u093E\u092F\u0940 \u0930\u0942\u092A \u0938\u0947 \u0939\u091F\u0947\u0917\u093E \u0914\u0930 \u092F\u0939\u0940 \u091A\u093F\u0924\u094D\u0930 \u0935\u0930\u094D\u0924\u092E\u093E\u0928 \u0907\u0928\u092A\u0941\u091F \u0938\u0947 \u092D\u0940 \u0939\u091F \u091C\u093E\u090F\u0917\u093E\u0964 \u0938\u093E\u0930\u094D\u0935\u091C\u0928\u093F\u0915 \u0917\u0948\u0932\u0930\u0940 \u092A\u094D\u0930\u092D\u093E\u0935\u093F\u0924 \u0928\u0939\u0940\u0902 \u0939\u094B\u0917\u0940\u0964",
     "recentAssets.loadFailed": "\u0939\u093E\u0932 \u0915\u0947 \u0905\u092A\u0932\u094B\u0921 \u0932\u094B\u0921 \u0915\u0930\u0928\u0947 \u092E\u0947\u0902 \u0935\u093F\u092B\u0932",
@@ -10200,11 +11086,13 @@
     "referenceCollector.alreadyStaged": "\u092A\u0939\u0932\u0947 \u0938\u0947 \u0932\u0902\u092C\u093F\u0924 \u0938\u0902\u0926\u0930\u094D\u092D \u092E\u0947\u0902 \u0939\u0948",
     "referenceCollector.staged": "{count} \u0938\u0902\u0926\u0930\u094D\u092D \u091A\u093F\u0924\u094D\u0930 \u0932\u0902\u092C\u093F\u0924 \u0930\u0916\u0947 \u0917\u090F",
     "referenceCollector.title": "\u0932\u0902\u092C\u093F\u0924 \u0938\u0902\u0926\u0930\u094D\u092D \xB7 {count}",
-    "referenceCollector.addAll": "\u0938\u092D\u0940 \u0938\u0902\u0926\u0930\u094D\u092D \u091C\u094B\u0921\u093C\u0947\u0902",
+    "referenceCollector.addAll": "\u0938\u092D\u0940 \u091C\u094B\u0921\u093C\u0947\u0902",
+    "referenceCollector.replaceAll": "\u092E\u094C\u091C\u0942\u0926\u093E \u092C\u0926\u0932\u0947\u0902",
     "referenceCollector.itemFallback": "\u0932\u0902\u092C\u093F\u0924 \u0938\u0902\u0926\u0930\u094D\u092D",
     "referenceCollector.remove": "\u0932\u0902\u092C\u093F\u0924 \u0938\u0902\u0926\u0930\u094D\u092D \u0939\u091F\u093E\u090F\u0901",
     "referenceCollector.cleared": "\u0932\u0902\u092C\u093F\u0924 \u0938\u0902\u0926\u0930\u094D\u092D \u0938\u093E\u092B\u093C \u0915\u0930 \u0926\u093F\u090F \u0917\u090F",
     "referenceCollector.added": "{count} \u0938\u0902\u0926\u0930\u094D\u092D \u091A\u093F\u0924\u094D\u0930 \u091C\u094B\u0921\u093C\u0947 \u0917\u090F",
+    "referenceCollector.replaced": "{count} \u0938\u0902\u0926\u0930\u094D\u092D \u091A\u093F\u0924\u094D\u0930\u094B\u0902 \u0938\u0947 \u092C\u0926\u0932 \u0926\u093F\u092F\u093E \u0917\u092F\u093E",
     "referenceCollector.addFailed": "\u0932\u0902\u092C\u093F\u0924 \u0938\u0902\u0926\u0930\u094D\u092D \u091C\u094B\u0921\u093C\u0928\u0947 \u092E\u0947\u0902 \u0935\u093F\u092B\u0932",
     "referenceCollector.readFailed": "\u091A\u093F\u0924\u094D\u0930 \u092A\u0922\u093C\u0928\u0947 \u092E\u0947\u0902 \u0935\u093F\u092B\u0932: {status}",
     "gallery.quick": "\u0924\u094D\u0935\u0930\u093F\u0924 \u0917\u0948\u0932\u0930\u0940",
@@ -10417,6 +11305,16 @@
     "lightbox.close": "\u092A\u0942\u0930\u094D\u0935\u093E\u0935\u0932\u094B\u0915\u0928 \u092C\u0902\u0926 \u0915\u0930\u0947\u0902",
     "lightbox.previous": "\u092A\u093F\u091B\u0932\u093E \u091A\u093F\u0924\u094D\u0930",
     "lightbox.next": "\u0905\u0917\u0932\u093E \u091A\u093F\u0924\u094D\u0930",
+    "lightbox.zoomControls": "\u091C\u093C\u0942\u092E \u0928\u093F\u092F\u0902\u0924\u094D\u0930\u0923",
+    "lightbox.zoomOut": "\u091B\u094B\u091F\u093E \u0915\u0930\u0947\u0902",
+    "lightbox.zoomIn": "\u092C\u0921\u093C\u093E \u0915\u0930\u0947\u0902",
+    "lightbox.fit": "\u092B\u093F\u091F",
+    "lightbox.fitPage": "\u092A\u0943\u0937\u094D\u0920 \u092E\u0947\u0902 \u092B\u093F\u091F \u0915\u0930\u0947\u0902",
+    "lightbox.actualSize": "100% \u0935\u093E\u0938\u094D\u0924\u0935\u093F\u0915 \u0906\u0915\u093E\u0930",
+    "lightbox.shortcuts": "\u0915\u0940\u092C\u094B\u0930\u094D\u0921 \u0936\u0949\u0930\u094D\u091F\u0915\u091F",
+    "lightbox.switchImage": "\u091A\u093F\u0924\u094D\u0930 \u092C\u0926\u0932\u0947\u0902",
+    "lightbox.switchTask": "\u0915\u093E\u0930\u094D\u092F \u092C\u0926\u0932\u0947\u0902",
+    "lightbox.wheelZoom": "\u0935\u094D\u0939\u0940\u0932 \u0938\u0947 \u091C\u093C\u0942\u092E",
     "promptPopover.title": "\u092A\u094D\u0930\u0949\u092E\u094D\u092A\u094D\u091F \u0924\u0941\u0932\u0928\u093E",
     "promptPopover.summary": "\u092E\u0942\u0932 {original} \xB7 \u0905\u0928\u0941\u0915\u0942\u0932\u093F\u0924 {optimized}",
     "promptPopover.original": "\u092E\u0942\u0932 \u092A\u094D\u0930\u0949\u092E\u094D\u092A\u094D\u091F",
@@ -10580,6 +11478,7 @@
     "colors.modifyValue": "\u0930\u0902\u0917 \u0938\u0902\u092A\u093E\u0926\u093F\u0924 \u0915\u0930\u0947\u0902 {value}",
     "colors.removeValue": "\u0930\u0902\u0917 \u0939\u091F\u093E\u090F\u0902 {value}",
     "taskGroup.today": "\u0906\u091C",
+    "taskGroup.current": "\u0935\u0930\u094D\u0924\u092E\u093E\u0928 \u0915\u093E\u0930\u094D\u092F",
     "taskGroup.yesterday": "\u0915\u0932",
     "taskGroup.last7": "\u092A\u093F\u091B\u0932\u0947 7 \u0926\u093F\u0928",
     "taskGroup.older": "\u092A\u0941\u0930\u093E\u0928\u093E",
@@ -10674,7 +11573,8 @@
     "apiSettings.copyProviderWithoutKeyStatus": "\u092A\u094D\u0930\u0926\u093E\u0924\u093E \u0915\u0949\u092A\u0940 \u0915\u093F\u092F\u093E \u0917\u092F\u093E. \u0938\u0939\u0947\u091C\u0928\u0947 \u0938\u0947 \u092A\u0939\u0932\u0947 \u0928\u093E\u092E, \u092E\u0949\u0921\u0932 \u0938\u0902\u092A\u093E\u0926\u093F\u0924 \u0915\u0930\u0947\u0902 \u092F\u093E API \u0915\u0941\u0902\u091C\u0940 \u091C\u094B\u0921\u093C\u0947\u0902\u0964",
     "apiSettings.sortProviders": "\u0915\u094D\u0930\u092E\u092C\u0926\u094D\u0927 \u0915\u0930\u0947\u0902",
     "apiSettings.finishSortProviders": "\u0939\u094B \u0917\u092F\u093E",
-    "apiSettings.sortProviderModeStatus": "\u092A\u094D\u0930\u0926\u093E\u0924\u093E\u0913\u0902 \u0915\u094B \u0915\u094D\u0930\u092E\u092C\u0926\u094D\u0927 \u0915\u0930\u0928\u093E",
+    "apiSettings.sortProviderModeStatus": "\u0915\u094D\u0930\u092E \u092C\u0926\u0932\u0928\u0947 \u0915\u0947 \u0932\u093F\u090F \u0939\u0948\u0902\u0921\u0932 \u0916\u0940\u0902\u091A\u0947\u0902 \u092F\u093E \u0924\u0940\u0930 \u0915\u0941\u0902\u091C\u093F\u092F\u094B\u0902 \u0915\u093E \u0909\u092A\u092F\u094B\u0917 \u0915\u0930\u0947\u0902",
+    "apiSettings.sortProviderHandleAria": "{provider} \u0915\u094B \u0915\u094D\u0930\u092E \u092E\u0947\u0902 \u0932\u0917\u093E\u0928\u0947 \u0915\u0947 \u0932\u093F\u090F \u0916\u0940\u0902\u091A\u0947\u0902 \u092F\u093E \u0924\u0940\u0930, Home \u0914\u0930 End \u0915\u0941\u0902\u091C\u093F\u092F\u093E\u0901 \u0909\u092A\u092F\u094B\u0917 \u0915\u0930\u0947\u0902",
     "apiSettings.sortProviderStatus": "\u092A\u094D\u0930\u0926\u093E\u0924\u093E \u0915\u094D\u0930\u092E \u092C\u0926\u0932 \u0917\u092F\u093E. \u0905\u092A\u0928\u0947 \u0906\u092A \u0938\u0939\u0947\u091C\u093E \u091C\u093E \u0930\u0939\u093E \u0939\u0948...",
     "apiSettings.moveProviderUp": "\u090A\u092A\u0930",
     "apiSettings.moveProviderDown": "\u0928\u0940\u091A\u0947",
@@ -10901,6 +11801,7 @@
     "batch.selected": "0 \u0111\xE3 ch\u1ECDn",
     "batch.selectedCount": "{count} \u0111\xE3 ch\u1ECDn",
     "batch.selectCurrentGroup": "Ch\u1ECDn t\u1EA5t c\u1EA3 trong nh\xF3m",
+    "batch.selectWaiting": "Ch\u1ECDn t\u1EA5t c\u1EA3 t\xE1c v\u1EE5 \u0111ang ch\u1EDD",
     "batch.archivedCount": "\u0110\xE3 l\u01B0u tr\u1EEF {count} cu\u1ED9c tr\xF2 chuy\u1EC7n",
     "batch.archiveFailed": "L\u01B0u tr\u1EEF h\xE0ng lo\u1EA1t kh\xF4ng th\xE0nh c\xF4ng",
     "batch.runningCannotDeleteSelected": "C\xE1c t\xE1c v\u1EE5 \u0111\xE3 ch\u1ECDn \u0111ang ch\u1EA1y v\xE0 kh\xF4ng th\u1EC3 x\xF3a",
@@ -10922,6 +11823,7 @@
     "action.archive": "L\u01B0u tr\u1EEF",
     "action.delete": "X\xF3a",
     "action.cancel": "H\u1EE7y",
+    "action.stop": "D\u1EEBng",
     "action.edit": "Ch\u1EC9nh s\u1EEDa",
     "action.clear": "X\xF3a",
     "action.paste": "D\xE1n",
@@ -10972,7 +11874,7 @@
     "queue.runningCancelled": "T\xE1c v\u1EE5 \u0111\xE3 b\u1ECB h\u1EE7y",
     "queue.reorderFailed": "Kh\xF4ng th\u1EC3 s\u1EAFp x\u1EBFp l\u1EA1i h\xE0ng \u0111\u1EE3i",
     "queue.realtimeUpdateFailed": "Kh\xF4ng c\u1EADp nh\u1EADt \u0111\u01B0\u1EE3c tr\u1EA1ng th\xE1i tr\u1EF1c ti\u1EBFp",
-    "queue.realtimeDisconnected": "K\u1EBFt n\u1ED1i tr\u1EA1ng th\xE1i tr\u1EF1c ti\u1EBFp b\u1ECB m\u1EA5t. L\xE0m m\u1EDBi trang \u0111\u1EC3 ph\u1EE5c h\u1ED3i.",
+    "queue.realtimeDisconnected": "K\u1EBFt n\u1ED1i tr\u1EA1ng th\xE1i tr\u1EF1c ti\u1EBFp b\u1ECB gi\xE1n \u0111o\u1EA1n. \u0110ang t\u1EF1 \u0111\u1ED9ng k\u1EBFt n\u1ED1i l\u1EA1i\u2026",
     "queue.readFailed": "Kh\xF4ng th\u1EC3 t\u1EA3i h\xE0ng \u0111\u1EE3i",
     "status.waiting": "\u0110ang ch\u1EDD",
     "status.shownActiveTasks": "Hi\u1EC3n th\u1ECB c\xE1c t\xE1c v\u1EE5 \u0111ang ch\u1EA1y",
@@ -11009,7 +11911,6 @@
     "taskCard.textToImageThumb": "H\xECnh thu nh\u1ECF t\xE1c v\u1EE5 chuy\u1EC3n v\u0103n b\u1EA3n th\xE0nh h\xECnh \u1EA3nh",
     "taskCard.imageToImageThumb": "H\xECnh thu nh\u1ECF t\xE1c v\u1EE5 chuy\u1EC3n h\xECnh \u1EA3nh th\xE0nh h\xECnh \u1EA3nh",
     "taskCard.failedThumb": "T\xE1c v\u1EE5 th\u1EA5t b\u1EA1i",
-    "taskCard.textBadge": "T",
     "taskMode.edit": "Ch\u1EC9nh s\u1EEDa",
     "taskMode.generate": "T\u1EA1o",
     "document.generatingQueue": "\u0110ang t\u1EA1o \xB7 h\xE0ng \u0111\u1EE3i {total}",
@@ -11031,6 +11932,10 @@
     "history.search": "T\xECm ki\u1EBFm",
     "history.searchPlaceholder": "T\xECm ki\u1EBFm l\u1EDDi nh\u1EAFc ho\u1EB7c Task ID",
     "history.clear": "X\xF3a",
+    "history.activeFilterCount": "\u0110ang l\u1ECDc \xB7 {count}",
+    "history.clearAllFilters": "X\xF3a t\u1EA5t c\u1EA3",
+    "history.removeFilter": "B\u1ECF b\u1ED9 l\u1ECDc: {label}",
+    "history.filtersActive": "B\u1ED9 l\u1ECDc t\xE1c v\u1EE5, {count} \u0111ang b\u1EADt",
     "history.favorites": "Y\xEAu th\xEDch",
     "history.onlyFavorites": "Ch\u1EC9 xem m\u1EE5c y\xEAu th\xEDch",
     "history.favoriteTask": "Th\xEAm v\xE0o y\xEAu th\xEDch",
@@ -11046,6 +11951,8 @@
     "history.removeTag": "G\u1EE1 nh\xE3n",
     "history.favoriteSelected": "Y\xEAu th\xEDch",
     "history.unfavoriteSelected": "B\u1ECF y\xEAu th\xEDch",
+    "history.organizeSelected": "S\u1EAFp x\u1EBFp",
+    "history.exitSelection": "Tho\xE1t ch\u1ECDn nhi\u1EC1u",
     "history.organizationFailed": "Kh\xF4ng th\u1EC3 c\u1EADp nh\u1EADt m\u1EE5c y\xEAu th\xEDch ho\u1EB7c nh\xE3n",
     "history.tagNameConflict": "T\xEAn nh\xE3n n\xE0y \u0111\xE3 t\u1ED3n t\u1EA1i",
     "history.noTags": "Ch\u01B0a c\xF3 nh\xE3n",
@@ -11057,6 +11964,73 @@
     "history.exportStarted": "\u0110\xE3 b\u1EAFt \u0111\u1EA7u t\u1EA3i xu\u1ED1ng",
     "history.exportSummary": "{taskCount} t\xE1c v\u1EE5 \xB7 {imageCount} h\xECnh \u1EA3nh",
     "history.exportFailed": "Xu\u1EA5t th\u1EA5t b\u1EA1i",
+    "historyBackup.open": "Sao l\u01B0u t\xE1c v\u1EE5",
+    "historyBackup.importOpen": "Nh\u1EADp b\u1EA3n sao l\u01B0u",
+    "historyBackup.mode": "Sao l\u01B0u t\xE1c v\u1EE5",
+    "historyBackup.description": "L\u01B0u d\u1EEF li\u1EC7u t\xE1c v\u1EE5 v\xE0 t\u1EC7p li\xEAn quan \u0111\u1EC3 kh\xF4i ph\u1EE5c trong phi\xEAn b\u1EA3n iLab CONJURE t\u01B0\u01A1ng th\xEDch.",
+    "historyBackup.scopeLegend": "Ph\u1EA1m vi sao l\u01B0u",
+    "historyBackup.scopeHelp": "K\u1EBFt qu\u1EA3 l\u1ECDc v\xE0 to\xE0n b\u1ED9 l\u1ECBch s\u1EED \u0111\u01B0\u1EE3c \u0111\u1EBFm c\u1EE5c b\u1ED9, kh\xF4ng b\u1ECB gi\u1EDBi h\u1EA1n b\u1EDFi t\xE1c v\u1EE5 hi\u1EC3n th\u1ECB tr\xEAn trang n\xE0y.",
+    "historyBackup.scopeSelected": "T\xE1c v\u1EE5 \u0111\xE3 ch\u1ECDn",
+    "historyBackup.scopeFiltered": "K\u1EBFt qu\u1EA3 l\u1ECDc hi\u1EC7n t\u1EA1i",
+    "historyBackup.scopeAll": "To\xE0n b\u1ED9 l\u1ECBch s\u1EED",
+    "historyBackup.scopeCount": "{eligible}/{total} t\xE1c v\u1EE5 h\u1EE3p l\u1EC7",
+    "historyBackup.scopeCounting": "\u0110ang \u0111\u1EBFm\u2026",
+    "historyBackup.scopeCountUnavailable": "Kh\xF4ng th\u1EC3 l\u1EA5y s\u1ED1 l\u01B0\u1EE3ng",
+    "historyBackup.scopeNoneSelected": "Ch\u01B0a ch\u1ECDn t\xE1c v\u1EE5",
+    "historyBackup.willBackup": "S\u1EBD sao l\u01B0u {eligible} t\xE1c v\u1EE5; lo\u1EA1i tr\u1EEB {excluded} t\xE1c v\u1EE5 ch\u01B0a ho\xE0n t\u1EA5t.",
+    "historyBackup.selectTasksFirst": "H\xE3y ch\u1ECDn \xEDt nh\u1EA5t m\u1ED9t t\xE1c v\u1EE5 tr\u01B0\u1EDBc.",
+    "historyBackup.scopeLockedUnknown": "Ph\u1EA1m vi sao l\u01B0u ban \u0111\u1EA7u",
+    "historyBackup.scopeLocked": "\u0110\xE3 kh\xF3a ph\u1EA1m vi: {scope} \xB7 s\u1EBD sao l\u01B0u {eligible} t\xE1c v\u1EE5",
+    "historyBackup.scopeLockedPending": "\u0110\xE3 kh\xF3a ph\u1EA1m vi: {scope} \xB7 \u0111ang \u0111\u1EBFm t\xE1c v\u1EE5 h\u1EE3p l\u1EC7",
+    "historyBackup.progressLabel": "Ti\u1EBFn tr\xECnh sao l\u01B0u",
+    "historyBackup.start": "B\u1EAFt \u0111\u1EA7u sao l\u01B0u",
+    "historyBackup.cancel": "H\u1EE7y sao l\u01B0u",
+    "historyBackup.download": "T\u1EA3i b\u1EA3n sao l\u01B0u",
+    "historyBackup.dismiss": "\u0110\xF3ng k\u1EBFt qu\u1EA3",
+    "historyBackup.discard": "\u0110\xF3ng m\xE0 kh\xF4ng t\u1EA3i",
+    "historyBackup.closePanel": "\u0110\xF3ng b\u1EA3ng",
+    "historyBackup.downloadStartedTitle": "\u0110\xE3 b\u1EAFt \u0111\u1EA7u t\u1EA3i",
+    "historyBackup.idle": "S\u1EB5n s\xE0ng",
+    "historyBackup.queued": "\u0110ang ch\u1EDD",
+    "historyBackup.planning": "\u0110ang l\u1EADp k\u1EBF ho\u1EA1ch",
+    "historyBackup.packing": "\u0110ang \u0111\xF3ng g\xF3i",
+    "historyBackup.ready": "S\u1EB5n s\xE0ng t\u1EA3i xu\u1ED1ng",
+    "historyBackup.readyDetail": "B\u1EA3n sao l\u01B0u \u0111\xE3 s\u1EB5n s\xE0ng. H\xE3y t\u1EA3i trong v\xF2ng 1 gi\u1EDD; \u0111\xF3ng m\xE0 kh\xF4ng t\u1EA3i s\u1EBD x\xF3a t\u1EC7p t\u1EA1m ngay l\u1EADp t\u1EE9c.",
+    "historyBackup.downloaded": "H\xE3y x\xE1c nh\u1EADn tr\xECnh duy\u1EC7t \u0111\xE3 l\u01B0u t\u1EC7p, sau \u0111\xF3 b\u1EA1n c\xF3 th\u1EC3 \u0111\xF3ng b\u1EA3ng n\xE0y. T\u1EC7p t\u1EA1m s\u1EBD b\u1ECB x\xF3a sau khi truy\u1EC1n xong.",
+    "historyBackup.missingInputsWarning": "{tasks} t\xE1c v\u1EE5 thi\u1EBFu {files} t\u1EC7p \u0111\u1EA7u v\xE0o. C\xE1c t\u1EC7p \u0111\xF3 s\u1EBD b\u1ECB b\u1ECF qua; l\u1EDDi nh\u1EAFc v\xE0 k\u1EBFt qu\u1EA3 v\u1EABn \u0111\u01B0\u1EE3c xu\u1EA5t b\xECnh th\u01B0\u1EDDng.",
+    "historyBackup.failed": "Sao l\u01B0u th\u1EA5t b\u1EA1i",
+    "historyBackup.cancelled": "\u0110\xE3 h\u1EE7y",
+    "historyBackup.expired": "\u0110\xE3 h\u1EBFt h\u1EA1n",
+    "historyBackup.interrupted": "B\u1ECB gi\xE1n \u0111o\u1EA1n",
+    "historyBackup.stats": "T\u1ED5ng {total} \xB7 h\u1EE3p l\u1EC7 {eligible} \xB7 lo\u1EA1i tr\u1EEB {excluded} \xB7 {bytes}",
+    "historyBackup.errorDisk": "Kh\xF4ng \u0111\u1EE7 dung l\u01B0\u1EE3ng \u0111\u0129a.",
+    "historyBackup.errorSourceChanged": "D\u1EEF li\u1EC7u ngu\u1ED3n \u0111\xE3 thay \u0111\u1ED5i khi sao l\u01B0u.",
+    "historyBackup.errorEmpty": "Kh\xF4ng c\xF3 t\xE1c v\u1EE5 h\u1EE3p l\u1EC7.",
+    "historyBackup.errorIo": "Kh\xF4ng th\u1EC3 t\u1EA1o b\u1EA3n sao l\u01B0u.",
+    "historyImport.title": "Nh\u1EADp b\u1EA3n sao l\u01B0u t\xE1c v\u1EE5",
+    "historyImport.choose": "Ch\u1ECDn b\u1EA3n sao ZIP",
+    "historyImport.uploading": "\u0110ang t\u1EA3i l\xEAn",
+    "historyImport.validating": "\u0110ang x\xE1c th\u1EF1c",
+    "historyImport.validated": "\u0110\xE3 x\xE1c th\u1EF1c",
+    "historyImport.preview": "Xem tr\u01B0\u1EDBc kh\xF4i ph\u1EE5c",
+    "historyImport.restorable": "C\xF3 th\u1EC3 kh\xF4i ph\u1EE5c",
+    "historyImport.duplicate": "Tr\xF9ng l\u1EB7p",
+    "historyImport.conflict": "Xung \u0111\u1ED9t",
+    "historyImport.invalid": "Kh\xF4ng h\u1EE3p l\u1EC7",
+    "historyImport.confirm": "X\xE1c nh\u1EADn kh\xF4i ph\u1EE5c",
+    "historyImport.restoring": "\u0110ang kh\xF4i ph\u1EE5c",
+    "historyImport.restored": "\u0110\xE3 kh\xF4i ph\u1EE5c",
+    "historyImport.failed": "Kh\xF4i ph\u1EE5c th\u1EA5t b\u1EA1i",
+    "historyImport.interrupted": "B\u1ECB gi\xE1n \u0111o\u1EA1n",
+    "historyImport.cancelled": "\u0110\xE3 h\u1EE7y",
+    "historyImport.result": "K\u1EBFt qu\u1EA3",
+    "historyImport.thumbnailWarnings": "C\u1EA3nh b\xE1o \u1EA3nh thu nh\u1ECF",
+    "historyImport.cleanupWarnings": "C\u1EA3nh b\xE1o d\u1ECDn d\u1EB9p",
+    "historyImport.reselect": "H\xE3y ch\u1ECDn l\u1EA1i t\u1EC7p ZIP g\u1ED1c.",
+    "historyImport.noOverwrite": "Kh\xF4ng bao gi\u1EDD ghi \u0111\xE8 t\xE1c v\u1EE5 hi\u1EC7n c\xF3.",
+    "historyImport.reasonInvalid": "D\u1EEF li\u1EC7u sao l\u01B0u kh\xF4ng h\u1EE3p l\u1EC7",
+    "historyImport.reasonSensitive": "C\xF3 ch\u1EE9a d\u1EEF li\u1EC7u \u0111\u01B0\u1EE3c b\u1EA3o v\u1EC7",
+    "historyImport.reasonMismatch": "Kh\xF4ng kh\u1EDBp v\u1EDBi b\u1EA3n k\xEA sao l\u01B0u",
     "history.closeExport": "\u0110\xF3ng l\u1EF1a ch\u1ECDn xu\u1EA5t",
     "history.type": "Lo\u1EA1i",
     "history.allTypes": "T\u1EA5t c\u1EA3 lo\u1EA1i",
@@ -11271,6 +12245,8 @@
     "recentAssets.hideMessage": "H\xECnh \u1EA3nh n\xE0y \u0111\u01B0\u1EE3c {count} t\xE1c v\u1EE5 s\u1EED d\u1EE5ng n\xEAn kh\xF4ng th\u1EC3 x\xF3a v\u0129nh vi\u1EC5n. Vi\u1EC7c \u1EA9n ch\u1EC9 lo\u1EA1i b\u1ECF n\xF3 kh\u1ECFi m\u1EE5c t\u1EA3i l\xEAn g\u1EA7n \u0111\xE2y; \u1EA3nh g\u1ED1c, \u0111\u1EA7u v\xE0o hi\u1EC7n t\u1EA1i v\xE0 c\xE1c t\xE1c v\u1EE5 tr\u01B0\u1EDBc \u0111\xE2y v\u1EABn \u0111\u01B0\u1EE3c gi\u1EEF l\u1EA1i.",
     "recentAssets.hideFailed": "Kh\xF4ng \u1EA9n \u0111\u01B0\u1EE3c \u1EA3nh t\u1EA3i l\xEAn g\u1EA7n \u0111\xE2y",
     "recentAssets.hidden": "\u0110\xE3 \u1EA9n kh\u1ECFi m\u1EE5c t\u1EA3i l\xEAn g\u1EA7n \u0111\xE2y; \u1EA3nh g\u1ED1c v\xE0 c\xE1c t\xE1c v\u1EE5 tr\u01B0\u1EDBc \u0111\xE2y v\u1EABn \u0111\u01B0\u1EE3c gi\u1EEF l\u1EA1i",
+    "recentAssets.hidePreviews": "\u1EA8n \u1EA3nh t\u1EA3i l\xEAn g\u1EA7n \u0111\xE2y",
+    "recentAssets.showPreviews": "Hi\u1EC7n \u1EA3nh t\u1EA3i l\xEAn g\u1EA7n \u0111\xE2y",
     "recentAssets.deleteTitle": "X\xF3a n\u1ED9i dung t\u1EA3i l\xEAn g\u1EA7n \u0111\xE2y?",
     "recentAssets.deleteMessage": "H\xECnh \u1EA3nh n\xE0y kh\xF4ng \u0111\u01B0\u1EE3c t\xE1c v\u1EE5 n\xE0o s\u1EED d\u1EE5ng. \u1EA2nh g\u1ED1c s\u1EBD b\u1ECB x\xF3a v\u0129nh vi\u1EC5n v\xE0 h\xECnh \u1EA3nh t\u01B0\u01A1ng \u1EE9ng s\u1EBD b\u1ECB lo\u1EA1i kh\u1ECFi \u0111\u1EA7u v\xE0o hi\u1EC7n t\u1EA1i. Ph\xF2ng tr\u01B0ng b\xE0y c\xF4ng c\u1ED9ng kh\xF4ng b\u1ECB \u1EA3nh h\u01B0\u1EDFng.",
     "recentAssets.loadFailed": "Kh\xF4ng t\u1EA3i \u0111\u01B0\u1EE3c \u1EA3nh t\u1EA3i l\xEAn g\u1EA7n \u0111\xE2y",
@@ -11297,11 +12273,13 @@
     "referenceCollector.alreadyStaged": "\u0110\xE3 t\u1EA1m gi\u1EEF l\xE0m \u1EA3nh tham kh\u1EA3o",
     "referenceCollector.staged": "\u0110\xE3 t\u1EA1m gi\u1EEF {count} \u1EA3nh tham kh\u1EA3o",
     "referenceCollector.title": "Tham chi\u1EBFu \u0111ang ch\u1EDD \xB7 {count}",
-    "referenceCollector.addAll": "Th\xEAm t\u1EA5t c\u1EA3 \u1EA3nh tham kh\u1EA3o",
+    "referenceCollector.addAll": "Th\xEAm t\u1EA5t c\u1EA3",
+    "referenceCollector.replaceAll": "Thay th\u1EBF hi\u1EC7n t\u1EA1i",
     "referenceCollector.itemFallback": "\u0110ang ch\u1EDD tham chi\u1EBFu",
     "referenceCollector.remove": "X\xF3a tham chi\u1EBFu \u0111ang ch\u1EDD x\u1EED l\xFD",
     "referenceCollector.cleared": "\u0110\xE3 x\xF3a c\xE1c tham chi\u1EBFu \u0111ang ch\u1EDD x\u1EED l\xFD",
     "referenceCollector.added": "\u0110\xE3 th\xEAm {count} \u1EA3nh tham kh\u1EA3o",
+    "referenceCollector.replaced": "\u0110\xE3 thay th\u1EBF b\u1EB1ng {count} \u1EA3nh tham kh\u1EA3o",
     "referenceCollector.addFailed": "Kh\xF4ng th\u1EC3 th\xEAm tham chi\u1EBFu \u0111ang ch\u1EDD",
     "referenceCollector.readFailed": "Kh\xF4ng \u0111\u1ECDc \u0111\u01B0\u1EE3c h\xECnh \u1EA3nh: {status}",
     "gallery.quick": "Th\u01B0 vi\u1EC7n nhanh",
@@ -11514,6 +12492,16 @@
     "lightbox.close": "\u0110\xF3ng b\u1EA3n xem tr\u01B0\u1EDBc",
     "lightbox.previous": "H\xECnh \u1EA3nh tr\u01B0\u1EDBc \u0111\xF3",
     "lightbox.next": "H\xECnh \u1EA3nh ti\u1EBFp theo",
+    "lightbox.zoomControls": "\u0110i\u1EC1u khi\u1EC3n thu ph\xF3ng",
+    "lightbox.zoomOut": "Thu nh\u1ECF",
+    "lightbox.zoomIn": "Ph\xF3ng to",
+    "lightbox.fit": "V\u1EEBa khung",
+    "lightbox.fitPage": "V\u1EEBa trang",
+    "lightbox.actualSize": "100% k\xEDch th\u01B0\u1EDBc th\u1EADt",
+    "lightbox.shortcuts": "Ph\xEDm t\u1EAFt",
+    "lightbox.switchImage": "\u0110\u1ED5i \u1EA3nh",
+    "lightbox.switchTask": "\u0110\u1ED5i t\xE1c v\u1EE5",
+    "lightbox.wheelZoom": "Cu\u1ED9n \u0111\u1EC3 thu ph\xF3ng",
     "promptPopover.title": "So s\xE1nh l\u1EDDi nh\u1EAFc",
     "promptPopover.summary": "B\u1EA3n g\u1ED1c {original} \xB7 t\u1ED1i \u01B0u h\xF3a {optimized}",
     "promptPopover.original": "L\u1EDDi nh\u1EAFc ban \u0111\u1EA7u",
@@ -11677,6 +12665,7 @@
     "colors.modifyValue": "Ch\u1EC9nh s\u1EEDa m\xE0u {value}",
     "colors.removeValue": "X\xF3a m\xE0u {value}",
     "taskGroup.today": "h\xF4m nay",
+    "taskGroup.current": "T\xE1c v\u1EE5 hi\u1EC7n t\u1EA1i",
     "taskGroup.yesterday": "H\xF4m qua",
     "taskGroup.last7": "7 ng\xE0y qua",
     "taskGroup.older": "C\u0169 h\u01A1n",
@@ -11771,7 +12760,8 @@
     "apiSettings.copyProviderWithoutKeyStatus": "\u0110\xE3 sao ch\xE9p provider. Ch\u1EC9nh t\xEAn, m\xF4 h\xECnh ho\u1EB7c th\xEAm API key tr\u01B0\u1EDBc khi l\u01B0u.",
     "apiSettings.sortProviders": "S\u1EAFp x\u1EBFp",
     "apiSettings.finishSortProviders": "Xong",
-    "apiSettings.sortProviderModeStatus": "S\u1EAFp x\u1EBFp provider",
+    "apiSettings.sortProviderModeStatus": "K\xE9o tay n\u1EAFm \u0111\u1EC3 s\u1EAFp x\u1EBFp ho\u1EB7c d\xF9ng c\xE1c ph\xEDm m\u0169i t\xEAn",
+    "apiSettings.sortProviderHandleAria": "K\xE9o \u0111\u1EC3 s\u1EAFp x\u1EBFp l\u1EA1i {provider}, ho\u1EB7c d\xF9ng ph\xEDm m\u0169i t\xEAn, Home v\xE0 End",
     "apiSettings.sortProviderStatus": "Th\u1EE9 t\u1EF1 provider \u0111\xE3 thay \u0111\u1ED5i. \u0110ang t\u1EF1 \u0111\u1ED9ng l\u01B0u...",
     "apiSettings.moveProviderUp": "L\xEAn",
     "apiSettings.moveProviderDown": "Xu\u1ED1ng",
@@ -11998,6 +12988,7 @@
     "batch.selected": "\u5DF2\u9009\u62E9 0 \u4E2A",
     "batch.selectedCount": "\u5DF2\u9009\u62E9 {count} \u4E2A",
     "batch.selectCurrentGroup": "\u5168\u9009\u672C\u7EC4",
+    "batch.selectWaiting": "\u5168\u9009\u7B49\u5F85\u4E2D",
     "batch.archivedCount": "\u5DF2\u5F52\u6863 {count} \u4E2A\u4F1A\u8BDD",
     "batch.archiveFailed": "\u6279\u91CF\u5F52\u6863\u5931\u8D25",
     "batch.runningCannotDeleteSelected": "\u9009\u4E2D\u7684\u4F1A\u8BDD\u6B63\u5728\u8FD0\u884C\uFF0C\u4E0D\u80FD\u5220\u9664",
@@ -12019,6 +13010,7 @@
     "action.archive": "\u5F52\u6863",
     "action.delete": "\u5220\u9664",
     "action.cancel": "\u53D6\u6D88",
+    "action.stop": "\u505C\u6B62",
     "action.edit": "\u7F16\u8F91",
     "action.clear": "\u6E05\u7A7A",
     "action.paste": "\u7C98\u8D34",
@@ -12046,13 +13038,13 @@
     "queue.waitingActions": "\u7B49\u5F85\u4EFB\u52A1\u961F\u5217\u64CD\u4F5C",
     "queue.cancelRunning": "\u53D6\u6D88",
     "queue.cancelRunningTitle": "\u53D6\u6D88\u8FD0\u884C\u4EFB\u52A1",
-    "queue.dragWaiting": "\u62D6\u52A8\u8C03\u6574\u7B49\u5F85\u987A\u5E8F",
+    "queue.dragWaiting": "\u6309\u4F4F\u5361\u7247\u4E0A\u4E0B\u62D6\u52A8\u6392\u5E8F",
     "queue.dragSort": "\u62D6\u52A8\u6392\u5E8F",
     "queue.moveUp": "\u4E0A",
     "queue.moveUpTitle": "\u4E0A\u79FB\u7B49\u5F85\u4EFB\u52A1",
     "queue.moveDown": "\u4E0B",
     "queue.moveDownTitle": "\u4E0B\u79FB\u7B49\u5F85\u4EFB\u52A1",
-    "queue.promote": "\u9876",
+    "queue.promote": "\u7F6E\u9876",
     "queue.promoteTitle": "\u7F6E\u9876\u7B49\u5F85\u4EFB\u52A1",
     "queue.promoteFailed": "\u7F6E\u9876\u5931\u8D25",
     "queue.deleteWaitingShort": "\u5220",
@@ -12069,7 +13061,7 @@
     "queue.runningCancelled": "\u4EFB\u52A1\u5DF2\u53D6\u6D88",
     "queue.reorderFailed": "\u961F\u5217\u6392\u5E8F\u5931\u8D25",
     "queue.realtimeUpdateFailed": "\u5B9E\u65F6\u72B6\u6001\u66F4\u65B0\u5931\u8D25",
-    "queue.realtimeDisconnected": "\u5B9E\u65F6\u72B6\u6001\u8FDE\u63A5\u5DF2\u65AD\u5F00\uFF0C\u5237\u65B0\u9875\u9762\u53EF\u6062\u590D",
+    "queue.realtimeDisconnected": "\u5B9E\u65F6\u72B6\u6001\u8FDE\u63A5\u5DF2\u4E2D\u65AD\uFF0C\u6B63\u5728\u81EA\u52A8\u91CD\u8FDE\u2026",
     "queue.readFailed": "\u961F\u5217\u8BFB\u53D6\u5931\u8D25",
     "status.waiting": "\u7B49\u5F85\u4EFB\u52A1",
     "status.shownActiveTasks": "\u5DF2\u663E\u793A\u8FDB\u884C\u4E2D\u4EFB\u52A1",
@@ -12106,7 +13098,6 @@
     "taskCard.textToImageThumb": "\u6587\u751F\u56FE\u4EFB\u52A1\u7F29\u7565\u56FE",
     "taskCard.imageToImageThumb": "\u56FE\u751F\u56FE\u4EFB\u52A1\u7F29\u7565\u56FE",
     "taskCard.failedThumb": "\u4EFB\u52A1\u5931\u8D25",
-    "taskCard.textBadge": "\u6587",
     "taskMode.edit": "\u7F16\u8F91",
     "taskMode.generate": "\u751F\u6210",
     "document.generatingQueue": "\u751F\u6210\u4E2D \xB7 \u961F\u5217 {total}",
@@ -12128,6 +13119,10 @@
     "history.search": "\u641C\u7D22",
     "history.searchPlaceholder": "\u641C\u7D22\u63D0\u793A\u8BCD\u6216\u4EFB\u52A1 ID",
     "history.clear": "\u6E05\u7A7A",
+    "history.activeFilterCount": "\u5DF2\u7B5B\u9009 \xB7 {count} \u9879",
+    "history.clearAllFilters": "\u6E05\u9664\u5168\u90E8",
+    "history.removeFilter": "\u79FB\u9664\u7B5B\u9009\uFF1A{label}",
+    "history.filtersActive": "\u4EFB\u52A1\u7B5B\u9009\uFF0C\u5DF2\u542F\u7528 {count} \u9879",
     "history.favorites": "\u6536\u85CF",
     "history.onlyFavorites": "\u4EC5\u770B\u6536\u85CF",
     "history.favoriteTask": "\u6536\u85CF\u4EFB\u52A1",
@@ -12143,6 +13138,8 @@
     "history.removeTag": "\u79FB\u9664\u6807\u7B7E",
     "history.favoriteSelected": "\u6536\u85CF",
     "history.unfavoriteSelected": "\u53D6\u6D88\u6536\u85CF",
+    "history.organizeSelected": "\u6574\u7406",
+    "history.exitSelection": "\u9000\u51FA\u6279\u91CF\u9009\u62E9",
     "history.organizationFailed": "\u6536\u85CF\u6216\u6807\u7B7E\u66F4\u65B0\u5931\u8D25",
     "history.tagNameConflict": "\u8FD9\u4E2A\u6807\u7B7E\u540D\u79F0\u5DF2\u5B58\u5728",
     "history.noTags": "\u8FD8\u6CA1\u6709\u6807\u7B7E",
@@ -12154,6 +13151,73 @@
     "history.exportStarted": "\u5DF2\u5F00\u59CB\u4E0B\u8F7D",
     "history.exportSummary": "{taskCount} \u4E2A\u4EFB\u52A1 \xB7 {imageCount} \u5F20\u56FE\u7247",
     "history.exportFailed": "\u5BFC\u51FA\u5931\u8D25",
+    "historyBackup.open": "\u4EFB\u52A1\u5907\u4EFD",
+    "historyBackup.importOpen": "\u5BFC\u5165\u5907\u4EFD",
+    "historyBackup.mode": "\u4EFB\u52A1\u5907\u4EFD",
+    "historyBackup.description": "\u4FDD\u5B58\u4EFB\u52A1\u6570\u636E\u4E0E\u76F8\u5173\u6587\u4EF6\uFF0C\u53EF\u5728\u517C\u5BB9\u7248\u672C\u7684 iLab CONJURE \u4E2D\u5BFC\u5165\u6062\u590D\u3002",
+    "historyBackup.scopeLegend": "\u5907\u4EFD\u8303\u56F4",
+    "historyBackup.scopeHelp": "\u5F53\u524D\u7B5B\u9009\u548C\u5168\u90E8\u8303\u56F4\u7531\u672C\u673A\u5B8C\u6574\u7EDF\u8BA1\uFF0C\u4E0D\u53D7\u5F53\u524D\u9875\u9762\u663E\u793A\u6570\u91CF\u5F71\u54CD\u3002",
+    "historyBackup.scopeSelected": "\u5DF2\u9009\u4EFB\u52A1",
+    "historyBackup.scopeFiltered": "\u5F53\u524D\u7B5B\u9009\u7ED3\u679C",
+    "historyBackup.scopeAll": "\u5168\u90E8\u5386\u53F2\u4EFB\u52A1",
+    "historyBackup.scopeCount": "{eligible}/{total} \u4E2A\u53EF\u5907\u4EFD",
+    "historyBackup.scopeCounting": "\u6B63\u5728\u7EDF\u8BA1\u2026",
+    "historyBackup.scopeCountUnavailable": "\u6682\u65F6\u65E0\u6CD5\u7EDF\u8BA1",
+    "historyBackup.scopeNoneSelected": "\u672A\u9009\u62E9\u4EFB\u52A1",
+    "historyBackup.willBackup": "\u5C06\u5907\u4EFD {eligible} \u4E2A\u4EFB\u52A1\uFF1B{excluded} \u4E2A\u672A\u5B8C\u6210\u4EFB\u52A1\u4F1A\u88AB\u6392\u9664\u3002",
+    "historyBackup.selectTasksFirst": "\u8BF7\u5148\u9009\u62E9\u81F3\u5C11\u4E00\u4E2A\u4EFB\u52A1\u3002",
+    "historyBackup.scopeLockedUnknown": "\u672C\u6B21\u5907\u4EFD\u8303\u56F4",
+    "historyBackup.scopeLocked": "\u8303\u56F4\u5DF2\u9501\u5B9A\uFF1A{scope} \xB7 \u5C06\u5907\u4EFD {eligible} \u4E2A\u4EFB\u52A1",
+    "historyBackup.scopeLockedPending": "\u8303\u56F4\u5DF2\u9501\u5B9A\uFF1A{scope} \xB7 \u6B63\u5728\u7EDF\u8BA1\u53EF\u5907\u4EFD\u4EFB\u52A1",
+    "historyBackup.progressLabel": "\u5907\u4EFD\u8FDB\u5EA6",
+    "historyBackup.start": "\u5F00\u59CB\u5907\u4EFD",
+    "historyBackup.cancel": "\u53D6\u6D88\u5907\u4EFD",
+    "historyBackup.download": "\u4E0B\u8F7D\u5907\u4EFD",
+    "historyBackup.dismiss": "\u5173\u95ED\u7ED3\u679C",
+    "historyBackup.discard": "\u4E0D\u4E0B\u8F7D\u5E76\u5173\u95ED",
+    "historyBackup.closePanel": "\u5173\u95ED\u9762\u677F",
+    "historyBackup.downloadStartedTitle": "\u4E0B\u8F7D\u5DF2\u5F00\u59CB",
+    "historyBackup.idle": "\u5C31\u7EEA",
+    "historyBackup.queued": "\u6392\u961F\u4E2D",
+    "historyBackup.planning": "\u6B63\u5728\u89C4\u5212",
+    "historyBackup.packing": "\u6B63\u5728\u6253\u5305",
+    "historyBackup.ready": "\u53EF\u4E0B\u8F7D",
+    "historyBackup.readyDetail": "\u5907\u4EFD\u5DF2\u5C31\u7EEA\u3002\u8BF7\u5728 1 \u5C0F\u65F6\u5185\u4E0B\u8F7D\uFF1B\u4E0D\u4E0B\u8F7D\u5E76\u5173\u95ED\u4F1A\u7ACB\u5373\u5220\u9664\u4E34\u65F6\u6587\u4EF6\u3002",
+    "historyBackup.downloaded": "\u8BF7\u786E\u8BA4\u6D4F\u89C8\u5668\u5DF2\u4FDD\u5B58\u6587\u4EF6\uFF1B\u5B8C\u6210\u540E\u5373\u53EF\u5173\u95ED\u6B64\u9762\u677F\u3002\u4E34\u65F6\u6587\u4EF6\u4F1A\u5728\u4F20\u8F93\u7ED3\u675F\u540E\u5220\u9664\u3002",
+    "historyBackup.missingInputsWarning": "{tasks} \u4E2A\u4EFB\u52A1\u7F3A\u5931 {files} \u4E2A\u8F93\u5165\u6587\u4EF6\uFF1B\u8FD9\u4E9B\u6587\u4EF6\u4E0D\u4F1A\u5305\u542B\u5728\u5907\u4EFD\u4E2D\uFF0C\u63D0\u793A\u8BCD\u548C\u8F93\u51FA\u7ED3\u679C\u4ECD\u4F1A\u6B63\u5E38\u5BFC\u51FA\u3002",
+    "historyBackup.failed": "\u5907\u4EFD\u5931\u8D25",
+    "historyBackup.cancelled": "\u5DF2\u53D6\u6D88",
+    "historyBackup.expired": "\u5DF2\u8FC7\u671F",
+    "historyBackup.interrupted": "\u5DF2\u4E2D\u65AD",
+    "historyBackup.stats": "\u5171 {total} \u4E2A \xB7 \u53EF\u5907\u4EFD {eligible} \u4E2A \xB7 \u6392\u9664 {excluded} \u4E2A \xB7 {bytes}",
+    "historyBackup.errorDisk": "\u78C1\u76D8\u7A7A\u95F4\u4E0D\u8DB3\u3002",
+    "historyBackup.errorSourceChanged": "\u5907\u4EFD\u671F\u95F4\u6E90\u6570\u636E\u53D1\u751F\u53D8\u5316\u3002",
+    "historyBackup.errorEmpty": "\u6CA1\u6709\u53EF\u5907\u4EFD\u7684\u4EFB\u52A1\u3002",
+    "historyBackup.errorIo": "\u65E0\u6CD5\u521B\u5EFA\u5907\u4EFD\u3002",
+    "historyImport.title": "\u5BFC\u5165\u4EFB\u52A1\u5907\u4EFD",
+    "historyImport.choose": "\u9009\u62E9 ZIP \u5907\u4EFD\u5305",
+    "historyImport.uploading": "\u6B63\u5728\u4E0A\u4F20",
+    "historyImport.validating": "\u6B63\u5728\u6821\u9A8C",
+    "historyImport.validated": "\u5DF2\u6821\u9A8C",
+    "historyImport.preview": "\u6062\u590D\u9884\u89C8",
+    "historyImport.restorable": "\u53EF\u6062\u590D",
+    "historyImport.duplicate": "\u91CD\u590D",
+    "historyImport.conflict": "\u51B2\u7A81",
+    "historyImport.invalid": "\u65E0\u6548",
+    "historyImport.confirm": "\u786E\u8BA4\u6062\u590D",
+    "historyImport.restoring": "\u6B63\u5728\u6062\u590D",
+    "historyImport.restored": "\u5DF2\u6062\u590D",
+    "historyImport.failed": "\u6062\u590D\u5931\u8D25",
+    "historyImport.interrupted": "\u5DF2\u4E2D\u65AD",
+    "historyImport.cancelled": "\u5DF2\u53D6\u6D88",
+    "historyImport.result": "\u6062\u590D\u7ED3\u679C",
+    "historyImport.thumbnailWarnings": "\u7F29\u7565\u56FE\u8B66\u544A",
+    "historyImport.cleanupWarnings": "\u6E05\u7406\u8B66\u544A",
+    "historyImport.reselect": "\u8BF7\u91CD\u65B0\u9009\u62E9\u539F ZIP \u7EE7\u7EED\u3002",
+    "historyImport.noOverwrite": "\u53EA\u65B0\u589E\u4EFB\u52A1\uFF0C\u7EDD\u4E0D\u8986\u76D6\u5DF2\u6709\u4EFB\u52A1\u3002",
+    "historyImport.reasonInvalid": "\u5907\u4EFD\u6570\u636E\u65E0\u6548",
+    "historyImport.reasonSensitive": "\u5305\u542B\u53D7\u4FDD\u62A4\u6570\u636E",
+    "historyImport.reasonMismatch": "\u4E0E\u5907\u4EFD\u6E05\u5355\u4E0D\u4E00\u81F4",
     "history.closeExport": "\u5173\u95ED\u5BFC\u51FA\u9009\u62E9",
     "history.type": "\u7C7B\u578B",
     "history.allTypes": "\u5168\u90E8\u7C7B\u578B",
@@ -12368,6 +13432,8 @@
     "recentAssets.hideMessage": "\u8FD9\u5F20\u56FE\u7247\u88AB {count} \u4E2A\u4EFB\u52A1\u5F15\u7528\uFF0C\u65E0\u6CD5\u6C38\u4E45\u5220\u9664\u3002\u9690\u85CF\u53EA\u4F1A\u4ECE\u300C\u6700\u8FD1\u4E0A\u4F20\u300D\u79FB\u9664\uFF1B\u539F\u56FE\u3001\u5F53\u524D\u8F93\u5165\u548C\u5386\u53F2\u4EFB\u52A1\u5747\u4FDD\u7559\u3002",
     "recentAssets.hideFailed": "\u6700\u8FD1\u4E0A\u4F20\u9690\u85CF\u5931\u8D25",
     "recentAssets.hidden": "\u5DF2\u4ECE\u6700\u8FD1\u4E0A\u4F20\u9690\u85CF\uFF1B\u539F\u56FE\u548C\u5386\u53F2\u4EFB\u52A1\u5747\u5DF2\u4FDD\u7559",
+    "recentAssets.hidePreviews": "\u9690\u85CF\u6700\u8FD1\u4E0A\u4F20\u56FE\u7247",
+    "recentAssets.showPreviews": "\u663E\u793A\u6700\u8FD1\u4E0A\u4F20\u56FE\u7247",
     "recentAssets.deleteTitle": "\u5220\u9664\u6700\u8FD1\u4E0A\u4F20\uFF1F",
     "recentAssets.deleteMessage": "\u8FD9\u5F20\u56FE\u7247\u672A\u88AB\u4EFB\u4F55\u4EFB\u52A1\u5F15\u7528\uFF0C\u5C06\u6C38\u4E45\u5220\u9664\u539F\u56FE\uFF0C\u5E76\u4ECE\u5F53\u524D\u8F93\u5165\u79FB\u9664\u540C\u56FE\u3002\u516C\u7528\u56FE\u5E93\u4E0D\u53D7\u5F71\u54CD\u3002",
     "recentAssets.loadFailed": "\u6700\u8FD1\u4E0A\u4F20\u8BFB\u53D6\u5931\u8D25",
@@ -12394,11 +13460,13 @@
     "referenceCollector.alreadyStaged": "\u5DF2\u5728\u5F85\u52A0\u5165\u53C2\u8003\u56FE",
     "referenceCollector.staged": "\u5DF2\u6682\u5B58 {count} \u5F20\u53C2\u8003\u56FE",
     "referenceCollector.title": "\u5F85\u52A0\u5165\u53C2\u8003\u56FE \xB7 {count} \u5F20",
-    "referenceCollector.addAll": "\u5168\u90E8\u52A0\u5165\u53C2\u8003\u56FE",
+    "referenceCollector.addAll": "\u5168\u90E8\u52A0\u5165",
+    "referenceCollector.replaceAll": "\u66FF\u6362\u73B0\u6709",
     "referenceCollector.itemFallback": "\u5F85\u52A0\u5165\u53C2\u8003\u56FE",
     "referenceCollector.remove": "\u79FB\u9664\u5F85\u52A0\u5165\u53C2\u8003\u56FE",
     "referenceCollector.cleared": "\u5F85\u52A0\u5165\u53C2\u8003\u56FE\u5DF2\u6E05\u7A7A",
     "referenceCollector.added": "\u5DF2\u52A0\u5165 {count} \u5F20\u53C2\u8003\u56FE",
+    "referenceCollector.replaced": "\u5DF2\u66FF\u6362\u4E3A {count} \u5F20\u53C2\u8003\u56FE",
     "referenceCollector.addFailed": "\u5F85\u52A0\u5165\u53C2\u8003\u56FE\u52A0\u5165\u5931\u8D25",
     "referenceCollector.readFailed": "\u56FE\u7247\u8BFB\u53D6\u5931\u8D25\uFF1A{status}",
     "gallery.quick": "\u5FEB\u901F\u9009\u62E9\u516C\u7528\u56FE\u5E93",
@@ -12611,6 +13679,16 @@
     "lightbox.close": "\u5173\u95ED\u9884\u89C8",
     "lightbox.previous": "\u4E0A\u4E00\u5F20",
     "lightbox.next": "\u4E0B\u4E00\u5F20",
+    "lightbox.zoomControls": "\u7F29\u653E\u63A7\u5236",
+    "lightbox.zoomOut": "\u7F29\u5C0F",
+    "lightbox.zoomIn": "\u653E\u5927",
+    "lightbox.fit": "\u9002\u5408",
+    "lightbox.fitPage": "\u9002\u5408\u9875\u9762",
+    "lightbox.actualSize": "100% \u539F\u59CB\u5C3A\u5BF8",
+    "lightbox.shortcuts": "\u5FEB\u6377\u952E\u63D0\u793A",
+    "lightbox.switchImage": "\u5207\u6362\u56FE\u7247",
+    "lightbox.switchTask": "\u5207\u6362\u4EFB\u52A1",
+    "lightbox.wheelZoom": "\u6EDA\u8F6E\u7F29\u653E",
     "promptPopover.title": "\u63D0\u793A\u8BCD\u5BF9\u6BD4",
     "promptPopover.summary": "\u539F\u59CB {original} \xB7 \u4F18\u5316 {optimized}",
     "promptPopover.original": "\u539F\u59CB\u63D0\u793A\u8BCD",
@@ -12774,6 +13852,7 @@
     "colors.modifyValue": "\u4FEE\u6539\u989C\u8272 {value}",
     "colors.removeValue": "\u79FB\u9664\u989C\u8272 {value}",
     "taskGroup.today": "\u4ECA\u5929",
+    "taskGroup.current": "\u5F53\u524D\u67E5\u770B",
     "taskGroup.yesterday": "\u6628\u5929",
     "taskGroup.last7": "\u6700\u8FD1 7 \u5929",
     "taskGroup.older": "\u66F4\u65E9",
@@ -12868,7 +13947,8 @@
     "apiSettings.copyProviderWithoutKeyStatus": "\u5DF2\u590D\u5236\u914D\u7F6E\uFF0C\u53EF\u4FEE\u6539\u540D\u79F0\u3001\u6A21\u578B\u6216\u586B\u5199 API Key \u540E\u4FDD\u5B58",
     "apiSettings.sortProviders": "\u6392\u5E8F",
     "apiSettings.finishSortProviders": "\u5B8C\u6210",
-    "apiSettings.sortProviderModeStatus": "\u6B63\u5728\u6392\u5E8F\u4F9B\u5E94\u5546",
+    "apiSettings.sortProviderModeStatus": "\u62D6\u52A8\u624B\u67C4\u6392\u5E8F\uFF0C\u4E5F\u53EF\u4F7F\u7528\u65B9\u5411\u952E\u8C03\u6574",
+    "apiSettings.sortProviderHandleAria": "\u62D6\u52A8\u6392\u5E8F {provider}\uFF0C\u4E5F\u53EF\u4F7F\u7528\u65B9\u5411\u952E\u6216 Home\u3001End \u952E\u8C03\u6574",
     "apiSettings.sortProviderStatus": "\u4F9B\u5E94\u5546\u6392\u5E8F\u5DF2\u8C03\u6574\uFF0C\u6B63\u5728\u81EA\u52A8\u4FDD\u5B58",
     "apiSettings.moveProviderUp": "\u4E0A\u79FB",
     "apiSettings.moveProviderDown": "\u4E0B\u79FB",
@@ -13095,6 +14175,7 @@
     "batch.selected": "\u5DF2\u9078\u64C7 0 \u500B",
     "batch.selectedCount": "\u5DF2\u9078\u64C7{count}\u500B",
     "batch.selectCurrentGroup": "\u5168\u9078\u672C\u7D44",
+    "batch.selectWaiting": "\u5168\u9078\u7B49\u5F85\u4E2D",
     "batch.archivedCount": "\u5DF2\u6B78\u6A94{count}\u500B\u6703\u8A71",
     "batch.archiveFailed": "\u6279\u6B21\u6B78\u6A94\u5931\u6557",
     "batch.runningCannotDeleteSelected": "\u9078\u53D6\u7684\u6703\u8A71\u6B63\u5728\u57F7\u884C\uFF0C\u4E14\u7121\u6CD5\u522A\u9664",
@@ -13116,6 +14197,7 @@
     "action.archive": "\u6B78\u6A94",
     "action.delete": "\u522A\u9664",
     "action.cancel": "\u53D6\u6D88",
+    "action.stop": "\u505C\u6B62",
     "action.edit": "\u7DE8\u8F2F",
     "action.clear": "\u6E05\u7A7A",
     "action.paste": "\u8CBC\u4E0A",
@@ -13143,13 +14225,13 @@
     "queue.waitingActions": "\u7B49\u5F85\u4EFB\u52D9\u4F47\u5217\u64CD\u4F5C",
     "queue.cancelRunning": "\u53D6\u6D88",
     "queue.cancelRunningTitle": "\u53D6\u6D88\u57F7\u884C\u4EFB\u52D9",
-    "queue.dragWaiting": "\u62D6\u66F3\u8ABF\u6574\u7B49\u5F85\u9806\u5E8F",
+    "queue.dragWaiting": "\u6309\u4F4F\u5361\u7247\u4E0A\u4E0B\u62D6\u66F3\u6392\u5E8F",
     "queue.dragSort": "\u62D6\u66F3\u6392\u5E8F",
     "queue.moveUp": "\u4E0A",
     "queue.moveUpTitle": "\u4E0A\u79FB\u7B49\u5F85\u4EFB\u52D9",
     "queue.moveDown": "\u4E0B",
     "queue.moveDownTitle": "\u4E0B\u79FB\u7B49\u5F85\u4EFB\u52D9",
-    "queue.promote": "\u9802",
+    "queue.promote": "\u7F6E\u9802",
     "queue.promoteTitle": "\u7F6E\u9802\u7B49\u5F85\u4EFB\u52D9",
     "queue.promoteFailed": "\u7F6E\u9802\u5931\u6557",
     "queue.deleteWaitingShort": "\u522A",
@@ -13166,7 +14248,7 @@
     "queue.runningCancelled": "\u4EFB\u52D9\u5DF2\u53D6\u6D88",
     "queue.reorderFailed": "\u4F47\u5217\u6392\u5E8F\u5931\u6557",
     "queue.realtimeUpdateFailed": "\u5373\u6642\u72C0\u614B\u66F4\u65B0\u5931\u6557",
-    "queue.realtimeDisconnected": "\u5373\u6642\u72C0\u614B\u9023\u7DDA\u5DF2\u65B7\u958B\uFF0C\u91CD\u65B0\u6574\u7406\u9801\u9762\u53EF\u6062\u5FA9",
+    "queue.realtimeDisconnected": "\u5373\u6642\u72C0\u614B\u9023\u7DDA\u5DF2\u4E2D\u65B7\uFF0C\u6B63\u5728\u81EA\u52D5\u91CD\u65B0\u9023\u7DDA\u2026",
     "queue.readFailed": "\u4F47\u5217\u8B80\u53D6\u5931\u6557",
     "status.waiting": "\u7B49\u5F85\u4EFB\u52D9",
     "status.shownActiveTasks": "\u5DF2\u986F\u793A\u9032\u884C\u4E2D\u4EFB\u52D9",
@@ -13203,7 +14285,6 @@
     "taskCard.textToImageThumb": "\u6587\u751F\u5716\u4EFB\u52D9\u7E2E\u5716",
     "taskCard.imageToImageThumb": "\u5716\u751F\u5716\u4EFB\u52D9\u7E2E\u5716",
     "taskCard.failedThumb": "\u4EFB\u52D9\u5931\u6557",
-    "taskCard.textBadge": "\u6587",
     "taskMode.edit": "\u7DE8\u8F2F",
     "taskMode.generate": "\u751F\u6210",
     "document.generatingQueue": "\u751F\u6210\u4E2D \xB7 \u4F47\u5217{total}",
@@ -13225,6 +14306,10 @@
     "history.search": "\u641C\u5C0B",
     "history.searchPlaceholder": "\u641C\u5C0B\u63D0\u793A\u8A5E\u6216\u4EFB\u52D9ID",
     "history.clear": "\u6E05\u7A7A",
+    "history.activeFilterCount": "\u5DF2\u7BE9\u9078 \xB7 {count} \u9805",
+    "history.clearAllFilters": "\u6E05\u9664\u5168\u90E8",
+    "history.removeFilter": "\u79FB\u9664\u7BE9\u9078\uFF1A{label}",
+    "history.filtersActive": "\u4EFB\u52D9\u7BE9\u9078\uFF0C\u5DF2\u555F\u7528 {count} \u9805",
     "history.favorites": "\u6536\u85CF",
     "history.onlyFavorites": "\u53EA\u770B\u6536\u85CF",
     "history.favoriteTask": "\u6536\u85CF\u4EFB\u52D9",
@@ -13240,6 +14325,8 @@
     "history.removeTag": "\u79FB\u9664\u6A19\u7C64",
     "history.favoriteSelected": "\u6536\u85CF",
     "history.unfavoriteSelected": "\u53D6\u6D88\u6536\u85CF",
+    "history.organizeSelected": "\u6574\u7406",
+    "history.exitSelection": "\u7D50\u675F\u6279\u91CF\u9078\u64C7",
     "history.organizationFailed": "\u6536\u85CF\u6216\u6A19\u7C64\u66F4\u65B0\u5931\u6557",
     "history.tagNameConflict": "\u9019\u500B\u6A19\u7C64\u540D\u7A31\u5DF2\u5B58\u5728",
     "history.noTags": "\u9084\u6C92\u6709\u6A19\u7C64",
@@ -13251,6 +14338,73 @@
     "history.exportStarted": "\u5DF2\u958B\u59CB\u4E0B\u8F09",
     "history.exportSummary": "{taskCount} \u500B\u4EFB\u52D9 \xB7 {imageCount} \u5F35\u5716\u7247",
     "history.exportFailed": "\u532F\u51FA\u5931\u6557",
+    "historyBackup.open": "\u4EFB\u52D9\u5099\u4EFD",
+    "historyBackup.importOpen": "\u532F\u5165\u5099\u4EFD",
+    "historyBackup.mode": "\u4EFB\u52D9\u5099\u4EFD",
+    "historyBackup.description": "\u5132\u5B58\u4EFB\u52D9\u8CC7\u6599\u53CA\u76F8\u95DC\u6A94\u6848\uFF0C\u53EF\u5728\u76F8\u5BB9\u7248\u672C\u7684 iLab CONJURE \u4E2D\u532F\u5165\u9084\u539F\u3002",
+    "historyBackup.scopeLegend": "\u5099\u4EFD\u7BC4\u570D",
+    "historyBackup.scopeHelp": "\u76EE\u524D\u7BE9\u9078\u53CA\u5168\u90E8\u7BC4\u570D\u7531\u672C\u6A5F\u5B8C\u6574\u7D71\u8A08\uFF0C\u4E0D\u53D7\u6B64\u9801\u986F\u793A\u6578\u91CF\u5F71\u97FF\u3002",
+    "historyBackup.scopeSelected": "\u5DF2\u9078\u4EFB\u52D9",
+    "historyBackup.scopeFiltered": "\u76EE\u524D\u7BE9\u9078\u7D50\u679C",
+    "historyBackup.scopeAll": "\u5168\u90E8\u6B77\u53F2\u4EFB\u52D9",
+    "historyBackup.scopeCount": "{eligible}/{total} \u500B\u53EF\u5099\u4EFD",
+    "historyBackup.scopeCounting": "\u6B63\u5728\u7D71\u8A08\u2026",
+    "historyBackup.scopeCountUnavailable": "\u66AB\u6642\u7121\u6CD5\u7D71\u8A08",
+    "historyBackup.scopeNoneSelected": "\u5C1A\u672A\u9078\u64C7\u4EFB\u52D9",
+    "historyBackup.willBackup": "\u5C07\u5099\u4EFD {eligible} \u500B\u4EFB\u52D9\uFF1B{excluded} \u500B\u672A\u5B8C\u6210\u4EFB\u52D9\u6703\u88AB\u6392\u9664\u3002",
+    "historyBackup.selectTasksFirst": "\u8ACB\u5148\u9078\u64C7\u81F3\u5C11\u4E00\u500B\u4EFB\u52D9\u3002",
+    "historyBackup.scopeLockedUnknown": "\u672C\u6B21\u5099\u4EFD\u7BC4\u570D",
+    "historyBackup.scopeLocked": "\u7BC4\u570D\u5DF2\u9396\u5B9A\uFF1A{scope} \xB7 \u5C07\u5099\u4EFD {eligible} \u500B\u4EFB\u52D9",
+    "historyBackup.scopeLockedPending": "\u7BC4\u570D\u5DF2\u9396\u5B9A\uFF1A{scope} \xB7 \u6B63\u5728\u7D71\u8A08\u53EF\u5099\u4EFD\u4EFB\u52D9",
+    "historyBackup.progressLabel": "\u5099\u4EFD\u9032\u5EA6",
+    "historyBackup.start": "\u958B\u59CB\u5099\u4EFD",
+    "historyBackup.cancel": "\u53D6\u6D88\u5099\u4EFD",
+    "historyBackup.download": "\u4E0B\u8F09\u5099\u4EFD",
+    "historyBackup.dismiss": "\u95DC\u9589\u7D50\u679C",
+    "historyBackup.discard": "\u4E0D\u4E0B\u8F09\u4E26\u95DC\u9589",
+    "historyBackup.closePanel": "\u95DC\u9589\u9762\u677F",
+    "historyBackup.downloadStartedTitle": "\u4E0B\u8F09\u5DF2\u958B\u59CB",
+    "historyBackup.idle": "\u5C31\u7DD2",
+    "historyBackup.queued": "\u6392\u968A\u4E2D",
+    "historyBackup.planning": "\u6B63\u5728\u898F\u5283",
+    "historyBackup.packing": "\u6B63\u5728\u5C01\u88DD",
+    "historyBackup.ready": "\u53EF\u4E0B\u8F09",
+    "historyBackup.readyDetail": "\u5099\u4EFD\u5DF2\u5C31\u7DD2\u3002\u8ACB\u5728 1 \u5C0F\u6642\u5167\u4E0B\u8F09\uFF1B\u4E0D\u4E0B\u8F09\u4E26\u95DC\u9589\u6703\u7ACB\u5373\u522A\u9664\u81E8\u6642\u6A94\u6848\u3002",
+    "historyBackup.downloaded": "\u8ACB\u78BA\u8A8D\u700F\u89BD\u5668\u5DF2\u5132\u5B58\u6A94\u6848\uFF1B\u5B8C\u6210\u5F8C\u5373\u53EF\u95DC\u9589\u6B64\u9762\u677F\u3002\u81E8\u6642\u6A94\u6848\u6703\u5728\u50B3\u8F38\u7D50\u675F\u5F8C\u522A\u9664\u3002",
+    "historyBackup.missingInputsWarning": "{tasks} \u500B\u4EFB\u52D9\u7F3A\u5C11 {files} \u500B\u8F38\u5165\u6A94\u6848\uFF1B\u9019\u4E9B\u6A94\u6848\u4E0D\u6703\u5305\u542B\u5728\u5099\u4EFD\u4E2D\uFF0C\u63D0\u793A\u8A5E\u53CA\u8F38\u51FA\u7D50\u679C\u4ECD\u6703\u6B63\u5E38\u532F\u51FA\u3002",
+    "historyBackup.failed": "\u5099\u4EFD\u5931\u6557",
+    "historyBackup.cancelled": "\u5DF2\u53D6\u6D88",
+    "historyBackup.expired": "\u5DF2\u904E\u671F",
+    "historyBackup.interrupted": "\u5DF2\u4E2D\u65B7",
+    "historyBackup.stats": "\u5171 {total} \u500B \xB7 \u53EF\u5099\u4EFD {eligible} \u500B \xB7 \u6392\u9664 {excluded} \u500B \xB7 {bytes}",
+    "historyBackup.errorDisk": "\u78C1\u789F\u7A7A\u9593\u4E0D\u8DB3\u3002",
+    "historyBackup.errorSourceChanged": "\u5099\u4EFD\u671F\u9593\u4F86\u6E90\u8CC7\u6599\u6709\u8B8A\u3002",
+    "historyBackup.errorEmpty": "\u6C92\u6709\u53EF\u5099\u4EFD\u7684\u4EFB\u52D9\u3002",
+    "historyBackup.errorIo": "\u7121\u6CD5\u5EFA\u7ACB\u5099\u4EFD\u3002",
+    "historyImport.title": "\u532F\u5165\u4EFB\u52D9\u5099\u4EFD",
+    "historyImport.choose": "\u9078\u64C7 ZIP \u5099\u4EFD\u5957\u4EF6",
+    "historyImport.uploading": "\u6B63\u5728\u4E0A\u8F09",
+    "historyImport.validating": "\u6B63\u5728\u9A57\u8B49",
+    "historyImport.validated": "\u5DF2\u9A57\u8B49",
+    "historyImport.preview": "\u9084\u539F\u9810\u89BD",
+    "historyImport.restorable": "\u53EF\u9084\u539F",
+    "historyImport.duplicate": "\u91CD\u8907",
+    "historyImport.conflict": "\u885D\u7A81",
+    "historyImport.invalid": "\u7121\u6548",
+    "historyImport.confirm": "\u78BA\u8A8D\u9084\u539F",
+    "historyImport.restoring": "\u6B63\u5728\u9084\u539F",
+    "historyImport.restored": "\u5DF2\u9084\u539F",
+    "historyImport.failed": "\u9084\u539F\u5931\u6557",
+    "historyImport.interrupted": "\u5DF2\u4E2D\u65B7",
+    "historyImport.cancelled": "\u5DF2\u53D6\u6D88",
+    "historyImport.result": "\u9084\u539F\u7D50\u679C",
+    "historyImport.thumbnailWarnings": "\u7E2E\u5716\u8B66\u544A",
+    "historyImport.cleanupWarnings": "\u6E05\u7406\u8B66\u544A",
+    "historyImport.reselect": "\u8ACB\u91CD\u65B0\u9078\u64C7\u539F ZIP \u7E7C\u7E8C\u3002",
+    "historyImport.noOverwrite": "\u53EA\u65B0\u589E\u4EFB\u52D9\uFF0C\u7D55\u4E0D\u8986\u5BEB\u73FE\u6709\u4EFB\u52D9\u3002",
+    "historyImport.reasonInvalid": "\u5099\u4EFD\u8CC7\u6599\u7121\u6548",
+    "historyImport.reasonSensitive": "\u5305\u542B\u53D7\u4FDD\u8B77\u8CC7\u6599",
+    "historyImport.reasonMismatch": "\u8207\u5099\u4EFD\u6E05\u55AE\u4E0D\u4E00\u81F4",
     "history.closeExport": "\u95DC\u9589\u532F\u51FA\u9078\u64C7",
     "history.type": "\u985E\u578B",
     "history.allTypes": "\u5168\u90E8\u985E\u578B",
@@ -13465,6 +14619,8 @@
     "recentAssets.hideMessage": "\u9019\u5F35\u5716\u7247\u88AB {count} \u500B\u4EFB\u52D9\u5F15\u7528\uFF0C\u7121\u6CD5\u6C38\u4E45\u522A\u9664\u3002\u96B1\u85CF\u53EA\u6703\u5F9E\u300C\u6700\u8FD1\u4E0A\u50B3\u300D\u79FB\u9664\uFF1B\u539F\u5716\u3001\u7576\u524D\u8F38\u5165\u53CA\u6B77\u53F2\u4EFB\u52D9\u5747\u6703\u4FDD\u7559\u3002",
     "recentAssets.hideFailed": "\u6700\u8FD1\u4E0A\u50B3\u96B1\u85CF\u5931\u6557",
     "recentAssets.hidden": "\u5DF2\u5F9E\u6700\u8FD1\u4E0A\u50B3\u96B1\u85CF\uFF1B\u539F\u5716\u53CA\u6B77\u53F2\u4EFB\u52D9\u5747\u5DF2\u4FDD\u7559",
+    "recentAssets.hidePreviews": "\u96B1\u85CF\u6700\u8FD1\u4E0A\u50B3\u5716\u7247",
+    "recentAssets.showPreviews": "\u986F\u793A\u6700\u8FD1\u4E0A\u50B3\u5716\u7247",
     "recentAssets.deleteTitle": "\u522A\u9664\u6700\u8FD1\u4E0A\u50B3\uFF1F",
     "recentAssets.deleteMessage": "\u9019\u5F35\u5716\u7247\u672A\u88AB\u4EFB\u4F55\u4EFB\u52D9\u5F15\u7528\uFF0C\u5C07\u6C38\u4E45\u522A\u9664\u539F\u5716\uFF0C\u4E26\u5F9E\u7576\u524D\u8F38\u5165\u79FB\u9664\u76F8\u540C\u5716\u7247\u3002\u516C\u7528\u5716\u5EAB\u4E0D\u53D7\u5F71\u97FF\u3002",
     "recentAssets.loadFailed": "\u6700\u8FD1\u4E0A\u50B3\u8B80\u53D6\u5931\u6557",
@@ -13491,11 +14647,13 @@
     "referenceCollector.alreadyStaged": "\u5DF2\u5728\u5F85\u52A0\u5165\u53C3\u8003\u5716",
     "referenceCollector.staged": "\u5DF2\u66AB\u5B58{count}\u5F35\u53C3\u8003\u5716",
     "referenceCollector.title": "\u5F85\u52A0\u5165\u53C3\u8003\u5716 \xB7{count}\u5F35",
-    "referenceCollector.addAll": "\u5168\u90E8\u52A0\u5165\u53C3\u8003\u5716",
+    "referenceCollector.addAll": "\u5168\u90E8\u52A0\u5165",
+    "referenceCollector.replaceAll": "\u53D6\u4EE3\u73FE\u6709",
     "referenceCollector.itemFallback": "\u5F85\u52A0\u5165\u53C3\u8003\u5716",
     "referenceCollector.remove": "\u79FB\u9664\u5F85\u52A0\u5165\u53C3\u8003\u5716",
     "referenceCollector.cleared": "\u5F85\u52A0\u5165\u53C3\u8003\u5716\u5DF2\u6E05\u7A7A",
     "referenceCollector.added": "\u5DF2\u52A0\u5165{count}\u5F35\u53C3\u8003\u5716",
+    "referenceCollector.replaced": "\u5DF2\u53D6\u4EE3\u70BA{count}\u5F35\u53C3\u8003\u5716",
     "referenceCollector.addFailed": "\u5F85\u52A0\u5165\u53C3\u8003\u5716\u52A0\u5165\u5931\u6557",
     "referenceCollector.readFailed": "\u5716\u7247\u8B80\u53D6\u5931\u6557\uFF1A{status}",
     "gallery.quick": "\u5FEB\u901F\u9078\u64C7\u516C\u7528\u5716\u5EAB",
@@ -13708,6 +14866,16 @@
     "lightbox.close": "\u95DC\u9589\u9810\u89BD",
     "lightbox.previous": "\u4E0A\u4E00\u5F35",
     "lightbox.next": "\u4E0B\u4E00\u5F35",
+    "lightbox.zoomControls": "\u7E2E\u653E\u63A7\u5236",
+    "lightbox.zoomOut": "\u7E2E\u5C0F",
+    "lightbox.zoomIn": "\u653E\u5927",
+    "lightbox.fit": "\u9069\u5408",
+    "lightbox.fitPage": "\u9069\u5408\u9801\u9762",
+    "lightbox.actualSize": "100% \u539F\u59CB\u5C3A\u5BF8",
+    "lightbox.shortcuts": "\u5FEB\u6377\u9375\u63D0\u793A",
+    "lightbox.switchImage": "\u5207\u63DB\u5716\u7247",
+    "lightbox.switchTask": "\u5207\u63DB\u4EFB\u52D9",
+    "lightbox.wheelZoom": "\u6EFE\u8F2A\u7E2E\u653E",
     "promptPopover.title": "\u63D0\u793A\u8A5E\u5C0D\u6BD4",
     "promptPopover.summary": "\u539F\u59CB{original}\xB7 \u6700\u4F73\u5316{optimized}",
     "promptPopover.original": "\u539F\u59CB\u63D0\u793A\u8A5E",
@@ -13871,6 +15039,7 @@
     "colors.modifyValue": "\u4FEE\u6539\u984F\u8272{value}",
     "colors.removeValue": "\u79FB\u9664\u984F\u8272{value}",
     "taskGroup.today": "\u4ECA\u5929",
+    "taskGroup.current": "\u76EE\u524D\u6AA2\u8996",
     "taskGroup.yesterday": "\u6628\u5929",
     "taskGroup.last7": "\u6700\u8FD1 7 \u5929",
     "taskGroup.older": "\u66F4\u65E9",
@@ -13965,7 +15134,8 @@
     "apiSettings.copyProviderWithoutKeyStatus": "\u5DF2\u8907\u88FD\u914D\u7F6E\uFF0C\u53EF\u4FEE\u6539\u540D\u7A31\u3001\u6A21\u578B\u6216\u586B\u5BEBAPI Key\u5F8C\u5132\u5B58",
     "apiSettings.sortProviders": "\u6392\u5E8F",
     "apiSettings.finishSortProviders": "\u5B8C\u6210",
-    "apiSettings.sortProviderModeStatus": "\u6B63\u5728\u6392\u5E8F\u4F9B\u61C9\u5546",
+    "apiSettings.sortProviderModeStatus": "\u62D6\u66F3\u63A7\u5236\u9EDE\u6392\u5E8F\uFF0C\u4E5F\u53EF\u4F7F\u7528\u65B9\u5411\u9375\u8ABF\u6574",
+    "apiSettings.sortProviderHandleAria": "\u62D6\u66F3\u6392\u5E8F {provider}\uFF0C\u4E5F\u53EF\u4F7F\u7528\u65B9\u5411\u9375\u6216 Home\u3001End \u9375\u8ABF\u6574",
     "apiSettings.sortProviderStatus": "\u4F9B\u61C9\u5546\u6392\u5E8F\u5DF2\u8ABF\u6574\uFF0C\u6B63\u5728\u81EA\u52D5\u5132\u5B58",
     "apiSettings.moveProviderUp": "\u4E0A\u79FB",
     "apiSettings.moveProviderDown": "\u4E0B\u79FB",
@@ -14192,6 +15362,7 @@
     "batch.selected": "\u5DF2\u9078\u64C7 0 \u500B",
     "batch.selectedCount": "\u5DF2\u9078\u64C7{count}\u500B",
     "batch.selectCurrentGroup": "\u5168\u9078\u672C\u7D44",
+    "batch.selectWaiting": "\u5168\u9078\u7B49\u5F85\u4E2D",
     "batch.archivedCount": "\u5DF2\u6B78\u6A94{count}\u500B\u6703\u8A71",
     "batch.archiveFailed": "\u6279\u6B21\u6B78\u6A94\u5931\u6557",
     "batch.runningCannotDeleteSelected": "\u9078\u53D6\u7684\u6703\u8A71\u6B63\u5728\u57F7\u884C\uFF0C\u4E14\u7121\u6CD5\u522A\u9664",
@@ -14213,6 +15384,7 @@
     "action.archive": "\u6B78\u6A94",
     "action.delete": "\u522A\u9664",
     "action.cancel": "\u53D6\u6D88",
+    "action.stop": "\u505C\u6B62",
     "action.edit": "\u7DE8\u8F2F",
     "action.clear": "\u6E05\u7A7A",
     "action.paste": "\u8CBC\u4E0A",
@@ -14240,13 +15412,13 @@
     "queue.waitingActions": "\u7B49\u5F85\u4EFB\u52D9\u4F47\u5217\u64CD\u4F5C",
     "queue.cancelRunning": "\u53D6\u6D88",
     "queue.cancelRunningTitle": "\u53D6\u6D88\u57F7\u884C\u4EFB\u52D9",
-    "queue.dragWaiting": "\u62D6\u66F3\u8ABF\u6574\u7B49\u5F85\u9806\u5E8F",
+    "queue.dragWaiting": "\u6309\u4F4F\u5361\u7247\u4E0A\u4E0B\u62D6\u66F3\u6392\u5E8F",
     "queue.dragSort": "\u62D6\u66F3\u6392\u5E8F",
     "queue.moveUp": "\u4E0A",
     "queue.moveUpTitle": "\u4E0A\u79FB\u7B49\u5F85\u4EFB\u52D9",
     "queue.moveDown": "\u4E0B",
     "queue.moveDownTitle": "\u4E0B\u79FB\u7B49\u5F85\u4EFB\u52D9",
-    "queue.promote": "\u9802",
+    "queue.promote": "\u7F6E\u9802",
     "queue.promoteTitle": "\u7F6E\u9802\u7B49\u5F85\u4EFB\u52D9",
     "queue.promoteFailed": "\u7F6E\u9802\u5931\u6557",
     "queue.deleteWaitingShort": "\u522A",
@@ -14263,7 +15435,7 @@
     "queue.runningCancelled": "\u4EFB\u52D9\u5DF2\u53D6\u6D88",
     "queue.reorderFailed": "\u4F47\u5217\u6392\u5E8F\u5931\u6557",
     "queue.realtimeUpdateFailed": "\u5373\u6642\u72C0\u614B\u66F4\u65B0\u5931\u6557",
-    "queue.realtimeDisconnected": "\u5373\u6642\u72C0\u614B\u9023\u7DDA\u5DF2\u65B7\u958B\uFF0C\u91CD\u65B0\u6574\u7406\u9801\u9762\u53EF\u6062\u5FA9",
+    "queue.realtimeDisconnected": "\u5373\u6642\u72C0\u614B\u9023\u7DDA\u5DF2\u4E2D\u65B7\uFF0C\u6B63\u5728\u81EA\u52D5\u91CD\u65B0\u9023\u7DDA\u2026",
     "queue.readFailed": "\u4F47\u5217\u8B80\u53D6\u5931\u6557",
     "status.waiting": "\u7B49\u5F85\u4EFB\u52D9",
     "status.shownActiveTasks": "\u5DF2\u986F\u793A\u9032\u884C\u4E2D\u4EFB\u52D9",
@@ -14300,7 +15472,6 @@
     "taskCard.textToImageThumb": "\u6587\u751F\u5716\u4EFB\u52D9\u7E2E\u5716",
     "taskCard.imageToImageThumb": "\u5716\u751F\u5716\u4EFB\u52D9\u7E2E\u5716",
     "taskCard.failedThumb": "\u4EFB\u52D9\u5931\u6557",
-    "taskCard.textBadge": "\u6587",
     "taskMode.edit": "\u7DE8\u8F2F",
     "taskMode.generate": "\u751F\u6210",
     "document.generatingQueue": "\u751F\u6210\u4E2D \xB7 \u4F47\u5217{total}",
@@ -14322,6 +15493,10 @@
     "history.search": "\u641C\u5C0B",
     "history.searchPlaceholder": "\u641C\u5C0B\u63D0\u793A\u8A5E\u6216\u4EFB\u52D9ID",
     "history.clear": "\u6E05\u7A7A",
+    "history.activeFilterCount": "\u5DF2\u7BE9\u9078 \xB7 {count} \u9805",
+    "history.clearAllFilters": "\u6E05\u9664\u5168\u90E8",
+    "history.removeFilter": "\u79FB\u9664\u7BE9\u9078\uFF1A{label}",
+    "history.filtersActive": "\u4EFB\u52D9\u7BE9\u9078\uFF0C\u5DF2\u555F\u7528 {count} \u9805",
     "history.favorites": "\u6536\u85CF",
     "history.onlyFavorites": "\u53EA\u770B\u6536\u85CF",
     "history.favoriteTask": "\u6536\u85CF\u4EFB\u52D9",
@@ -14337,6 +15512,8 @@
     "history.removeTag": "\u79FB\u9664\u6A19\u7C64",
     "history.favoriteSelected": "\u6536\u85CF",
     "history.unfavoriteSelected": "\u53D6\u6D88\u6536\u85CF",
+    "history.organizeSelected": "\u6574\u7406",
+    "history.exitSelection": "\u7D50\u675F\u6279\u6B21\u9078\u53D6",
     "history.organizationFailed": "\u6536\u85CF\u6216\u6A19\u7C64\u66F4\u65B0\u5931\u6557",
     "history.tagNameConflict": "\u9019\u500B\u6A19\u7C64\u540D\u7A31\u5DF2\u5B58\u5728",
     "history.noTags": "\u9084\u6C92\u6709\u6A19\u7C64",
@@ -14348,6 +15525,73 @@
     "history.exportStarted": "\u5DF2\u958B\u59CB\u4E0B\u8F09",
     "history.exportSummary": "{taskCount} \u500B\u4EFB\u52D9 \xB7 {imageCount} \u5F35\u5716\u7247",
     "history.exportFailed": "\u532F\u51FA\u5931\u6557",
+    "historyBackup.open": "\u4EFB\u52D9\u5099\u4EFD",
+    "historyBackup.importOpen": "\u532F\u5165\u5099\u4EFD",
+    "historyBackup.mode": "\u4EFB\u52D9\u5099\u4EFD",
+    "historyBackup.description": "\u5132\u5B58\u4EFB\u52D9\u8CC7\u6599\u8207\u76F8\u95DC\u6A94\u6848\uFF0C\u53EF\u5728\u76F8\u5BB9\u7248\u672C\u7684 iLab CONJURE \u4E2D\u532F\u5165\u9084\u539F\u3002",
+    "historyBackup.scopeLegend": "\u5099\u4EFD\u7BC4\u570D",
+    "historyBackup.scopeHelp": "\u76EE\u524D\u7BE9\u9078\u8207\u5168\u90E8\u7BC4\u570D\u7531\u672C\u6A5F\u5B8C\u6574\u7D71\u8A08\uFF0C\u4E0D\u53D7\u6B64\u9801\u986F\u793A\u6578\u91CF\u5F71\u97FF\u3002",
+    "historyBackup.scopeSelected": "\u5DF2\u9078\u4EFB\u52D9",
+    "historyBackup.scopeFiltered": "\u76EE\u524D\u7BE9\u9078\u7D50\u679C",
+    "historyBackup.scopeAll": "\u5168\u90E8\u6B77\u53F2\u4EFB\u52D9",
+    "historyBackup.scopeCount": "{eligible}/{total} \u500B\u53EF\u5099\u4EFD",
+    "historyBackup.scopeCounting": "\u6B63\u5728\u7D71\u8A08\u2026",
+    "historyBackup.scopeCountUnavailable": "\u66AB\u6642\u7121\u6CD5\u7D71\u8A08",
+    "historyBackup.scopeNoneSelected": "\u5C1A\u672A\u9078\u64C7\u4EFB\u52D9",
+    "historyBackup.willBackup": "\u5C07\u5099\u4EFD {eligible} \u500B\u4EFB\u52D9\uFF1B{excluded} \u500B\u672A\u5B8C\u6210\u4EFB\u52D9\u6703\u88AB\u6392\u9664\u3002",
+    "historyBackup.selectTasksFirst": "\u8ACB\u5148\u9078\u64C7\u81F3\u5C11\u4E00\u500B\u4EFB\u52D9\u3002",
+    "historyBackup.scopeLockedUnknown": "\u672C\u6B21\u5099\u4EFD\u7BC4\u570D",
+    "historyBackup.scopeLocked": "\u7BC4\u570D\u5DF2\u9396\u5B9A\uFF1A{scope} \xB7 \u5C07\u5099\u4EFD {eligible} \u500B\u4EFB\u52D9",
+    "historyBackup.scopeLockedPending": "\u7BC4\u570D\u5DF2\u9396\u5B9A\uFF1A{scope} \xB7 \u6B63\u5728\u7D71\u8A08\u53EF\u5099\u4EFD\u4EFB\u52D9",
+    "historyBackup.progressLabel": "\u5099\u4EFD\u9032\u5EA6",
+    "historyBackup.start": "\u958B\u59CB\u5099\u4EFD",
+    "historyBackup.cancel": "\u53D6\u6D88\u5099\u4EFD",
+    "historyBackup.download": "\u4E0B\u8F09\u5099\u4EFD",
+    "historyBackup.dismiss": "\u95DC\u9589\u7D50\u679C",
+    "historyBackup.discard": "\u4E0D\u4E0B\u8F09\u4E26\u95DC\u9589",
+    "historyBackup.closePanel": "\u95DC\u9589\u9762\u677F",
+    "historyBackup.downloadStartedTitle": "\u4E0B\u8F09\u5DF2\u958B\u59CB",
+    "historyBackup.idle": "\u5C31\u7DD2",
+    "historyBackup.queued": "\u6392\u968A\u4E2D",
+    "historyBackup.planning": "\u6B63\u5728\u898F\u5283",
+    "historyBackup.packing": "\u6B63\u5728\u5C01\u88DD",
+    "historyBackup.ready": "\u53EF\u4E0B\u8F09",
+    "historyBackup.readyDetail": "\u5099\u4EFD\u5DF2\u5C31\u7DD2\u3002\u8ACB\u5728 1 \u5C0F\u6642\u5167\u4E0B\u8F09\uFF1B\u4E0D\u4E0B\u8F09\u4E26\u95DC\u9589\u6703\u7ACB\u5373\u522A\u9664\u66AB\u5B58\u6A94\u3002",
+    "historyBackup.downloaded": "\u8ACB\u78BA\u8A8D\u700F\u89BD\u5668\u5DF2\u5132\u5B58\u6A94\u6848\uFF1B\u5B8C\u6210\u5F8C\u5373\u53EF\u95DC\u9589\u6B64\u9762\u677F\u3002\u66AB\u5B58\u6A94\u6703\u5728\u50B3\u8F38\u7D50\u675F\u5F8C\u522A\u9664\u3002",
+    "historyBackup.missingInputsWarning": "{tasks} \u500B\u4EFB\u52D9\u7F3A\u5C11 {files} \u500B\u8F38\u5165\u6A94\u6848\uFF1B\u9019\u4E9B\u6A94\u6848\u4E0D\u6703\u5305\u542B\u5728\u5099\u4EFD\u4E2D\uFF0C\u63D0\u793A\u8A5E\u8207\u8F38\u51FA\u7D50\u679C\u4ECD\u6703\u6B63\u5E38\u532F\u51FA\u3002",
+    "historyBackup.failed": "\u5099\u4EFD\u5931\u6557",
+    "historyBackup.cancelled": "\u5DF2\u53D6\u6D88",
+    "historyBackup.expired": "\u5DF2\u904E\u671F",
+    "historyBackup.interrupted": "\u5DF2\u4E2D\u65B7",
+    "historyBackup.stats": "\u5171 {total} \u500B \xB7 \u53EF\u5099\u4EFD {eligible} \u500B \xB7 \u6392\u9664 {excluded} \u500B \xB7 {bytes}",
+    "historyBackup.errorDisk": "\u78C1\u789F\u7A7A\u9593\u4E0D\u8DB3\u3002",
+    "historyBackup.errorSourceChanged": "\u5099\u4EFD\u671F\u9593\u4F86\u6E90\u8CC7\u6599\u5DF2\u8B8A\u66F4\u3002",
+    "historyBackup.errorEmpty": "\u6C92\u6709\u53EF\u5099\u4EFD\u7684\u4EFB\u52D9\u3002",
+    "historyBackup.errorIo": "\u7121\u6CD5\u5EFA\u7ACB\u5099\u4EFD\u3002",
+    "historyImport.title": "\u532F\u5165\u4EFB\u52D9\u5099\u4EFD",
+    "historyImport.choose": "\u9078\u64C7 ZIP \u5099\u4EFD\u5957\u4EF6",
+    "historyImport.uploading": "\u6B63\u5728\u4E0A\u50B3",
+    "historyImport.validating": "\u6B63\u5728\u9A57\u8B49",
+    "historyImport.validated": "\u5DF2\u9A57\u8B49",
+    "historyImport.preview": "\u9084\u539F\u9810\u89BD",
+    "historyImport.restorable": "\u53EF\u9084\u539F",
+    "historyImport.duplicate": "\u91CD\u8907",
+    "historyImport.conflict": "\u885D\u7A81",
+    "historyImport.invalid": "\u7121\u6548",
+    "historyImport.confirm": "\u78BA\u8A8D\u9084\u539F",
+    "historyImport.restoring": "\u6B63\u5728\u9084\u539F",
+    "historyImport.restored": "\u5DF2\u9084\u539F",
+    "historyImport.failed": "\u9084\u539F\u5931\u6557",
+    "historyImport.interrupted": "\u5DF2\u4E2D\u65B7",
+    "historyImport.cancelled": "\u5DF2\u53D6\u6D88",
+    "historyImport.result": "\u9084\u539F\u7D50\u679C",
+    "historyImport.thumbnailWarnings": "\u7E2E\u5716\u8B66\u544A",
+    "historyImport.cleanupWarnings": "\u6E05\u7406\u8B66\u544A",
+    "historyImport.reselect": "\u8ACB\u91CD\u65B0\u9078\u64C7\u539F ZIP \u7E7C\u7E8C\u3002",
+    "historyImport.noOverwrite": "\u53EA\u65B0\u589E\u4EFB\u52D9\uFF0C\u7D55\u4E0D\u8986\u5BEB\u73FE\u6709\u4EFB\u52D9\u3002",
+    "historyImport.reasonInvalid": "\u5099\u4EFD\u8CC7\u6599\u7121\u6548",
+    "historyImport.reasonSensitive": "\u5305\u542B\u53D7\u4FDD\u8B77\u8CC7\u6599",
+    "historyImport.reasonMismatch": "\u8207\u5099\u4EFD\u6E05\u55AE\u4E0D\u4E00\u81F4",
     "history.closeExport": "\u95DC\u9589\u532F\u51FA\u9078\u64C7",
     "history.type": "\u985E\u578B",
     "history.allTypes": "\u5168\u90E8\u985E\u578B",
@@ -14562,6 +15806,8 @@
     "recentAssets.hideMessage": "\u9019\u5F35\u5716\u7247\u88AB {count} \u500B\u4EFB\u52D9\u5F15\u7528\uFF0C\u7121\u6CD5\u6C38\u4E45\u522A\u9664\u3002\u96B1\u85CF\u53EA\u6703\u5F9E\u300C\u6700\u8FD1\u4E0A\u50B3\u300D\u79FB\u9664\uFF1B\u539F\u5716\u3001\u76EE\u524D\u8F38\u5165\u53CA\u6B77\u53F2\u4EFB\u52D9\u90FD\u6703\u4FDD\u7559\u3002",
     "recentAssets.hideFailed": "\u6700\u8FD1\u4E0A\u50B3\u96B1\u85CF\u5931\u6557",
     "recentAssets.hidden": "\u5DF2\u5F9E\u6700\u8FD1\u4E0A\u50B3\u96B1\u85CF\uFF1B\u539F\u5716\u53CA\u6B77\u53F2\u4EFB\u52D9\u90FD\u5DF2\u4FDD\u7559",
+    "recentAssets.hidePreviews": "\u96B1\u85CF\u6700\u8FD1\u4E0A\u50B3\u5716\u7247",
+    "recentAssets.showPreviews": "\u986F\u793A\u6700\u8FD1\u4E0A\u50B3\u5716\u7247",
     "recentAssets.deleteTitle": "\u522A\u9664\u6700\u8FD1\u4E0A\u50B3\uFF1F",
     "recentAssets.deleteMessage": "\u9019\u5F35\u5716\u7247\u672A\u88AB\u4EFB\u4F55\u4EFB\u52D9\u5F15\u7528\uFF0C\u5C07\u6C38\u4E45\u522A\u9664\u539F\u5716\uFF0C\u4E26\u5F9E\u76EE\u524D\u8F38\u5165\u79FB\u9664\u76F8\u540C\u5716\u7247\u3002\u516C\u7528\u5716\u5EAB\u4E0D\u53D7\u5F71\u97FF\u3002",
     "recentAssets.loadFailed": "\u6700\u8FD1\u4E0A\u50B3\u8B80\u53D6\u5931\u6557",
@@ -14588,11 +15834,13 @@
     "referenceCollector.alreadyStaged": "\u5DF2\u5728\u5F85\u52A0\u5165\u53C3\u8003\u5716",
     "referenceCollector.staged": "\u5DF2\u66AB\u5B58{count}\u5F35\u53C3\u8003\u5716",
     "referenceCollector.title": "\u5F85\u52A0\u5165\u53C3\u8003\u5716 \xB7{count}\u5F35",
-    "referenceCollector.addAll": "\u5168\u90E8\u52A0\u5165\u53C3\u8003\u5716",
+    "referenceCollector.addAll": "\u5168\u90E8\u52A0\u5165",
+    "referenceCollector.replaceAll": "\u53D6\u4EE3\u73FE\u6709",
     "referenceCollector.itemFallback": "\u5F85\u52A0\u5165\u53C3\u8003\u5716",
     "referenceCollector.remove": "\u79FB\u9664\u5F85\u52A0\u5165\u53C3\u8003\u5716",
     "referenceCollector.cleared": "\u5F85\u52A0\u5165\u53C3\u8003\u5716\u5DF2\u6E05\u7A7A",
     "referenceCollector.added": "\u5DF2\u52A0\u5165{count}\u5F35\u53C3\u8003\u5716",
+    "referenceCollector.replaced": "\u5DF2\u53D6\u4EE3\u70BA{count}\u5F35\u53C3\u8003\u5716",
     "referenceCollector.addFailed": "\u5F85\u52A0\u5165\u53C3\u8003\u5716\u52A0\u5165\u5931\u6557",
     "referenceCollector.readFailed": "\u5716\u7247\u8B80\u53D6\u5931\u6557\uFF1A{status}",
     "gallery.quick": "\u5FEB\u901F\u9078\u64C7\u516C\u7528\u5716\u5EAB",
@@ -14805,6 +16053,16 @@
     "lightbox.close": "\u95DC\u9589\u9810\u89BD",
     "lightbox.previous": "\u4E0A\u4E00\u5F35",
     "lightbox.next": "\u4E0B\u4E00\u5F35",
+    "lightbox.zoomControls": "\u7E2E\u653E\u63A7\u5236",
+    "lightbox.zoomOut": "\u7E2E\u5C0F",
+    "lightbox.zoomIn": "\u653E\u5927",
+    "lightbox.fit": "\u9069\u5408",
+    "lightbox.fitPage": "\u9069\u5408\u9801\u9762",
+    "lightbox.actualSize": "100% \u539F\u59CB\u5C3A\u5BF8",
+    "lightbox.shortcuts": "\u5FEB\u6377\u9375\u63D0\u793A",
+    "lightbox.switchImage": "\u5207\u63DB\u5716\u7247",
+    "lightbox.switchTask": "\u5207\u63DB\u4EFB\u52D9",
+    "lightbox.wheelZoom": "\u6EFE\u8F2A\u7E2E\u653E",
     "promptPopover.title": "\u63D0\u793A\u8A5E\u5C0D\u6BD4",
     "promptPopover.summary": "\u539F\u59CB{original}\xB7 \u6700\u4F73\u5316{optimized}",
     "promptPopover.original": "\u539F\u59CB\u63D0\u793A\u8A5E",
@@ -14968,6 +16226,7 @@
     "colors.modifyValue": "\u4FEE\u6539\u984F\u8272{value}",
     "colors.removeValue": "\u79FB\u9664\u984F\u8272{value}",
     "taskGroup.today": "\u4ECA\u5929",
+    "taskGroup.current": "\u76EE\u524D\u6AA2\u8996",
     "taskGroup.yesterday": "\u6628\u5929",
     "taskGroup.last7": "\u6700\u8FD1 7 \u5929",
     "taskGroup.older": "\u66F4\u65E9",
@@ -15062,7 +16321,8 @@
     "apiSettings.copyProviderWithoutKeyStatus": "\u5DF2\u8907\u88FD\u914D\u7F6E\uFF0C\u53EF\u4FEE\u6539\u540D\u7A31\u3001\u6A21\u578B\u6216\u586B\u5BEBAPI Key\u5F8C\u5132\u5B58",
     "apiSettings.sortProviders": "\u6392\u5E8F",
     "apiSettings.finishSortProviders": "\u5B8C\u6210",
-    "apiSettings.sortProviderModeStatus": "\u6B63\u5728\u6392\u5E8F\u4F9B\u61C9\u5546",
+    "apiSettings.sortProviderModeStatus": "\u62D6\u66F3\u63A7\u5236\u9EDE\u6392\u5E8F\uFF0C\u4E5F\u53EF\u4F7F\u7528\u65B9\u5411\u9375\u8ABF\u6574",
+    "apiSettings.sortProviderHandleAria": "\u62D6\u66F3\u6392\u5E8F {provider}\uFF0C\u4E5F\u53EF\u4F7F\u7528\u65B9\u5411\u9375\u6216 Home\u3001End \u9375\u8ABF\u6574",
     "apiSettings.sortProviderStatus": "\u4F9B\u61C9\u5546\u6392\u5E8F\u5DF2\u8ABF\u6574\uFF0C\u6B63\u5728\u81EA\u52D5\u5132\u5B58",
     "apiSettings.moveProviderUp": "\u4E0A\u79FB",
     "apiSettings.moveProviderDown": "\u4E0B\u79FB",
@@ -15319,20 +16579,20 @@
   }
   function appendOptionContent(target, option2) {
     target.replaceChildren();
-    const icon = option2?.dataset.optionIcon?.trim();
+    const icon2 = option2?.dataset.optionIcon?.trim();
     const kind = option2?.dataset.optionIconKind === "image" ? "image" : "emoji";
-    if (icon) {
+    if (icon2) {
       const iconElement = document.createElement("span");
       iconElement.className = `themed-select-option-icon ${kind}`;
       iconElement.setAttribute("aria-hidden", "true");
       if (kind === "image") {
         const image = document.createElement("img");
-        image.src = icon;
+        image.src = icon2;
         image.alt = "";
         image.decoding = "async";
         iconElement.append(image);
       } else {
-        iconElement.textContent = icon;
+        iconElement.textContent = icon2;
       }
       target.append(iconElement);
     }
@@ -15851,11 +17111,7 @@
     });
     els9.apiProviderSearch?.addEventListener("input", () => call(methods, "renderApiProviderList"));
     els9.apiProviderList?.addEventListener("click", (event) => {
-      const sortButton = event.target?.closest?.("[data-api-provider-sort]");
-      if (sortButton) {
-        call(methods, "moveApiProvider", sortButton.dataset.apiProviderId, sortButton.dataset.apiProviderSort);
-        return;
-      }
+      if (event.target?.closest?.("[data-api-provider-sort-handle]")) return;
       const button = event.target?.closest?.("[data-api-provider-id]");
       if (!button) return;
       call(methods, "selectApiProvider", button.dataset.apiProviderId);
@@ -15941,6 +17197,7 @@
     call2(methods, "updateCustomSize");
     call2(methods, "restoreOutputSettingsLock");
     call2(methods, "renderImageStrip");
+    call2(methods, "restoreCollectedReferences");
     void call2(methods, "restoreHistoryReferenceHandoff");
     void call2(methods, "restoreHistoryTaskReuseHandoff");
     call2(methods, "refreshSettings");
@@ -16008,6 +17265,7 @@
       taskHistoryShell: document.querySelector(".task-history-shell"),
       sidebarContent: document.querySelector(".sidebar-content"),
       taskActiveList: document.querySelector("#taskActiveList"),
+      taskQueueDragLayer: document.querySelector("#taskQueueDragLayer"),
       taskLatestButton: document.querySelector("#taskLatestButton"),
       taskLatestBadge: document.querySelector("#taskLatestBadge"),
       taskList: document.querySelector("#taskList"),
@@ -16023,6 +17281,7 @@
       taskPromptFidelityFilter: document.querySelector("#taskPromptFidelityFilter"),
       taskResolutionFilter: document.querySelector("#taskResolutionFilter"),
       taskHistoryTopAnchors: document.querySelector("#taskHistoryTopAnchors"),
+      taskHistoryCurrentAnchor: document.querySelector("#taskHistoryCurrentAnchor"),
       taskHistoryBottomAnchors: document.querySelector("#taskHistoryBottomAnchors"),
       taskHistoryLibrarySlot: document.querySelector("#taskHistoryLibrarySlot"),
       archiveButton: document.querySelector("#archiveButton"),
@@ -16031,10 +17290,10 @@
       batchToolbar: document.querySelector("#batchToolbar"),
       batchSelectedCount: document.querySelector("#batchSelectedCount"),
       batchSelectGroupButton: document.querySelector("#batchSelectGroupButton"),
+      batchSelectWaitingButton: document.querySelector("#batchSelectWaitingButton"),
       batchArchiveButton: document.querySelector("#batchArchiveButton"),
       batchCancelSelectedButton: document.querySelector("#batchCancelSelectedButton"),
       batchDeleteButton: document.querySelector("#batchDeleteButton"),
-      batchCancelButton: document.querySelector("#batchCancelButton"),
       archiveModal: document.querySelector("#archiveModal"),
       archiveModalClose: document.querySelector("#archiveModalClose"),
       archiveList: document.querySelector("#archiveList"),
@@ -16126,7 +17385,9 @@
       imageEditorCancel: document.querySelector("#imageEditorCancel"),
       imageEditorStatus: document.querySelector("#imageEditorStatus"),
       recentAssetDock: document.querySelector("#recentAssetDock"),
+      recentAssetStatus: document.querySelector("#recentAssetStatus"),
       recentAssetList: document.querySelector("#recentAssetList"),
+      recentAssetVisibilityToggle: document.querySelector("#recentAssetVisibilityToggle"),
       referenceCollector: document.querySelector("#referenceCollector"),
       imageStrip: document.querySelector("#imageStrip"),
       imageThumbList: document.querySelector("#imageThumbList"),
@@ -16487,6 +17748,8 @@
   }
   function addPendingTask(task) {
     const state5 = getLegacyBridge().state;
+    state5.historyTaskReveal = null;
+    state5.historyTaskRevealSeq += 1;
     state5.pendingTaskId = task.task_id;
     state5.selectedTaskId = task.task_id;
     state5.tasks = [task, ...state5.tasks.filter((item) => item.task_id !== task.task_id)];
@@ -16648,6 +17911,8 @@
       activeTaskGroupCollapsed: false,
       expandedTaskGroupKey: null,
       expandedTaskGroupAnimationPending: false,
+      historyTaskReveal: null,
+      historyTaskRevealSeq: 0,
       latestTaskNoticeCount: 0,
       latestTaskKeepAtTop: false,
       latestTaskKeepAtTopExpiresAt: 0,
@@ -16829,6 +18094,7 @@
     restoreExpandedTaskGroupKey: proxy("restoreExpandedTaskGroupKey"),
     restoreLegacyArchivedTasks: proxy("restoreLegacyArchivedTasks"),
     restoreMainModel: proxy("restoreMainModel"),
+    restoreCollectedReferences: proxy("restoreCollectedReferences"),
     restoreSidebarWidth: proxy("restoreSidebarWidth"),
     restoreThemePreference: proxy("restoreThemePreference"),
     revokeTaskUploadPreviewUrls: proxy("revokeTaskUploadPreviewUrls"),
@@ -17463,11 +18729,12 @@
     ".radio-group:not(.ratio-group):not(.model-parameter-segmented-multiline):not(.model-aspect-ratio-grid)",
     "#authSourceGroup",
     "#systemSettingsTabs",
+    ".network-egress-mode-selector",
     ".history-view-toggle",
     ".history-sort-toggle"
   ];
   var HOST_SELECTOR = HOST_SELECTORS.join(", ");
-  var BUTTON_SELECTOR = ".radio-btn, .auth-source-button, .system-settings-tab, .history-view-button, .history-sort-button";
+  var BUTTON_SELECTOR = ".radio-btn, .auth-source-button, .system-settings-tab, .network-egress-mode-button, .history-view-button, .history-sort-button";
   var INDICATOR_CLASS = "segmented-indicator";
   var HOST_CLASS = "segmented-indicator-host";
   var READY_CLASS = "segmented-indicator-ready";
@@ -17476,7 +18743,7 @@
   var segmentedIndicatorsInitialized = false;
   var resizeObserver = null;
   function activeSegment(host) {
-    return host.querySelector(".radio-btn.active, .auth-source-button.active, .system-settings-tab.active, .history-view-button.active, .history-sort-button.active");
+    return host.querySelector(".radio-btn.active, .auth-source-button.active, .system-settings-tab.active, .network-egress-mode-button.active, .history-view-button.active, .history-sort-button.active");
   }
   function ensureIndicator(host) {
     const existing = Array.from(host.children).find((child) => child.classList.contains(INDICATOR_CLASS));
@@ -18013,11 +19280,11 @@
         button.disabled = context.readOnly;
         button.tabIndex = context.readOnly ? -1 : 0;
         button.setAttribute("aria-pressed", active ? "true" : "false");
-        const icon = createAspectRatioIcon(allowed);
+        const icon2 = createAspectRatioIcon(allowed);
         const label = document.createElement("span");
         label.className = "aspect-ratio-label";
         label.textContent = allowed;
-        if (icon) button.append(icon, label);
+        if (icon2) button.append(icon2, label);
         else {
           button.classList.add("aspect-ratio-no-icon");
           button.append(label);
@@ -18421,14 +19688,14 @@
         item.title = family.display_name;
         item.setAttribute("aria-label", family.display_name);
         item.setAttribute("aria-checked", active ? "true" : "false");
-        const icon = document.createElement("span");
-        icon.className = `model-family-segment-icon model-family-segment-icon-${family.id}`;
-        icon.setAttribute("aria-hidden", "true");
-        icon.innerHTML = modelFamilyBrandMarkHtml(family.id, "model-family-brand-mark");
+        const icon2 = document.createElement("span");
+        icon2.className = `model-family-segment-icon model-family-segment-icon-${family.id}`;
+        icon2.setAttribute("aria-hidden", "true");
+        icon2.innerHTML = modelFamilyBrandMarkHtml(family.id, "model-family-brand-mark");
         const label = document.createElement("span");
         label.className = "model-family-segment-label";
         label.textContent = family.short_name || family.display_name;
-        item.append(icon, label);
+        item.append(icon2, label);
         familyOptions.append(item);
       });
     }
@@ -18872,6 +20139,259 @@
     });
   }
 
+  // codex_image/webui/frontend/src/api-provider-sort.ts
+  var DRAG_START_THRESHOLD_PX = 6;
+  var AUTO_SCROLL_EDGE_PX = 36;
+  var AUTO_SCROLL_MAX_STEP_PX = 12;
+  var initialized = false;
+  var providerList = null;
+  var dragSession = null;
+  function isCompleteProviderOrder(candidate, current) {
+    if (candidate.length !== current.length || new Set(candidate).size !== candidate.length) return false;
+    const currentIds = new Set(current);
+    return candidate.every((id) => currentIds.has(id));
+  }
+  function moveProviderId(order, providerId, targetIndex) {
+    const sourceIndex = order.indexOf(providerId);
+    if (sourceIndex < 0) return [...order];
+    const boundedTarget = Math.max(0, Math.min(order.length - 1, targetIndex));
+    if (sourceIndex === boundedTarget) return [...order];
+    const next = [...order];
+    const [provider] = next.splice(sourceIndex, 1);
+    if (provider === void 0) return [...order];
+    next.splice(boundedTarget, 0, provider);
+    return next;
+  }
+  function providerOrderFromRows(list) {
+    return Array.from(list.querySelectorAll(".api-provider-sort-row[data-api-provider-id]")).map((row) => row.dataset.apiProviderId || "").filter(Boolean);
+  }
+  function sortModeEnabled() {
+    const bridge7 = getLegacyBridge();
+    return Boolean(bridge7.state.apiProviderSortMode && providerList?.classList.contains("is-sorting"));
+  }
+  function sameOrder(left, right) {
+    return left.length === right.length && left.every((id, index) => id === right[index]);
+  }
+  function restoreProviderRows(list, order) {
+    const rowsById = new Map(
+      Array.from(list.querySelectorAll(".api-provider-sort-row[data-api-provider-id]")).map((row) => [row.dataset.apiProviderId || "", row])
+    );
+    order.forEach((providerId) => {
+      const row = rowsById.get(providerId);
+      if (row) list.append(row);
+    });
+  }
+  function removeDragListeners() {
+    window.removeEventListener("pointermove", handlePointerMove);
+    window.removeEventListener("pointerup", handlePointerUp);
+    window.removeEventListener("pointercancel", handlePointerCancel);
+    window.removeEventListener("keydown", handleWindowKeydown);
+  }
+  function cleanUpDrag(restoreOrder) {
+    const session = dragSession;
+    if (!session) return null;
+    dragSession = null;
+    removeDragListeners();
+    if (session.animationFrameId !== null) window.cancelAnimationFrame(session.animationFrameId);
+    if (restoreOrder && providerList) restoreProviderRows(providerList, session.originalOrder);
+    session.row.classList.remove("is-dragging");
+    session.layer?.remove();
+    document.body.classList.remove("api-provider-sort-dragging");
+    try {
+      if (session.handle.hasPointerCapture(session.pointerId)) {
+        session.handle.releasePointerCapture(session.pointerId);
+      }
+    } catch {
+    }
+    return session;
+  }
+  function cancelApiProviderSortInteraction(restoreOrder = true) {
+    cleanUpDrag(restoreOrder);
+  }
+  function positionPreview(session) {
+    if (!session.preview) return;
+    const left = session.latestX - session.offsetX;
+    const top = session.latestY - session.offsetY;
+    session.preview.style.transform = `translate3d(${left}px, ${top}px, 0)`;
+  }
+  function createDragPreview(session) {
+    const rect = session.row.getBoundingClientRect();
+    const layer = document.createElement("div");
+    layer.className = "api-provider-sort-drag-layer";
+    layer.setAttribute("aria-hidden", "true");
+    const preview = session.row.cloneNode(true);
+    preview.classList.remove("is-dragging");
+    preview.classList.add("api-provider-sort-drag-preview");
+    preview.removeAttribute("role");
+    preview.style.width = `${rect.width}px`;
+    preview.style.height = `${rect.height}px`;
+    preview.querySelectorAll("button, [tabindex]").forEach((element) => {
+      element.setAttribute("tabindex", "-1");
+    });
+    layer.append(preview);
+    document.body.append(layer);
+    session.layer = layer;
+    session.preview = preview;
+    session.offsetX = session.startX - rect.left;
+    session.offsetY = session.startY - rect.top;
+    session.row.classList.add("is-dragging");
+    document.body.classList.add("api-provider-sort-dragging");
+    positionPreview(session);
+  }
+  function rowAtPoint(clientX, clientY) {
+    if (!providerList) return null;
+    for (const element of document.elementsFromPoint(clientX, clientY)) {
+      const row = element.closest(".api-provider-sort-row[data-api-provider-id]");
+      if (row && row.parentElement === providerList && row !== dragSession?.row) return row;
+    }
+    return null;
+  }
+  function reorderRowAtPoint(clientX, clientY) {
+    const session = dragSession;
+    const target = rowAtPoint(clientX, clientY);
+    if (!session?.active || !target) return;
+    const targetRect = target.getBoundingClientRect();
+    if (clientY < targetRect.top + targetRect.height / 2) {
+      if (target.previousElementSibling !== session.row) target.before(session.row);
+    } else if (target.nextElementSibling !== session.row) {
+      target.after(session.row);
+    }
+  }
+  function scrollContainer() {
+    return providerList?.closest(".api-provider-choice-grid") || null;
+  }
+  function autoScrollStep() {
+    const session = dragSession;
+    if (!session?.active) return;
+    const container = scrollContainer();
+    if (container && container.scrollHeight > container.clientHeight) {
+      const rect = container.getBoundingClientRect();
+      let step = 0;
+      if (session.latestY < rect.top + AUTO_SCROLL_EDGE_PX) {
+        const intensity = Math.min(1, (rect.top + AUTO_SCROLL_EDGE_PX - session.latestY) / AUTO_SCROLL_EDGE_PX);
+        step = -Math.ceil(AUTO_SCROLL_MAX_STEP_PX * intensity);
+      } else if (session.latestY > rect.bottom - AUTO_SCROLL_EDGE_PX) {
+        const intensity = Math.min(1, (session.latestY - (rect.bottom - AUTO_SCROLL_EDGE_PX)) / AUTO_SCROLL_EDGE_PX);
+        step = Math.ceil(AUTO_SCROLL_MAX_STEP_PX * intensity);
+      }
+      if (step !== 0) {
+        const previousScrollTop = container.scrollTop;
+        container.scrollTop += step;
+        if (container.scrollTop !== previousScrollTop) {
+          reorderRowAtPoint(session.latestX, session.latestY);
+        }
+      }
+    }
+    session.animationFrameId = window.requestAnimationFrame(autoScrollStep);
+  }
+  function activateDrag(session) {
+    if (session.active) return;
+    session.active = true;
+    try {
+      session.handle.setPointerCapture(session.pointerId);
+    } catch {
+    }
+    createDragPreview(session);
+    session.animationFrameId = window.requestAnimationFrame(autoScrollStep);
+  }
+  function handlePointerMove(event) {
+    const session = dragSession;
+    if (!session || event.pointerId !== session.pointerId) return;
+    session.latestX = event.clientX;
+    session.latestY = event.clientY;
+    if (!session.active) {
+      const deltaX = event.clientX - session.startX;
+      const deltaY = event.clientY - session.startY;
+      if (Math.hypot(deltaX, deltaY) < DRAG_START_THRESHOLD_PX) return;
+      activateDrag(session);
+    }
+    event.preventDefault();
+    positionPreview(session);
+    reorderRowAtPoint(event.clientX, event.clientY);
+  }
+  function submitProviderOrder(order, focusProviderId) {
+    const method = getLegacyBridge().methods.reorderApiProviders;
+    if (typeof method === "function") method(order, focusProviderId);
+  }
+  function handlePointerUp(event) {
+    const session = dragSession;
+    if (!session || event.pointerId !== session.pointerId) return;
+    const nextOrder = session.active && providerList ? providerOrderFromRows(providerList) : session.originalOrder;
+    const providerId = session.row.dataset.apiProviderId || "";
+    const wasActive = session.active;
+    const originalOrder = session.originalOrder;
+    cleanUpDrag(false);
+    if (wasActive) event.preventDefault();
+    if (wasActive && !sameOrder(nextOrder, originalOrder)) submitProviderOrder(nextOrder, providerId);
+  }
+  function handlePointerCancel(event) {
+    if (event.pointerId !== dragSession?.pointerId) return;
+    cleanUpDrag(true);
+  }
+  function handleWindowKeydown(event) {
+    if (event.key === "Escape" && dragSession) {
+      event.preventDefault();
+      cleanUpDrag(true);
+    }
+  }
+  function handlePointerDown(event) {
+    if (!providerList || !sortModeEnabled() || event.button !== 0 || dragSession) return;
+    const handle = event.target?.closest(
+      "button[data-api-provider-sort-handle]"
+    );
+    const row = handle?.closest(".api-provider-sort-row[data-api-provider-id]");
+    if (!handle || !row || row.parentElement !== providerList) return;
+    dragSession = {
+      pointerId: event.pointerId,
+      handle,
+      row,
+      originalOrder: providerOrderFromRows(providerList),
+      startX: event.clientX,
+      startY: event.clientY,
+      offsetX: 0,
+      offsetY: 0,
+      latestX: event.clientX,
+      latestY: event.clientY,
+      active: false,
+      layer: null,
+      preview: null,
+      animationFrameId: null
+    };
+    window.addEventListener("pointermove", handlePointerMove, { passive: false });
+    window.addEventListener("pointerup", handlePointerUp);
+    window.addEventListener("pointercancel", handlePointerCancel);
+    window.addEventListener("keydown", handleWindowKeydown);
+  }
+  function handleSortKeydown(event) {
+    if (!providerList || !sortModeEnabled() || dragSession) return;
+    const handle = event.target?.closest(
+      "button[data-api-provider-sort-handle]"
+    );
+    const providerId = handle?.dataset.apiProviderId || "";
+    if (!handle || !providerId) return;
+    const order = providerOrderFromRows(providerList);
+    const index = order.indexOf(providerId);
+    if (index < 0) return;
+    let targetIndex = null;
+    if (event.key === "ArrowUp") targetIndex = index - 1;
+    else if (event.key === "ArrowDown") targetIndex = index + 1;
+    else if (event.key === "Home") targetIndex = 0;
+    else if (event.key === "End") targetIndex = order.length - 1;
+    if (targetIndex === null) return;
+    event.preventDefault();
+    const nextOrder = moveProviderId(order, providerId, targetIndex);
+    if (!sameOrder(nextOrder, order)) submitProviderOrder(nextOrder, providerId);
+  }
+  function initApiProviderSortFeature() {
+    if (initialized) return;
+    const list = getLegacyBridge().els.apiProviderList;
+    if (!list) return;
+    initialized = true;
+    providerList = list;
+    list.addEventListener("pointerdown", handlePointerDown);
+    list.addEventListener("keydown", handleSortKeydown);
+  }
+
   // codex_image/webui/frontend/src/provider-model-bindings.ts
   var BINDING_TEMPLATES = {
     gpt_openai_images: {
@@ -19301,12 +20821,12 @@
     };
   }
   function appendProviderIdentity(target, provider, className) {
-    const icon = String(provider?.icon_emoji || "").trim();
-    if (icon) {
+    const icon2 = String(provider?.icon_emoji || "").trim();
+    if (icon2) {
       const emoji = document.createElement("span");
       emoji.className = "api-provider-emoji";
       emoji.setAttribute("aria-hidden", "true");
-      emoji.textContent = icon;
+      emoji.textContent = icon2;
       target.append(emoji);
     }
     const label = document.createElement("span");
@@ -19486,6 +21006,7 @@
     return defaults;
   }
   function renderApiProviderList() {
+    cancelApiProviderSortInteraction(true);
     const settings = normalizeApiSettings(state3.apiSettings);
     state3.apiSettings = settings;
     const sorting = Boolean(state3.apiProviderSortMode && settings.providers.length > 1);
@@ -19506,7 +21027,7 @@
     els4.apiProviderList.classList.toggle("is-sorting", sorting);
     els4.apiProviderList.setAttribute("role", sorting ? "list" : "listbox");
     if (sorting) {
-      const rows = settings.providers.map((provider, index) => {
+      const rows = settings.providers.map((provider) => {
         const row = document.createElement("div");
         row.className = `api-provider-sort-row${provider.id === settings.active_provider_id ? " active" : ""}`;
         row.dataset.apiProviderId = provider.id;
@@ -19519,23 +21040,24 @@
         const meta = document.createElement("span");
         meta.textContent = providerMetaLabel(provider);
         content.append(name, meta);
-        const controls = document.createElement("div");
-        controls.className = "api-provider-sort-actions";
-        [
-          ["up", "apiSettings.moveProviderUp", "apiSettings.moveProviderUpAria", index <= 0],
-          ["down", "apiSettings.moveProviderDown", "apiSettings.moveProviderDownAria", index >= settings.providers.length - 1]
-        ].forEach(([direction, labelKey, ariaKey, disabled]) => {
-          const button = document.createElement("button");
-          button.type = "button";
-          button.className = "ghost-button api-provider-sort-button";
-          button.dataset.apiProviderId = provider.id;
-          button.dataset.apiProviderSort = direction;
-          button.disabled = Boolean(disabled);
-          button.textContent = translate(labelKey);
-          button.setAttribute("aria-label", formatTranslation(ariaKey, { provider: provider.name || provider.id }));
-          controls.append(button);
+        const handle = document.createElement("button");
+        handle.type = "button";
+        handle.className = "api-provider-sort-handle";
+        handle.dataset.apiProviderId = provider.id;
+        handle.dataset.apiProviderSortHandle = "";
+        const handleLabel = formatTranslation("apiSettings.sortProviderHandleAria", {
+          provider: provider.name || provider.id
         });
-        row.append(content, controls);
+        handle.setAttribute("aria-label", handleLabel);
+        handle.setAttribute("title", handleLabel);
+        const grip = document.createElement("span");
+        grip.className = "api-provider-sort-grip";
+        grip.setAttribute("aria-hidden", "true");
+        for (let dotIndex = 0; dotIndex < 6; dotIndex += 1) {
+          grip.append(document.createElement("span"));
+        }
+        handle.append(grip);
+        row.append(content, handle);
         return row;
       });
       els4.apiProviderList.replaceChildren(...rows);
@@ -19900,20 +21422,37 @@
     }
     const settings = normalizeApiSettings(state3.apiSettings);
     if (settings.providers.length <= 1) return;
+    cancelApiProviderSortInteraction(true);
     state3.apiProviderSortMode = !state3.apiProviderSortMode;
     renderApiProviderList();
     if (!state3.apiProviderSortMode) scrollActiveApiProviderCardIntoView(settings.active_provider_id, "center");
     setApiSettingsFeedback(state3.apiProviderSortMode ? translate("apiSettings.sortProviderModeStatus") : "", state3.apiProviderSortMode ? "running" : "");
   }
-  function moveApiProvider(providerId, direction) {
-    if (!state3.apiProviderSortMode || apiProviderEditorActive()) return;
+  function focusedApiProviderSortId() {
+    if (!state3.apiProviderSortMode) return "";
+    const handle = document.activeElement?.closest(
+      "button[data-api-provider-sort-handle][data-api-provider-id]"
+    );
+    return handle?.dataset.apiProviderId || "";
+  }
+  function focusApiProviderSortHandle(providerId) {
+    if (!providerId) return;
+    window.requestAnimationFrame(() => {
+      const escapedId = CSS.escape(providerId);
+      els4.apiProviderList?.querySelector(`button[data-api-provider-sort-handle][data-api-provider-id="${escapedId}"]`)?.focus({ preventScroll: true });
+    });
+  }
+  function reorderApiProviders(orderedIds, focusProviderId = "") {
+    if (!state3.apiProviderSortMode || apiProviderEditorActive() || !Array.isArray(orderedIds)) return false;
     const settings = normalizeApiSettings(state3.apiSettings);
-    const index = settings.providers.findIndex((provider) => provider.id === providerId);
-    const offset = direction === "up" ? -1 : direction === "down" ? 1 : 0;
-    const nextIndex = index + offset;
-    if (index < 0 || nextIndex < 0 || nextIndex >= settings.providers.length) return;
-    const providers = [...settings.providers];
-    [providers[index], providers[nextIndex]] = [providers[nextIndex], providers[index]];
+    const currentIds = settings.providers.map((provider) => provider.id);
+    const candidate = orderedIds.map((id) => String(id || ""));
+    if (!isCompleteProviderOrder(candidate, currentIds)) return false;
+    if (candidate.every((id, index) => id === currentIds[index])) return false;
+    const providersById = new Map(
+      settings.providers.map((provider) => [provider.id, provider])
+    );
+    const providers = candidate.map((id) => providersById.get(id));
     state3.apiSettings = normalizeApiSettings({
       ...settings,
       providers,
@@ -19923,6 +21462,8 @@
     renderApiProviderList();
     setApiSettingsFeedback(translate("apiSettings.sortProviderStatus"), "running");
     queueApiSettingsAutosave();
+    focusApiProviderSortHandle(focusProviderId);
+    return true;
   }
   async function saveApiProviderEdit() {
     if (!apiProviderEditorActive()) return;
@@ -20206,6 +21747,7 @@
   async function saveApiSettings(options = {}) {
     const autoSave = Boolean(options.auto);
     if (autoSave && apiProviderEditorActive()) return true;
+    const sortFocusId = autoSave ? focusedApiProviderSortId() : "";
     if (state3.apiSettingsSaveTimerId) {
       window.clearTimeout(state3.apiSettingsSaveTimerId);
       state3.apiSettingsSaveTimerId = null;
@@ -20272,6 +21814,7 @@
       state3.apiProviderDraftIsNew = false;
       persistApiSettings();
       populateApiSettingsForm();
+      focusApiProviderSortHandle(sortFocusId);
       setApiSettingsFeedback(autoSave ? translate("apiSettings.autoSaved") : formatTranslation("apiSettings.savedSummary", {
         codex: codexModeLabel2(currentCodexMode3()),
         provider: activeApiProvider().name,
@@ -20296,6 +21839,7 @@
       state3.apiProviderDraftIsNew = previousDraftIsNew;
       persistApiSettings();
       populateApiSettingsForm();
+      focusApiProviderSortHandle(sortFocusId);
       setApiSettingsFeedback(error.message || translate("apiSettings.saveFailed"), "error");
       if (!autoSave) setSaveButtonText("failed");
       setStatus3(error.message || translate("apiSettings.saveFailed"), "error");
@@ -20367,7 +21911,7 @@
       revealApiKeyWhilePressed,
       renderApiProviderList,
       syncCodexModeNotes,
-      moveApiProvider,
+      reorderApiProviders,
       removeProviderBinding,
       toggleApiProviderSortMode,
       openGenerationProviderSettings,
@@ -20387,6 +21931,7 @@
       setApiSettingsFeedback,
       saveApiSettings
     });
+    initApiProviderSortFeature();
   }
 
   // codex_image/webui/frontend/src/network-egress-settings.ts
@@ -20500,7 +22045,7 @@
     }
   }
   async function testNetworkEgress() {
-    const { els: els9 } = getLegacyBridge();
+    const { els: els9, state: state5 } = getLegacyBridge();
     if (!els9.testNetworkEgressButton) return;
     const payload = networkEgressFormPayload();
     if (!networkEgressPayloadIsValid(payload)) {
@@ -20510,10 +22055,12 @@
     els9.testNetworkEgressButton.disabled = true;
     setNetworkEgressFeedback(translate("networkEgress.test"), "running");
     try {
+      const selectedProviderId = String(state5.selectedProviderId || "").trim();
+      const testPayload = selectedProviderId ? { ...payload, provider_id: selectedProviderId } : payload;
       const response = await fetch("/api/network-egress/test", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(testPayload)
       });
       const data = await response.json();
       if (!response.ok || !data.ok) {
@@ -20947,6 +22494,9 @@
   var REALTIME_EVENTS_URL = "/api/events?stream=1";
   var QUEUE_DISPATCH_RESYNC_DELAY_MS = 1500;
   var queueFeatureInitialized = false;
+  var realtimeConnectionNeedsResync = false;
+  var realtimeResyncRequested = false;
+  var realtimeResyncPromise = null;
   function initializeQueueFeature() {
     if (queueFeatureInitialized) return;
     queueFeatureInitialized = true;
@@ -20971,8 +22521,16 @@
     if (!window.EventSource) return false;
     closeRealtimeUpdates();
     state5.realtimeSnapshotNeedsArchiveMigration = migrateLegacyArchives;
+    realtimeConnectionNeedsResync = false;
     const source = new EventSource(REALTIME_EVENTS_URL);
     state5.realtimeSource = source;
+    source.onopen = () => {
+      if (state5.realtimeSource !== source) return;
+      if (!realtimeConnectionNeedsResync) return;
+      realtimeConnectionNeedsResync = false;
+      void requestRealtimeResync();
+      clearRealtimeReconnectStatus();
+    };
     source.onmessage = (event) => {
       handleRealtimeMessage(event).catch((error) => {
         console.error(error);
@@ -20981,20 +22539,55 @@
     };
     source.onerror = () => {
       if (state5.realtimeSource !== source) return;
-      const shouldMigrateArchives = state5.realtimeSnapshotNeedsArchiveMigration;
-      closeRealtimeUpdates();
-      state5.realtimeSnapshotNeedsArchiveMigration = false;
-      void refreshQueue();
-      void getLegacyBridge().methods.refreshTasks({ migrateLegacyArchives: shouldMigrateArchives });
+      realtimeConnectionNeedsResync = true;
+      void requestRealtimeResync();
       getLegacyBridge().methods.setStatus(translate("queue.realtimeDisconnected"), "error");
     };
     return true;
   }
   function closeRealtimeUpdates() {
     const state5 = getState();
+    realtimeConnectionNeedsResync = false;
+    realtimeResyncRequested = false;
     if (!state5.realtimeSource) return;
     state5.realtimeSource.close();
     state5.realtimeSource = null;
+  }
+  async function resyncRealtimeState() {
+    const bridge7 = getLegacyBridge();
+    const state5 = bridge7.state;
+    const shouldMigrateArchives = state5.realtimeSnapshotNeedsArchiveMigration;
+    await Promise.all([refreshQueue(), bridge7.methods.refreshTasks({ migrateLegacyArchives: shouldMigrateArchives })]);
+    if (shouldMigrateArchives) {
+      state5.realtimeSnapshotNeedsArchiveMigration = false;
+    }
+  }
+  function requestRealtimeResync() {
+    realtimeResyncRequested = true;
+    if (realtimeResyncPromise) return realtimeResyncPromise;
+    const resyncPromise = (async () => {
+      while (realtimeResyncRequested) {
+        realtimeResyncRequested = false;
+        await resyncRealtimeState();
+      }
+    })().catch((error) => {
+      const bridge7 = getLegacyBridge();
+      if (realtimeConnectionNeedsResync) {
+        bridge7.methods.setStatus(translate("queue.realtimeDisconnected"), "error");
+        return;
+      }
+      console.error(error);
+      bridge7.methods.setStatus(errorMessage(error, translate("queue.realtimeUpdateFailed")), "error");
+    }).finally(() => {
+      realtimeResyncPromise = null;
+    });
+    realtimeResyncPromise = resyncPromise;
+    return resyncPromise;
+  }
+  function clearRealtimeReconnectStatus() {
+    const bridge7 = getLegacyBridge();
+    if (bridge7.els.statusText?.textContent !== translate("queue.realtimeDisconnected")) return;
+    bridge7.methods.setStatus("", "");
   }
   async function handleRealtimeMessage(event) {
     if (!event.data) return;
@@ -21647,6 +23240,8 @@
     closeArchiveModal2();
     closeGallery2();
     closeImageEditor2();
+    state4.historyTaskReveal = null;
+    state4.historyTaskRevealSeq += 1;
     state4.selectedTaskId = null;
     clearTaskParameterInspection();
     state4.mode = "generate";
@@ -21838,13 +23433,13 @@
     const toast = document.createElement("div");
     toast.className = "transient-notice-toast";
     toast.setAttribute("role", "status");
-    const icon = document.createElement("span");
-    icon.className = "transient-notice-icon";
-    icon.setAttribute("aria-hidden", "true");
-    icon.textContent = "\u2713";
+    const icon2 = document.createElement("span");
+    icon2.className = "transient-notice-icon";
+    icon2.setAttribute("aria-hidden", "true");
+    icon2.textContent = "\u2713";
     const text = document.createElement("span");
     text.textContent = message;
-    toast.append(icon, text);
+    toast.append(icon2, text);
     region.prepend(toast);
     window.setTimeout(() => toast.remove(), TRANSIENT_NOTICE_MS);
   }
@@ -22347,6 +23942,46 @@
     }
   }
 
+  // codex_image/webui/frontend/src/history-mobile-filters.ts
+  function initializeHistoryMobileFilters({
+    page,
+    sidebar,
+    trigger,
+    backdrop
+  }) {
+    if (!page || !sidebar || !trigger || !backdrop) return;
+    const mobileQuery = window.matchMedia("(max-width: 760px)");
+    const sync = () => {
+      const open = mobileQuery.matches && page.classList.contains("history-filters-open");
+      trigger.setAttribute("aria-expanded", String(open));
+      backdrop.hidden = !open;
+      sidebar.toggleAttribute("inert", mobileQuery.matches && !open);
+      if (mobileQuery.matches) {
+        sidebar.setAttribute("aria-hidden", String(!open));
+      } else {
+        page.classList.remove("history-filters-open");
+        sidebar.removeAttribute("aria-hidden");
+      }
+    };
+    const setOpen = (open, restoreFocus = false) => {
+      page.classList.toggle("history-filters-open", mobileQuery.matches && open);
+      sync();
+      if (restoreFocus) trigger.focus({ preventScroll: true });
+    };
+    trigger.addEventListener("click", () => {
+      setOpen(!page.classList.contains("history-filters-open"));
+    });
+    backdrop.addEventListener("click", () => setOpen(false, true));
+    window.addEventListener("keydown", (event) => {
+      if (event.key !== "Escape" || !page.classList.contains("history-filters-open")) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      setOpen(false, true);
+    });
+    mobileQuery.addEventListener("change", sync);
+    sync();
+  }
+
   // codex_image/webui/frontend/src/reference-file-icons.ts
   var FAMILY_EXTENSIONS = {
     pdf: ["pdf"],
@@ -22652,6 +24287,34 @@
 
   // codex_image/webui/frontend/src/history-window.ts
   var HISTORY_TASK_ARROW_KEYS = /* @__PURE__ */ new Set(["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"]);
+  function createHistoryPositionSaveController(options) {
+    let enabled = false;
+    let frameId = null;
+    const captureAndSave = () => {
+      const anchor = options.capture();
+      if (anchor) options.save(anchor);
+    };
+    return {
+      enable() {
+        enabled = true;
+      },
+      schedule() {
+        if (!enabled || frameId !== null) return;
+        frameId = options.requestFrame(() => {
+          frameId = null;
+          captureAndSave();
+        });
+      },
+      flush() {
+        if (!enabled) return;
+        if (frameId !== null) {
+          options.cancelFrame(frameId);
+          frameId = null;
+        }
+        captureAndSave();
+      }
+    };
+  }
   function historyTaskCards(root) {
     return [...root.querySelectorAll(".history-task-card[data-history-task-card-id]")];
   }
@@ -22734,6 +24397,479 @@
     const rootTop = root.getBoundingClientRect().top;
     const nextOffset = card.getBoundingClientRect().top - rootTop;
     root.scrollTop += nextOffset - anchor.offset;
+  }
+
+  // codex_image/webui/frontend/src/history-scroll-memory.ts
+  var HISTORY_LOCATION_KEY = "ilab-conjure-history-location-v1";
+  var HISTORY_LOCATION_MAX_QUERY_LENGTH = 8192;
+  var HISTORY_LOCATION_MAX_OFFSET = 1e6;
+  var HISTORY_FILTER_QUERY_KEYS = [
+    "mode",
+    "month",
+    "prompt_mode",
+    "quality",
+    "ratio",
+    "orientation",
+    "backend",
+    "provider",
+    "archived"
+  ];
+  var HISTORY_ORGANIZER_QUERY_KEYS = [
+    "favorite",
+    "tag",
+    "untagged"
+  ];
+  var HISTORY_EXPLICIT_NAVIGATION_KEYS = [
+    "task",
+    "q",
+    "sort",
+    "view",
+    ...HISTORY_FILTER_QUERY_KEYS,
+    ...HISTORY_ORGANIZER_QUERY_KEYS
+  ];
+  var HISTORY_SNAPSHOT_QUERY_KEYS = [
+    "q",
+    "sort",
+    "view",
+    ...HISTORY_FILTER_QUERY_KEYS,
+    ...HISTORY_ORGANIZER_QUERY_KEYS
+  ];
+  function defaultHistoryLocationStorage() {
+    try {
+      if (typeof window === "undefined") return null;
+      return window.sessionStorage;
+    } catch {
+      return null;
+    }
+  }
+  function historyLocationStorage(storage) {
+    return storage ?? defaultHistoryLocationStorage();
+  }
+  function normalizedHistoryLocationSnapshot(value) {
+    if (!value || typeof value !== "object" || Array.isArray(value)) {
+      return null;
+    }
+    const candidate = value;
+    if (candidate.version !== 1) return null;
+    if (typeof candidate.query !== "string" || candidate.query.length > HISTORY_LOCATION_MAX_QUERY_LENGTH) {
+      return null;
+    }
+    if (typeof candidate.savedAt !== "number" || !Number.isFinite(candidate.savedAt)) {
+      return null;
+    }
+    if (!candidate.anchor || typeof candidate.anchor !== "object" || Array.isArray(candidate.anchor)) {
+      return null;
+    }
+    const anchor = candidate.anchor;
+    if (typeof anchor.taskId !== "string") return null;
+    const taskId = anchor.taskId.trim();
+    if (!taskId) return null;
+    if (typeof anchor.offset !== "number" || !Number.isFinite(anchor.offset)) {
+      return null;
+    }
+    return {
+      version: 1,
+      query: candidate.query,
+      anchor: {
+        taskId,
+        offset: Math.max(
+          -HISTORY_LOCATION_MAX_OFFSET,
+          Math.min(HISTORY_LOCATION_MAX_OFFSET, anchor.offset)
+        )
+      },
+      savedAt: candidate.savedAt
+    };
+  }
+  function removeHistoryLocationSnapshot(storage) {
+    try {
+      storage.removeItem(HISTORY_LOCATION_KEY);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+  function readHistoryLocationSnapshot(storage) {
+    const target = historyLocationStorage(storage);
+    if (!target) return null;
+    let raw;
+    try {
+      raw = target.getItem(HISTORY_LOCATION_KEY);
+    } catch {
+      return null;
+    }
+    if (raw === null) return null;
+    let parsed;
+    try {
+      parsed = JSON.parse(raw);
+    } catch {
+      removeHistoryLocationSnapshot(target);
+      return null;
+    }
+    const snapshot = normalizedHistoryLocationSnapshot(parsed);
+    if (!snapshot) removeHistoryLocationSnapshot(target);
+    return snapshot;
+  }
+  function saveHistoryLocationSnapshot(snapshot, storage) {
+    const normalized = normalizedHistoryLocationSnapshot(snapshot);
+    if (!normalized) return false;
+    const target = historyLocationStorage(storage);
+    if (!target) return false;
+    try {
+      target.setItem(HISTORY_LOCATION_KEY, JSON.stringify(normalized));
+      return true;
+    } catch {
+      return false;
+    }
+  }
+  function clearHistoryLocationSnapshot(storage) {
+    const target = historyLocationStorage(storage);
+    return target ? removeHistoryLocationSnapshot(target) : false;
+  }
+  function historyUrlHasExplicitNavigation(params) {
+    return HISTORY_EXPLICIT_NAVIGATION_KEYS.some((key) => params.has(key));
+  }
+  function historySnapshotQuery(params) {
+    const snapshot = new URLSearchParams();
+    for (const key of HISTORY_SNAPSHOT_QUERY_KEYS) {
+      if (!params.has(key)) continue;
+      if (key === "sort") {
+        if (params.get(key) === "oldest") snapshot.set(key, "oldest");
+        continue;
+      }
+      if (key === "view") {
+        if (params.get(key) === "list") snapshot.set(key, "list");
+        continue;
+      }
+      if (key === "tag") {
+        for (const value of params.getAll(key)) snapshot.append(key, value);
+        continue;
+      }
+      snapshot.append(key, params.get(key) ?? "");
+    }
+    return snapshot.toString();
+  }
+
+  // codex_image/webui/frontend/src/history-active-filters.ts
+  function uniqueNonempty(values) {
+    return [
+      ...new Set(
+        [...values].map((value) => String(value ?? "").trim()).filter(Boolean)
+      )
+    ];
+  }
+  function copySnapshot(snapshot) {
+    return {
+      q: snapshot.q,
+      filters: { ...snapshot.filters },
+      organization: {
+        favorite: snapshot.organization.favorite,
+        tagIds: [...snapshot.organization.tagIds],
+        untagged: snapshot.organization.untagged
+      }
+    };
+  }
+  function collectHistoryActiveFilters(snapshot) {
+    const items = [];
+    const query = String(snapshot.q || "").trim();
+    if (query) items.push({ id: "q", kind: "q", value: query });
+    for (const key of HISTORY_FILTER_QUERY_KEYS) {
+      const value = String(snapshot.filters[key] || "").trim();
+      if (!value) continue;
+      items.push({
+        id: `filter:${key}`,
+        kind: "filter",
+        key,
+        value
+      });
+    }
+    if (snapshot.organization.favorite) {
+      items.push({
+        id: "favorite",
+        kind: "favorite",
+        value: "true"
+      });
+    }
+    if (snapshot.organization.untagged) {
+      items.push({
+        id: "untagged",
+        kind: "untagged",
+        value: "true"
+      });
+      return items;
+    }
+    for (const tagId of uniqueNonempty(
+      snapshot.organization.tagIds
+    )) {
+      items.push({
+        id: `tag:${tagId}`,
+        kind: "tag",
+        value: tagId
+      });
+    }
+    return items;
+  }
+  function removeHistoryActiveFilter(snapshot, item) {
+    const next = copySnapshot(snapshot);
+    if (item.kind === "q") {
+      next.q = "";
+    } else if (item.kind === "filter") {
+      next.filters[item.key] = "";
+    } else if (item.kind === "favorite") {
+      next.organization.favorite = false;
+    } else if (item.kind === "untagged") {
+      next.organization.untagged = false;
+    } else if (item.kind === "tag") {
+      next.organization.tagIds = next.organization.tagIds.filter(
+        (tagId) => tagId !== item.value
+      );
+    }
+    return next;
+  }
+  function clearHistoryActiveFilters(snapshot) {
+    return {
+      q: "",
+      filters: Object.fromEntries(
+        HISTORY_FILTER_QUERY_KEYS.map((key) => [key, ""])
+      ),
+      organization: {
+        favorite: false,
+        tagIds: [],
+        untagged: false
+      }
+    };
+  }
+
+  // codex_image/webui/frontend/src/history-position-runtime.ts
+  var EMPTY_HISTORY_LOAD_RESULT = {
+    anchorFound: null,
+    taskCount: 0
+  };
+  function historyTaskPageQuery(input) {
+    const params = new URLSearchParams();
+    params.set("limit", String(input.limit));
+    params.set("sort", input.sort);
+    if (input.anchorTaskId) {
+      params.set("anchor_task_id", input.anchorTaskId);
+    } else {
+      if (input.cursor) params.set("cursor", input.cursor);
+      if (input.direction && input.direction !== "next") {
+        params.set("direction", input.direction);
+      }
+    }
+    if (input.q) params.set("q", input.q);
+    for (const key of HISTORY_FILTER_QUERY_KEYS) {
+      const value = input.filters?.[key];
+      if (value) params.set(key, value);
+    }
+    if (input.organization?.favorite) params.set("favorite", "true");
+    if (input.organization?.untagged) {
+      params.set("untagged", "true");
+    } else {
+      const tagIds = new Set(
+        (input.organization?.tagIds ?? []).map((value) => String(value).trim()).filter(Boolean)
+      );
+      for (const tagId of tagIds) params.append("tag", tagId);
+    }
+    return params.toString();
+  }
+  async function runHistoryPositionBoot(options) {
+    const pending = historyUrlHasExplicitNavigation(options.params) ? null : options.snapshot;
+    if (pending) {
+      options.replaceLocation(
+        pending.query ? `${options.pathname}?${pending.query}` : options.pathname
+      );
+    }
+    options.syncLocation();
+    if (!pending) return options.loadPage({ reset: true });
+    const result = await options.loadPage({
+      reset: true,
+      anchorTaskId: pending.anchor.taskId,
+      anchor: pending.anchor
+    });
+    if (result.anchorFound !== false) return result;
+    options.clearSnapshot();
+    return options.loadPage({ reset: true });
+  }
+  async function loadHistoryAnchorPage(options) {
+    const page = await options.request(
+      `/api/task-history/tasks?${historyTaskPageQuery(options.query)}`
+    );
+    if (!options.isCurrent()) return EMPTY_HISTORY_LOAD_RESULT;
+    const tasks = page.tasks ?? [];
+    options.validate?.(tasks);
+    if (!options.isCurrent()) return EMPTY_HISTORY_LOAD_RESULT;
+    const anchorFound = page.anchor_found === true ? true : page.anchor_found === false ? false : null;
+    if (!options.isCurrent()) return EMPTY_HISTORY_LOAD_RESULT;
+    if (anchorFound !== true) {
+      return { anchorFound, taskCount: tasks.length };
+    }
+    return new Promise((resolve, reject) => {
+      try {
+        options.requestFrame(() => {
+          try {
+            if (!options.isCurrent()) {
+              resolve(EMPTY_HISTORY_LOAD_RESULT);
+              return;
+            }
+            options.render(tasks);
+            options.applyCursors(
+              page.previous_cursor ?? null,
+              page.next_cursor ?? null
+            );
+            options.restore(options.anchor);
+            options.enableSave();
+            resolve({ anchorFound: true, taskCount: tasks.length });
+          } catch (error) {
+            reject(error);
+          }
+        });
+      } catch (error) {
+        reject(error);
+      }
+    });
+  }
+
+  // codex_image/webui/frontend/src/lightbox-controls.ts
+  var LIGHTBOX_FIT_SCALE = 1;
+  var LIGHTBOX_MIN_SCALE = 0.1;
+  var LIGHTBOX_MAX_SCALE = 5;
+  var LIGHTBOX_ZOOM_STEP = 0.25;
+  var LIGHTBOX_FIT_SNAP_EPSILON = 0.025;
+  var LIGHTBOX_SHORTCUT_HINT_DURATION_MS = 3200;
+  var lightboxShortcutHintTimers = /* @__PURE__ */ new WeakMap();
+  function isLightboxFitScale(scale) {
+    return Math.abs(Number(scale) - LIGHTBOX_FIT_SCALE) <= LIGHTBOX_FIT_SNAP_EPSILON;
+  }
+  function isLightboxAtOrBelowFitScale(scale) {
+    const numericScale = Number(scale);
+    if (!Number.isFinite(numericScale)) return true;
+    return numericScale <= LIGHTBOX_FIT_SCALE + LIGHTBOX_FIT_SNAP_EPSILON;
+  }
+  function normalizeLightboxScale(scale) {
+    if (!Number.isFinite(scale)) return LIGHTBOX_FIT_SCALE;
+    const clamped = Math.min(Math.max(scale, LIGHTBOX_MIN_SCALE), LIGHTBOX_MAX_SCALE);
+    if (isLightboxFitScale(clamped)) return LIGHTBOX_FIT_SCALE;
+    return Math.round(clamped * 1e3) / 1e3;
+  }
+  function lightboxScaleFromWheel(scale, deltaY) {
+    return normalizeLightboxScale(scale + Number(deltaY || 0) * -5e-3);
+  }
+  function lightboxSteppedScale(scale, direction) {
+    return normalizeLightboxScale(scale + (direction === "in" ? LIGHTBOX_ZOOM_STEP : -LIGHTBOX_ZOOM_STEP));
+  }
+  function lightboxActualSizeScale(naturalWidth, naturalHeight, fittedWidth, fittedHeight) {
+    const widthScale = Number(naturalWidth) / Math.max(1, Number(fittedWidth));
+    const heightScale = Number(naturalHeight) / Math.max(1, Number(fittedHeight));
+    const scale = Math.max(widthScale || 0, heightScale || 0);
+    return normalizeLightboxScale(scale > 0 ? scale : LIGHTBOX_FIT_SCALE);
+  }
+  function lightboxDisplayPercent(scale, actualSizeScale) {
+    const actual = Math.max(LIGHTBOX_MIN_SCALE, Number(actualSizeScale) || LIGHTBOX_FIT_SCALE);
+    return Math.max(1, Math.round(normalizeLightboxScale(scale) / actual * 100));
+  }
+  function lightboxActionForKey(key) {
+    if (key === "ArrowLeft") return "previous-image";
+    if (key === "ArrowRight") return "next-image";
+    if (key === "ArrowUp" || key === "PageUp") return "previous-task";
+    if (key === "ArrowDown" || key === "PageDown") return "next-task";
+    if (key === "+" || key === "=") return "zoom-in";
+    if (key === "-") return "zoom-out";
+    if (key === "0") return "fit";
+    if (key === "1") return "actual-size";
+    return null;
+  }
+  function shouldCloseLightboxFromClick(target, root) {
+    if (target === root) return true;
+    const candidate = target;
+    if (typeof candidate?.closest !== "function") return false;
+    return !candidate.closest("img, button, [data-lightbox-zoom-toolbar]");
+  }
+  function lightboxZoomChromeHtml() {
+    const zoomControls = escapeHtml(translate("lightbox.zoomControls"));
+    const zoomOut = escapeHtml(translate("lightbox.zoomOut"));
+    const zoomIn = escapeHtml(translate("lightbox.zoomIn"));
+    const fit = escapeHtml(translate("lightbox.fit"));
+    const fitPage = escapeHtml(translate("lightbox.fitPage"));
+    const actualSize = escapeHtml(translate("lightbox.actualSize"));
+    const shortcuts = escapeHtml(translate("lightbox.shortcuts"));
+    const switchImage = escapeHtml(translate("lightbox.switchImage"));
+    const switchTask = escapeHtml(translate("lightbox.switchTask"));
+    const wheelZoom = escapeHtml(translate("lightbox.wheelZoom"));
+    return `
+    <div class="lightbox-zoom-toolbar" data-lightbox-zoom-toolbar role="toolbar" aria-label="${zoomControls}">
+      <button type="button" class="lightbox-zoom-button" data-lightbox-zoom-out aria-label="${zoomOut}" title="${zoomOut}" aria-keyshortcuts="-">\u2212</button>
+      <output class="lightbox-zoom-value" data-lightbox-zoom-value aria-label="${zoomControls}">100%</output>
+      <button type="button" class="lightbox-zoom-button" data-lightbox-zoom-in aria-label="${zoomIn}" title="${zoomIn}" aria-keyshortcuts="+">+</button>
+      <span class="lightbox-zoom-divider" aria-hidden="true"></span>
+      <button type="button" class="lightbox-zoom-mode" data-lightbox-fit aria-label="${fitPage}" title="${fitPage} (0)" aria-keyshortcuts="0">${fit}</button>
+      <button type="button" class="lightbox-zoom-mode" data-lightbox-actual-size aria-label="${actualSize}" title="${actualSize} (1)" aria-keyshortcuts="1">100%</button>
+    </div>
+    <div class="lightbox-shortcut-hint" data-lightbox-shortcut-hint aria-label="${shortcuts}" aria-hidden="true">
+      <span><kbd>\u2190</kbd><kbd>\u2192</kbd>${switchImage}</span>
+      <span data-lightbox-task-shortcut><kbd>\u2191</kbd><kbd>\u2193</kbd>${switchTask}</span>
+      <span class="lightbox-shortcut-wheel">${wheelZoom}</span>
+    </div>
+  `;
+  }
+  function bindLightboxZoomChrome(root, bindings) {
+    root.querySelector("[data-lightbox-zoom-out]")?.addEventListener("click", bindings.zoomOut);
+    root.querySelector("[data-lightbox-zoom-in]")?.addEventListener("click", bindings.zoomIn);
+    root.querySelector("[data-lightbox-fit]")?.addEventListener("click", bindings.fit);
+    root.querySelector("[data-lightbox-actual-size]")?.addEventListener("click", bindings.actualSize);
+  }
+  function lightboxImageActualSizeScale(image) {
+    if (!image) return LIGHTBOX_FIT_SCALE;
+    return lightboxActualSizeScale(
+      image.naturalWidth,
+      image.naturalHeight,
+      image.clientWidth,
+      image.clientHeight
+    );
+  }
+  function updateLightboxZoomChrome(root, scale, image) {
+    if (!root) return;
+    const normalizedScale = normalizeLightboxScale(scale);
+    const actualSizeScale = lightboxImageActualSizeScale(image);
+    const value = root.querySelector("[data-lightbox-zoom-value]");
+    const zoomOut = root.querySelector("[data-lightbox-zoom-out]");
+    const zoomIn = root.querySelector("[data-lightbox-zoom-in]");
+    const fit = root.querySelector("[data-lightbox-fit]");
+    const actualSize = root.querySelector("[data-lightbox-actual-size]");
+    if (value) value.textContent = `${lightboxDisplayPercent(normalizedScale, actualSizeScale)}%`;
+    if (zoomOut) zoomOut.disabled = normalizedScale <= LIGHTBOX_MIN_SCALE;
+    if (zoomIn) zoomIn.disabled = normalizedScale >= LIGHTBOX_MAX_SCALE;
+    fit?.setAttribute("aria-pressed", isLightboxFitScale(normalizedScale) ? "true" : "false");
+    actualSize?.setAttribute(
+      "aria-pressed",
+      Math.abs(normalizedScale - actualSizeScale) <= LIGHTBOX_FIT_SNAP_EPSILON ? "true" : "false"
+    );
+  }
+  function showLightboxShortcutHint(root, hasTaskNavigation) {
+    if (!root) return;
+    const hint = root.querySelector("[data-lightbox-shortcut-hint]");
+    const taskShortcut = root.querySelector("[data-lightbox-task-shortcut]");
+    if (!hint) return;
+    taskShortcut?.toggleAttribute("hidden", !hasTaskNavigation);
+    const previousTimer = lightboxShortcutHintTimers.get(root);
+    if (previousTimer) window.clearTimeout(previousTimer);
+    hint.classList.remove("is-visible");
+    hint.setAttribute("aria-hidden", "false");
+    window.requestAnimationFrame(() => hint.classList.add("is-visible"));
+    const timer = window.setTimeout(() => {
+      hint.classList.remove("is-visible");
+      hint.setAttribute("aria-hidden", "true");
+      lightboxShortcutHintTimers.delete(root);
+    }, LIGHTBOX_SHORTCUT_HINT_DURATION_MS);
+    lightboxShortcutHintTimers.set(root, timer);
+  }
+  function hideLightboxShortcutHint(root) {
+    if (!root) return;
+    const timer = lightboxShortcutHintTimers.get(root);
+    if (timer) window.clearTimeout(timer);
+    lightboxShortcutHintTimers.delete(root);
+    const hint = root.querySelector("[data-lightbox-shortcut-hint]");
+    hint?.classList.remove("is-visible");
+    hint?.setAttribute("aria-hidden", "true");
   }
 
   // codex_image/webui/frontend/src/history-lightbox.ts
@@ -22955,7 +25091,10 @@
   }
   function stopHistoryLightboxPanning() {
     historyLightboxState.panning = false;
-    historyLightboxEl?.classList.toggle("is-zoomed", historyLightboxState.scale !== 1);
+    historyLightboxEl?.classList.toggle(
+      "is-zoomed",
+      !isLightboxAtOrBelowFitScale(historyLightboxState.scale)
+    );
   }
   function setHistoryLightboxTransform() {
     const image = historyLightboxImage();
@@ -22963,8 +25102,24 @@
     image.style.transform = `translate(${historyLightboxState.pointX}px, ${historyLightboxState.pointY}px) scale(${historyLightboxState.scale})`;
     historyLightboxEl?.classList.toggle(
       "is-zoomed",
-      historyLightboxState.scale !== 1 || historyLightboxState.panning
+      !isLightboxAtOrBelowFitScale(historyLightboxState.scale) || historyLightboxState.panning
     );
+    updateLightboxZoomChrome(historyLightboxEl, historyLightboxState.scale, image);
+  }
+  function setHistoryLightboxScale(scale) {
+    historyLightboxState.scale = normalizeLightboxScale(scale);
+    if (isLightboxAtOrBelowFitScale(historyLightboxState.scale)) {
+      historyLightboxState.pointX = 0;
+      historyLightboxState.pointY = 0;
+      historyLightboxState.panning = false;
+    }
+    setHistoryLightboxTransform();
+  }
+  function zoomHistoryLightbox(direction) {
+    setHistoryLightboxScale(lightboxSteppedScale(historyLightboxState.scale, direction));
+  }
+  function showHistoryLightboxActualSize() {
+    setHistoryLightboxScale(lightboxImageActualSizeScale(historyLightboxImage()));
   }
   function resetHistoryLightboxTransform() {
     historyLightboxState.scale = 1;
@@ -22981,6 +25136,7 @@
     if (counter) {
       counter.textContent = hasMultipleImages ? `${historyLightboxState.index + 1} / ${historyLightboxState.urls.length}` : "";
     }
+    updateLightboxZoomChrome(historyLightboxEl, historyLightboxState.scale, historyLightboxImage());
   }
   function showHistoryLightboxImage(index) {
     if (!historyLightboxEl || !historyLightboxState.urls.length) return;
@@ -23062,24 +25218,33 @@
       <img alt="" draggable="false">
     </button>
     <div class="history-lightbox-counter" data-history-lightbox-counter aria-live="polite"></div>
+    ${lightboxZoomChromeHtml()}
   `;
     document.body.append(historyLightboxEl);
     historyLightboxEl.querySelector("[data-history-lightbox-close]")?.addEventListener("click", closeHistoryLightbox);
     historyLightboxSlot("previous")?.addEventListener("click", showPreviousHistoryLightboxImage);
     historyLightboxSlot("next")?.addEventListener("click", showNextHistoryLightboxImage);
+    bindLightboxZoomChrome(historyLightboxEl, {
+      zoomOut: () => zoomHistoryLightbox("out"),
+      zoomIn: () => zoomHistoryLightbox("in"),
+      fit: resetHistoryLightboxTransform,
+      actualSize: showHistoryLightboxActualSize
+    });
     historyLightboxEl.addEventListener("wheel", (event) => {
       if (!isHistoryLightboxActive()) return;
       event.preventDefault();
-      const delta = event.deltaY * -5e-3;
-      historyLightboxState.scale = Math.min(Math.max(0.5, historyLightboxState.scale + delta), 5);
-      setHistoryLightboxTransform();
+      setHistoryLightboxScale(lightboxScaleFromWheel(historyLightboxState.scale, event.deltaY));
     }, { passive: false });
     historyLightboxEl.addEventListener("click", (event) => {
-      if (event.target === historyLightboxEl) closeHistoryLightbox();
+      if (shouldCloseLightboxFromClick(event.target, historyLightboxEl)) closeHistoryLightbox();
     });
     const image = historyLightboxImage();
     image?.addEventListener("mousedown", (event) => {
       if (event.button !== 0) {
+        stopHistoryLightboxPanning();
+        return;
+      }
+      if (isLightboxAtOrBelowFitScale(historyLightboxState.scale)) {
         stopHistoryLightboxPanning();
         return;
       }
@@ -23089,6 +25254,7 @@
       historyLightboxState.startY = event.clientY - historyLightboxState.pointY;
     });
     image?.addEventListener("contextmenu", stopHistoryLightboxPanning);
+    image?.addEventListener("load", updateHistoryLightboxControls);
     window.addEventListener("mousemove", (event) => {
       if (!historyLightboxState.panning) return;
       if (event.buttons !== void 0 && (event.buttons & 1) !== 1) {
@@ -23103,30 +25269,47 @@
     window.addEventListener("blur", stopHistoryLightboxPanning);
     window.addEventListener("keydown", (event) => {
       if (!isHistoryLightboxActive()) return;
-      if (event.key === "ArrowLeft") {
+      const action = lightboxActionForKey(event.key);
+      if (event.key === "Escape") {
+        event.preventDefault();
+        event.stopPropagation();
+        closeHistoryLightbox();
+      } else if (event.key === "ArrowLeft" && action === "previous-image") {
         event.preventDefault();
         event.stopPropagation();
         showPreviousHistoryLightboxImage();
-      } else if (event.key === "ArrowRight") {
+      } else if (event.key === "ArrowRight" && action === "next-image") {
         event.preventDefault();
         event.stopPropagation();
         showNextHistoryLightboxImage();
-      } else if (event.key === "ArrowUp") {
+      } else if (event.key === "ArrowUp" && action === "previous-task") {
         event.preventDefault();
         event.stopPropagation();
         showPreviousHistoryTask();
-      } else if (event.key === "ArrowDown") {
+      } else if (event.key === "ArrowDown" && action === "next-task") {
         event.preventDefault();
         event.stopPropagation();
         showNextHistoryTask();
-      } else if (event.key === "PageUp") {
+      } else if (event.key === "PageUp" && action === "previous-task") {
         event.preventDefault();
         event.stopPropagation();
         showPreviousHistoryTask();
-      } else if (event.key === "PageDown") {
+      } else if (event.key === "PageDown" && action === "next-task") {
         event.preventDefault();
         event.stopPropagation();
         showNextHistoryTask();
+      } else if (action === "zoom-in") {
+        event.preventDefault();
+        zoomHistoryLightbox("in");
+      } else if (action === "zoom-out") {
+        event.preventDefault();
+        zoomHistoryLightbox("out");
+      } else if (action === "fit") {
+        event.preventDefault();
+        resetHistoryLightboxTransform();
+      } else if (action === "actual-size") {
+        event.preventDefault();
+        showHistoryLightboxActualSize();
       }
     });
     return historyLightboxEl;
@@ -23134,6 +25317,7 @@
   function openHistoryLightbox(urls, index = 0, options = {}) {
     const nextUrls = Array.isArray(urls) ? urls.filter(Boolean) : [];
     if (!nextUrls.length) return;
+    const wasActive = isHistoryLightboxActive();
     const lightbox = ensureHistoryLightbox();
     historyLightboxState.urls = nextUrls;
     historyLightboxState.index = clampedHistoryLightboxIndex(index, nextUrls.length);
@@ -23145,6 +25329,9 @@
     document.body.classList.add("history-lightbox-open");
     lightbox.focus({ preventScroll: true });
     updateHistoryLightboxControls();
+    if (!wasActive) {
+      showLightboxShortcutHint(lightbox, Boolean(historyLightboxState.onTaskNavigate));
+    }
   }
   function closeHistoryLightbox() {
     if (!historyLightboxEl || historyLightboxEl.hidden) return;
@@ -23161,6 +25348,7 @@
     historyLightboxState.taskId = "";
     historyLightboxState.onTaskNavigate = null;
     historyLightboxState.isTransitioning = false;
+    hideLightboxShortcutHint(historyLightboxEl);
     resetHistoryLightboxTransform();
     document.body.classList.remove("history-lightbox-open");
   }
@@ -23327,7 +25515,7 @@
       this.status = status;
     }
   };
-  function uniqueNonempty(values) {
+  function uniqueNonempty2(values) {
     return [
       ...new Set(
         [...values].map((value) => String(value ?? "").trim()).filter(Boolean)
@@ -23335,7 +25523,7 @@
     ];
   }
   function readHistoryOrganizationFilters(params) {
-    const tagIds = uniqueNonempty(params.getAll("tag"));
+    const tagIds = uniqueNonempty2(params.getAll("tag"));
     const untagged = params.get("untagged") === "true" && tagIds.length === 0;
     return {
       favorite: params.get("favorite") === "true",
@@ -23351,7 +25539,7 @@
       params.set("untagged", "true");
       return;
     }
-    for (const tagId of uniqueNonempty(filters.tagIds)) {
+    for (const tagId of uniqueNonempty2(filters.tagIds)) {
       params.append("tag", tagId);
     }
   }
@@ -23363,7 +25551,7 @@
   }
   function withHistoryTagFilter(filters, tagId, selected) {
     const cleanTagId = String(tagId ?? "").trim();
-    const tagIds = new Set(uniqueNonempty(filters.tagIds));
+    const tagIds = new Set(uniqueNonempty2(filters.tagIds));
     if (cleanTagId) {
       if (selected) tagIds.add(cleanTagId);
       else tagIds.delete(cleanTagId);
@@ -23454,10 +25642,10 @@
     const payload = await historyOrganizationRequest("/api/task-history/organize", {
       method: "POST",
       body: JSON.stringify({
-        task_ids: uniqueNonempty(change.task_ids),
+        task_ids: uniqueNonempty2(change.task_ids),
         favorite: change.favorite ?? null,
-        add_tag_ids: uniqueNonempty(change.add_tag_ids || []),
-        remove_tag_ids: uniqueNonempty(
+        add_tag_ids: uniqueNonempty2(change.add_tag_ids || []),
+        remove_tag_ids: uniqueNonempty2(
           change.remove_tag_ids || []
         )
       })
@@ -23466,14 +25654,14 @@
   }
   async function createHistoryTagForTasks(name, taskIds) {
     const tag = await createHistoryTag(name);
-    const cleanTaskIds = uniqueNonempty(taskIds);
+    const cleanTaskIds = uniqueNonempty2(taskIds);
     const organizations = cleanTaskIds.length ? await organizeHistoryTasks({
       task_ids: cleanTaskIds,
       add_tag_ids: [tag.tag_id]
     }) : {};
     return { tag, organizations };
   }
-  function historyTagPickerCreateHtml(escapeHtml5, labels) {
+  function historyTagPickerCreateHtml(escapeHtml6, labels) {
     return `
     <div class="history-tag-picker-create">
       <form
@@ -23486,14 +25674,14 @@
           maxlength="40"
           autocomplete="off"
           data-history-tag-create-name
-          placeholder="${escapeHtml5(labels.placeholder)}"
-          aria-label="${escapeHtml5(labels.placeholder)}"
+          placeholder="${escapeHtml6(labels.placeholder)}"
+          aria-label="${escapeHtml6(labels.placeholder)}"
         />
         <button
           class="ghost-button text-sm"
           type="submit"
           data-history-tag-create-submit
-        >${escapeHtml5(labels.submitLabel)}</button>
+        >${escapeHtml6(labels.submitLabel)}</button>
       </form>
       <div
         class="history-tag-picker-create-status"
@@ -23503,19 +25691,23 @@
     </div>
   `;
   }
-  function historyFavoriteButtonHtml(taskId, favorite, escapeHtml5, label) {
+  function historyFavoriteButtonHtml(taskId, favorite, escapeHtml6, label) {
     return `
     <button
       class="history-favorite-button${favorite ? " active" : ""}"
       type="button"
-      data-history-favorite-task="${escapeHtml5(taskId)}"
+      data-history-favorite-task="${escapeHtml6(taskId)}"
       aria-pressed="${favorite ? "true" : "false"}"
-      aria-label="${escapeHtml5(label)}"
-      title="${escapeHtml5(label)}"
-    >\u2605</button>
+      aria-label="${escapeHtml6(label)}"
+      title="${escapeHtml6(label)}"
+    >
+      <svg class="history-favorite-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M12 3.7l2.5 5.1 5.6.8-4.1 4 1 5.6-5-2.6-5 2.6 1-5.6-4.1-4 5.6-.8L12 3.7Z" />
+      </svg>
+    </button>
   `;
   }
-  function historyCardTagsHtml(tags, escapeHtml5) {
+  function historyCardTagsHtml(tags, escapeHtml6) {
     const visible = tags.slice(0, 2);
     const remainder = Math.max(0, tags.length - visible.length);
     if (!visible.length) return "";
@@ -23525,25 +25717,25 @@
       (tag) => `
             <span
               class="history-tag-chip"
-              data-history-tag-id="${escapeHtml5(tag.tag_id)}"
-            >${escapeHtml5(tag.name)}</span>
+              data-history-tag-id="${escapeHtml6(tag.tag_id)}"
+            >${escapeHtml6(tag.name)}</span>
           `
     ).join("")}
       ${remainder ? `<span class="history-tag-more">+${remainder}</span>` : ""}
     </div>
   `;
   }
-  function historyDetailTagsHtml(tags, escapeHtml5) {
+  function historyDetailTagsHtml(tags, escapeHtml6) {
     return tags.map(
       (tag) => `
         <span
           class="history-tag-chip"
-          data-history-tag-id="${escapeHtml5(tag.tag_id)}"
-        >${escapeHtml5(tag.name)}</span>
+          data-history-tag-id="${escapeHtml6(tag.tag_id)}"
+        >${escapeHtml6(tag.name)}</span>
       `
     ).join("");
   }
-  function historyTagPickerHtml(tags, selectedTagIds, escapeHtml5) {
+  function historyTagPickerHtml(tags, selectedTagIds, escapeHtml6) {
     const selected = new Set(selectedTagIds);
     return tags.map((tag) => {
       const checked = selected.has(tag.tag_id);
@@ -23551,10 +25743,10 @@
         <label class="history-tag-picker-option">
           <input
             type="checkbox"
-            value="${escapeHtml5(tag.tag_id)}"
+            value="${escapeHtml6(tag.tag_id)}"
             ${checked ? "checked" : ""}
           />
-          <span>${escapeHtml5(tag.name)}</span>
+          <span>${escapeHtml6(tag.name)}</span>
         </label>
       `;
     }).join("");
@@ -23580,8 +25772,1232 @@
     }
   }
 
+  // codex_image/webui/frontend/src/history-grid-resize.ts
+  function usableWidth(width) {
+    return Number.isFinite(width) && width > 0;
+  }
+  function positiveCssPixels(value) {
+    const pixels = Number.parseFloat(value);
+    return Number.isFinite(pixels) && pixels > 0;
+  }
+  function historyGridAvailableWidth({
+    boundingWidth,
+    clientWidth,
+    offsetWidth,
+    paddingLeft,
+    paddingRight
+  }) {
+    const borderAndScrollbarWidth = Math.max(0, offsetWidth - clientWidth);
+    const physicalWidth = usableWidth(boundingWidth) ? boundingWidth : offsetWidth;
+    return Math.max(0, Math.floor(
+      physicalWidth - borderAndScrollbarWidth - paddingLeft - paddingRight
+    ));
+  }
+  function historyGridCardsNeedLayout(cards) {
+    return cards.some(({ width, rowHeight }) => !positiveCssPixels(width) || !positiveCssPixels(rowHeight));
+  }
+  function createHistoryGridResizeController({
+    isResizing,
+    scheduleLayout,
+    epsilon = 0.5
+  }) {
+    let committedWidth = Number.NaN;
+    let observedWidth = Number.NaN;
+    return {
+      commitLayout(width) {
+        if (!usableWidth(width)) return;
+        committedWidth = Math.floor(width);
+        observedWidth = committedWidth;
+      },
+      observeWidth(width) {
+        if (!usableWidth(width)) return;
+        const normalizedWidth = Math.floor(width);
+        if (Number.isFinite(observedWidth) && Math.abs(normalizedWidth - observedWidth) <= epsilon) return;
+        observedWidth = normalizedWidth;
+        if (isResizing()) return;
+        if (Number.isFinite(committedWidth) && Math.abs(normalizedWidth - committedWidth) <= epsilon) return;
+        scheduleLayout();
+      }
+    };
+  }
+
+  // codex_image/webui/frontend/src/history-backup.ts
+  var HISTORY_BACKUP_STORAGE_KEY = "ilab-history-backup-job";
+  var HISTORY_BACKUP_SCOPE_STORAGE_KEY = "ilab-history-backup-scope";
+  var TERMINAL_STATUSES = /* @__PURE__ */ new Set([
+    "ready",
+    "failed",
+    "cancelled",
+    "expired",
+    "interrupted"
+  ]);
+  var FORGET_STATUSES = /* @__PURE__ */ new Set(["cancelled", "expired"]);
+  function historyBackupViewState(job) {
+    const active = Boolean(job && ["queued", "planning", "packing"].includes(job.status));
+    const ready = job?.status === "ready";
+    const packing = job?.status === "packing";
+    const totalBytes = Number(job?.total_bytes || 0);
+    const completedBytes = Number(job?.completed_bytes || 0);
+    return {
+      active,
+      ready,
+      dismissible: Boolean(job && ["ready", "failed", "interrupted"].includes(job.status)),
+      scopeLocked: active || ready,
+      progressMode: packing ? "determinate" : job && ["queued", "planning"].includes(job.status) ? "indeterminate" : "hidden",
+      progressValue: packing && totalBytes > 0 ? Math.min(100, Math.round(completedBytes * 100 / totalBytes)) : 0
+    };
+  }
+  var HistoryBackupApiError = class extends Error {
+    constructor(code, message, status) {
+      super(message);
+      __publicField(this, "code");
+      __publicField(this, "status");
+      this.name = "HistoryBackupApiError";
+      this.code = code;
+      this.status = status;
+    }
+  };
+  function currentFetch() {
+    const value = globalThis.fetch;
+    if (typeof value !== "function") throw new Error("history_backup_fetch_unavailable");
+    return value.bind(globalThis);
+  }
+  function currentStorage() {
+    try {
+      return globalThis.sessionStorage;
+    } catch {
+      return null;
+    }
+  }
+  function currentDocument() {
+    try {
+      return typeof document === "undefined" ? null : document;
+    } catch {
+      return null;
+    }
+  }
+  function defaultSetTimeout(callback, delay) {
+    return globalThis.setTimeout(callback, delay);
+  }
+  function defaultClearTimeout(handle) {
+    globalThis.clearTimeout(handle);
+  }
+  async function apiError(response) {
+    let code = "backup_request_failed";
+    let message = code;
+    try {
+      const payload = await response.json();
+      if (payload && typeof payload === "object") {
+        const detail = payload.detail;
+        if (detail && typeof detail === "object") {
+          const record2 = detail;
+          if (typeof record2.code === "string" && /^[a-z][a-z0-9_]{2,127}$/.test(record2.code)) {
+            code = record2.code;
+            message = typeof record2.message === "string" && record2.message === code ? record2.message : code;
+          }
+        }
+      }
+    } catch {
+    }
+    return new HistoryBackupApiError(code, message, response.status);
+  }
+  async function requestJson(url, init, fetchFn) {
+    const response = await fetchFn(url, init);
+    if (!response.ok) throw await apiError(response);
+    return await response.json();
+  }
+  function withSignal(init, signal) {
+    return signal ? { ...init, signal } : init;
+  }
+  function scopePayload(scope) {
+    if (scope.kind === "selected") {
+      return { scope: "selected", task_ids: [...scope.taskIds] };
+    }
+    if (scope.kind === "filtered") {
+      return { scope: "filtered", filters: { ...scope.filters, tag_ids: [...scope.filters.tag_ids] } };
+    }
+    return { scope: "all" };
+  }
+  async function createHistoryBackup(scope, options = {}) {
+    return requestJson(
+      "/api/task-history/backup-exports",
+      withSignal({
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(scopePayload(scope))
+      }, options.signal),
+      options.fetch ?? currentFetch()
+    );
+  }
+  async function estimateHistoryBackup(scope, options = {}) {
+    return requestJson(
+      "/api/task-history/backup-exports/estimate",
+      withSignal({
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(scopePayload(scope))
+      }, options.signal),
+      options.fetch ?? currentFetch()
+    );
+  }
+  async function getHistoryBackup(jobId, options = {}) {
+    return requestJson(
+      `/api/task-history/backup-exports/${encodeURIComponent(jobId)}`,
+      withSignal({ method: "GET" }, options.signal),
+      options.fetch ?? currentFetch()
+    );
+  }
+  async function cancelHistoryBackup(jobId, options = {}) {
+    return requestJson(
+      `/api/task-history/backup-exports/${encodeURIComponent(jobId)}`,
+      withSignal({ method: "DELETE" }, options.signal),
+      options.fetch ?? currentFetch()
+    );
+  }
+  function directDownloadHistoryBackup(downloadUrl, documentLike = currentDocument()) {
+    if (!documentLike) throw new Error("history_backup_document_unavailable");
+    const anchor = documentLike.createElement("a");
+    anchor.href = downloadUrl;
+    anchor.hidden = true;
+    documentLike.body?.appendChild(anchor);
+    try {
+      anchor.click();
+    } finally {
+      anchor.remove();
+    }
+  }
+  function readStoredHistoryBackupJobId(storage = currentStorage()) {
+    if (!storage) return null;
+    try {
+      const raw = storage.getItem(HISTORY_BACKUP_STORAGE_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === "object" && Object.keys(parsed).length === 2 && parsed.version === 1 && typeof parsed.jobId === "string" && /^[0-9a-f]{32}$/.test(parsed.jobId)) {
+        return parsed.jobId;
+      }
+    } catch {
+    }
+    try {
+      storage.removeItem(HISTORY_BACKUP_STORAGE_KEY);
+    } catch {
+    }
+    return null;
+  }
+  function storeJobId(storage, jobId) {
+    if (!storage) return;
+    try {
+      storage.setItem(HISTORY_BACKUP_STORAGE_KEY, JSON.stringify({ version: 1, jobId }));
+    } catch {
+    }
+  }
+  function readStoredScopeKind(storage) {
+    if (!storage) return null;
+    try {
+      const raw = storage.getItem(HISTORY_BACKUP_SCOPE_STORAGE_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      const scopeKind = parsed && typeof parsed === "object" ? parsed.scopeKind : null;
+      if (parsed && typeof parsed === "object" && Object.keys(parsed).length === 2 && parsed.version === 1 && ["selected", "filtered", "all"].includes(String(scopeKind || ""))) {
+        return scopeKind;
+      }
+    } catch {
+    }
+    try {
+      storage.removeItem(HISTORY_BACKUP_SCOPE_STORAGE_KEY);
+    } catch {
+    }
+    return null;
+  }
+  function storeScopeKind(storage, scopeKind) {
+    if (!storage) return;
+    try {
+      storage.setItem(
+        HISTORY_BACKUP_SCOPE_STORAGE_KEY,
+        JSON.stringify({ version: 1, scopeKind })
+      );
+    } catch {
+    }
+  }
+  function clearJobId(storage) {
+    try {
+      storage?.removeItem(HISTORY_BACKUP_STORAGE_KEY);
+    } catch {
+    }
+    try {
+      storage?.removeItem(HISTORY_BACKUP_SCOPE_STORAGE_KEY);
+    } catch {
+    }
+  }
+  function createHistoryBackupController(options = {}) {
+    const fetchFn = options.fetch ?? currentFetch();
+    const storage = options.storage === void 0 ? currentStorage() : options.storage;
+    const setTimeoutFn = options.setTimeout ?? defaultSetTimeout;
+    const clearTimeoutFn = options.clearTimeout ?? defaultClearTimeout;
+    const documentLike = options.document === void 0 ? currentDocument() : options.document;
+    let jobId = null;
+    let timer = null;
+    let activeAbort = null;
+    let pollDelay = 750;
+    let disposed = false;
+    let generation = 0;
+    let scopeKind = null;
+    const adoptedJobIds = /* @__PURE__ */ new Set();
+    const deletions = /* @__PURE__ */ new Map();
+    const clearTimer = () => {
+      if (timer !== null) clearTimeoutFn(timer);
+      timer = null;
+    };
+    const abortActive = () => {
+      activeAbort?.abort();
+      activeAbort = null;
+    };
+    const isCurrent = (operationGeneration) => operationGeneration === generation && !disposed;
+    const beginIntent = (nextDisposed = false) => {
+      generation += 1;
+      disposed = nextDisposed;
+      clearTimer();
+      abortActive();
+      return generation;
+    };
+    const supersededError = () => new DOMException("superseded", "AbortError");
+    const deleteExact = (targetJobId) => {
+      const existing = deletions.get(targetJobId);
+      if (existing) return existing;
+      const request = cancelHistoryBackup(targetJobId, { fetch: fetchFn });
+      deletions.set(targetJobId, request);
+      void request.then(
+        () => {
+          if (deletions.get(targetJobId) === request) deletions.delete(targetJobId);
+        },
+        () => {
+          if (deletions.get(targetJobId) === request) deletions.delete(targetJobId);
+        }
+      );
+      return request;
+    };
+    const retireExact = async (targetJobId) => {
+      try {
+        await deleteExact(targetJobId);
+      } catch {
+      }
+    };
+    const waitForRetirements = () => {
+      const pending = [...deletions.values()];
+      if (!pending.length) return null;
+      return Promise.all(pending.map(async (request) => {
+        try {
+          await request;
+        } catch {
+        }
+      })).then(() => void 0);
+    };
+    const stop = (operationGeneration) => {
+      if (!isCurrent(operationGeneration)) return;
+      clearTimer();
+    };
+    const forget = (operationGeneration) => {
+      if (!isCurrent(operationGeneration)) return;
+      stop(operationGeneration);
+      clearJobId(storage);
+      jobId = null;
+      scopeKind = null;
+    };
+    const observe = (operationGeneration, job) => {
+      const scopedJob = scopeKind ? { ...job, scope_kind: scopeKind } : job;
+      if (!isCurrent(operationGeneration)) return scopedJob;
+      options.onStatus?.(scopedJob);
+      if (TERMINAL_STATUSES.has(job.status)) stop(operationGeneration);
+      if (FORGET_STATUSES.has(job.status)) forget(operationGeneration);
+      return scopedJob;
+    };
+    const schedule = (operationGeneration) => {
+      if (!isCurrent(operationGeneration) || !jobId || timer !== null) return;
+      const delay = pollDelay;
+      timer = setTimeoutFn(async () => {
+        if (!isCurrent(operationGeneration)) return;
+        timer = null;
+        await poll(operationGeneration);
+      }, delay);
+      if (isCurrent(operationGeneration)) {
+        pollDelay = Math.min(2e3, Math.round(pollDelay * 1.5));
+      }
+    };
+    const poll = async (operationGeneration) => {
+      if (!isCurrent(operationGeneration) || !jobId) return null;
+      const currentJobId = jobId;
+      const abort = new AbortController();
+      activeAbort = abort;
+      try {
+        const job = await getHistoryBackup(currentJobId, { fetch: fetchFn, signal: abort.signal });
+        if (!isCurrent(operationGeneration)) return null;
+        const scopedJob = observe(operationGeneration, job);
+        if (isCurrent(operationGeneration) && !TERMINAL_STATUSES.has(job.status)) {
+          schedule(operationGeneration);
+        }
+        return scopedJob;
+      } catch (error) {
+        if (!isCurrent(operationGeneration) || abort.signal.aborted || error instanceof DOMException && error.name === "AbortError") return null;
+        const stableError = error instanceof HistoryBackupApiError ? error : new HistoryBackupApiError("backup_network_error", "backup_network_error", 0);
+        options.onError?.(stableError);
+        if (!isCurrent(operationGeneration)) return null;
+        if (stableError.status === 0 || stableError.status === 408 || stableError.status === 429 || stableError.status >= 500) {
+          schedule(operationGeneration);
+        } else {
+          forget(operationGeneration);
+        }
+        return null;
+      } finally {
+        if (activeAbort === abort) activeAbort = null;
+      }
+    };
+    const cleanupOrphan = async (orphanJobId) => {
+      if (adoptedJobIds.has(orphanJobId)) return;
+      await retireExact(orphanJobId);
+    };
+    const acknowledge = (targetJobId) => {
+      const current = jobId ?? readStoredHistoryBackupJobId(storage);
+      if (!current || targetJobId !== void 0 && targetJobId !== current) return false;
+      generation += 1;
+      clearTimer();
+      abortActive();
+      clearJobId(storage);
+      jobId = null;
+      scopeKind = null;
+      return true;
+    };
+    return {
+      async start(scope) {
+        const previousJobId = jobId ?? readStoredHistoryBackupJobId(storage);
+        const operationGeneration = beginIntent(false);
+        jobId = null;
+        scopeKind = null;
+        clearJobId(storage);
+        pollDelay = 750;
+        if (previousJobId) await retireExact(previousJobId);
+        const pendingRetirements = waitForRetirements();
+        if (pendingRetirements) await pendingRetirements;
+        if (!isCurrent(operationGeneration)) throw supersededError();
+        const abort = new AbortController();
+        activeAbort = abort;
+        try {
+          const job = await createHistoryBackup(scope, { fetch: fetchFn, signal: abort.signal });
+          if (!isCurrent(operationGeneration)) {
+            await cleanupOrphan(job.job_id);
+            throw supersededError();
+          }
+          jobId = job.job_id;
+          scopeKind = scope.kind;
+          adoptedJobIds.add(jobId);
+          storeJobId(storage, jobId);
+          storeScopeKind(storage, scopeKind);
+          const scopedJob = observe(operationGeneration, job);
+          if (isCurrent(operationGeneration) && !TERMINAL_STATUSES.has(job.status)) {
+            schedule(operationGeneration);
+          }
+          return scopedJob;
+        } finally {
+          if (activeAbort === abort) activeAbort = null;
+        }
+      },
+      async resume() {
+        const operationGeneration = beginIntent(false);
+        jobId = readStoredHistoryBackupJobId(storage);
+        scopeKind = jobId ? readStoredScopeKind(storage) : null;
+        if (jobId) adoptedJobIds.add(jobId);
+        pollDelay = 750;
+        return jobId && isCurrent(operationGeneration) ? await poll(operationGeneration) : null;
+      },
+      async cancel() {
+        const current = jobId ?? readStoredHistoryBackupJobId(storage);
+        const currentScopeKind = scopeKind ?? readStoredScopeKind(storage);
+        const operationGeneration = beginIntent(false);
+        jobId = null;
+        scopeKind = null;
+        clearJobId(storage);
+        if (!current) return null;
+        const job = await deleteExact(current);
+        if (isCurrent(operationGeneration)) {
+          if (!TERMINAL_STATUSES.has(job.status)) {
+            jobId = current;
+            scopeKind = currentScopeKind;
+            adoptedJobIds.add(current);
+            storeJobId(storage, current);
+            if (scopeKind) storeScopeKind(storage, scopeKind);
+          }
+          const scopedJob = observe(operationGeneration, job);
+          if (isCurrent(operationGeneration) && !TERMINAL_STATUSES.has(job.status)) {
+            pollDelay = 750;
+            schedule(operationGeneration);
+          }
+          return scopedJob;
+        }
+        return job;
+      },
+      async dismiss(targetJobId) {
+        const current = jobId ?? readStoredHistoryBackupJobId(storage);
+        if (!current || targetJobId !== void 0 && targetJobId !== current) return false;
+        const operationGeneration = beginIntent(false);
+        try {
+          await deleteExact(current);
+        } catch (error) {
+          if (!(error instanceof HistoryBackupApiError && error.status === 404)) throw error;
+        }
+        if (!isCurrent(operationGeneration)) return false;
+        clearJobId(storage);
+        jobId = null;
+        scopeKind = null;
+        return true;
+      },
+      acknowledge,
+      download(job) {
+        if (job.status !== "ready") {
+          throw new HistoryBackupApiError("backup_download_not_ready", "backup_download_not_ready", 409);
+        }
+        if (typeof job.download_url !== "string" || !job.download_url) {
+          throw new HistoryBackupApiError("backup_download_unavailable", "backup_download_unavailable", 422);
+        }
+        const current = jobId ?? readStoredHistoryBackupJobId(storage);
+        if (!current || job.job_id !== current) {
+          throw new HistoryBackupApiError("backup_download_job_mismatch", "backup_download_job_mismatch", 409);
+        }
+        directDownloadHistoryBackup(job.download_url, documentLike);
+        if (!acknowledge(job.job_id)) {
+          throw new HistoryBackupApiError("backup_download_job_mismatch", "backup_download_job_mismatch", 409);
+        }
+      },
+      dispose() {
+        beginIntent(true);
+      },
+      activeJobId() {
+        return jobId;
+      }
+    };
+  }
+
+  // codex_image/webui/frontend/src/history-import.ts
+  var HISTORY_IMPORT_STORAGE_KEY = "ilab-history-backup-import";
+  var DEFAULT_HISTORY_IMPORT_CHUNK_BYTES = 8 * 1024 * 1024;
+  var HistoryImportApiError = class extends Error {
+    constructor(code, message, status) {
+      super(message);
+      __publicField(this, "code");
+      __publicField(this, "status");
+      this.name = "HistoryImportApiError";
+      this.code = code;
+      this.status = status;
+    }
+  };
+  function currentFetch2() {
+    const value = globalThis.fetch;
+    if (typeof value !== "function") throw new Error("history_import_fetch_unavailable");
+    return value.bind(globalThis);
+  }
+  function currentStorage2() {
+    try {
+      return globalThis.sessionStorage;
+    } catch {
+      return null;
+    }
+  }
+  function currentCrypto() {
+    const value = globalThis.crypto;
+    if (!value?.subtle) throw new Error("history_import_crypto_unavailable");
+    return value;
+  }
+  async function apiError2(response) {
+    let code = "backup_request_failed";
+    let message = code;
+    try {
+      const payload = await response.json();
+      if (payload && typeof payload === "object") {
+        const detail = payload.detail;
+        if (detail && typeof detail === "object") {
+          const record2 = detail;
+          if (typeof record2.code === "string" && /^[a-z][a-z0-9_]{2,127}$/.test(record2.code)) {
+            code = record2.code;
+            message = typeof record2.message === "string" && record2.message === code ? record2.message : code;
+          }
+        }
+      }
+    } catch {
+    }
+    return new HistoryImportApiError(code, message, response.status);
+  }
+  async function requestJson2(url, init, fetchFn) {
+    const response = await fetchFn(url, init);
+    if (!response.ok) throw await apiError2(response);
+    return await response.json();
+  }
+  function withSignal2(init, signal) {
+    return signal ? { ...init, signal } : init;
+  }
+  async function createHistoryImport(filename, sizeBytes, options = {}) {
+    const session = await requestJson2(
+      "/api/task-history/backup-imports",
+      withSignal2({
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ filename, size_bytes: sizeBytes })
+      }, options.signal),
+      options.fetch ?? currentFetch2()
+    );
+    return {
+      ...session,
+      upload_chunk_bytes: positiveChunkSize(session.upload_chunk_bytes)
+    };
+  }
+  async function getHistoryImport(sessionId, options = {}) {
+    const payload = await requestJson2(
+      `/api/task-history/backup-imports/${encodeURIComponent(sessionId)}`,
+      withSignal2({ method: "GET" }, options.signal),
+      options.fetch ?? currentFetch2()
+    );
+    return parseHistoryImportSnapshot(payload);
+  }
+  async function appendHistoryImportChunk(sessionId, offset, bytes, sha256, options = {}) {
+    return requestJson2(
+      `/api/task-history/backup-imports/${encodeURIComponent(sessionId)}/chunks`,
+      withSignal2({
+        method: "PUT",
+        headers: {
+          "x-chunk-offset": String(offset),
+          "x-chunk-sha256": sha256
+        },
+        body: bytes
+      }, options.signal),
+      options.fetch ?? currentFetch2()
+    );
+  }
+  async function validateHistoryImport(sessionId, options = {}) {
+    return requestJson2(
+      `/api/task-history/backup-imports/${encodeURIComponent(sessionId)}/validate`,
+      withSignal2({ method: "POST" }, options.signal),
+      options.fetch ?? currentFetch2()
+    );
+  }
+  async function restoreHistoryImport(sessionId, options = {}) {
+    return requestJson2(
+      `/api/task-history/backup-imports/${encodeURIComponent(sessionId)}/restore`,
+      withSignal2({ method: "POST" }, options.signal),
+      options.fetch ?? currentFetch2()
+    );
+  }
+  async function cancelHistoryImport(sessionId, options = {}) {
+    return requestJson2(
+      `/api/task-history/backup-imports/${encodeURIComponent(sessionId)}`,
+      withSignal2({ method: "DELETE" }, options.signal),
+      options.fetch ?? currentFetch2()
+    );
+  }
+  function positiveChunkSize(value) {
+    return typeof value === "number" && Number.isInteger(value) && value > 0 && value <= DEFAULT_HISTORY_IMPORT_CHUNK_BYTES ? value : DEFAULT_HISTORY_IMPORT_CHUNK_BYTES;
+  }
+  var IMPORT_STATUSES = /* @__PURE__ */ new Set([
+    "uploading",
+    "uploaded",
+    "validated",
+    "restoring",
+    "restored",
+    "failed",
+    "interrupted"
+  ]);
+  var IMPORT_CLASSIFICATIONS = /* @__PURE__ */ new Set([
+    "restorable",
+    "restored",
+    "duplicate",
+    "conflict",
+    "invalid",
+    "failed",
+    "thumbnail_warning",
+    "cleanup_warning"
+  ]);
+  function invalidResponse() {
+    throw new Error("history_import_response_invalid");
+  }
+  function parseTaskResults(value) {
+    if (!Array.isArray(value)) invalidResponse();
+    return value.map((item) => {
+      if (!item || typeof item !== "object" || Array.isArray(item)) invalidResponse();
+      const record2 = item;
+      if (!Object.keys(record2).every((key) => ["task_id", "classification", "reason"].includes(key))) invalidResponse();
+      if (typeof record2.task_id !== "string" || !/^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/.test(record2.task_id) || typeof record2.classification !== "string" || !IMPORT_CLASSIFICATIONS.has(record2.classification) || record2.reason !== void 0 && record2.reason !== null && (typeof record2.reason !== "string" || !/^[a-z][a-z0-9_]{2,127}$/.test(record2.reason))) invalidResponse();
+      const parsed = {
+        task_id: record2.task_id,
+        classification: record2.classification
+      };
+      if (record2.reason !== void 0) parsed.reason = record2.reason;
+      return parsed;
+    });
+  }
+  function parseImportResult(value) {
+    if (value === null || value === void 0) return null;
+    if (!value || typeof value !== "object" || Array.isArray(value)) invalidResponse();
+    const record2 = value;
+    const keys = [
+      "restored",
+      "duplicates",
+      "conflicts",
+      "invalid",
+      "failed",
+      "thumbnail_warnings",
+      "cleanup_warnings"
+    ];
+    if (Object.keys(record2).length !== keys.length || !keys.every((key) => key in record2)) invalidResponse();
+    return {
+      restored: parseTaskResults(record2.restored),
+      duplicates: parseTaskResults(record2.duplicates),
+      conflicts: parseTaskResults(record2.conflicts),
+      invalid: parseTaskResults(record2.invalid),
+      failed: parseTaskResults(record2.failed),
+      thumbnail_warnings: parseTaskResults(record2.thumbnail_warnings),
+      cleanup_warnings: parseTaskResults(record2.cleanup_warnings)
+    };
+  }
+  function parseHistoryImportSnapshot(value) {
+    if (!value || typeof value !== "object" || Array.isArray(value)) invalidResponse();
+    const record2 = value;
+    if (typeof record2.session_id !== "string" || !/^[0-9a-f]{32}$/.test(record2.session_id) || typeof record2.filename !== "string" || !record2.filename || typeof record2.size_bytes !== "number" || !Number.isInteger(record2.size_bytes) || record2.size_bytes < 0 || typeof record2.uploaded_bytes !== "number" || !Number.isInteger(record2.uploaded_bytes) || record2.uploaded_bytes < 0 || typeof record2.status !== "string" || !IMPORT_STATUSES.has(record2.status) || record2.error_code !== void 0 && record2.error_code !== null && typeof record2.error_code !== "string") invalidResponse();
+    const result = parseImportResult(record2.result);
+    if (record2.status === "restored" && result === null) invalidResponse();
+    return {
+      ...record2,
+      status: record2.status,
+      upload_chunk_bytes: positiveChunkSize(record2.upload_chunk_bytes),
+      result
+    };
+  }
+  function abortError(signal) {
+    return signal.reason ?? new DOMException("aborted", "AbortError");
+  }
+  function throwIfAborted(signal) {
+    if (signal?.aborted) throw abortError(signal);
+  }
+  function isRetryableChunkError(error) {
+    if (error instanceof DOMException && error.name === "AbortError") return false;
+    if (!(error instanceof HistoryImportApiError)) return true;
+    return error.status === 408 || error.status === 429 || error.status >= 500;
+  }
+  function digestHex(digest) {
+    return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
+  }
+  async function uploadAndValidateHistoryImport(file, initialSession, options = {}) {
+    if (file.size !== initialSession.size_bytes) {
+      throw new HistoryImportApiError("backup_import_size_invalid", "backup_import_size_invalid", 422);
+    }
+    const fetchFn = options.fetch ?? currentFetch2();
+    const cryptoLike = options.crypto ?? currentCrypto();
+    const chunkBytes = positiveChunkSize(initialSession.upload_chunk_bytes);
+    let offset = initialSession.uploaded_bytes;
+    if (!Number.isInteger(offset) || offset < 0 || offset > file.size) {
+      throw new HistoryImportApiError("backup_import_offset_invalid", "backup_import_offset_invalid", 409);
+    }
+    while (offset < file.size) {
+      throwIfAborted(options.signal);
+      const end = Math.min(file.size, offset + chunkBytes);
+      const slice = file.slice(offset, end);
+      const bytes = await slice.arrayBuffer();
+      const sha256 = digestHex(await cryptoLike.subtle.digest("SHA-256", bytes));
+      let uploaded = null;
+      let lastError = null;
+      for (let attempt = 0; attempt < 2; attempt += 1) {
+        throwIfAborted(options.signal);
+        try {
+          uploaded = await appendHistoryImportChunk(
+            initialSession.session_id,
+            offset,
+            bytes,
+            sha256,
+            { fetch: fetchFn, signal: options.signal }
+          );
+          throwIfAborted(options.signal);
+          break;
+        } catch (error) {
+          lastError = error;
+          if (options.signal?.aborted || attempt === 1 || !isRetryableChunkError(error)) throw error;
+        }
+      }
+      if (!uploaded) throw lastError;
+      const expected = end;
+      if (uploaded.uploaded_bytes !== expected) {
+        throw new HistoryImportApiError("backup_import_offset_invalid", "backup_import_offset_invalid", 409);
+      }
+      offset = expected;
+      options.onProgress?.(offset, file.size);
+      throwIfAborted(options.signal);
+    }
+    if (offset !== file.size) {
+      throw new HistoryImportApiError("backup_import_upload_incomplete", "backup_import_upload_incomplete", 409);
+    }
+    options.onUploadComplete?.();
+    throwIfAborted(options.signal);
+    return validateHistoryImport(initialSession.session_id, {
+      fetch: fetchFn,
+      signal: options.signal
+    });
+  }
+  function readStoredHistoryImportSessionId(storage = currentStorage2()) {
+    if (!storage) return null;
+    try {
+      const raw = storage.getItem(HISTORY_IMPORT_STORAGE_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === "object" && Object.keys(parsed).length === 2 && parsed.version === 1 && typeof parsed.sessionId === "string" && /^[0-9a-f]{32}$/.test(parsed.sessionId)) {
+        return parsed.sessionId;
+      }
+    } catch {
+    }
+    try {
+      storage.removeItem(HISTORY_IMPORT_STORAGE_KEY);
+    } catch {
+    }
+    return null;
+  }
+  function storeSessionId(storage, sessionId) {
+    if (!storage) return;
+    try {
+      storage.setItem(HISTORY_IMPORT_STORAGE_KEY, JSON.stringify({ version: 1, sessionId }));
+    } catch {
+    }
+  }
+  function clearSessionId(storage) {
+    try {
+      storage?.removeItem(HISTORY_IMPORT_STORAGE_KEY);
+    } catch {
+    }
+  }
+  function phaseForStatus(status) {
+    if (status === "uploaded" || status === "uploading") return "uploading";
+    return status;
+  }
+  function createHistoryImportController(options = {}) {
+    const fetchFn = options.fetch ?? currentFetch2();
+    const storage = options.storage === void 0 ? currentStorage2() : options.storage;
+    const cryptoLike = options.crypto ?? currentCrypto();
+    let sessionId = null;
+    let activeAbort = null;
+    let generation = 0;
+    let disposed = false;
+    const adoptedSessionIds = /* @__PURE__ */ new Set();
+    const deletions = /* @__PURE__ */ new Map();
+    const abortActive = () => {
+      activeAbort?.abort();
+      activeAbort = null;
+    };
+    const isCurrent = (operationGeneration) => operationGeneration === generation && !disposed;
+    const beginIntent = (nextDisposed = false) => {
+      generation += 1;
+      disposed = nextDisposed;
+      abortActive();
+      return generation;
+    };
+    const supersededError = () => new DOMException("superseded", "AbortError");
+    const deleteExact = (targetSessionId) => {
+      const existing = deletions.get(targetSessionId);
+      if (existing) return existing;
+      const request = cancelHistoryImport(targetSessionId, { fetch: fetchFn });
+      deletions.set(targetSessionId, request);
+      void request.then(
+        () => {
+          if (deletions.get(targetSessionId) === request) deletions.delete(targetSessionId);
+        },
+        () => {
+          if (deletions.get(targetSessionId) === request) deletions.delete(targetSessionId);
+        }
+      );
+      return request;
+    };
+    const retireExact = async (targetSessionId) => {
+      try {
+        await deleteExact(targetSessionId);
+      } catch {
+      }
+    };
+    const waitForRetirements = () => {
+      const pending = [...deletions.values()];
+      if (!pending.length) return null;
+      return Promise.all(pending.map(async (request) => {
+        try {
+          await request;
+        } catch {
+        }
+      })).then(() => void 0);
+    };
+    const setPhase = (operationGeneration, phase) => {
+      if (!isCurrent(operationGeneration)) return false;
+      options.onPhase?.(phase);
+      return isCurrent(operationGeneration);
+    };
+    const run = async (operationGeneration, operation) => {
+      if (!isCurrent(operationGeneration)) throw new DOMException("superseded", "AbortError");
+      const abort = new AbortController();
+      activeAbort = abort;
+      try {
+        return await operation(abort.signal);
+      } finally {
+        if (activeAbort === abort) activeAbort = null;
+      }
+    };
+    const cleanupOrphan = async (orphanSessionId) => {
+      if (adoptedSessionIds.has(orphanSessionId)) return;
+      await retireExact(orphanSessionId);
+    };
+    return {
+      async start(file, filename) {
+        const previousSessionId = sessionId ?? readStoredHistoryImportSessionId(storage);
+        const operationGeneration = beginIntent(false);
+        sessionId = null;
+        clearSessionId(storage);
+        if (!setPhase(operationGeneration, "creating")) {
+          throw supersededError();
+        }
+        if (previousSessionId) await retireExact(previousSessionId);
+        const pendingRetirements = waitForRetirements();
+        if (pendingRetirements) await pendingRetirements;
+        if (!isCurrent(operationGeneration)) throw supersededError();
+        return run(operationGeneration, async (signal) => {
+          const session = await createHistoryImport(filename, file.size, { fetch: fetchFn, signal });
+          if (!isCurrent(operationGeneration)) {
+            await cleanupOrphan(session.session_id);
+            throw supersededError();
+          }
+          sessionId = session.session_id;
+          adoptedSessionIds.add(sessionId);
+          storeSessionId(storage, sessionId);
+          if (!setPhase(operationGeneration, "uploading")) {
+            throw supersededError();
+          }
+          const preview = await uploadAndValidateHistoryImport(file, session, {
+            fetch: fetchFn,
+            crypto: cryptoLike,
+            signal,
+            onProgress: (uploaded, total) => {
+              if (isCurrent(operationGeneration)) options.onProgress?.(uploaded, total);
+            },
+            onUploadComplete: () => {
+              setPhase(operationGeneration, "validating");
+            }
+          });
+          if (!isCurrent(operationGeneration)) {
+            throw supersededError();
+          }
+          setPhase(operationGeneration, "validated");
+          return preview;
+        });
+      },
+      async resume() {
+        const operationGeneration = beginIntent(false);
+        sessionId = readStoredHistoryImportSessionId(storage);
+        if (sessionId) adoptedSessionIds.add(sessionId);
+        if (!sessionId) return null;
+        const current = sessionId;
+        const session = await run(
+          operationGeneration,
+          (signal) => getHistoryImport(current, { fetch: fetchFn, signal })
+        );
+        if (!isCurrent(operationGeneration)) return null;
+        setPhase(operationGeneration, phaseForStatus(session.status));
+        if (!isCurrent(operationGeneration)) return null;
+        return session;
+      },
+      async resumeUpload(file, filename) {
+        const current = sessionId ?? readStoredHistoryImportSessionId(storage);
+        const operationGeneration = beginIntent(false);
+        if (!current) return null;
+        sessionId = current;
+        adoptedSessionIds.add(current);
+        storeSessionId(storage, current);
+        return run(operationGeneration, async (signal) => {
+          const session = await getHistoryImport(current, { fetch: fetchFn, signal });
+          if (!isCurrent(operationGeneration)) return null;
+          if (session.status !== "uploading" && session.status !== "uploaded" && session.status !== "validated") {
+            throw new HistoryImportApiError(
+              "backup_import_status_invalid",
+              "backup_import_status_invalid",
+              409
+            );
+          }
+          if (filename !== session.filename || file.size !== session.size_bytes) {
+            throw new HistoryImportApiError(
+              "backup_import_file_mismatch",
+              "backup_import_file_mismatch",
+              422
+            );
+          }
+          if (!Number.isInteger(session.uploaded_bytes) || session.uploaded_bytes < 0 || session.uploaded_bytes > file.size) {
+            throw new HistoryImportApiError(
+              "backup_import_offset_invalid",
+              "backup_import_offset_invalid",
+              409
+            );
+          }
+          if (session.status === "uploaded" || session.status === "validated") {
+            options.onProgress?.(file.size, file.size);
+            if (!isCurrent(operationGeneration)) return null;
+            if (!setPhase(operationGeneration, "validating")) return null;
+            const preview2 = await validateHistoryImport(current, { fetch: fetchFn, signal });
+            if (!isCurrent(operationGeneration)) return null;
+            setPhase(operationGeneration, "validated");
+            return preview2;
+          }
+          if (!setPhase(operationGeneration, "uploading")) return null;
+          options.onProgress?.(session.uploaded_bytes, file.size);
+          if (!isCurrent(operationGeneration)) return null;
+          const preview = await uploadAndValidateHistoryImport(file, session, {
+            fetch: fetchFn,
+            crypto: cryptoLike,
+            signal,
+            onProgress: (uploaded, total) => {
+              if (isCurrent(operationGeneration)) options.onProgress?.(uploaded, total);
+            },
+            onUploadComplete: () => {
+              setPhase(operationGeneration, "validating");
+            }
+          });
+          if (!isCurrent(operationGeneration)) return null;
+          setPhase(operationGeneration, "validated");
+          return preview;
+        });
+      },
+      async resumeValidate() {
+        const current = sessionId ?? readStoredHistoryImportSessionId(storage);
+        const operationGeneration = beginIntent(false);
+        if (!current) return null;
+        sessionId = current;
+        adoptedSessionIds.add(current);
+        storeSessionId(storage, current);
+        return run(operationGeneration, async (signal) => {
+          const session = await getHistoryImport(current, { fetch: fetchFn, signal });
+          if (!isCurrent(operationGeneration)) return null;
+          if (session.status !== "uploaded" && session.status !== "validated") {
+            throw new HistoryImportApiError(
+              "backup_import_status_invalid",
+              "backup_import_status_invalid",
+              409
+            );
+          }
+          if (!setPhase(operationGeneration, "validating")) return null;
+          const preview = await validateHistoryImport(current, { fetch: fetchFn, signal });
+          if (!isCurrent(operationGeneration)) return null;
+          setPhase(operationGeneration, "validated");
+          return preview;
+        });
+      },
+      async restore() {
+        const operationGeneration = beginIntent(false);
+        if (!sessionId) sessionId = readStoredHistoryImportSessionId(storage);
+        if (!sessionId) return null;
+        adoptedSessionIds.add(sessionId);
+        if (!setPhase(operationGeneration, "restoring")) return null;
+        const current = sessionId;
+        const result = await run(
+          operationGeneration,
+          (signal) => restoreHistoryImport(current, { fetch: fetchFn, signal })
+        );
+        if (!isCurrent(operationGeneration)) return null;
+        setPhase(operationGeneration, result.failed.length ? "failed" : "restored");
+        if (!isCurrent(operationGeneration)) return null;
+        return result;
+      },
+      acknowledgeTerminal(expectedSessionId) {
+        if (!/^[0-9a-f]{32}$/.test(expectedSessionId)) return false;
+        if (sessionId !== expectedSessionId) return false;
+        if (readStoredHistoryImportSessionId(storage) !== expectedSessionId) return false;
+        clearSessionId(storage);
+        if (sessionId === expectedSessionId) sessionId = null;
+        return true;
+      },
+      async acknowledgeTerminalAfterRefresh(expectedSessionId, refresh) {
+        await refresh();
+        return this.acknowledgeTerminal(expectedSessionId);
+      },
+      async cancel() {
+        const current = sessionId ?? readStoredHistoryImportSessionId(storage);
+        const operationGeneration = beginIntent(false);
+        if (!setPhase(operationGeneration, "cancelled")) return false;
+        if (!current) {
+          return false;
+        }
+        await deleteExact(current);
+        if (!isCurrent(operationGeneration)) return false;
+        sessionId = null;
+        clearSessionId(storage);
+        return true;
+      },
+      dispose() {
+        beginIntent(true);
+      },
+      activeSessionId() {
+        return sessionId;
+      }
+    };
+  }
+
+  // codex_image/webui/frontend/src/history-action-panel.ts
+  function historySelectionDetailResolution({
+    selectedCount,
+    selectedTaskId,
+    detailTaskId
+  }) {
+    if (selectedCount > 1) return "selection";
+    if (!selectedTaskId) return "management";
+    return detailTaskId === selectedTaskId ? "task" : "load-task";
+  }
+  function historyDetailCloseEffect({
+    mode
+  }) {
+    return mode === "task" || mode === "empty" ? "clear-task" : "dismiss";
+  }
+  function shouldClearHistoryTaskFromBlankSurface({
+    detailMode,
+    selectedCount,
+    selectionMode,
+    isTaskListBlankSurface,
+    button,
+    hasModifier
+  }) {
+    const hasSelection = detailMode === "task" && selectedCount === 1 || detailMode === "selection" && selectedCount > 1 || selectionMode;
+    return hasSelection && isTaskListBlankSurface && button === 0 && !hasModifier;
+  }
+  var ICONS = {
+    archive: '<path d="M4 8h16v12H4zM3 4h18v4H3z"/><path d="M9 12h6"/>',
+    backup: '<path d="M4 8h16v12H4zM3 4h18v4H3zM12 11v6m0 0-3-3m3 3 3-3"/>',
+    chevron: '<path d="m8 10 4 4 4-4"/>',
+    close: '<path d="M7 7 17 17M17 7 7 17"/>',
+    delete: '<path d="M5 7h14M9 7V4h6v3m-8 0 1 13h8l1-13M10 11v5m4-5v5"/>',
+    export: '<path d="M12 3v11m0 0 4-4m-4 4-4-4M5 17v3h14v-3"/>',
+    favorite: '<path d="m12 3 2.7 5.5 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/>',
+    image: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m5 16 4-4 3 3 2-2 5 4M16.5 9h.01"/>',
+    import: '<path d="M4 8h16v12H4zM3 4h18v4H3zM12 17v-6m0 0-3 3m3-3 3 3"/>',
+    organize: '<path d="M4 7h16M7 12h10M9 17h6"/>',
+    restore: '<path d="M4 8h16v12H4zM3 4h18v4H3z"/><path d="M12 17v-6m0 0-3 3m3-3 3 3"/>',
+    select: '<path d="M5 6h14M5 12h14M5 18h14"/><path d="m3 6 .8.8L5.4 5m-2.4 7 .8.8 1.6-1.8m-2.4 7 .8.8 1.6-1.8"/>',
+    tag: '<path d="M4 5h7l9 9-6 6-9-9z"/><circle cx="8.5" cy="8.5" r="1"/>'
+  };
+  function escapeHtml4(value) {
+    return String(value ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+  }
+  function icon(name, className = "history-action-icon") {
+    return `<svg class="${className}" viewBox="0 0 24 24" aria-hidden="true" focusable="false">${ICONS[name]}</svg>`;
+  }
+  function drawerClose(copy) {
+    return `
+    <button class="ghost-button drawer-close-button history-detail-close" type="button" data-history-detail-close aria-label="${escapeHtml4(copy.close)}">
+      ${icon("close", "drawer-close-icon")}
+    </button>`;
+  }
+  function nextHistoryActionPanelSection(current, requested) {
+    return current === requested ? "" : requested;
+  }
+  function historyManagementPanelHtml(copy, { selectionMode = false } = {}) {
+    const selectionAttribute = selectionMode ? "data-history-exit-selection-mode" : "data-history-enter-selection-mode";
+    const selectionLabel = selectionMode ? copy.exitSelection : copy.selectTasks;
+    return `
+    <div class="history-action-panel" data-history-detail-mode="management">
+      <div class="history-detail-header history-action-panel-header">
+        <div>
+          <h2 class="history-detail-title" tabindex="-1">${escapeHtml4(copy.libraryTitle)}</h2>
+        </div>
+        ${drawerClose(copy)}
+      </div>
+      <p class="history-action-panel-description">${escapeHtml4(copy.libraryDescription)}</p>
+      <div class="history-action-list">
+        <button class="history-action-row${selectionMode ? " history-action-row-primary" : ""}" type="button" ${selectionAttribute} aria-pressed="${selectionMode}">
+          ${icon("select")}
+          <span>${escapeHtml4(selectionLabel)}</span>
+          ${icon("chevron", "history-action-row-arrow")}
+        </button>
+        <button class="history-action-row history-action-row-primary" type="button" data-history-open-backup>
+          ${icon("backup")}
+          <span>${escapeHtml4(copy.backup)}</span>
+          ${icon("chevron", "history-action-row-arrow")}
+        </button>
+        <button class="history-action-row" type="button" data-history-open-import>
+          ${icon("import")}
+          <span>${escapeHtml4(copy.importBackup)}</span>
+          ${icon("chevron", "history-action-row-arrow")}
+        </button>
+      </div>
+    </div>`;
+  }
+  function historySelectionPanelHtml({
+    copy,
+    count,
+    expandedSection,
+    deleteConfirming
+  }) {
+    const organizeOpen = expandedSection === "organize";
+    const exportOpen = expandedSection === "export";
+    return `
+    <div class="history-action-panel" data-history-detail-mode="selection">
+      <div class="history-detail-header history-action-panel-header">
+        <div>
+          <h2 class="history-detail-title" tabindex="-1">${escapeHtml4(copy.selectedCount(count))}</h2>
+        </div>
+        <div class="history-action-panel-header-actions">
+          <button class="history-action-clear" type="button" data-history-bulk-clear>${escapeHtml4(copy.exitSelection)}</button>
+          ${drawerClose(copy)}
+        </div>
+      </div>
+      <div class="history-action-list">
+        <button class="history-action-row history-action-disclosure" type="button" data-history-toggle-action-section="organize" aria-expanded="${organizeOpen}">
+          ${icon("organize")}
+          <span>${escapeHtml4(copy.organize)}</span>
+          ${icon("chevron", "history-action-row-chevron")}
+        </button>
+        ${organizeOpen ? `
+          <div class="history-action-options history-action-options-organize" data-history-action-section="organize">
+            <button type="button" data-history-bulk-favorite>${icon("favorite")}<span>${escapeHtml4(copy.favorite)}</span></button>
+            <button type="button" data-history-bulk-unfavorite>${icon("favorite")}<span>${escapeHtml4(copy.unfavorite)}</span></button>
+            <button type="button" data-history-open-tag-picker="add">${icon("tag")}<span>${escapeHtml4(copy.addTag)}</span></button>
+            <button type="button" data-history-open-tag-picker="remove">${icon("tag")}<span>${escapeHtml4(copy.removeTag)}</span></button>
+            <button type="button" data-history-bulk-archive>${icon("archive")}<span>${escapeHtml4(copy.archive)}</span></button>
+            <button type="button" data-history-bulk-restore>${icon("restore")}<span>${escapeHtml4(copy.restore)}</span></button>
+          </div>` : ""}
+        <button class="history-action-row history-action-disclosure" type="button" data-history-toggle-action-section="export" aria-expanded="${exportOpen}">
+          ${icon("export")}
+          <span>${escapeHtml4(copy.export)}</span>
+          ${icon("chevron", "history-action-row-chevron")}
+        </button>
+        ${exportOpen ? `
+          <div class="history-action-options history-action-options-export" data-history-action-section="export">
+            <button type="button" data-history-export-mode="images_only">${icon("image")}<span>${escapeHtml4(copy.imagesOnly)}</span></button>
+            <button type="button" data-history-export-mode="images_with_prompts">${icon("export")}<span>${escapeHtml4(copy.imagesWithPrompts)}</span></button>
+            <p class="history-action-status" data-history-action-export-status aria-live="polite"></p>
+          </div>` : ""}
+        <button class="history-action-row history-action-row-primary" type="button" data-history-open-backup="selected">
+          ${icon("backup")}
+          <span>${escapeHtml4(copy.backup)}</span>
+          ${icon("chevron", "history-action-row-arrow")}
+        </button>
+      </div>
+      <div class="history-action-danger">
+        <button class="history-action-row history-action-row-danger" type="button" data-history-bulk-delete>
+          ${icon("delete")}
+          <span>${escapeHtml4(deleteConfirming ? copy.confirmDelete : copy.deleteTasks)}</span>
+        </button>
+        ${deleteConfirming ? `<button class="history-action-cancel" type="button" data-history-cancel-bulk-delete>${escapeHtml4(copy.cancel)}</button>` : ""}
+      </div>
+    </div>`;
+  }
+
+  // codex_image/webui/frontend/src/history-selection-shortcuts.ts
+  var HISTORY_SHORTCUT_EDITABLE_SELECTOR = [
+    "input",
+    "textarea",
+    "select",
+    '[contenteditable=""]',
+    '[contenteditable="true"]'
+  ].join(", ");
+  function isHistorySelectAllTasksShortcut(event, target) {
+    if (event.key.toLowerCase() !== "a") return false;
+    if (!event.ctrlKey && !event.metaKey || event.shiftKey || event.altKey) return false;
+    return !target?.closest?.(HISTORY_SHORTCUT_EDITABLE_SELECTOR);
+  }
+  function historySelectAllTaskIds(taskIds) {
+    return [...new Set(taskIds.map((taskId) => String(taskId || "")).filter(Boolean))];
+  }
+
   // codex_image/webui/frontend/src/history.ts
-  var HISTORY_FILTER_KEYS = ["mode", "month", "prompt_mode", "quality", "ratio", "orientation", "backend", "provider", "archived"];
   var HISTORY_RATIO_OTHER_VALUE = "__other__";
   var HISTORY_PAGE_LIMIT = 50;
   var MAX_MOUNTED_TASK_CARDS = 300;
@@ -23621,6 +27037,7 @@
     selectedTaskIds: /* @__PURE__ */ new Set(),
     selectedTaskId: "",
     selectionAnchorTaskId: "",
+    selectionMode: false,
     deleteConfirming: false,
     pendingDeleteTaskIds: [],
     deleteConfirmTaskId: "",
@@ -23639,6 +27056,9 @@
   var historyGridLayoutFrame = 0;
   var pendingHistoryGridKeepTaskId = "";
   var historyResizeFrame = 0;
+  var historyGridResizeObserver = null;
+  var historyGridMutationObserver = null;
+  var historyGridResizeController = null;
   var historyDetailLoadToken = 0;
   var historyContextMenuEl = null;
   var historyTags = [];
@@ -23660,10 +27080,31 @@
   var historyExportTrigger = null;
   var historyExportTaskIds = [];
   var historyExportPending = false;
+  var historyOrganizePickerEl = null;
+  var historyOrganizeTrigger = null;
+  var historyBackupReturnFocus = null;
+  var historyImportReturnFocus = null;
+  var selectedTaskIdsSnapshot = [];
+  var currentBackupJob = null;
+  var currentImportPreview = null;
+  var currentImportResult = null;
+  var currentImportPhase = "idle";
+  var resumableImportSession = null;
+  var historyImportResumePending = false;
+  var lastBackupAnnouncement = "";
+  var historyBackupDownloaded = false;
+  var historyBackupEstimateGeneration = 0;
+  var historyBackupEstimates = /* @__PURE__ */ new Map();
+  var historyBackupEstimateStates = /* @__PURE__ */ new Map();
   var activeHistoryResizer = null;
+  var historyActionPanelExpanded = "";
+  var historyDetailReturnFocus = null;
   var els8 = {
     page: document.querySelector(".history-page"),
     sidebar: document.querySelector(".history-sidebar"),
+    mobileFiltersButton: document.querySelector("#historyMobileFiltersButton"),
+    mobileFilterCount: document.querySelector("#historyMobileFilterCount"),
+    filtersBackdrop: document.querySelector("#historyFiltersBackdrop"),
     leftResizer: document.querySelector('[data-history-resizer="left"]'),
     rightResizer: document.querySelector('[data-history-resizer="right"]'),
     total: document.querySelector("#historyTotal"),
@@ -23688,23 +27129,52 @@
     sortToggle: document.querySelector("#historySortToggle"),
     viewToggle: document.querySelector("#historyViewToggle"),
     resultSummary: document.querySelector("#historyResultSummary"),
-    bulkToolbar: document.querySelector("#historyBulkToolbar"),
-    bulkCount: document.querySelector("#historyBulkCount"),
-    bulkFavorite: document.querySelector("#historyBulkFavoriteButton"),
-    bulkUnfavorite: document.querySelector("#historyBulkUnfavoriteButton"),
-    bulkAddTag: document.querySelector("#historyBulkAddTagButton"),
-    bulkRemoveTag: document.querySelector("#historyBulkRemoveTagButton"),
-    bulkExport: document.querySelector("#historyBulkExportButton"),
-    bulkArchive: document.querySelector("#historyBulkArchiveButton"),
-    bulkRestore: document.querySelector("#historyBulkRestoreButton"),
-    bulkDelete: document.querySelector("#historyBulkDeleteButton"),
-    bulkDeleteCancel: document.querySelector("#historyBulkDeleteCancelButton"),
+    activeFilters: document.querySelector("#historyActiveFilters"),
+    activeFiltersLabel: document.querySelector("#historyActiveFiltersLabel"),
+    activeFilterList: document.querySelector("#historyActiveFilterList"),
+    clearAllFilters: document.querySelector("#historyClearAllFilters"),
+    managementButton: document.querySelector("#historyManagementButton"),
+    selectionDock: document.querySelector("#historySelectionDock"),
+    selectionDockCount: document.querySelector("#historySelectionDockCount"),
     taskList: document.querySelector("#historyTaskList"),
     detail: document.querySelector("#historyDetail"),
     sentinel: document.querySelector("[data-history-load-more]"),
-    refresh: document.querySelector("#historyRefreshButton")
+    refresh: document.querySelector("#historyRefreshButton"),
+    backupDialog: document.querySelector("#historyBackupDialog"),
+    backupTitle: document.querySelector("#historyBackupTitle"),
+    backupScopeHelp: document.querySelector("#historyBackupScopeHelp"),
+    backupScopeFieldset: document.querySelector("#historyBackupScopeFieldset"),
+    backupScopeEstimate: document.querySelector("#historyBackupScopeEstimate"),
+    backupScopeState: document.querySelector("#historyBackupScopeState"),
+    backupSelectedScope: document.querySelector("#historyBackupScopeSelected"),
+    backupProgressRegion: document.querySelector("#historyBackupProgressRegion"),
+    backupProgressSummary: document.querySelector("#historyBackupProgressSummary"),
+    backupProgress: document.querySelector("#historyBackupProgress"),
+    backupStats: document.querySelector("#historyBackupStats"),
+    backupLive: document.querySelector("#historyBackupLive"),
+    backupWarning: document.querySelector("#historyBackupWarning"),
+    backupComplete: document.querySelector("#historyBackupComplete"),
+    backupStart: document.querySelector("#historyBackupStart"),
+    backupCancel: document.querySelector("#historyBackupCancel"),
+    backupDownload: document.querySelector("#historyBackupDownload"),
+    backupDismiss: document.querySelector("#historyBackupDismiss"),
+    importDialog: document.querySelector("#historyImportDialog"),
+    importTitle: document.querySelector("#historyImportTitle"),
+    importFile: document.querySelector("#historyImportFile"),
+    importProgress: document.querySelector("#historyImportProgress"),
+    importLive: document.querySelector("#historyImportLive"),
+    importPreview: document.querySelector("#historyImportPreview"),
+    importResult: document.querySelector("#historyImportResult"),
+    importConfirm: document.querySelector("#historyImportConfirm"),
+    importCancel: document.querySelector("#historyImportCancel")
   };
-  function escapeHtml4(value) {
+  var historyPositionSaveController = createHistoryPositionSaveController({
+    requestFrame: (callback) => window.requestAnimationFrame(callback),
+    cancelFrame: (frameId) => window.cancelAnimationFrame(frameId),
+    capture: () => els8.taskList ? captureHistoryScrollAnchor(els8.taskList) : null,
+    save: saveCurrentHistoryLocation
+  });
+  function escapeHtml5(value) {
     return String(value ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
   }
   function formatDate(value) {
@@ -23715,6 +27185,581 @@
   }
   function setText(element, text) {
     if (element) element.textContent = text;
+  }
+  function setHistoryTransferHidden(element, hidden) {
+    if (!element) return;
+    element.hidden = hidden;
+    element.classList.toggle("hidden", hidden);
+  }
+  function currentHistoryBackupFilters() {
+    return {
+      q: historyState.q,
+      month: historyState.month,
+      mode: historyState.mode,
+      status: "",
+      prompt_mode: historyState.prompt_mode,
+      size: "",
+      quality: historyState.quality,
+      ratio: historyState.ratio,
+      orientation: historyState.orientation,
+      backend: historyState.backend,
+      provider: historyState.provider,
+      archived: historyState.archived === "true" ? true : historyState.archived === "false" ? false : null,
+      favorite: historyOrganizationFilters.favorite ? true : null,
+      tag_ids: [...historyOrganizationFilters.tagIds],
+      untagged: historyOrganizationFilters.untagged,
+      sort: historyState.sort === "oldest" ? "oldest" : "newest"
+    };
+  }
+  function historyBackupScope() {
+    const selected = els8.backupDialog?.querySelector('input[name="history-backup-scope"]:checked')?.value;
+    if (selected === "selected") {
+      return { kind: "selected", taskIds: [...selectedTaskIdsSnapshot] };
+    }
+    if (selected === "all") return { kind: "all" };
+    return { kind: "filtered", filters: currentHistoryBackupFilters() };
+  }
+  function renderHistoryBackupScopeEstimates() {
+    if (historyBackupDownloaded) {
+      setHistoryTransferHidden(els8.backupScopeEstimate, true);
+      return;
+    }
+    for (const kind2 of ["selected", "filtered", "all"]) {
+      const target = els8.backupDialog?.querySelector(
+        `[data-history-backup-scope-count="${kind2}"]`
+      ) || null;
+      const estimate2 = historyBackupEstimates.get(kind2);
+      const state6 = historyBackupEstimateStates.get(kind2) || "idle";
+      const text = estimate2 ? formatTranslation("historyBackup.scopeCount", {
+        eligible: estimate2.eligible_tasks,
+        total: estimate2.total_tasks
+      }) : state6 === "loading" ? translate("historyBackup.scopeCounting") : state6 === "unavailable" ? translate("historyBackup.scopeCountUnavailable") : kind2 === "selected" && selectedTaskIdsSnapshot.length === 0 ? translate("historyBackup.scopeNoneSelected") : "";
+      setText(target, text);
+    }
+    const locked = historyBackupViewState(currentBackupJob).scopeLocked;
+    setHistoryTransferHidden(els8.backupScopeEstimate, locked);
+    if (locked) {
+      setText(els8.backupScopeEstimate, "");
+      return;
+    }
+    const kind = historyBackupScope().kind;
+    const estimate = historyBackupEstimates.get(kind);
+    const state5 = historyBackupEstimateStates.get(kind) || "idle";
+    if (estimate) {
+      setText(els8.backupScopeEstimate, formatTranslation("historyBackup.willBackup", {
+        eligible: estimate.eligible_tasks,
+        excluded: estimate.excluded_nonterminal
+      }));
+    } else if (kind === "selected" && selectedTaskIdsSnapshot.length === 0) {
+      setText(els8.backupScopeEstimate, translate("historyBackup.selectTasksFirst"));
+    } else if (state5 === "unavailable") {
+      setText(els8.backupScopeEstimate, translate("historyBackup.scopeCountUnavailable"));
+    } else {
+      setText(els8.backupScopeEstimate, translate("historyBackup.scopeCounting"));
+    }
+  }
+  async function loadHistoryBackupScopeEstimates() {
+    const generation = ++historyBackupEstimateGeneration;
+    historyBackupEstimates.clear();
+    historyBackupEstimateStates.clear();
+    const scopes = [
+      { kind: "filtered", filters: currentHistoryBackupFilters() },
+      { kind: "all" }
+    ];
+    if (selectedTaskIdsSnapshot.length) {
+      scopes.unshift({ kind: "selected", taskIds: [...selectedTaskIdsSnapshot] });
+    } else {
+      historyBackupEstimateStates.set("selected", "idle");
+    }
+    for (const scope of scopes) historyBackupEstimateStates.set(scope.kind, "loading");
+    renderHistoryBackupScopeEstimates();
+    await Promise.all(scopes.map(async (scope) => {
+      try {
+        const estimate = await estimateHistoryBackup(scope);
+        if (generation !== historyBackupEstimateGeneration) return;
+        historyBackupEstimates.set(scope.kind, estimate);
+        historyBackupEstimateStates.set(scope.kind, "ready");
+      } catch {
+        if (generation !== historyBackupEstimateGeneration) return;
+        historyBackupEstimateStates.set(scope.kind, "unavailable");
+      }
+      if (generation === historyBackupEstimateGeneration) renderHistoryBackupScopeEstimates();
+    }));
+  }
+  function formatHistoryBytes(value) {
+    const bytes = Number(value || 0);
+    if (!Number.isFinite(bytes) || bytes <= 0) return "0 B";
+    const units = ["B", "KiB", "MiB", "GiB", "TiB"];
+    const index = Math.min(units.length - 1, Math.floor(Math.log(bytes) / Math.log(1024)));
+    return `${(bytes / 1024 ** index).toFixed(index ? 1 : 0)} ${units[index]}`;
+  }
+  function historyBackupStatusText(job) {
+    const key = `historyBackup.${job.status}`;
+    return translate(key);
+  }
+  function historyBackupErrorText(code) {
+    if (code.includes("space") || code.includes("disk")) return translate("historyBackup.errorDisk");
+    if (code.includes("source") || code.includes("changed")) return translate("historyBackup.errorSourceChanged");
+    if (code.includes("empty") || code.includes("eligible")) return translate("historyBackup.errorEmpty");
+    return translate("historyBackup.errorIo");
+  }
+  function focusHistoryTransferError(kind, message) {
+    const summary = kind === "backup" ? els8.backupLive : els8.importLive;
+    setText(summary, message);
+    if (summary && !(kind === "backup" ? els8.backupDialog : els8.importDialog)?.hidden) {
+      summary.focus();
+    }
+  }
+  function isTransientHistoryBackupError(status) {
+    return status === 0 || status === 408 || status === 429 || status >= 500;
+  }
+  function historyBackupScopeText(kind) {
+    if (kind === "selected") return translate("historyBackup.scopeSelected");
+    if (kind === "filtered") return translate("historyBackup.scopeFiltered");
+    if (kind === "all") return translate("historyBackup.scopeAll");
+    return translate("historyBackup.scopeLockedUnknown");
+  }
+  function renderHistoryBackupLockedScope(job) {
+    const locked = historyBackupViewState(job).scopeLocked;
+    setHistoryTransferHidden(els8.backupScopeState, !locked);
+    if (!job || !locked) {
+      setText(els8.backupScopeState, "");
+      return;
+    }
+    const countsKnown = Number(job.total_tasks || 0) > 0 || !["queued", "planning"].includes(job.status);
+    setText(els8.backupScopeState, formatTranslation(
+      countsKnown ? "historyBackup.scopeLocked" : "historyBackup.scopeLockedPending",
+      {
+        scope: historyBackupScopeText(job.scope_kind),
+        eligible: Number(job.eligible_tasks || 0)
+      }
+    ));
+  }
+  function renderHistoryBackupJob(job) {
+    currentBackupJob = job;
+    if (historyBackupDownloaded) {
+      setHistoryTransferHidden(els8.backupScopeFieldset, true);
+      setHistoryTransferHidden(els8.backupScopeHelp, true);
+      setHistoryTransferHidden(els8.backupScopeEstimate, true);
+      setHistoryTransferHidden(els8.backupScopeState, true);
+      setHistoryTransferHidden(els8.backupProgressSummary, true);
+      setHistoryTransferHidden(els8.backupWarning, true);
+      setHistoryTransferHidden(els8.backupComplete, false);
+      setHistoryTransferHidden(els8.backupStart, true);
+      setHistoryTransferHidden(els8.backupCancel, true);
+      setHistoryTransferHidden(els8.backupDownload, true);
+      setHistoryTransferHidden(els8.backupDismiss, false);
+      els8.backupDismiss?.classList.remove("ghost-button");
+      els8.backupDismiss?.classList.add("run-button");
+      if (els8.backupDismiss) els8.backupDismiss.dataset.i18n = "historyBackup.closePanel";
+      setText(els8.backupDismiss, translate("historyBackup.closePanel"));
+      return;
+    }
+    setHistoryTransferHidden(els8.backupScopeFieldset, false);
+    setHistoryTransferHidden(els8.backupScopeHelp, false);
+    setHistoryTransferHidden(els8.backupProgressSummary, false);
+    setHistoryTransferHidden(els8.backupComplete, true);
+    els8.backupDismiss?.classList.remove("run-button");
+    els8.backupDismiss?.classList.add("ghost-button");
+    const view = historyBackupViewState(job);
+    const missingInputWarning = job && Number(job.missing_input_files || 0) > 0 ? formatTranslation("historyBackup.missingInputsWarning", {
+      tasks: Number(job.tasks_with_missing_inputs || 0),
+      files: Number(job.missing_input_files || 0)
+    }) : "";
+    setHistoryTransferHidden(els8.backupWarning, !missingInputWarning);
+    setText(els8.backupWarning, missingInputWarning);
+    setHistoryTransferHidden(els8.backupStart, view.active || view.ready);
+    setHistoryTransferHidden(els8.backupCancel, !view.active);
+    setHistoryTransferHidden(els8.backupDownload, !view.ready);
+    setHistoryTransferHidden(els8.backupDismiss, !view.dismissible);
+    const dismissKey = view.ready ? "historyBackup.discard" : "historyBackup.dismiss";
+    if (els8.backupDismiss) els8.backupDismiss.dataset.i18n = dismissKey;
+    setText(els8.backupDismiss, translate(dismissKey));
+    if (els8.backupScopeFieldset) els8.backupScopeFieldset.disabled = view.scopeLocked;
+    renderHistoryBackupLockedScope(job);
+    renderHistoryBackupScopeEstimates();
+    setHistoryTransferHidden(els8.backupProgressRegion, view.progressMode === "hidden");
+    if (els8.backupProgress) {
+      if (view.progressMode === "indeterminate") {
+        els8.backupProgress.removeAttribute("value");
+      } else {
+        els8.backupProgress.value = view.progressValue;
+      }
+    }
+    if (!job) {
+      setText(els8.backupStats, "");
+      setText(els8.backupLive, translate("historyBackup.idle"));
+      return;
+    }
+    const totalBytes = Number(job.total_bytes || 0);
+    const completedBytes = Number(job.completed_bytes || 0);
+    setText(els8.backupStats, formatTranslation("historyBackup.stats", {
+      total: job.total_tasks || 0,
+      eligible: job.eligible_tasks || 0,
+      excluded: job.excluded_nonterminal || 0,
+      bytes: `${formatHistoryBytes(completedBytes)} / ${formatHistoryBytes(totalBytes)}`
+    }));
+    const statusAnnouncement = job.status === "failed" ? historyBackupErrorText(String(job.error_code || "")) : job.status === "ready" ? translate("historyBackup.readyDetail") : historyBackupStatusText(job);
+    const announcement = missingInputWarning ? `${statusAnnouncement} ${missingInputWarning}` : statusAnnouncement;
+    if (announcement !== lastBackupAnnouncement) {
+      setText(els8.backupLive, announcement);
+      lastBackupAnnouncement = announcement;
+    }
+  }
+  function renderHistoryBackupDownloaded() {
+    historyBackupDownloaded = true;
+    currentBackupJob = null;
+    renderHistoryBackupJob(null);
+    lastBackupAnnouncement = translate("historyBackup.downloaded");
+    els8.backupComplete?.focus();
+  }
+  function restoreHistoryDialogFocus(kind) {
+    const target = kind === "backup" ? historyBackupReturnFocus : historyImportReturnFocus;
+    target?.focus();
+    if (kind === "backup") historyBackupReturnFocus = null;
+    else historyImportReturnFocus = null;
+  }
+  function syncHistoryTransferModalState() {
+    const backupOpen = Boolean(els8.backupDialog && !els8.backupDialog.hidden);
+    const importOpen = Boolean(els8.importDialog && !els8.importDialog.hidden);
+    if (els8.page) els8.page.inert = backupOpen || importOpen;
+  }
+  function activeHistoryTransferDialog() {
+    if (els8.backupDialog && !els8.backupDialog.hidden) return els8.backupDialog;
+    if (els8.importDialog && !els8.importDialog.hidden) return els8.importDialog;
+    return null;
+  }
+  function trapHistoryTransferFocus(event) {
+    if (event.key !== "Tab") return false;
+    const dialog = activeHistoryTransferDialog();
+    if (!dialog) return false;
+    const panel = dialog.querySelector(".history-transfer-panel[tabindex]");
+    const focusable = [...dialog.querySelectorAll(
+      'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    )].filter((element) => !element.hidden && !element.closest("[hidden]") && element.getAttribute("aria-hidden") !== "true");
+    if (!focusable.length) {
+      event.preventDefault();
+      panel?.focus();
+      return true;
+    }
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    const active = document.activeElement;
+    if (event.shiftKey && (active === first || !dialog.contains(active))) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && (active === last || !dialog.contains(active))) {
+      event.preventDefault();
+      first.focus();
+    }
+    return true;
+  }
+  function closeHistoryBackupDialog(options = {}) {
+    if (!els8.backupDialog) return;
+    historyBackupDownloaded = false;
+    historyBackupEstimateGeneration += 1;
+    setHistoryTransferHidden(els8.backupDialog, true);
+    els8.backupDialog.setAttribute("aria-hidden", "true");
+    syncHistoryTransferModalState();
+    if (options.restoreFocus !== false) restoreHistoryDialogFocus("backup");
+  }
+  function openHistoryBackupDialog(trigger, taskIds, preferSelected = false) {
+    if (els8.importDialog && !els8.importDialog.hidden) closeHistoryImportDialog({ restoreFocus: false });
+    historyBackupReturnFocus = trigger;
+    selectedTaskIdsSnapshot = [...taskIds];
+    const selectedCount = selectedTaskIdsSnapshot.length;
+    if (els8.backupSelectedScope) {
+      els8.backupSelectedScope.disabled = selectedCount === 0;
+      els8.backupSelectedScope.checked = preferSelected && selectedCount > 0;
+    }
+    if (!els8.backupSelectedScope?.checked) {
+      const filtered = els8.backupDialog?.querySelector('input[name="history-backup-scope"][value="filtered"]');
+      if (filtered) filtered.checked = true;
+    }
+    setHistoryTransferHidden(els8.backupDialog, false);
+    els8.backupDialog?.setAttribute("aria-hidden", "false");
+    syncHistoryTransferModalState();
+    renderHistoryBackupJob(currentBackupJob);
+    if (historyBackupViewState(currentBackupJob).scopeLocked) {
+      historyBackupEstimateGeneration += 1;
+      historyBackupEstimates.clear();
+      historyBackupEstimateStates.clear();
+      renderHistoryBackupScopeEstimates();
+    } else {
+      void loadHistoryBackupScopeEstimates();
+    }
+    els8.backupTitle?.focus();
+  }
+  function importGroupItems(preview, group) {
+    if (group === "restorable") return preview.restorable || [];
+    if (group === "duplicate") return preview.duplicate || [];
+    if (group === "conflict") return preview.conflict || [];
+    return preview.invalid || [];
+  }
+  var HISTORY_IMPORT_SENSITIVE_REASONS = /* @__PURE__ */ new Set([
+    "backup_import_metadata_contains_sensitive_fields",
+    "backup_import_request_contains_sensitive_fields"
+  ]);
+  var HISTORY_IMPORT_MISMATCH_REASONS = /* @__PURE__ */ new Set([
+    "backup_import_task_fingerprint_mismatch",
+    "backup_import_task_id_mismatch"
+  ]);
+  var HISTORY_IMPORT_INVALID_REASONS = /* @__PURE__ */ new Set([
+    "backup_import_local_task_invalid",
+    "backup_import_raster_invalid",
+    "backup_import_reference_file_invalid",
+    "backup_import_task_fingerprint_invalid",
+    "backup_import_task_json_invalid",
+    "backup_import_task_json_too_large",
+    "backup_import_task_metadata_invalid",
+    "backup_import_task_not_terminal",
+    "backup_import_task_organization_invalid",
+    "backup_import_task_required_json_invalid",
+    "backup_import_task_required_json_missing"
+  ]);
+  function historyImportReasonText(reason) {
+    if (reason && HISTORY_IMPORT_SENSITIVE_REASONS.has(reason)) return translate("historyImport.reasonSensitive");
+    if (reason && HISTORY_IMPORT_MISMATCH_REASONS.has(reason)) return translate("historyImport.reasonMismatch");
+    if (reason && HISTORY_IMPORT_INVALID_REASONS.has(reason)) return translate("historyImport.reasonInvalid");
+    return translate("historyImport.reasonInvalid");
+  }
+  function renderHistoryImportPreview(preview) {
+    currentImportPreview = preview;
+    setHistoryTransferHidden(els8.importPreview, !preview);
+    if (!preview || !els8.importPreview) {
+      if (els8.importConfirm) els8.importConfirm.disabled = true;
+      setHistoryTransferHidden(els8.importConfirm, true);
+      return;
+    }
+    for (const group of ["restorable", "duplicate", "conflict", "invalid"]) {
+      const details = els8.importPreview.querySelector(`[data-history-import-group="${group}"]`);
+      const items = importGroupItems(preview, group);
+      const summary = details?.querySelector("summary");
+      if (summary) summary.textContent = `${translate(`historyImport.${group}`)} \xB7 ${items.length}`;
+      const list = details?.querySelector("ol");
+      if (list) list.innerHTML = items.map((item) => `<li><code>${escapeHtml5(item.task_id)}</code>${item.reason ? ` <span class="history-import-reason">${escapeHtml5(historyImportReasonText(item.reason))}</span>` : ""}</li>`).join("");
+    }
+    const canRestore = preview.restorable.length > 0;
+    if (els8.importConfirm) els8.importConfirm.disabled = !canRestore;
+    setHistoryTransferHidden(els8.importConfirm, false);
+    setHistoryTransferHidden(els8.importCancel, false);
+  }
+  function renderHistoryImportResult(result) {
+    currentImportResult = result;
+    setHistoryTransferHidden(els8.importResult, !result);
+    if (!result || !els8.importResult) return;
+    const values = {
+      restored: result.restored,
+      duplicates: result.duplicates,
+      conflicts: result.conflicts,
+      invalid: result.invalid,
+      failed: result.failed,
+      thumbnail_warnings: result.thumbnail_warnings,
+      cleanup_warnings: result.cleanup_warnings
+    };
+    for (const [key, items] of Object.entries(values)) {
+      setText(els8.importResult.querySelector(`[data-history-import-result="${key}"] dd`), String(items?.length || 0));
+    }
+  }
+  function historyImportPhaseText(phase) {
+    const key = phase === "idle" ? "historyBackup.idle" : phase === "creating" ? "historyImport.uploading" : `historyImport.${phase}`;
+    return translate(key);
+  }
+  function renderHistoryImportPhase(phase) {
+    currentImportPhase = phase;
+    setText(els8.importLive, historyImportPhaseText(phase));
+    const restoring = phase === "restoring";
+    const cancellable = ["creating", "uploading", "validating", "validated"].includes(phase);
+    setHistoryTransferHidden(els8.importCancel, !cancellable || restoring);
+    if (els8.importFile) els8.importFile.disabled = restoring;
+  }
+  function closeHistoryImportDialog(options = {}) {
+    if (!els8.importDialog) return;
+    setHistoryTransferHidden(els8.importDialog, true);
+    els8.importDialog.setAttribute("aria-hidden", "true");
+    syncHistoryTransferModalState();
+    if (options.restoreFocus !== false) restoreHistoryDialogFocus("import");
+  }
+  function openHistoryImportDialog(trigger) {
+    if (els8.backupDialog && !els8.backupDialog.hidden) closeHistoryBackupDialog({ restoreFocus: false });
+    historyImportReturnFocus = trigger;
+    setHistoryTransferHidden(els8.importDialog, false);
+    els8.importDialog?.setAttribute("aria-hidden", "false");
+    syncHistoryTransferModalState();
+    renderHistoryImportPhase(currentImportPhase);
+    renderHistoryImportPreview(currentImportPreview);
+    renderHistoryImportResult(currentImportResult);
+    els8.importTitle?.focus();
+  }
+  var backupController = createHistoryBackupController({
+    onStatus: (job) => renderHistoryBackupJob(job),
+    onError: (error) => {
+      const message = historyBackupErrorText(error.code);
+      if (!isTransientHistoryBackupError(error.status)) {
+        currentBackupJob = null;
+        renderHistoryBackupJob(null);
+      }
+      focusHistoryTransferError("backup", message);
+    }
+  });
+  var importController = createHistoryImportController({
+    onPhase: (phase) => renderHistoryImportPhase(phase),
+    onProgress: (uploaded, total) => {
+      if (els8.importProgress) els8.importProgress.value = total > 0 ? Math.min(100, Math.round(uploaded * 100 / total)) : 0;
+    }
+  });
+  async function startHistoryBackup() {
+    const scope = historyBackupScope();
+    if (scope.kind === "selected" && !scope.taskIds.length) return;
+    historyBackupDownloaded = false;
+    try {
+      await backupController.start(scope);
+    } catch (error) {
+      if (!(error instanceof DOMException && error.name === "AbortError")) {
+        focusHistoryTransferError("backup", historyBackupErrorText(String(error?.code || "")));
+      }
+    }
+  }
+  async function cancelActiveHistoryBackup() {
+    try {
+      await backupController.cancel();
+    } catch (error) {
+      focusHistoryTransferError("backup", historyBackupErrorText(String(error?.code || "")));
+    }
+  }
+  async function dismissHistoryBackupResult() {
+    const job = currentBackupJob;
+    if (!job || !els8.backupDismiss) return;
+    els8.backupDismiss.disabled = true;
+    try {
+      if (await backupController.dismiss(job.job_id)) {
+        currentBackupJob = null;
+        closeHistoryBackupDialog();
+      }
+    } catch (error) {
+      focusHistoryTransferError("backup", historyBackupErrorText(String(error?.code || "")));
+    } finally {
+      els8.backupDismiss.disabled = false;
+    }
+  }
+  function clearHistoryImportUI() {
+    resumableImportSession = null;
+    historyImportResumePending = false;
+    currentImportPreview = null;
+    currentImportResult = null;
+    renderHistoryImportPreview(null);
+    renderHistoryImportResult(null);
+    if (els8.importConfirm) els8.importConfirm.disabled = true;
+    setHistoryTransferHidden(els8.importConfirm, true);
+    if (els8.importFile) {
+      els8.importFile.value = "";
+      els8.importFile.disabled = false;
+    }
+    if (els8.importProgress) els8.importProgress.value = 0;
+  }
+  async function cancelActiveHistoryImport() {
+    try {
+      await importController.cancel();
+      clearHistoryImportUI();
+      renderHistoryImportPhase("cancelled");
+      return true;
+    } catch {
+      focusHistoryTransferError("import", translate("historyImport.failed"));
+      return false;
+    }
+  }
+  async function chooseHistoryImport(file) {
+    const resumePending = historyImportResumePending;
+    currentImportPreview = null;
+    currentImportResult = null;
+    renderHistoryImportPreview(null);
+    renderHistoryImportResult(null);
+    try {
+      let preview;
+      if (historyImportResumePending) {
+        preview = await importController.resumeUpload(file, file.name);
+      } else {
+        if (importController.activeSessionId() && !await cancelActiveHistoryImport()) return;
+        preview = await importController.start(file, file.name);
+      }
+      if (!preview) return;
+      historyImportResumePending = false;
+      renderHistoryImportPreview(preview);
+    } catch (error) {
+      if (!(error instanceof DOMException && error.name === "AbortError")) {
+        const activeSessionId = importController.activeSessionId();
+        historyImportResumePending = Boolean(activeSessionId);
+        if (activeSessionId && !resumePending) {
+          resumableImportSession = {
+            session_id: activeSessionId,
+            filename: file.name,
+            size_bytes: file.size,
+            uploaded_bytes: 0,
+            status: "uploading"
+          };
+        }
+        focusHistoryTransferError("import", translate("historyImport.reselect"));
+        if (els8.importFile) els8.importFile.disabled = false;
+      }
+    }
+  }
+  async function restoreHistoryImportSelection() {
+    if (!currentImportPreview?.restorable.length) return;
+    setHistoryTransferHidden(els8.importCancel, true);
+    const terminalSessionId = importController.activeSessionId();
+    try {
+      const result = await importController.restore();
+      if (!result) return;
+      resumableImportSession = null;
+      historyImportResumePending = false;
+      renderHistoryImportResult(result);
+      renderHistoryImportPreview(null);
+      if (terminalSessionId) {
+        await importController.acknowledgeTerminalAfterRefresh(
+          terminalSessionId,
+          refreshHistoryAfterImport
+        );
+      } else {
+        await refreshHistoryAfterImport();
+      }
+    } catch {
+      renderHistoryImportPhase("failed");
+      focusHistoryTransferError("import", translate("historyImport.failed"));
+    }
+  }
+  async function resumeHistoryTransfers() {
+    try {
+      await backupController.resume();
+    } catch {
+    }
+    try {
+      const session = await importController.resume();
+      if (!session) return;
+      resumableImportSession = session;
+      if ((session.status === "restored" || session.status === "failed") && session.result) {
+        renderHistoryImportResult(session.result);
+        renderHistoryImportPreview(null);
+        renderHistoryImportPhase(session.status === "failed" ? "failed" : "restored");
+        const acknowledged = await importController.acknowledgeTerminalAfterRefresh(
+          session.session_id,
+          refreshHistoryAfterImport
+        );
+        if (acknowledged) resumableImportSession = null;
+      } else if (session.status === "uploaded" || session.status === "validated") {
+        const preview = await importController.resumeValidate();
+        if (preview) renderHistoryImportPreview(preview);
+      } else if (session.status === "uploading") {
+        historyImportResumePending = true;
+        renderHistoryImportPhase("uploading");
+        setText(els8.importLive, translate("historyImport.reselect"));
+      } else if (session.status === "restored") {
+        renderHistoryImportPhase("restored");
+      } else {
+        renderHistoryImportPhase(session.status === "interrupted" ? "interrupted" : "failed");
+      }
+    } catch {
+      setText(els8.importLive, translate("historyImport.failed"));
+    }
   }
   function applyHistoryLocale() {
     document.title = historyDocumentTitle();
@@ -23753,6 +27798,154 @@
     if (key === "ratio" && value === HISTORY_RATIO_OTHER_VALUE) return translate("history.ratioOther");
     return value;
   }
+  function currentHistoryActiveFilterSnapshot() {
+    const filters = {};
+    for (const key of HISTORY_FILTER_QUERY_KEYS) {
+      filters[key] = historyState[key];
+    }
+    return {
+      q: historyState.q,
+      filters,
+      organization: {
+        favorite: historyOrganizationFilters.favorite,
+        tagIds: [...historyOrganizationFilters.tagIds],
+        untagged: historyOrganizationFilters.untagged
+      }
+    };
+  }
+  function historyActiveFilterTitle(key) {
+    const translationKeys = {
+      mode: "history.type",
+      month: "history.month",
+      prompt_mode: "history.promptMode",
+      quality: "history.quality",
+      ratio: "history.ratio",
+      orientation: "history.orientation",
+      backend: "history.backend",
+      provider: "history.provider",
+      archived: "history.archived"
+    };
+    return translate(translationKeys[key]);
+  }
+  function historyActiveFilterLabel(item) {
+    if (item.kind === "q") {
+      return `${translate("history.search")} \xB7 ${item.value}`;
+    }
+    if (item.kind === "favorite") {
+      return translate("history.onlyFavorites");
+    }
+    if (item.kind === "untagged") {
+      return translate("history.untagged");
+    }
+    if (item.kind === "tag") {
+      const name = historyTags.find(
+        (tag) => tag.tag_id === item.value
+      )?.name || item.value;
+      return `${translate("history.tags")} \xB7 ${name}`;
+    }
+    const value = item.key === "archived" ? item.value === "true" ? translate("history.archivedOnly") : translate("history.unarchived") : facetDisplayValue(item.key, item.value);
+    return `${historyActiveFilterTitle(item.key)} \xB7 ${value}`;
+  }
+  function renderHistoryActiveFilters() {
+    const items = collectHistoryActiveFilters(
+      currentHistoryActiveFilterSnapshot()
+    );
+    const count = items.length;
+    const hidden = count === 0;
+    els8.activeFilters?.classList.toggle("hidden", hidden);
+    els8.activeFilters?.toggleAttribute("hidden", hidden);
+    els8.activeFilters?.setAttribute(
+      "aria-label",
+      hidden ? translate("sidebar.filters") : formatTranslation("history.activeFilterCount", { count })
+    );
+    setText(
+      els8.activeFiltersLabel,
+      hidden ? "" : formatTranslation("history.activeFilterCount", { count })
+    );
+    setText(els8.clearAllFilters, translate("history.clearAllFilters"));
+    if (els8.activeFilterList) {
+      els8.activeFilterList.innerHTML = items.map((item) => {
+        const label = historyActiveFilterLabel(item);
+        const removeLabel = formatTranslation(
+          "history.removeFilter",
+          { label }
+        );
+        return `
+        <span class="history-active-filter-item" role="listitem">
+          <button
+            class="history-active-filter-chip"
+            type="button"
+            data-history-remove-active-filter="${escapeHtml5(item.id)}"
+            aria-label="${escapeHtml5(removeLabel)}"
+            title="${escapeHtml5(removeLabel)}"
+          >
+            <span class="history-active-filter-chip-label">${escapeHtml5(label)}</span>
+            <svg class="history-active-filter-chip-icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="m4 4 8 8m0-8-8 8" /></svg>
+          </button>
+        </span>
+      `;
+      }).join("");
+    }
+    els8.mobileFilterCount?.classList.toggle("hidden", hidden);
+    els8.mobileFilterCount?.toggleAttribute("hidden", hidden);
+    setText(els8.mobileFilterCount, hidden ? "" : String(count));
+    els8.mobileFiltersButton?.classList.toggle(
+      "has-active-filters",
+      !hidden
+    );
+    els8.mobileFiltersButton?.setAttribute(
+      "aria-label",
+      hidden ? translate("sidebar.filters") : formatTranslation("history.filtersActive", { count })
+    );
+  }
+  function syncHistoryFilterButtonsFromState() {
+    for (const key of HISTORY_FILTER_QUERY_KEYS) {
+      const attr = historyFilterAttribute(key);
+      document.querySelectorAll(`[data-history-${attr}]`).forEach((button) => {
+        button.classList.toggle(
+          "active",
+          button.getAttribute(`data-history-${attr}`) === historyState[key]
+        );
+      });
+    }
+  }
+  function applyHistoryActiveFilterSnapshot(snapshot) {
+    historyState.q = snapshot.q;
+    for (const key of HISTORY_FILTER_QUERY_KEYS) {
+      historyState[key] = String(snapshot.filters[key] || "");
+    }
+    historyOrganizationFilters = {
+      favorite: snapshot.organization.favorite,
+      tagIds: [...snapshot.organization.tagIds],
+      untagged: snapshot.organization.untagged
+    };
+    resetHistoryTaskSelectionState();
+    clearHistoryDeleteConfirmation();
+    if (els8.search) els8.search.value = historyState.q;
+    syncHistorySearchClear();
+    syncHistoryFilterButtonsFromState();
+    renderHistoryOrganizationFilters();
+    renderHistoryActiveFilters();
+    updateHistoryUrl();
+    void loadTasks({ reset: true });
+  }
+  function removeHistoryActiveFilterById(id) {
+    const snapshot = currentHistoryActiveFilterSnapshot();
+    const item = collectHistoryActiveFilters(snapshot).find(
+      (candidate) => candidate.id === id
+    );
+    if (!item) return;
+    applyHistoryActiveFilterSnapshot(
+      removeHistoryActiveFilter(snapshot, item)
+    );
+  }
+  function clearAllHistoryActiveFilters() {
+    applyHistoryActiveFilterSnapshot(
+      clearHistoryActiveFilters(
+        currentHistoryActiveFilterSnapshot()
+      )
+    );
+  }
   function historyOrientationIconHtml(value) {
     if (value === "portrait") {
       return `<svg class="history-filter-icon history-filter-icon-portrait" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
@@ -23776,8 +27969,8 @@
     </svg>`;
   }
   function historyFilterButtonLabelHtml(key, label, value = "") {
-    if (key !== "orientation") return escapeHtml4(label);
-    return `${historyOrientationIconHtml(value)}<span class="history-filter-label">${escapeHtml4(label)}</span>`;
+    if (key !== "orientation") return escapeHtml5(label);
+    return `${historyOrientationIconHtml(value)}<span class="history-filter-label">${escapeHtml5(label)}</span>`;
   }
   function syncStateFromUrl() {
     const params = new URLSearchParams(window.location.search);
@@ -23785,7 +27978,7 @@
     historyState.q = params.get("q") || "";
     historyState.sort = params.get("sort") === "oldest" ? "oldest" : "newest";
     historyState.view = params.get("view") === "list" ? "list" : "grid";
-    for (const key of HISTORY_FILTER_KEYS) {
+    for (const key of HISTORY_FILTER_QUERY_KEYS) {
       historyState[key] = params.get(key) || "";
     }
     for (const key of ["backend", "provider"]) {
@@ -23793,10 +27986,14 @@
       if (section && historyState[key]) section.open = true;
     }
     historyState.selectedTaskId = params.get("task") || "";
+    historyState.selectedTaskIds = historyState.selectedTaskId ? /* @__PURE__ */ new Set([historyState.selectedTaskId]) : /* @__PURE__ */ new Set();
+    historyState.selectionAnchorTaskId = historyState.selectedTaskId;
+    historyState.selectionMode = false;
     if (els8.search) els8.search.value = historyState.q;
     syncHistorySearchClear();
     syncHistorySortMode();
     syncHistoryViewMode();
+    renderHistoryActiveFilters();
   }
   function syncHistorySearchClear() {
     const hasQuery = Boolean(els8.search?.value.trim());
@@ -23808,7 +28005,7 @@
     if (historyState.q) params.set("q", historyState.q);
     if (historyState.sort !== "newest") params.set("sort", historyState.sort);
     if (historyState.view !== "grid") params.set("view", historyState.view);
-    for (const key of HISTORY_FILTER_KEYS) {
+    for (const key of HISTORY_FILTER_QUERY_KEYS) {
       if (historyState[key]) params.set(key, historyState[key]);
     }
     writeHistoryOrganizationFilters(
@@ -23820,7 +28017,18 @@
     const nextUrl = query ? `${window.location.pathname}?${query}` : window.location.pathname;
     window.history.replaceState(null, "", nextUrl);
   }
-  async function loadSummary() {
+  function saveCurrentHistoryLocation(anchor) {
+    updateHistoryUrl();
+    saveHistoryLocationSnapshot({
+      version: 1,
+      query: historySnapshotQuery(
+        new URLSearchParams(window.location.search)
+      ),
+      anchor,
+      savedAt: Date.now()
+    });
+  }
+  async function loadSummary(options = {}) {
     try {
       const response = await fetch("/api/task-history/summary");
       const summary = await response.json();
@@ -23846,6 +28054,7 @@
       renderFacetButtons(els8.backendList, "backend", summary.backends || [], translate("history.allBackends"));
       renderFacetButtons(els8.providerList, "provider", summary.providers || [], translate("history.allProviders"));
       syncArchiveButtons();
+      renderHistoryActiveFilters();
     } catch (error) {
       const message = errorMessage2(
         error,
@@ -23855,6 +28064,7 @@
       if (historyOrganizationApiSupported === false) {
         setText(els8.resultSummary, message);
       }
+      if (options.throwOnError) throw error;
     }
   }
   function renderHistoryOrganizationFilters(summary) {
@@ -23868,7 +28078,7 @@
         data-history-favorite-filter
         aria-pressed="${active ? "true" : "false"}"
       >
-        <span>${escapeHtml4(translate("history.onlyFavorites"))}</span>
+        <span>${escapeHtml5(translate("history.onlyFavorites"))}</span>
         <span class="history-filter-count">${Number(counts.favorite_total || 0)}</span>
       </button>
     `;
@@ -23884,7 +28094,7 @@
         data-history-untagged-filter
         aria-pressed="${untaggedActive ? "true" : "false"}"
       >
-        <span>${escapeHtml4(translate("history.untagged"))}</span>
+        <span>${escapeHtml5(translate("history.untagged"))}</span>
         <span class="history-filter-count">${Number(counts.untagged_total || 0)}</span>
       </button>
     `,
@@ -23894,10 +28104,10 @@
         <button
           class="history-filter-button${active ? " active" : ""}"
           type="button"
-          data-history-tag-filter="${escapeHtml4(tag.tag_id)}"
+          data-history-tag-filter="${escapeHtml5(tag.tag_id)}"
           aria-pressed="${active ? "true" : "false"}"
         >
-          <span>${escapeHtml4(tag.name)}</span>
+          <span>${escapeHtml5(tag.name)}</span>
           <span class="history-filter-count">${Number(tag.count || 0)}</span>
         </button>
       `;
@@ -23909,7 +28119,7 @@
     if (!historyTags.length) {
       els8.tagManagerList.innerHTML = `
       <div class="history-tag-manager-empty">
-        ${escapeHtml4(translate("history.noTags"))}
+        ${escapeHtml5(translate("history.noTags"))}
       </div>
     `;
       return;
@@ -23925,15 +28135,15 @@
       const deleteLabel = confirming ? translate("history.confirmDelete") : translate("history.deleteTag");
       const deleteAriaLabel = confirming ? affectedDeleteLabel : deleteLabel;
       return `
-        <div class="history-tag-manager-row" data-history-tag-row="${escapeHtml4(tag.tag_id)}">
+        <div class="history-tag-manager-row" data-history-tag-row="${escapeHtml5(tag.tag_id)}">
           <div class="history-tag-manager-row-field">
             <input
               class="control"
               type="text"
               maxlength="40"
-              value="${escapeHtml4(tag.name)}"
-              data-history-tag-name="${escapeHtml4(tag.tag_id)}"
-              aria-label="${escapeHtml4(translate("history.renameTag"))}"
+              value="${escapeHtml5(tag.name)}"
+              data-history-tag-name="${escapeHtml5(tag.tag_id)}"
+              aria-label="${escapeHtml5(translate("history.renameTag"))}"
             />
             <span class="history-filter-count">${Number(tag.count || 0)}</span>
           </div>
@@ -23941,15 +28151,15 @@
             <button
               class="ghost-button text-sm"
               type="button"
-              data-history-rename-tag="${escapeHtml4(tag.tag_id)}"
-            >${escapeHtml4(translate("history.renameTag"))}</button>
+              data-history-rename-tag="${escapeHtml5(tag.tag_id)}"
+            >${escapeHtml5(translate("history.renameTag"))}</button>
             <button
               class="ghost-button text-sm${confirming ? " danger-button" : ""}"
               type="button"
-              data-history-delete-tag="${escapeHtml4(tag.tag_id)}"
-              aria-label="${escapeHtml4(deleteAriaLabel)}"
-              title="${escapeHtml4(deleteAriaLabel)}"
-            >${escapeHtml4(deleteLabel)}</button>
+              data-history-delete-tag="${escapeHtml5(tag.tag_id)}"
+              aria-label="${escapeHtml5(deleteAriaLabel)}"
+              title="${escapeHtml5(deleteAriaLabel)}"
+            >${escapeHtml5(deleteLabel)}</button>
           </div>
         </div>
       `;
@@ -23964,9 +28174,10 @@
       return;
     }
     historyOrganizationFilters = filters;
-    historyState.selectedTaskId = "";
+    resetHistoryTaskSelectionState();
     clearHistoryDeleteConfirmation();
     renderHistoryOrganizationFilters();
+    renderHistoryActiveFilters();
     updateHistoryUrl();
     void loadTasks({ reset: true });
   }
@@ -24097,7 +28308,7 @@
       `<button class="history-filter-button ${current ? "" : "active"}" type="button" data-history-filter-key="${key}" data-history-${attr}="">${historyFilterButtonLabelHtml(key, allLabel)}</button>`,
       ...items.map((item) => {
         const active = current === item.value ? " active" : "";
-        return `<button class="history-filter-button${active}" type="button" data-history-filter-key="${key}" data-history-${attr}="${escapeHtml4(item.value)}">${historyFilterButtonLabelHtml(key, facetDisplayValue(key, item.value), item.value)}<span class="history-filter-count">${item.count}</span></button>`;
+        return `<button class="history-filter-button${active}" type="button" data-history-filter-key="${key}" data-history-${attr}="${escapeHtml5(item.value)}">${historyFilterButtonLabelHtml(key, facetDisplayValue(key, item.value), item.value)}<span class="history-filter-count">${item.count}</span></button>`;
       })
     ].join("");
   }
@@ -24119,26 +28330,31 @@
     const nextSort = sort === "oldest" ? "oldest" : "newest";
     if (historyState.sort === nextSort) return;
     historyState.sort = nextSort;
-    historyState.selectedTaskId = "";
+    resetHistoryTaskSelectionState();
     syncHistorySortMode();
     updateHistoryUrl();
     void loadTasks({ reset: true });
   }
-  function queryParams(cursor, direction = "next") {
-    const params = new URLSearchParams();
-    params.set("limit", String(HISTORY_PAGE_LIMIT));
-    params.set("sort", historyState.sort);
-    if (cursor) params.set("cursor", cursor);
-    if (direction !== "next") params.set("direction", direction);
-    if (historyState.q) params.set("q", historyState.q);
-    for (const key of HISTORY_FILTER_KEYS) {
-      if (historyState[key]) params.set(key, historyState[key]);
+  function historyPageQueryInput(cursor, direction = "next", anchorTaskId = "") {
+    const filters = {};
+    for (const key of HISTORY_FILTER_QUERY_KEYS) {
+      if (historyState[key]) filters[key] = historyState[key];
     }
-    appendHistoryOrganizationQuery(
-      params,
-      historyOrganizationFilters
+    return {
+      limit: HISTORY_PAGE_LIMIT,
+      sort: historyState.sort,
+      cursor,
+      direction,
+      anchorTaskId,
+      q: historyState.q,
+      filters,
+      organization: historyOrganizationFilters
+    };
+  }
+  function queryParams(cursor, direction = "next", anchorTaskId = "") {
+    return historyTaskPageQuery(
+      historyPageQueryInput(cursor, direction, anchorTaskId)
     );
-    return params.toString();
   }
   function syncHistoryViewMode() {
     const view = historyState.view === "list" ? "list" : "grid";
@@ -24268,9 +28484,8 @@
       }
     }
   }
-  function applyPendingHistoryResize() {
+  function applyPendingHistoryResize(resize = activeHistoryResizer) {
     historyResizeFrame = 0;
-    const resize = activeHistoryResizer;
     if (!resize || !els8.page) return;
     const delta = resize.latestX - resize.startX;
     const nextLeft = resize.side === "left" ? resize.startLeft + delta : resize.startLeft;
@@ -24285,6 +28500,10 @@
     els8.page.style.setProperty("--history-detail-width", `${widths.right}px`);
     els8.leftResizer?.setAttribute("aria-valuenow", String(widths.left));
     els8.rightResizer?.setAttribute("aria-valuenow", String(widths.right));
+  }
+  function layoutHistoryGridAfterResize(resize = activeHistoryResizer) {
+    if (!resize) return;
+    const widths = getCurrentHistoryLayoutWidths();
     const availableWidth = resize.gridLayoutSnapshot ? resize.gridLayoutSnapshot.availableWidth + resize.startLeft + resize.startRight - widths.left - widths.right : void 0;
     layoutJustifiedHistoryGrid({
       snapshot: resize.gridLayoutSnapshot,
@@ -24351,27 +28570,30 @@
     if (!activeHistoryResizer || event.pointerId !== activeHistoryResizer.pointerId) return;
     activeHistoryResizer.latestX = event.clientX;
     if (historyResizeFrame) return;
-    historyResizeFrame = window.requestAnimationFrame(applyPendingHistoryResize);
+    historyResizeFrame = window.requestAnimationFrame(() => applyPendingHistoryResize());
   }
   function endHistoryResize(event) {
-    if (!activeHistoryResizer) return;
-    if (event && event.pointerId !== activeHistoryResizer.pointerId) return;
-    if (event) activeHistoryResizer.latestX = event.clientX;
+    const resize = activeHistoryResizer;
+    if (!resize) return;
+    const pointerEvent = event && "pointerId" in event ? event : null;
+    if (pointerEvent && pointerEvent.pointerId !== resize.pointerId) return;
+    if (pointerEvent?.type === "pointerup") resize.latestX = pointerEvent.clientX;
     const keepTaskId = activeHistoryTaskVisible();
+    activeHistoryResizer = null;
     if (historyResizeFrame) {
       window.cancelAnimationFrame(historyResizeFrame);
       historyResizeFrame = 0;
     }
-    applyPendingHistoryResize();
-    if (activeHistoryResizer.element.hasPointerCapture?.(activeHistoryResizer.pointerId)) {
-      activeHistoryResizer.element.releasePointerCapture?.(activeHistoryResizer.pointerId);
+    applyPendingHistoryResize(resize);
+    layoutHistoryGridAfterResize(resize);
+    if (resize.element.hasPointerCapture?.(resize.pointerId)) {
+      resize.element.releasePointerCapture?.(resize.pointerId);
     }
     const widths = getCurrentHistoryLayoutWidths();
     try {
       localStorage.setItem(HISTORY_LAYOUT_STORAGE_KEY, JSON.stringify(widths));
     } catch {
     }
-    activeHistoryResizer = null;
     els8.page?.classList.remove("history-resizing");
     if (keepTaskId) ensureHistoryTaskCardVisible(keepTaskId);
   }
@@ -24380,6 +28602,7 @@
       const side = resizer?.dataset.historyResizer;
       if (!resizer || side !== "left" && side !== "right") continue;
       resizer.addEventListener("pointerdown", (event) => startHistoryResize(side, event, resizer));
+      resizer.addEventListener("lostpointercapture", endHistoryResize);
       resizer.addEventListener("dblclick", () => resetHistoryLayoutSide(side));
       resizer.addEventListener("keydown", (event) => {
         if (!isHistoryResizableLayout()) return;
@@ -24391,6 +28614,43 @@
     window.addEventListener("pointermove", updateHistoryResize);
     window.addEventListener("pointerup", endHistoryResize);
     window.addEventListener("pointercancel", endHistoryResize);
+    window.addEventListener("blur", endHistoryResize);
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "hidden") endHistoryResize();
+    });
+  }
+  function bindHistoryGridResizeObserver() {
+    const root = els8.taskList;
+    if (!root || historyGridResizeObserver || !("ResizeObserver" in window)) return;
+    historyGridResizeController = createHistoryGridResizeController({
+      isResizing: () => Boolean(activeHistoryResizer),
+      scheduleLayout: () => scheduleHistoryGridLayout({ keepTaskId: activeHistoryTaskVisible() })
+    });
+    historyGridResizeObserver = new ResizeObserver((entries) => {
+      const entry = entries.find(({ target }) => target === root);
+      if (entry) historyGridResizeController?.observeWidth(entry.contentRect.width);
+    });
+    historyGridResizeObserver.observe(root);
+  }
+  function historyGridLayoutIsIncomplete(root) {
+    return historyGridCardsNeedLayout(historyTaskCards(root).map((card) => ({
+      width: card.style.getPropertyValue("--history-task-card-width"),
+      rowHeight: card.style.getPropertyValue("--history-task-row-height")
+    })));
+  }
+  function bindHistoryGridMutationObserver() {
+    const root = els8.taskList;
+    if (!root || historyGridMutationObserver || !("MutationObserver" in window)) return;
+    historyGridMutationObserver = new MutationObserver(() => {
+      if (historyState.view !== "grid" || !historyGridLayoutIsIncomplete(root)) return;
+      scheduleHistoryGridLayout({ keepTaskId: activeHistoryTaskVisible() });
+    });
+    historyGridMutationObserver.observe(root, {
+      attributes: true,
+      attributeFilter: ["style"],
+      childList: true,
+      subtree: true
+    });
   }
   function historyTaskCardRatio(card) {
     const ratio = Number.parseFloat(card.style.getPropertyValue("--history-task-card-ratio"));
@@ -24402,7 +28662,13 @@
     const cards = historyTaskCards(root);
     if (!cards.length) return null;
     const rootStyle = window.getComputedStyle(root);
-    const availableWidth = root.clientWidth - parseCssPixels(rootStyle.paddingLeft) - parseCssPixels(rootStyle.paddingRight);
+    const availableWidth = historyGridAvailableWidth({
+      boundingWidth: root.getBoundingClientRect().width,
+      clientWidth: root.clientWidth,
+      offsetWidth: root.offsetWidth,
+      paddingLeft: parseCssPixels(rootStyle.paddingLeft),
+      paddingRight: parseCssPixels(rootStyle.paddingRight)
+    });
     if (availableWidth < 80) return null;
     return {
       items: cards.map((card) => ({ card, ratio: historyTaskCardRatio(card) })),
@@ -24455,6 +28721,7 @@
       }
     }
     applyHistoryGridRowLayout(row, { fillRow: false, availableWidth, gap, settings });
+    historyGridResizeController?.commitLayout(availableWidth);
   }
   function setLoadMoreState(label, options = {}) {
     if (!els8.sentinel) return;
@@ -24471,15 +28738,33 @@
     const remaining = els8.taskList.scrollHeight - els8.taskList.scrollTop - els8.taskList.clientHeight;
     if (remaining <= 320 && !historyState.exhausted) void loadTasks({ direction: "next" });
   }
-  async function loadTasks({ reset = false, direction = "next" } = {}) {
-    if (historyState.loading) return;
-    if (!reset && direction === "next" && historyState.exhausted) return;
-    if (!reset && direction === "previous" && historyState.newerExhausted) return;
+  async function loadTasks({
+    reset = false,
+    direction = "next",
+    anchorTaskId: rawAnchorTaskId = "",
+    anchor = null,
+    throwOnError = false
+  } = {}) {
+    const emptyResult = {
+      anchorFound: null,
+      taskCount: 0
+    };
+    const anchorTaskId = String(rawAnchorTaskId || "").trim();
+    if (anchorTaskId && (!reset || direction !== "next")) {
+      return emptyResult;
+    }
+    if (historyState.loading && !reset) return emptyResult;
+    if (!reset && direction === "next" && historyState.exhausted) {
+      return emptyResult;
+    }
+    if (!reset && direction === "previous" && historyState.newerExhausted) {
+      return emptyResult;
+    }
     const cursor = taskWindowCursor(reset, direction);
     if (!reset && !cursor) {
       if (direction === "previous") historyState.newerExhausted = true;
       if (direction === "next") historyState.exhausted = true;
-      return;
+      return emptyResult;
     }
     historyState.loading = true;
     const requestId = ++historyState.requestId;
@@ -24489,8 +28774,9 @@
       historyState.exhausted = false;
       historyState.loadedTaskIds.clear();
       historyState.loadedTaskSummaries.clear();
-      historyState.selectedTaskIds.clear();
-      historyState.selectionAnchorTaskId = "";
+      historyState.selectedTaskIds = historyState.selectedTaskId ? /* @__PURE__ */ new Set([historyState.selectedTaskId]) : /* @__PURE__ */ new Set();
+      historyState.selectionAnchorTaskId = historyState.selectedTaskId;
+      historyState.selectionMode = false;
       clearHistoryDeleteConfirmation();
       historyState.deleteConfirmTaskId = "";
       if (els8.taskList) els8.taskList.innerHTML = "";
@@ -24504,17 +28790,57 @@
           translate("history.backendRestartRequired")
         );
       }
-      const response = await fetch(`/api/task-history/tasks?${queryParams(cursor, direction)}`);
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.detail || translate("history.tasksFailed"));
-      if (requestId !== historyState.requestId) return;
-      const tasks = data.tasks || [];
-      if (organizationFilterActive && !historyTaskRowsSupportOrganization(tasks)) {
-        historyOrganizationApiSupported = false;
-        throw new Error(
-          translate("history.backendRestartRequired")
+      const requestPage = async (url) => {
+        const response = await fetch(url);
+        const data2 = await response.json();
+        if (!response.ok) {
+          throw new Error(data2.detail || translate("history.tasksFailed"));
+        }
+        return data2;
+      };
+      const validateOrganizationRows = (tasks2) => {
+        if (organizationFilterActive && !historyTaskRowsSupportOrganization(tasks2)) {
+          historyOrganizationApiSupported = false;
+          throw new Error(
+            translate("history.backendRestartRequired")
+          );
+        }
+      };
+      if (anchorTaskId) {
+        const result = await loadHistoryAnchorPage({
+          query: historyPageQueryInput(cursor, direction, anchorTaskId),
+          anchor,
+          request: requestPage,
+          isCurrent: () => requestId === historyState.requestId,
+          validate: validateOrganizationRows,
+          render: (tasks2) => renderTasks3(tasks2, { position: "replace" }),
+          applyCursors: (previousCursor, nextCursor) => {
+            historyState.newerExhausted = !previousCursor;
+            historyState.nextCursor = nextCursor;
+            historyState.exhausted = !nextCursor;
+          },
+          requestFrame: (callback) => window.requestAnimationFrame(callback),
+          restore: (scrollAnchor) => {
+            if (els8.taskList) {
+              restoreHistoryScrollAnchor(els8.taskList, scrollAnchor);
+            }
+          },
+          enableSave: () => historyPositionSaveController.enable()
+        });
+        if (result.anchorFound !== true) return result;
+        setLoadMoreState(
+          historyState.exhausted ? translate("history.noMore") : "",
+          { hidden: !historyState.exhausted, busy: false }
         );
+        window.requestAnimationFrame(maybeLoadMoreFromScroll);
+        return result;
       }
+      const data = await requestPage(
+        `/api/task-history/tasks?${queryParams(cursor, direction)}`
+      );
+      if (requestId !== historyState.requestId) return emptyResult;
+      const tasks = data.tasks || [];
+      validateOrganizationRows(tasks);
       renderTasks3(tasks, { position: reset ? "replace" : direction === "previous" ? "prepend" : "append" });
       if (direction === "previous") {
         historyState.newerExhausted = !data.previous_cursor || !tasks.length;
@@ -24522,12 +28848,17 @@
         historyState.nextCursor = data.next_cursor || null;
         historyState.exhausted = !historyState.nextCursor;
         if (reset) historyState.newerExhausted = true;
+        if (reset) historyPositionSaveController.enable();
       }
       setLoadMoreState(
         historyState.exhausted ? translate("history.noMore") : "",
         { hidden: !historyState.exhausted, busy: false }
       );
       window.requestAnimationFrame(maybeLoadMoreFromScroll);
+      return {
+        anchorFound: null,
+        taskCount: tasks.length
+      };
     } catch (error) {
       if (requestId === historyState.requestId) {
         const message = errorMessage2(error, translate("history.tasksFailed"));
@@ -24536,16 +28867,22 @@
         } else {
           renderTaskListMessage("history-error", message);
         }
+        if (direction === "previous") {
+          historyState.newerExhausted = false;
+        } else {
+          historyState.exhausted = false;
+        }
+        setLoadMoreState(translate("history.loadFailed"));
       }
-      if (direction === "previous") {
-        historyState.newerExhausted = false;
-      } else {
-        historyState.exhausted = false;
-      }
-      setLoadMoreState(translate("history.loadFailed"));
+      if (throwOnError) throw error;
+      return emptyResult;
     } finally {
       if (requestId === historyState.requestId) historyState.loading = false;
     }
+  }
+  async function refreshHistoryAfterImport() {
+    await loadSummary({ throwOnError: true });
+    await loadTasks({ reset: true, throwOnError: true });
   }
   function taskWindowCursor(reset, direction) {
     if (reset || !els8.taskList) return null;
@@ -24613,7 +28950,6 @@
   function removeHistoryTaskIdsFromWindow(taskIds) {
     const ids = taskIds.filter(Boolean);
     if (!ids.length) return;
-    const idSet = new Set(ids);
     refreshHistoryWindowAfterMutation(() => {
       ids.forEach((taskId) => {
         historyState.loadedTaskIds.delete(taskId);
@@ -24622,14 +28958,8 @@
         if (historyState.selectionAnchorTaskId === taskId) historyState.selectionAnchorTaskId = "";
         historyTaskCardElement(taskId)?.remove();
       });
-      if (idSet.has(historyState.selectedTaskId)) {
-        historyState.selectedTaskId = "";
-        historyState.detailTask = null;
-        els8.page?.classList.remove("history-detail-open");
-        updateHistoryUrl();
-        renderDetailShell(translate("history.detailEmpty"));
-      }
     }, { removedTaskIds: ids });
+    reconcileHistoryTaskSelection();
   }
   function applyHistoryOrganizations(organizations) {
     const entries = Object.entries(organizations);
@@ -24671,16 +29001,16 @@
     if (detailOrganization) {
       Object.assign(historyState.detailTask, detailOrganization);
       if (removedSet.has(detailTaskId)) {
-        historyState.selectedTaskId = "";
         historyState.detailTask = null;
-        els8.page?.classList.remove("history-detail-open");
-        updateHistoryUrl();
-        renderDetailShell(translate("history.detailEmpty"));
       } else {
         renderTaskDetail(historyState.detailTask);
       }
     }
-    renderBulkToolbar();
+    if (removedSet.size) {
+      reconcileHistoryTaskSelection();
+    } else {
+      renderBulkToolbar();
+    }
   }
   async function organizeHistoryTaskIds(taskIds, change) {
     const ids = [...new Set(taskIds.filter(Boolean))];
@@ -24759,7 +29089,7 @@
   }
   function renderTaskListMessage(className, message) {
     if (!els8.taskList) return;
-    els8.taskList.innerHTML = `<div class="${className}">${escapeHtml4(message)}</div>`;
+    els8.taskList.innerHTML = `<div class="${className}">${escapeHtml5(message)}</div>`;
   }
   function trimMountedTaskCards(edge) {
     if (!els8.taskList) return;
@@ -24771,8 +29101,6 @@
       const taskId = card.dataset.historyTaskCardId || "";
       historyState.loadedTaskIds.delete(taskId);
       historyState.loadedTaskSummaries.delete(taskId);
-      historyState.selectedTaskIds.delete(taskId);
-      if (historyState.selectionAnchorTaskId === taskId) historyState.selectionAnchorTaskId = "";
       card.remove();
     }
     if (edge === "top") {
@@ -24783,31 +29111,41 @@
     }
     els8.taskList.querySelector(".history-window-notice")?.remove();
   }
+  function historyTaskAccessibleLabel(task) {
+    const title = String(task.prompt_preview || task.mode || task.task_id).replace(/\s+/g, " ").trim();
+    const conciseTitle = title.length > 96 ? `${title.slice(0, 96)}\u2026` : title;
+    return [
+      conciseTitle,
+      formatDate(task.created_at),
+      String(task.status || "").trim()
+    ].filter(Boolean).join(" \xB7 ");
+  }
   function taskCardHtml(task) {
-    const taskId = escapeHtml4(task.task_id);
+    const taskId = escapeHtml5(task.task_id);
     const thumbnailUrl = historyThumbnailUrl(task);
     const ratioStyle = historyThumbnailRatioStyle(task);
     const imageCount = historyTaskGeneratedCount(task);
     const stackDepth = historyTaskStackDepth(imageCount);
     const stackLayers = historyTaskStackLayers(stackDepth);
-    const thumb = thumbnailUrl ? `<img src="${escapeHtml4(thumbnailUrl)}" alt="" loading="lazy" decoding="async" draggable="false">` : "";
+    const thumb = thumbnailUrl ? `<img src="${escapeHtml5(thumbnailUrl)}" alt="" loading="lazy" decoding="async" draggable="false">` : "";
     const counts = `${task.generated_count || 0}/${task.total_count || 0}`;
-    const selected = historyState.selectedTaskIds.has(task.task_id);
+    const selected = historyState.selectedTaskIds.has(task.task_id) || historyState.selectedTaskId === task.task_id;
     const active = historyState.selectedTaskId === task.task_id;
+    const accessibleLabel = historyTaskAccessibleLabel(task);
     const source = historyTaskSourceLabel(task);
     const promptMode = facetDisplayValue("prompt_mode", task.prompt_mode || "");
     const quality = facetDisplayValue("quality", task.quality || "");
     const favoriteButton = historyFavoriteButtonHtml(
       task.task_id,
       Boolean(task.favorite),
-      escapeHtml4,
+      escapeHtml5,
       translate(
         task.favorite ? "history.unfavoriteTask" : "history.favoriteTask"
       )
     );
     const tagChips = historyCardTagsHtml(
       Array.isArray(task.tags) ? task.tags : [],
-      escapeHtml4
+      escapeHtml5
     );
     const metaItems = [
       { kind: "date", value: formatDate(task.created_at) },
@@ -24822,27 +29160,24 @@
     <article
       class="history-task-card${active ? " active" : ""}${selected ? " selected" : ""}"
       data-history-task-card-id="${taskId}"
-      data-history-created-at="${escapeHtml4(task.created_at)}"
+      data-history-created-at="${escapeHtml5(task.created_at)}"
       data-history-image-count="${String(imageCount)}"
       data-history-stack-depth="${String(stackDepth)}"
-      role="option"
-      aria-selected="${active ? "true" : "false"}"
+      role="listitem"
+      aria-current="${active ? "true" : "false"}"
       ${ratioStyle}
     >
-      <label class="history-task-select" aria-label="${escapeHtml4(translate("history.selectTask"))}">
-        <input type="checkbox" data-history-task-select="${taskId}" ${selected ? "checked" : ""}>
-      </label>
       ${favoriteButton}
-      <button class="history-task-open" type="button" data-history-task-id="${taskId}">
+      <button class="history-task-open" type="button" data-history-task-id="${taskId}" aria-label="${escapeHtml5(accessibleLabel)}" aria-pressed="${selected ? "true" : "false"}">
         <span class="history-task-thumb">
           ${stackLayers}
           <span class="history-task-thumb-frame">${thumb}</span>
         </span>
         <span class="history-task-copy">
-          <span class="history-task-title">${escapeHtml4(task.prompt_preview || task.mode || task.task_id)}</span>
+          <span class="history-task-title">${escapeHtml5(task.prompt_preview || task.mode || task.task_id)}</span>
           ${tagChips}
           <span class="history-task-meta">
-            ${metaItems.map((item) => `<span data-history-meta-kind="${escapeHtml4(item.kind)}">${escapeHtml4(item.value)}</span>`).join("")}
+            ${metaItems.map((item) => `<span data-history-meta-kind="${escapeHtml5(item.kind)}">${escapeHtml5(item.value)}</span>`).join("")}
           </span>
         </span>
       </button>
@@ -24920,16 +29255,14 @@
     return `${url}${separator}v=${HISTORY_THUMBNAIL_CACHE_VERSION}`;
   }
   function updateTaskSelectionVisuals(taskId = historyState.selectedTaskId) {
-    const batchSelecting = historyState.selectedTaskIds.size > 0;
     els8.taskList?.querySelectorAll(".history-task-card").forEach((card) => {
       const cardTaskId = card.dataset.historyTaskCardId || "";
-      const active = Boolean(!batchSelecting && taskId && cardTaskId === taskId);
+      const active = Boolean(historyState.selectedTaskIds.size === 1 && taskId && cardTaskId === taskId);
       const selected = historyState.selectedTaskIds.has(cardTaskId);
       card.classList.toggle("active", active);
       card.classList.toggle("selected", selected);
-      card.setAttribute("aria-selected", active ? "true" : "false");
-      const input = card.querySelector("[data-history-task-select]");
-      if (input) input.checked = selected;
+      card.setAttribute("aria-current", active ? "true" : "false");
+      card.querySelector("[data-history-task-id]")?.setAttribute("aria-pressed", selected ? "true" : "false");
     });
   }
   function visibleHistoryTaskIds() {
@@ -24955,27 +29288,49 @@
     event.stopPropagation();
     const nextTaskId = nextCard?.dataset.historyTaskCardId || "";
     if (!nextTaskId) return true;
-    clearHistoryTaskSelection({ updateVisuals: false });
     focusHistoryTaskButton(nextTaskId);
-    void loadTaskDetail(nextTaskId);
+    applyHistoryTaskSelection([nextTaskId], nextTaskId, nextTaskId);
     return true;
   }
-  function applyHistoryTaskSelection(taskIds, anchorTaskId = "") {
+  function applyHistoryTaskSelection(taskIds, anchorTaskId = "", primaryTaskId = anchorTaskId) {
     historyState.selectedTaskIds = new Set(taskIds.filter(Boolean));
-    if (anchorTaskId) historyState.selectionAnchorTaskId = anchorTaskId;
+    const selectedIds = [...historyState.selectedTaskIds];
+    historyState.selectionAnchorTaskId = historyState.selectedTaskIds.has(anchorTaskId) ? anchorTaskId : selectedIds[0] || "";
+    historyState.selectedTaskId = historyState.selectedTaskIds.has(primaryTaskId) ? primaryTaskId : selectedIds[0] || "";
+    if (!historyState.selectedTaskId) {
+      historyState.detailTask = null;
+      historyState.selectionMode = false;
+    }
     clearHistoryDeleteConfirmation();
+    updateHistoryUrl();
     updateTaskSelectionVisuals();
     renderBulkToolbar();
     syncHistorySelectionDetail();
   }
+  function reconcileHistoryTaskSelection() {
+    applyHistoryTaskSelection(
+      [...historyState.selectedTaskIds],
+      historyState.selectionAnchorTaskId,
+      historyState.selectedTaskId
+    );
+    if (!historyState.selectedTaskId) {
+      els8.page?.classList.remove("history-detail-open");
+    }
+  }
   function clearHistoryTaskSelection({ updateVisuals = true } = {}) {
-    if (!historyState.selectedTaskIds.size && !historyState.selectionAnchorTaskId && !historyState.deleteConfirming) return;
-    historyState.selectedTaskIds.clear();
-    historyState.selectionAnchorTaskId = "";
+    resetHistoryTaskSelectionState();
     clearHistoryDeleteConfirmation();
+    updateHistoryUrl();
     if (updateVisuals) updateTaskSelectionVisuals();
     renderBulkToolbar();
     syncHistorySelectionDetail();
+  }
+  function resetHistoryTaskSelectionState() {
+    historyState.selectedTaskIds.clear();
+    historyState.selectedTaskId = "";
+    historyState.selectionAnchorTaskId = "";
+    historyState.selectionMode = false;
+    historyState.detailTask = null;
   }
   function toggleHistoryTaskSelection(taskId, anchor = true) {
     if (!taskId) return;
@@ -24987,7 +29342,10 @@
     }
     historyState.selectedTaskIds = next;
     if (anchor) historyState.selectionAnchorTaskId = taskId;
+    historyState.selectedTaskId = next.has(taskId) ? taskId : [...next][0] || "";
+    if (!historyState.selectedTaskId) historyState.detailTask = null;
     clearHistoryDeleteConfirmation();
+    updateHistoryUrl();
     updateTaskSelectionVisuals();
     renderBulkToolbar();
     syncHistorySelectionDetail();
@@ -25000,11 +29358,11 @@
     const anchorIndex = visibleIds.indexOf(anchor);
     const targetIndex = visibleIds.indexOf(taskId);
     if (anchorIndex < 0 || targetIndex < 0) {
-      applyHistoryTaskSelection([...historyState.selectedTaskIds, taskId], taskId);
+      applyHistoryTaskSelection([...historyState.selectedTaskIds, taskId], taskId, taskId);
       return;
     }
     const [start, end] = anchorIndex <= targetIndex ? [anchorIndex, targetIndex] : [targetIndex, anchorIndex];
-    applyHistoryTaskSelection([...historyState.selectedTaskIds, ...visibleIds.slice(start, end + 1)], anchor);
+    applyHistoryTaskSelection([...historyState.selectedTaskIds, ...visibleIds.slice(start, end + 1)], anchor, taskId);
   }
   function handleHistoryTaskShortcutSelection(taskId, event) {
     if (!taskId || !event.shiftKey && !event.metaKey && !event.ctrlKey) return false;
@@ -25017,8 +29375,29 @@
     toggleHistoryTaskSelection(taskId);
     return true;
   }
+  function historySelectAllShortcutBlocked() {
+    return Boolean(
+      els8.backupDialog && !els8.backupDialog.hidden || els8.importDialog && !els8.importDialog.hidden || historyExportPickerEl || historyOrganizePickerEl || historyTagPickerEl || historyContextMenuEl && !historyContextMenuEl.classList.contains("hidden") || isHistoryLightboxOpen()
+    );
+  }
+  function handleHistorySelectAllShortcut(event) {
+    if (historySelectAllShortcutBlocked() || !isHistorySelectAllTasksShortcut(event, event.target)) return false;
+    const taskIds = historySelectAllTaskIds(visibleHistoryTaskIds());
+    if (!taskIds.length) return false;
+    event.preventDefault();
+    event.stopPropagation();
+    window.getSelection()?.removeAllRanges();
+    applyHistoryTaskSelection(taskIds, taskIds[0], taskIds[0]);
+    return true;
+  }
   async function loadTaskDetail(taskId) {
     if (!taskId) return;
+    if (historyState.selectedTaskIds.size !== 1 || !historyState.selectedTaskIds.has(taskId)) {
+      historyState.selectedTaskIds = /* @__PURE__ */ new Set([taskId]);
+      historyState.selectionAnchorTaskId = taskId;
+      historyState.selectionMode = false;
+      renderBulkToolbar();
+    }
     const loadToken = ++historyDetailLoadToken;
     const keepCurrentDetail = els8.detail?.dataset.historyDetailMode === "task" && Boolean(historyState.detailTask?.task_id);
     historyState.selectedTaskId = taskId;
@@ -25062,7 +29441,7 @@
     };
   }
   function isCurrentHistoryDetailLoad(loadToken, taskId) {
-    return loadToken === historyDetailLoadToken && historyState.selectedTaskId === taskId;
+    return loadToken === historyDetailLoadToken && historyState.selectedTaskId === taskId && historyState.selectedTaskIds.size === 1 && historyState.selectedTaskIds.has(taskId);
   }
   async function preloadHistoryDetailImages(task) {
     const urls = taskOutputRecords(task).map((record2) => record2.url).filter((url) => Boolean(url));
@@ -25095,45 +29474,75 @@
     els8.detail.innerHTML = `
     <div class="history-detail-header">
       <div>
-        <h2 class="history-detail-title history-detail-empty-title">${escapeHtml4(translate("history.detail"))}</h2>
+        <h2 class="history-detail-title history-detail-empty-title">${escapeHtml5(translate("history.detail"))}</h2>
       </div>
-      <button id="historyDetailClose" class="drawer-close-button history-detail-close" type="button" data-history-detail-close aria-label="${escapeHtml4(translate("history.closeDetail"))}">\xD7</button>
+      <button id="historyDetailClose" class="ghost-button drawer-close-button history-detail-close" type="button" data-history-detail-close aria-label="${escapeHtml5(translate("history.closeDetail"))}">
+        <svg class="drawer-close-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 7L17 17M17 7L7 17" /></svg>
+      </button>
     </div>
-    <div class="${className}">${escapeHtml4(message)}</div>
+    <div class="${className}">${escapeHtml5(message)}</div>
   `;
+  }
+  function historyActionPanelCopy() {
+    return {
+      libraryTitle: translate("history.title"),
+      libraryDescription: translate("historyBackup.description"),
+      backup: translate("historyBackup.open"),
+      importBackup: translate("historyBackup.importOpen"),
+      selectTasks: translate("history.selectTask"),
+      selectedCount: (count) => formatTranslation("history.selectedCount", { count }),
+      exitSelection: translate("history.exitSelection"),
+      organize: translate("history.organizeSelected"),
+      favorite: translate("history.favoriteSelected"),
+      unfavorite: translate("history.unfavoriteSelected"),
+      addTag: translate("history.addTag"),
+      removeTag: translate("history.removeTag"),
+      archive: translate("action.archive"),
+      restore: translate("archive.restore"),
+      export: translate("history.export"),
+      imagesOnly: translate("history.exportImagesOnly"),
+      imagesWithPrompts: translate("history.exportImagesWithPrompts"),
+      confirmDelete: translate("history.confirmDelete"),
+      deleteTasks: translate("action.delete"),
+      cancel: translate("action.cancel"),
+      close: translate("action.close")
+    };
+  }
+  function renderHistoryManagementDetail() {
+    if (!els8.detail) return;
+    els8.detail.dataset.historyDetailMode = "management";
+    historyState.detailTask = null;
+    els8.detail.innerHTML = historyManagementPanelHtml(historyActionPanelCopy(), {
+      selectionMode: historyState.selectionMode
+    });
   }
   function renderSelectionDetail() {
     if (!els8.detail) return;
     const count = historyState.selectedTaskIds.size;
     if (!count) return;
     els8.detail.dataset.historyDetailMode = "selection";
-    els8.detail.innerHTML = `
-    <div class="history-detail-header">
-      <div>
-        <p class="history-detail-kicker">${escapeHtml4(translate("history.detail"))}</p>
-        <h2 class="history-detail-title">${escapeHtml4(formatTranslation("history.selectedCount", { count }))}</h2>
-      </div>
-      <button id="historyDetailClose" class="drawer-close-button history-detail-close" type="button" data-history-detail-close aria-label="${escapeHtml4(translate("history.closeDetail"))}">\xD7</button>
-    </div>
-    <div class="history-selection-detail">
-      <div class="history-detail-empty">${escapeHtml4(formatTranslation("history.selectedCount", { count }))}</div>
-      <div class="history-detail-actions history-selection-actions">
-        <button class="ghost-button text-sm" type="button" data-history-bulk-archive>${escapeHtml4(translate("action.archive"))}</button>
-        <button class="ghost-button text-sm" type="button" data-history-bulk-restore>${escapeHtml4(translate("archive.restore"))}</button>
-        <button class="ghost-button text-sm danger-button" type="button" data-history-bulk-delete>${escapeHtml4(historyState.deleteConfirming ? translate("history.confirmDeleteSelected") : translate("action.delete"))}</button>
-        <button class="ghost-button text-sm" type="button" data-history-bulk-clear>${escapeHtml4(translate("action.cancel"))}</button>
-      </div>
-    </div>
-  `;
+    els8.detail.innerHTML = historySelectionPanelHtml({
+      copy: historyActionPanelCopy(),
+      count,
+      expandedSection: historyActionPanelExpanded,
+      deleteConfirming: historyState.deleteConfirming
+    });
   }
   function syncHistorySelectionDetail() {
     if (!els8.detail) return;
-    if (historyState.selectedTaskIds.size) {
+    const resolution = historySelectionDetailResolution({
+      selectedCount: historyState.selectedTaskIds.size,
+      selectedTaskId: historyState.selectedTaskId,
+      detailTaskId: String(historyState.detailTask?.task_id || "")
+    });
+    if (resolution === "selection") {
       renderSelectionDetail();
-      return;
-    }
-    if (els8.detail.dataset.historyDetailMode === "selection") {
-      renderDetailShell(translate("history.detailEmpty"));
+    } else if (resolution === "task") {
+      renderTaskDetail(historyState.detailTask);
+    } else if (resolution === "load-task") {
+      void loadTaskDetail(historyState.selectedTaskId);
+    } else {
+      renderHistoryManagementDetail();
     }
   }
   function historyTaskModeLabel(mode) {
@@ -25167,54 +29576,56 @@
     const detailFavoriteButton = historyFavoriteButtonHtml(
       taskId,
       favorite,
-      escapeHtml4,
+      escapeHtml5,
       translate(
         favorite ? "history.unfavoriteTask" : "history.favoriteTask"
       )
     );
     const detailTags = historyDetailTagsHtml(
       Array.isArray(task.tags) ? task.tags : [],
-      escapeHtml4
+      escapeHtml5
     );
     els8.detail.innerHTML = `
     <div class="history-detail-header">
       <div>
-        <p class="history-detail-kicker">${escapeHtml4(historyTaskModeLabel(task.mode))}</p>
-        <h2 class="history-detail-title" title="${escapeHtml4(task.prompt || title)}">${escapeHtml4(title)}</h2>
+        <p class="history-detail-kicker">${escapeHtml5(historyTaskModeLabel(task.mode))}</p>
+        <h2 class="history-detail-title" title="${escapeHtml5(task.prompt || title)}">${escapeHtml5(title)}</h2>
       </div>
-      <button id="historyDetailClose" class="drawer-close-button history-detail-close" type="button" data-history-detail-close aria-label="${escapeHtml4(translate("history.closeDetail"))}">\xD7</button>
+      <button id="historyDetailClose" class="ghost-button drawer-close-button history-detail-close" type="button" data-history-detail-close aria-label="${escapeHtml5(translate("history.closeDetail"))}">
+        <svg class="drawer-close-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 7L17 17M17 7L7 17" /></svg>
+      </button>
     </div>
     <div class="history-detail-organization">
       ${detailFavoriteButton}
       <div class="history-detail-tags">
-        ${detailTags || `<span class="history-tag-empty">${escapeHtml4(translate("history.noTags"))}</span>`}
+        ${detailTags || `<span class="history-tag-empty">${escapeHtml5(translate("history.noTags"))}</span>`}
       </div>
       <button
         class="ghost-button text-sm"
         type="button"
         data-history-open-tag-picker="detail"
-      >${escapeHtml4(translate("history.addTag"))}</button>
+      >${escapeHtml5(translate("history.addTag"))}</button>
     </div>
     <div class="history-detail-meta">
-      <span>${escapeHtml4(formatDate(task.created_at || ""))}</span>
-      <span>${escapeHtml4(task.status || "")}</span>
-      <span>${escapeHtml4(task.params?.size || task.output_size || "")}</span>
-      <span>${escapeHtml4(facetDisplayValue("prompt_mode", task.params?.prompt_fidelity || ""))}</span>
-      <span>${escapeHtml4(facetDisplayValue("quality", task.params?.quality || task.quality || ""))}</span>
-      <span>${escapeHtml4(historyTaskSourceLabel(task))}</span>
+      <span>${escapeHtml5(formatDate(task.created_at || ""))}</span>
+      <span>${escapeHtml5(task.status || "")}</span>
+      <span>${escapeHtml5(task.params?.size || task.output_size || "")}</span>
+      <span>${escapeHtml5(facetDisplayValue("prompt_mode", task.params?.prompt_fidelity || ""))}</span>
+      <span>${escapeHtml5(facetDisplayValue("quality", task.params?.quality || task.quality || ""))}</span>
+      <span>${escapeHtml5(historyTaskSourceLabel(task))}</span>
     </div>
     <div class="history-detail-actions">
-      <div class="history-detail-actions-primary">
-        <button class="ghost-button text-sm" type="button" data-history-reuse-task="${escapeHtml4(taskId)}">${escapeHtml4(translate("history.reuseTask"))}</button>
-        <button class="ghost-button text-sm" type="button" data-history-open-export="${escapeHtml4(taskId)}">${escapeHtml4(translate("history.export"))}</button>
-        <button class="ghost-button text-sm" type="button" data-history-archive-task="${escapeHtml4(taskId)}" data-history-archive-value="${archived ? "false" : "true"}">${escapeHtml4(archived ? translate("archive.restore") : translate("action.archive"))}</button>
-        ${hasSelectedOutputs ? `<button class="ghost-button text-sm danger-button" type="button" ${canDeleteUnselected && !deleteBlocked ? `data-history-delete-unselected="${escapeHtml4(taskId)}"` : "disabled"}>${escapeHtml4(confirmingDeleteUnselected ? translate("history.confirmDeleteUnselected") : translate("history.deleteUnselected"))}</button>` : `<button class="ghost-button text-sm danger-button" type="button" data-history-delete-task="${escapeHtml4(taskId)}" ${deleteBlocked ? "disabled" : ""}>${escapeHtml4(confirmingDeleteTask ? translate("history.confirmDelete") : translate("action.delete"))}</button>`}
+      <div class="history-detail-actions-result">
+        <button class="ghost-button text-sm" type="button" data-history-reuse-task="${escapeHtml5(taskId)}">${escapeHtml5(translate("history.reuseTask"))}</button>
+        ${selectedCount > 1 ? `<a class="ghost-button text-sm" href="${escapeHtml5(zipHref)}?selected=1" download>${escapeHtml5(translate("history.downloadSelected"))}</a>` : canZip ? `<a class="ghost-button text-sm" href="${escapeHtml5(zipHref)}" download>${escapeHtml5(translate("history.downloadAll"))}</a>` : singleDownloadHref ? `<a class="ghost-button text-sm" href="${escapeHtml5(singleDownloadHref)}" download>${escapeHtml5(translate("history.downloadImage"))}</a>` : ""}
       </div>
-      <div class="history-detail-actions-output">
-        ${selectedCount > 1 ? `<a class="ghost-button text-sm" href="${escapeHtml4(zipHref)}?selected=1" download>${escapeHtml4(translate("history.downloadSelected"))}</a>` : canZip ? `<a class="ghost-button text-sm" href="${escapeHtml4(zipHref)}" download>${escapeHtml4(translate("history.downloadAll"))}</a>` : singleDownloadHref ? `<a class="ghost-button text-sm" href="${escapeHtml4(singleDownloadHref)}" download>${escapeHtml4(translate("history.downloadImage"))}</a>` : ""}
+      <div class="history-detail-actions-management">
+        <button class="ghost-button text-sm" type="button" data-history-open-export="${escapeHtml5(taskId)}">${escapeHtml5(translate("history.export"))}</button>
+        <button class="ghost-button text-sm" type="button" data-history-archive-task="${escapeHtml5(taskId)}" data-history-archive-value="${archived ? "false" : "true"}">${escapeHtml5(archived ? translate("archive.restore") : translate("action.archive"))}</button>
+        ${hasSelectedOutputs ? `<button class="ghost-button text-sm danger-button" type="button" ${canDeleteUnselected && !deleteBlocked ? `data-history-delete-unselected="${escapeHtml5(taskId)}"` : "disabled"}>${escapeHtml5(confirmingDeleteUnselected ? translate("history.confirmDeleteUnselected") : translate("history.deleteUnselected"))}</button>` : `<button class="ghost-button text-sm danger-button" type="button" data-history-delete-task="${escapeHtml5(taskId)}" ${deleteBlocked ? "disabled" : ""}>${escapeHtml5(confirmingDeleteTask ? translate("history.confirmDelete") : translate("action.delete"))}</button>`}
       </div>
     </div>
-    <div class="history-detail-images${imageLayoutClass}">${images || `<div class="history-detail-empty">${escapeHtml4(translate("history.noPreview"))}</div>`}</div>
+    <div class="history-detail-images${imageLayoutClass}">${images || `<div class="history-detail-empty">${escapeHtml5(translate("history.noPreview"))}</div>`}</div>
     ${inputReferences}
     ${referenceFiles}
     ${promptCompareHtml(task)}
@@ -25268,9 +29679,9 @@
       addPanel("submitted", translate("history.promptSubmitted"), submittedPrompt);
     }
     if (hasDistinctOutputPrompts) {
-      panels.push(`<p class="history-prompt-note">${escapeHtml4(translate("history.outputRevisedPromptNotice"))}</p>`);
+      panels.push(`<p class="history-prompt-note">${escapeHtml5(translate("history.outputRevisedPromptNotice"))}</p>`);
     }
-    return panels.length ? `<section class="history-prompt-compare" aria-label="${escapeHtml4(translate("history.promptCompare"))}">${panels.join("")}</section>` : "";
+    return panels.length ? `<section class="history-prompt-compare" aria-label="${escapeHtml5(translate("history.promptCompare"))}">${panels.join("")}</section>` : "";
   }
   function promptTextValue(value) {
     return String(value || "").trim();
@@ -25311,15 +29722,15 @@
     return `
     <article class="history-prompt-panel">
       <div class="history-prompt-panel-header">
-        <h3>${escapeHtml4(title)}</h3>
+        <h3>${escapeHtml5(title)}</h3>
         <button
           class="ghost-button text-sm history-prompt-copy"
           type="button"
-          data-history-copy-prompt-kind="${escapeHtml4(kind)}"
-          aria-label="${escapeHtml4(formatTranslation("history.copyPromptPanel", { title }))}"
-        >${escapeHtml4(translate("history.copyPromptShort"))}</button>
+          data-history-copy-prompt-kind="${escapeHtml5(kind)}"
+          aria-label="${escapeHtml5(formatTranslation("history.copyPromptPanel", { title }))}"
+        >${escapeHtml5(translate("history.copyPromptShort"))}</button>
       </div>
-      <div class="history-detail-prompt">${escapeHtml4(text || translate("history.promptEmpty"))}</div>
+      <div class="history-detail-prompt">${escapeHtml5(text || translate("history.promptEmpty"))}</div>
     </article>
   `;
   }
@@ -25329,27 +29740,30 @@
   }
   function applyFilter(key, value) {
     historyState[key] = value;
-    historyState.selectedTaskId = "";
+    resetHistoryTaskSelectionState();
     clearHistoryDeleteConfirmation();
     const attr = historyFilterAttribute(key);
     document.querySelectorAll(`[data-history-${attr}]`).forEach((node) => {
       node.classList.toggle("active", node.getAttribute(`data-history-${attr}`) === value);
     });
+    renderHistoryActiveFilters();
     updateHistoryUrl();
     void loadTasks({ reset: true });
   }
   function renderBulkToolbar() {
-    if (!els8.bulkToolbar || !els8.bulkCount) return;
     const count = historyState.selectedTaskIds.size;
-    els8.page?.classList.toggle("history-bulk-selecting", count > 0);
-    els8.bulkToolbar.classList.toggle("hidden", count === 0);
-    els8.bulkToolbar.toggleAttribute("hidden", count === 0);
-    els8.bulkCount.textContent = count ? formatTranslation("history.selectedCount", { count }) : "";
-    if (els8.bulkDelete) {
-      els8.bulkDelete.textContent = historyState.deleteConfirming ? translate("history.confirmDelete") : translate("action.delete");
-      els8.bulkDelete.classList.toggle("danger-button", historyState.deleteConfirming);
+    els8.page?.classList.toggle("history-bulk-selecting", count > 1 || historyState.selectionMode);
+    els8.page?.classList.toggle("history-selection-mode", historyState.selectionMode);
+    els8.selectionDock?.classList.toggle("hidden", count === 0);
+    els8.selectionDock?.toggleAttribute("hidden", count === 0);
+    setText(
+      els8.selectionDockCount,
+      count ? formatTranslation("history.selectedCount", { count }) : ""
+    );
+    if (!count) {
+      historyActionPanelExpanded = "";
+      closeHistoryOrganizePicker({ restoreFocus: false });
     }
-    els8.bulkDeleteCancel?.classList.toggle("hidden", !historyState.deleteConfirming);
     if (count && els8.detail?.dataset.historyDetailMode === "selection") renderSelectionDetail();
   }
   function clearHistoryDeleteConfirmation() {
@@ -25385,6 +29799,7 @@
           renderTaskDetail(task);
         }
       });
+      reconcileHistoryTaskSelection();
       await loadSummary();
       setText(els8.resultSummary, archived ? formatTranslation("batch.archivedCount", { count: ids.length }) : formatTranslation("archive.restoredCount", { count: ids.length }));
     } catch (error) {
@@ -25437,7 +29852,9 @@
       const deletedIds = results.filter((result) => result.status === "fulfilled").map((result) => result.value);
       const failedIds = ids.filter((taskId) => !deletedIds.includes(taskId));
       historyState.selectedTaskIds = new Set(failedIds);
+      historyState.selectedTaskId = failedIds[0] || "";
       historyState.selectionAnchorTaskId = failedIds[0] || "";
+      if (!failedIds.length) historyState.selectionMode = false;
       clearHistoryDeleteConfirmation();
       if (deletedIds.length) removeHistoryTaskIdsFromWindow(deletedIds);
       await loadSummary();
@@ -25697,11 +30114,7 @@
       return [...historyState.selectedTaskIds].filter(Boolean);
     }
     if (historyState.selectedTaskIds.size !== 1 || !historyState.selectedTaskIds.has(clickedTaskId)) {
-      historyState.selectedTaskIds = /* @__PURE__ */ new Set([clickedTaskId]);
-      historyState.selectionAnchorTaskId = clickedTaskId;
-      clearHistoryDeleteConfirmation();
-      updateTaskSelectionVisuals();
-      renderBulkToolbar();
+      applyHistoryTaskSelection([clickedTaskId], clickedTaskId, clickedTaskId);
     }
     return [clickedTaskId].filter(Boolean);
   }
@@ -25779,7 +30192,7 @@
   function historyContextButton(action, label, disabled = false, danger = false) {
     const disabledAttr = disabled ? " disabled" : "";
     const dangerClass = danger ? " danger" : "";
-    return `<button class="history-context-menu-button${dangerClass}" type="button" role="menuitem" data-history-context-action="${escapeHtml4(action)}"${disabledAttr}>${escapeHtml4(label)}</button>`;
+    return `<button class="history-context-menu-button${dangerClass}" type="button" role="menuitem" data-history-context-action="${escapeHtml5(action)}"${disabledAttr}>${escapeHtml5(label)}</button>`;
   }
   function bindHistoryContextMenuActionEvents(menu) {
     menu.querySelectorAll("[data-history-context-action]").forEach((button) => {
@@ -25922,7 +30335,10 @@
     return index === taskIds.length - 1 && !historyState.exhausted;
   }
   function syncHistoryLightboxDetail(taskId, detail) {
+    historyState.selectedTaskIds = /* @__PURE__ */ new Set([taskId]);
     historyState.selectedTaskId = taskId;
+    historyState.selectionAnchorTaskId = taskId;
+    historyState.selectionMode = false;
     clearHistoryDeleteConfirmation();
     historyState.deleteConfirmTaskId = "";
     historyState.deleteUnselectedConfirmTaskId = "";
@@ -25930,6 +30346,7 @@
     els8.page?.classList.add("history-detail-open");
     updateHistoryUrl();
     updateTaskSelectionVisuals(taskId);
+    renderBulkToolbar();
     ensureHistoryTaskCardVisible(taskId);
     renderTaskDetail(detail);
   }
@@ -25990,15 +30407,40 @@
     }
   }
   function closeDetail() {
-    if (historyState.selectedTaskIds.size) {
-      clearHistoryTaskSelection();
+    const narrow = window.matchMedia("(max-width: 1100px)").matches;
+    const mode = els8.detail?.dataset.historyDetailMode || "management";
+    if (historyDetailCloseEffect({ narrow, mode }) === "dismiss") {
+      els8.page?.classList.remove("history-detail-open");
+      historyDetailReturnFocus?.focus();
+      historyDetailReturnFocus = null;
       return;
     }
+    historyDetailLoadToken += 1;
+    historyState.selectedTaskIds.clear();
     historyState.selectedTaskId = "";
+    historyState.selectionAnchorTaskId = "";
+    historyState.selectionMode = false;
+    historyState.detailTask = null;
     els8.page?.classList.remove("history-detail-open");
     updateHistoryUrl();
     updateTaskSelectionVisuals("");
-    renderDetailShell(translate("history.detailEmpty"));
+    renderBulkToolbar();
+    renderHistoryManagementDetail();
+    historyDetailReturnFocus?.focus();
+    historyDetailReturnFocus = null;
+  }
+  function openHistoryManagementPanel(trigger) {
+    historyDetailReturnFocus = trigger;
+    renderHistoryManagementDetail();
+    els8.page?.classList.add("history-detail-open");
+    requestAnimationFrame(() => els8.detail?.querySelector(".history-detail-title")?.focus());
+  }
+  function openHistorySelectionPanel(trigger) {
+    if (!historyState.selectedTaskIds.size) return;
+    historyDetailReturnFocus = trigger;
+    renderSelectionDetail();
+    els8.page?.classList.add("history-detail-open");
+    requestAnimationFrame(() => els8.detail?.querySelector(".history-detail-title")?.focus());
   }
   function closeHistoryTagPicker({ restoreFocus = true } = {}) {
     historyTagPickerEl?.remove();
@@ -26028,22 +30470,22 @@
     );
     picker.innerHTML = `
     <div class="history-tag-picker-header">
-      <strong>${escapeHtml4(translate("history.tags"))}</strong>
+      <strong>${escapeHtml5(translate("history.tags"))}</strong>
       <button
-        class="drawer-close-button"
+        class="ghost-button drawer-close-button"
         type="button"
         data-history-close-tag-picker
-        aria-label="${escapeHtml4(translate("action.close"))}"
-      >\xD7</button>
+        aria-label="${escapeHtml5(translate("action.close"))}"
+      ><svg class="drawer-close-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 7L17 17M17 7L7 17" /></svg></button>
     </div>
     <div class="history-tag-picker-list">
       ${historyTags.length ? historyTagPickerHtml(
       historyTags,
       selectedTagIds,
-      escapeHtml4
-    ) : `<div class="history-tag-manager-empty">${escapeHtml4(translate("history.noTags"))}</div>`}
+      escapeHtml5
+    ) : `<div class="history-tag-manager-empty">${escapeHtml5(translate("history.noTags"))}</div>`}
     </div>
-    ${mode === "remove" ? "" : historyTagPickerCreateHtml(escapeHtml4, {
+    ${mode === "remove" ? "" : historyTagPickerCreateHtml(escapeHtml5, {
       placeholder: translate("history.createTag"),
       submitLabel: translate("history.createTag")
     })}
@@ -26140,9 +30582,76 @@
       remove ? { remove_tag_ids: [tagId] } : { add_tag_ids: [tagId] }
     );
   }
+  function closeHistoryOrganizePicker({ restoreFocus = true } = {}) {
+    historyOrganizePickerEl?.remove();
+    historyOrganizePickerEl = null;
+    historyOrganizeTrigger?.setAttribute("aria-expanded", "false");
+    if (restoreFocus) historyOrganizeTrigger?.focus();
+    historyOrganizeTrigger = null;
+  }
+  function openHistoryOrganizePicker(trigger) {
+    if (!historyState.selectedTaskIds.size) return;
+    closeHistoryExportPicker({ restoreFocus: false });
+    closeHistoryTagPicker({ restoreFocus: false });
+    closeHistoryOrganizePicker({ restoreFocus: false });
+    historyOrganizeTrigger = trigger;
+    trigger.setAttribute("aria-expanded", "true");
+    const picker = document.createElement("div");
+    picker.className = "history-organize-picker";
+    picker.setAttribute("role", "dialog");
+    picker.setAttribute("aria-label", translate("history.organizeSelected"));
+    picker.innerHTML = `
+    <div class="history-organize-picker-header">
+      <div>
+        <strong>${escapeHtml5(translate("history.organizeSelected"))}</strong>
+        <span>${escapeHtml5(formatTranslation("history.selectedCount", { count: historyState.selectedTaskIds.size }))}</span>
+      </div>
+      <button
+        class="ghost-button drawer-close-button"
+        type="button"
+        data-history-close-organize
+        aria-label="${escapeHtml5(translate("action.close"))}"
+      ><svg class="drawer-close-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 7L17 17M17 7L7 17" /></svg></button>
+    </div>
+    <div class="history-organize-picker-actions">
+      <button class="history-organize-action-button" type="button" data-history-bulk-favorite>
+        <svg class="history-bulk-button-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m12 3 2.7 5.5 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1-4.4-4.3 6.1-.9Z" /></svg>
+        <span>${escapeHtml5(translate("history.favoriteSelected"))}</span>
+      </button>
+      <button class="history-organize-action-button" type="button" data-history-bulk-unfavorite>
+        <svg class="history-bulk-button-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m12 3 2.7 5.5 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1-4.4-4.3 6.1-.9ZM5 5l14 14" /></svg>
+        <span>${escapeHtml5(translate("history.unfavoriteSelected"))}</span>
+      </button>
+      <button class="history-organize-action-button history-organize-group-start" type="button" data-history-open-tag-picker="add">
+        <svg class="history-bulk-button-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 5h9l7 7-8 8-8-8Z" /><path d="M9 9h.01M17 5v6m-3-3h6" /></svg>
+        <span>${escapeHtml5(translate("history.addTag"))}</span>
+      </button>
+      <button class="history-organize-action-button history-organize-group-start" type="button" data-history-open-tag-picker="remove">
+        <svg class="history-bulk-button-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 5h9l7 7-8 8-8-8Z" /><path d="M9 9h.01M15 8h6" /></svg>
+        <span>${escapeHtml5(translate("history.removeTag"))}</span>
+      </button>
+      <button class="history-organize-action-button history-organize-group-start" type="button" data-history-bulk-archive>
+        <svg class="history-bulk-button-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 7h16v13H4zM3 4h18v3H3zM9 12h6" /></svg>
+        <span>${escapeHtml5(translate("action.archive"))}</span>
+      </button>
+      <button class="history-organize-action-button history-organize-group-start" type="button" data-history-bulk-restore>
+        <svg class="history-bulk-button-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 7h16v13H4zM3 4h18v3H3zM12 17v-6m0 0-3 3m3-3 3 3" /></svg>
+        <span>${escapeHtml5(translate("archive.restore"))}</span>
+      </button>
+    </div>
+  `;
+    document.body.append(picker);
+    historyOrganizePickerEl = picker;
+    const rect = trigger.getBoundingClientRect();
+    const pickerRect = picker.getBoundingClientRect();
+    picker.style.left = `${Math.max(12, Math.min(window.innerWidth - pickerRect.width - 12, rect.left))}px`;
+    picker.style.top = `${Math.max(12, Math.min(window.innerHeight - pickerRect.height - 12, rect.bottom + 8))}px`;
+    picker.querySelector(".history-organize-action-button")?.focus();
+  }
   function closeHistoryExportPicker({ restoreFocus = true } = {}) {
     historyExportPickerEl?.remove();
     historyExportPickerEl = null;
+    historyExportTrigger?.setAttribute("aria-expanded", "false");
     if (restoreFocus) historyExportTrigger?.focus();
     historyExportTrigger = null;
     historyExportTaskIds = [];
@@ -26152,9 +30661,12 @@
       ...new Set(taskIds.filter(Boolean))
     ];
     if (!frozenTaskIds.length) return;
+    closeHistoryOrganizePicker({ restoreFocus: false });
+    closeHistoryTagPicker({ restoreFocus: false });
     closeHistoryExportPicker({ restoreFocus: false });
     historyExportTrigger = trigger;
     historyExportTaskIds = frozenTaskIds;
+    trigger.setAttribute("aria-expanded", "true");
     const picker = document.createElement("div");
     picker.className = "history-export-picker";
     picker.setAttribute("role", "dialog");
@@ -26165,27 +30677,27 @@
     picker.innerHTML = `
     <div class="history-export-picker-header">
       <div>
-        <strong>${escapeHtml4(translate("history.export"))}</strong>
-        <span>${escapeHtml4(formatTranslation("history.selectedCount", { count: frozenTaskIds.length }))}</span>
+        <strong>${escapeHtml5(translate("history.export"))}</strong>
+        <span>${escapeHtml5(formatTranslation("history.selectedCount", { count: frozenTaskIds.length }))}</span>
       </div>
       <button
-        class="drawer-close-button"
+        class="ghost-button drawer-close-button"
         type="button"
         data-history-close-export
-        aria-label="${escapeHtml4(translate("history.closeExport"))}"
-      >\xD7</button>
+        aria-label="${escapeHtml5(translate("history.closeExport"))}"
+      ><svg class="drawer-close-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 7L17 17M17 7L7 17" /></svg></button>
     </div>
     <div class="history-export-picker-actions">
       <button
         class="history-export-mode-button"
         type="button"
         data-history-export-mode="images_only"
-      >${escapeHtml4(translate("history.exportImagesOnly"))}</button>
+      ><svg class="history-bulk-button-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="4" y="5" width="16" height="14" rx="2" /><path d="m6.5 16 4-4 3 3 2-2 2.5 3M15.5 9h.01" /></svg><span>${escapeHtml5(translate("history.exportImagesOnly"))}</span></button>
       <button
         class="history-export-mode-button"
         type="button"
         data-history-export-mode="images_with_prompts"
-      >${escapeHtml4(translate("history.exportImagesWithPrompts"))}</button>
+      ><svg class="history-bulk-button-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="5" width="12" height="11" rx="2" /><path d="m5 14 3-3 2.5 2.5M18 8h3M18 12h3M17 16h4" /></svg><span>${escapeHtml5(translate("history.exportImagesWithPrompts"))}</span></button>
     </div>
     <div class="history-export-picker-status" data-history-export-status></div>
   `;
@@ -26211,20 +30723,17 @@
       "[data-history-export-mode]"
     )?.focus();
   }
-  async function runHistoryExport(mode) {
+  async function runHistoryExport(mode, taskIds = historyExportTaskIds.slice(), statusElement = historyExportPickerEl?.querySelector(
+    "[data-history-export-status]"
+  ) || null) {
     if (historyExportPending) return;
-    const taskIds = historyExportTaskIds.slice();
     if (!taskIds.length) return;
     historyExportPending = true;
-    historyExportPickerEl?.querySelectorAll("button").forEach((button) => {
+    const actionRoot = statusElement?.closest("[data-history-action-section]") || historyExportPickerEl;
+    actionRoot?.querySelectorAll("button").forEach((button) => {
       button.disabled = true;
     });
-    setText(
-      historyExportPickerEl?.querySelector(
-        "[data-history-export-status]"
-      ) || null,
-      translate("history.exportPreparing")
-    );
+    setText(statusElement, translate("history.exportPreparing"));
     try {
       const result = await createHistoryExport(taskIds, mode);
       triggerHistoryExportDownload(result);
@@ -26238,28 +30747,26 @@
           }
         )}`
       );
-      closeHistoryExportPicker();
+      if (historyExportPickerEl?.contains(statusElement)) closeHistoryExportPicker();
+      else setText(statusElement, translate("history.exportStarted"));
     } catch (error) {
       const message = errorMessage2(
         error,
         translate("history.exportFailed")
       );
-      setText(
-        historyExportPickerEl?.querySelector(
-          "[data-history-export-status]"
-        ) || null,
-        message
-      );
+      setText(statusElement, message);
       setText(els8.resultSummary, message);
     } finally {
       historyExportPending = false;
-      historyExportPickerEl?.querySelectorAll("button").forEach((button) => {
+      actionRoot?.querySelectorAll("button").forEach((button) => {
         button.disabled = false;
       });
     }
   }
   function bindEvents() {
     bindHistoryResizerEvents();
+    bindHistoryGridResizeObserver();
+    bindHistoryGridMutationObserver();
     els8.tagManager?.querySelector(
       "[data-history-tag-create]"
     )?.addEventListener("submit", (event) => {
@@ -26272,7 +30779,8 @@
       window.clearTimeout(searchTimer);
       searchTimer = window.setTimeout(() => {
         historyState.q = els8.search?.value.trim() || "";
-        historyState.selectedTaskId = "";
+        resetHistoryTaskSelectionState();
+        renderHistoryActiveFilters();
         updateHistoryUrl();
         void loadTasks({ reset: true });
       }, 180);
@@ -26282,7 +30790,8 @@
       syncHistorySearchClear();
       els8.search?.focus();
       historyState.q = "";
-      historyState.selectedTaskId = "";
+      resetHistoryTaskSelectionState();
+      renderHistoryActiveFilters();
       updateHistoryUrl();
       void loadTasks({ reset: true });
     });
@@ -26294,6 +30803,19 @@
     });
     document.addEventListener("change", (event) => {
       const target = event.target;
+      const backupScopeInput = target?.closest(
+        'input[name="history-backup-scope"]'
+      );
+      if (backupScopeInput && els8.backupDialog?.contains(backupScopeInput)) {
+        renderHistoryBackupScopeEstimates();
+        return;
+      }
+      if (target === els8.importFile) {
+        const file = els8.importFile?.files?.[0];
+        if (els8.importFile) els8.importFile.value = "";
+        if (file) void chooseHistoryImport(file);
+        return;
+      }
       const tagPickerInput = target?.closest(
         ".history-tag-picker input[type=checkbox]"
       );
@@ -26301,24 +30823,139 @@
         void applyHistoryTagPickerChange(tagPickerInput);
         return;
       }
-      const checkbox = target?.closest("[data-history-task-select]");
-      if (!checkbox) return;
-      const taskId = checkbox.dataset.historyTaskSelect || "";
-      if (checkbox.checked) {
-        historyState.selectedTaskIds.add(taskId);
-      } else {
-        historyState.selectedTaskIds.delete(taskId);
-      }
-      historyState.selectionAnchorTaskId = taskId;
-      clearHistoryDeleteConfirmation();
-      updateTaskSelectionVisuals();
-      renderBulkToolbar();
-      syncHistorySelectionDetail();
     });
     document.addEventListener("click", (event) => {
       const target = event.target;
+      if (shouldClearHistoryTaskFromBlankSurface({
+        detailMode: els8.detail?.dataset.historyDetailMode || "management",
+        selectedCount: historyState.selectedTaskIds.size,
+        selectionMode: historyState.selectionMode,
+        isTaskListBlankSurface: target === els8.taskList,
+        button: event.button,
+        hasModifier: event.shiftKey || event.metaKey || event.ctrlKey || event.altKey
+      })) {
+        clearHistoryTaskSelection();
+        els8.page?.classList.remove("history-detail-open");
+        return;
+      }
+      const removeActiveFilter = target?.closest(
+        "[data-history-remove-active-filter]"
+      );
+      if (removeActiveFilter) {
+        removeHistoryActiveFilterById(
+          removeActiveFilter.dataset.historyRemoveActiveFilter || ""
+        );
+        return;
+      }
+      if (target?.closest("[data-history-clear-all-filters]")) {
+        clearAllHistoryActiveFilters();
+        return;
+      }
+      const openManagement = target?.closest("[data-history-open-management]");
+      if (openManagement) {
+        openHistoryManagementPanel(openManagement);
+        return;
+      }
+      const enterSelectionMode = target?.closest("[data-history-enter-selection-mode]");
+      if (enterSelectionMode) {
+        historyState.selectionMode = true;
+        renderBulkToolbar();
+        renderHistoryManagementDetail();
+        focusHistoryTaskButton(visibleHistoryTaskIds()[0] || "");
+        return;
+      }
+      if (target?.closest("[data-history-exit-selection-mode]")) {
+        clearHistoryTaskSelection();
+        return;
+      }
+      const openSelectionActions = target?.closest("[data-history-open-selection-actions]");
+      if (openSelectionActions) {
+        openHistorySelectionPanel(openSelectionActions);
+        return;
+      }
+      const toggleActionSection = target?.closest("[data-history-toggle-action-section]");
+      if (toggleActionSection) {
+        const requested = toggleActionSection.dataset.historyToggleActionSection === "export" ? "export" : "organize";
+        historyActionPanelExpanded = nextHistoryActionPanelSection(historyActionPanelExpanded, requested);
+        closeHistoryExportPicker({ restoreFocus: false });
+        closeHistoryOrganizePicker({ restoreFocus: false });
+        renderSelectionDetail();
+        requestAnimationFrame(() => els8.detail?.querySelector(`[data-history-toggle-action-section="${requested}"]`)?.focus());
+        return;
+      }
+      if (target?.closest("[data-history-close-backup]")) {
+        closeHistoryBackupDialog();
+        return;
+      }
+      if (target?.closest("[data-history-close-import]")) {
+        closeHistoryImportDialog();
+        return;
+      }
+      const openBackup = target?.closest("[data-history-open-backup]");
+      if (openBackup) {
+        const preferSelected = openBackup.dataset.historyOpenBackup === "selected";
+        closeHistoryOrganizePicker({ restoreFocus: false });
+        openHistoryBackupDialog(openBackup, [...historyState.selectedTaskIds], preferSelected);
+        return;
+      }
+      const openImport = target?.closest("[data-history-open-import]");
+      if (openImport) {
+        openHistoryImportDialog(openImport);
+        return;
+      }
+      if (target?.closest("[data-history-start-backup]")) {
+        void startHistoryBackup();
+        return;
+      }
+      if (target?.closest("[data-history-cancel-backup]")) {
+        void cancelActiveHistoryBackup();
+        return;
+      }
+      if (target?.closest("[data-history-download-backup]")) {
+        const job = currentBackupJob;
+        if (job) {
+          try {
+            backupController.download(job);
+            renderHistoryBackupDownloaded();
+          } catch (error) {
+            focusHistoryTransferError("backup", historyBackupErrorText(String(error?.code || "")));
+          }
+        }
+        return;
+      }
+      if (target?.closest("[data-history-dismiss-backup]")) {
+        if (historyBackupDownloaded) {
+          closeHistoryBackupDialog();
+          return;
+        }
+        void dismissHistoryBackupResult();
+        return;
+      }
+      if (target?.closest("[data-history-cancel-import]")) {
+        if (currentImportPhase !== "restoring") void cancelActiveHistoryImport();
+        return;
+      }
+      if (target?.closest("[data-history-confirm-import]")) {
+        void restoreHistoryImportSelection();
+        return;
+      }
       if (target?.closest("[data-history-close-export]")) {
         closeHistoryExportPicker();
+        return;
+      }
+      if (target?.closest("[data-history-close-organize]")) {
+        closeHistoryOrganizePicker();
+        return;
+      }
+      const organizeButton = target?.closest(
+        "[data-history-open-organize]"
+      );
+      if (organizeButton) {
+        if (historyOrganizePickerEl) {
+          closeHistoryOrganizePicker();
+        } else {
+          openHistoryOrganizePicker(organizeButton);
+        }
         return;
       }
       const exportModeButton = target?.closest(
@@ -26326,7 +30963,12 @@
       );
       if (exportModeButton) {
         const mode = exportModeButton.dataset.historyExportMode === "images_with_prompts" ? "images_with_prompts" : "images_only";
-        void runHistoryExport(mode);
+        const inlineStatus = els8.detail?.contains(exportModeButton) ? els8.detail.querySelector("[data-history-action-export-status]") : null;
+        void runHistoryExport(
+          mode,
+          inlineStatus ? [...historyState.selectedTaskIds] : historyExportTaskIds.slice(),
+          inlineStatus || historyExportPickerEl?.querySelector("[data-history-export-status]") || null
+        );
         return;
       }
       const exportButton = target?.closest(
@@ -26408,6 +31050,22 @@
         );
         return;
       }
+      if (target?.closest("[data-history-bulk-favorite]")) {
+        closeHistoryOrganizePicker();
+        void organizeHistoryTaskIds(
+          [...historyState.selectedTaskIds],
+          { favorite: true }
+        );
+        return;
+      }
+      if (target?.closest("[data-history-bulk-unfavorite]")) {
+        closeHistoryOrganizePicker();
+        void organizeHistoryTaskIds(
+          [...historyState.selectedTaskIds],
+          { favorite: false }
+        );
+        return;
+      }
       const favoriteTaskButton = target?.closest(
         "[data-history-favorite-task]"
       );
@@ -26424,16 +31082,12 @@
         "[data-history-open-tag-picker]"
       );
       if (tagPickerButton) {
+        const tagPickerTrigger = historyOrganizePickerEl?.contains(tagPickerButton) ? historyOrganizeTrigger || tagPickerButton : tagPickerButton;
+        closeHistoryOrganizePicker({ restoreFocus: false });
         const rawMode = tagPickerButton.dataset.historyOpenTagPicker || "add";
         const mode = rawMode === "remove" || rawMode === "detail" ? rawMode : "add";
         const taskIds = mode === "detail" ? [String(historyState.detailTask?.task_id || "")] : [...historyState.selectedTaskIds];
-        openHistoryTagPicker(tagPickerButton, mode, taskIds);
-        return;
-      }
-      const historySelect = target?.closest("[data-history-task-select]");
-      if (historySelect) {
-        if (handleHistoryTaskShortcutSelection(historySelect.dataset.historyTaskSelect || "", event)) return;
-        event.stopPropagation();
+        openHistoryTagPicker(tagPickerTrigger, mode, taskIds);
         return;
       }
       const viewButton = target?.closest("[data-history-view]");
@@ -26444,8 +31098,12 @@
       const taskButton = target?.closest("[data-history-task-id]");
       if (taskButton) {
         if (handleHistoryTaskShortcutSelection(taskButton.dataset.historyTaskId || "", event)) return;
-        clearHistoryTaskSelection({ updateVisuals: false });
-        void loadTaskDetail(taskButton.dataset.historyTaskId || "");
+        const taskId = taskButton.dataset.historyTaskId || "";
+        if (historyState.selectionMode) {
+          toggleHistoryTaskSelection(taskId);
+        } else {
+          applyHistoryTaskSelection([taskId], taskId, taskId);
+        }
         return;
       }
       const selectButton = target?.closest("[data-history-output-selected-task-id]");
@@ -26520,15 +31178,22 @@
         return;
       }
       if (target?.closest("[data-history-bulk-archive]")) {
+        closeHistoryOrganizePicker();
         void archiveSelectedTasks(true);
         return;
       }
       if (target?.closest("[data-history-bulk-restore]")) {
+        closeHistoryOrganizePicker();
         void archiveSelectedTasks(false);
         return;
       }
       if (target?.closest("[data-history-bulk-delete]")) {
         void deleteSelectedTasks();
+        return;
+      }
+      if (target?.closest("[data-history-cancel-bulk-delete]")) {
+        clearHistoryDeleteConfirmation();
+        renderBulkToolbar();
         return;
       }
       if (target?.closest("[data-history-bulk-clear]")) {
@@ -26539,7 +31204,7 @@
         closeDetail();
         return;
       }
-      for (const key of HISTORY_FILTER_KEYS) {
+      for (const key of HISTORY_FILTER_QUERY_KEYS) {
         const attr = historyFilterAttribute(key);
         const button = target?.closest(`[data-history-${attr}]`);
         if (button) {
@@ -26558,7 +31223,6 @@
     });
     els8.taskList?.addEventListener("dblclick", (event) => {
       const target = event.target;
-      if (target?.closest("[data-history-task-select]")) return;
       const card = target?.closest(".history-task-card[data-history-task-card-id]");
       if (!card || !els8.taskList?.contains(card)) return;
       event.preventDefault();
@@ -26580,6 +31244,9 @@
       if (historyExportPickerEl && target && !historyExportPickerEl.contains(target) && !historyExportTrigger?.contains(target)) {
         closeHistoryExportPicker();
       }
+      if (historyOrganizePickerEl && target && !historyOrganizePickerEl.contains(target) && !historyOrganizeTrigger?.contains(target)) {
+        closeHistoryOrganizePicker();
+      }
       if (historyTagPickerEl && target && !historyTagPickerEl.contains(target) && !historyTagPickerTrigger?.contains(target)) {
         closeHistoryTagPicker();
       }
@@ -26587,25 +31254,6 @@
       if (target && historyContextMenuEl.contains(target)) return;
       closeHistoryContextMenu();
     }, true);
-    els8.bulkArchive?.addEventListener("click", () => void archiveSelectedTasks(true));
-    els8.bulkRestore?.addEventListener("click", () => void archiveSelectedTasks(false));
-    els8.bulkFavorite?.addEventListener("click", () => {
-      void organizeHistoryTaskIds(
-        [...historyState.selectedTaskIds],
-        { favorite: true }
-      );
-    });
-    els8.bulkUnfavorite?.addEventListener("click", () => {
-      void organizeHistoryTaskIds(
-        [...historyState.selectedTaskIds],
-        { favorite: false }
-      );
-    });
-    els8.bulkDelete?.addEventListener("click", () => void deleteSelectedTasks());
-    els8.bulkDeleteCancel?.addEventListener("click", () => {
-      clearHistoryDeleteConfirmation();
-      renderBulkToolbar();
-    });
     els8.refresh?.addEventListener("click", () => {
       void loadSummary();
       void loadTasks({ reset: true });
@@ -26617,6 +31265,7 @@
     els8.taskList?.addEventListener("scroll", () => {
       closeHistoryContextMenu();
       maybeLoadMoreFromScroll();
+      historyPositionSaveController.schedule();
     }, { passive: true });
     window.addEventListener("resize", () => {
       closeHistoryContextMenu();
@@ -26627,24 +31276,44 @@
       document.title = historyDocumentTitle();
       renderHistoryOrganizationFilters();
       renderHistoryTagManager();
+      renderHistoryActiveFilters();
       syncHistoryViewMode();
       syncArchiveButtons();
       if (historyState.detailTask) {
         renderTaskDetail(historyState.detailTask);
-      } else if (!historyState.selectedTaskId) {
-        renderDetailShell(translate("history.detailEmpty"));
+      } else {
+        syncHistorySelectionDetail();
       }
       rerenderHistoryContextMenu();
       renderBulkToolbar();
+      renderHistoryBackupJob(currentBackupJob);
+      renderHistoryBackupScopeEstimates();
+      renderHistoryImportPhase(currentImportPhase);
+      renderHistoryImportPreview(currentImportPreview);
+      renderHistoryImportResult(currentImportResult);
       setLoadMoreState(historyState.loading ? translate("history.loadingMore") : historyState.exhausted ? translate("history.noMore") : "", {
         hidden: !historyState.loading && !historyState.exhausted,
         busy: historyState.loading
       });
     });
     window.addEventListener("keydown", (event) => {
+      if (trapHistoryTransferFocus(event)) return;
+      if (handleHistorySelectAllShortcut(event)) return;
       if (event.key !== "Escape") return;
+      if (els8.backupDialog && !els8.backupDialog.hidden) {
+        closeHistoryBackupDialog();
+        return;
+      }
+      if (els8.importDialog && !els8.importDialog.hidden) {
+        closeHistoryImportDialog();
+        return;
+      }
       if (historyExportPickerEl) {
         closeHistoryExportPicker();
+        return;
+      }
+      if (historyOrganizePickerEl) {
+        closeHistoryOrganizePicker();
         return;
       }
       if (historyTagPickerEl) {
@@ -26659,6 +31328,14 @@
         closeHistoryLightbox();
         return;
       }
+      if (historyState.selectionMode && historyState.selectedTaskIds.size === 0) {
+        clearHistoryTaskSelection();
+        return;
+      }
+      if (els8.page?.classList.contains("history-detail-open")) {
+        closeDetail();
+        return;
+      }
       if (historyState.selectedTaskId) closeDetail();
     });
   }
@@ -26666,6 +31343,12 @@
     return error instanceof Error && error.message ? error.message : fallback;
   }
   async function bootHistoryPage() {
+    initializeHistoryMobileFilters({
+      page: els8.page,
+      sidebar: els8.sidebar,
+      trigger: els8.mobileFiltersButton,
+      backdrop: els8.filtersBackdrop
+    });
     initializeHistoryShell({
       selectHistoryTask: loadTaskDetail,
       refreshHistoryTasks: async (task) => {
@@ -26673,22 +31356,48 @@
           task,
           scroller: els8.taskList,
           loadSummary,
-          reloadNewestWindow: () => loadTasks({ reset: true }),
+          reloadNewestWindow: async () => {
+            await loadTasks({ reset: true });
+          },
           upsertTask: upsertHistoryTaskSummaryCard
         });
       }
     });
     applyHistoryLocale();
     restoreHistoryLayoutPreference();
-    syncStateFromUrl();
-    renderDetailShell(translate("history.detailEmpty"));
-    bindEvents();
-    await loadSummary();
-    await loadTasks({ reset: true });
+    let summaryLoaded = false;
+    await runHistoryPositionBoot({
+      params: new URLSearchParams(window.location.search),
+      pathname: window.location.pathname,
+      snapshot: readHistoryLocationSnapshot(),
+      replaceLocation: (url) => window.history.replaceState(null, "", url),
+      syncLocation: () => {
+        syncStateFromUrl();
+        renderHistoryManagementDetail();
+        bindEvents();
+      },
+      loadPage: async (options) => {
+        if (!summaryLoaded) {
+          await loadSummary();
+          summaryLoaded = true;
+        }
+        return loadTasks(options);
+      },
+      clearSnapshot: clearHistoryLocationSnapshot
+    });
+    await resumeHistoryTransfers();
     if (historyState.selectedTaskId) {
       void loadTaskDetail(historyState.selectedTaskId);
     }
   }
+  window.addEventListener("pagehide", () => {
+    endHistoryResize();
+    historyGridResizeObserver?.disconnect();
+    historyGridMutationObserver?.disconnect();
+    historyPositionSaveController.flush();
+    backupController.dispose();
+    importController.dispose();
+  }, { once: true });
   void bootHistoryPage();
 })();
 //# sourceMappingURL=history.js.map

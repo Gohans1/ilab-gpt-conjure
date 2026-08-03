@@ -25,14 +25,33 @@ def _origin(value: Any) -> str:
     return urlunsplit((parsed.scheme.lower(), netloc, "", "", ""))
 
 
-def _probe_target(ctx: WebUIContext) -> str:
-    if ctx.auth_settings.read_source() != "api":
-        return _origin(DEFAULT_CODEX_IMAGES_BASE_URL)
+def _probe_target(
+    ctx: WebUIContext,
+    provider_id: Any = None,
+) -> tuple[str, str]:
+    selected_provider_id = str(provider_id or "").strip()
+    if selected_provider_id == "codex":
+        return "codex", _origin(DEFAULT_CODEX_IMAGES_BASE_URL)
+
     settings = ctx.api_settings.read()
-    provider = ctx.api_settings.provider_settings(
-        str(settings.get("active_provider_id") or "")
-    )
-    return _origin(provider.get("base_url"))
+    if selected_provider_id:
+        provider = next(
+            (
+                item
+                for item in settings.get("providers", [])
+                if str(item.get("id") or "") == selected_provider_id
+            ),
+            None,
+        )
+        if provider is None:
+            raise ValueError("Selected provider is unavailable")
+        return selected_provider_id, _origin(provider.get("base_url"))
+
+    if ctx.auth_settings.read_source() != "api":
+        return "codex", _origin(DEFAULT_CODEX_IMAGES_BASE_URL)
+    active_provider_id = str(settings.get("active_provider_id") or "")
+    provider = ctx.api_settings.provider_settings(active_provider_id)
+    return active_provider_id, _origin(provider.get("base_url"))
 
 
 def _settings_payload(ctx: WebUIContext) -> dict[str, Any]:
@@ -72,7 +91,7 @@ def register_network_egress_routes(app: FastAPI, ctx: WebUIContext) -> None:
                 payload if "mode" in payload or "custom_proxy_url" in payload else None
             )
             transport = ctx.network_egress_manager.transport(snapshot)
-            target = _probe_target(ctx)
+            provider_id, target = _probe_target(ctx, payload.get("provider_id"))
         except ValueError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
 
@@ -87,6 +106,7 @@ def register_network_egress_routes(app: FastAPI, ctx: WebUIContext) -> None:
         except Exception as exc:
             return {
                 "ok": False,
+                "provider_id": provider_id,
                 "target": target,
                 "elapsed_ms": round((time.monotonic() - started_at) * 1_000),
                 "error": type(exc).__name__,
@@ -97,6 +117,7 @@ def register_network_egress_routes(app: FastAPI, ctx: WebUIContext) -> None:
             }
         return {
             "ok": True,
+            "provider_id": provider_id,
             "target": target,
             "elapsed_ms": round((time.monotonic() - started_at) * 1_000),
             "status_code": response.status,

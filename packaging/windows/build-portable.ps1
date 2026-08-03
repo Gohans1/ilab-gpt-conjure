@@ -178,6 +178,10 @@ if (-not (Test-Path $CertifiCaBundle)) {
 }
 & $PythonExe -m pip freeze | Set-Content -Path (Join-Path $BundleRoot "python-requirements.lock.txt") -Encoding UTF8
 & $PythonExe -c "import fastapi, uvicorn, multipart, httpx, PIL; import portable_webui_app; print('portable import ok')"
+& $PythonExe (Join-Path $ScriptDir "..\cleanup-runtime.py") `
+  --app-dir $AppDir `
+  --runtime-dir $PythonDir `
+  --platform windows
 
 if ($null -eq (Get-Command cargo -ErrorAction SilentlyContinue)) {
   throw "cargo was not found. Install Rust toolchain before building the portable tray launcher."

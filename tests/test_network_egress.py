@@ -533,6 +533,143 @@ class NetworkEgressApiTests(unittest.TestCase):
         self.assertNotIn("provider-secret", repr(transport.calls))
         self.assertNotIn("attacker.example.test", repr(transport.calls))
 
+    def test_network_test_uses_current_generation_provider_instead_of_active_api_provider(self) -> None:
+        from fastapi.testclient import TestClient
+
+        from codex_image.webui.app import create_app
+
+        class CapturingTransport:
+            def __init__(self) -> None:
+                self.calls: list[dict[str, Any]] = []
+
+            def request(self, **kwargs: Any) -> HTTPResponse:
+                self.calls.append(kwargs)
+                return HTTPResponse(status=401, body=b"", headers={})
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            app = create_app(
+                output_root=root,
+                api_settings_path=root / "api-settings.json",
+                auth_settings_path=root / "auth-settings.json",
+                network_egress_settings_path=root / "network-egress.json",
+                auth_checker=lambda: True,
+                auto_start_queue=False,
+            )
+            app.state.auth_settings.write_source("api")
+            app.state.api_settings.write(
+                {
+                    "active_provider_id": "provider-a",
+                    "providers": [
+                        {
+                            "id": "provider-a",
+                            "name": "Provider A",
+                            "base_url": "https://a.example.test/v1",
+                            "api_key": "provider-a-secret",
+                            "image_model": "gpt-image-2",
+                            "api_mode": "images",
+                        },
+                        {
+                            "id": "provider-b",
+                            "name": "Provider B",
+                            "base_url": "https://b.example.test/v1",
+                            "api_key": "provider-b-secret",
+                            "image_model": "gpt-image-2",
+                            "api_mode": "images",
+                        },
+                    ],
+                }
+            )
+            transport = CapturingTransport()
+            with patch.object(
+                app.state.network_egress_manager,
+                "transport",
+                return_value=transport,
+            ):
+                response = TestClient(app).post(
+                    "/api/network-egress/test",
+                    json={"mode": "direct", "provider_id": "provider-b"},
+                )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.json()["ok"])
+        self.assertEqual(response.json()["target"], "https://b.example.test")
+        self.assertEqual(response.json()["provider_id"], "provider-b")
+        self.assertEqual(transport.calls[0]["url"], "https://b.example.test")
+        self.assertNotIn("provider-b-secret", repr(transport.calls))
+
+    def test_network_test_maps_selected_codex_provider_to_chatgpt_origin(self) -> None:
+        from fastapi.testclient import TestClient
+
+        from codex_image.webui.app import create_app
+
+        class CapturingTransport:
+            def __init__(self) -> None:
+                self.calls: list[dict[str, Any]] = []
+
+            def request(self, **kwargs: Any) -> HTTPResponse:
+                self.calls.append(kwargs)
+                return HTTPResponse(status=401, body=b"", headers={})
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            app = create_app(
+                output_root=root,
+                api_settings_path=root / "api-settings.json",
+                auth_settings_path=root / "auth-settings.json",
+                network_egress_settings_path=root / "network-egress.json",
+                auth_checker=lambda: True,
+                auto_start_queue=False,
+            )
+            app.state.auth_settings.write_source("api")
+            app.state.api_settings.write(
+                {
+                    "api_key": "provider-secret",
+                    "base_url": "https://relay.example.test/v1",
+                    "image_model": "gpt-image-2",
+                    "api_mode": "images",
+                }
+            )
+            transport = CapturingTransport()
+            with patch.object(
+                app.state.network_egress_manager,
+                "transport",
+                return_value=transport,
+            ):
+                response = TestClient(app).post(
+                    "/api/network-egress/test",
+                    json={"mode": "direct", "provider_id": "codex"},
+                )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.json()["ok"])
+        self.assertEqual(response.json()["target"], "https://chatgpt.com")
+        self.assertEqual(response.json()["provider_id"], "codex")
+        self.assertEqual(transport.calls[0]["url"], "https://chatgpt.com")
+
+    def test_network_test_rejects_unknown_selected_provider_instead_of_falling_back(self) -> None:
+        from fastapi.testclient import TestClient
+
+        from codex_image.webui.app import create_app
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            app = create_app(
+                output_root=root,
+                api_settings_path=root / "api-settings.json",
+                auth_settings_path=root / "auth-settings.json",
+                network_egress_settings_path=root / "network-egress.json",
+                auth_checker=lambda: True,
+                auto_start_queue=False,
+            )
+            response = TestClient(app).post(
+                "/api/network-egress/test",
+                json={"mode": "direct", "provider_id": "missing-provider"},
+            )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()["detail"], "Selected provider is unavailable")
+
     def test_network_test_treats_any_http_response_as_transport_reachable(self) -> None:
         from fastapi.testclient import TestClient
 

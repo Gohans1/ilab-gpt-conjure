@@ -9,6 +9,50 @@ export type HistoryScrollAnchor = {
   offset: number;
 } | null;
 
+type HistoryPositionSaveControllerOptions = {
+  requestFrame: (callback: () => void) => number;
+  cancelFrame: (frameId: number) => void;
+  capture: () => HistoryScrollAnchor;
+  save: (anchor: NonNullable<HistoryScrollAnchor>) => void;
+};
+
+export type HistoryPositionSaveController = {
+  enable: () => void;
+  schedule: () => void;
+  flush: () => void;
+};
+
+export function createHistoryPositionSaveController(
+  options: HistoryPositionSaveControllerOptions,
+): HistoryPositionSaveController {
+  let enabled = false;
+  let frameId: number | null = null;
+  const captureAndSave = () => {
+    const anchor = options.capture();
+    if (anchor) options.save(anchor);
+  };
+  return {
+    enable() {
+      enabled = true;
+    },
+    schedule() {
+      if (!enabled || frameId !== null) return;
+      frameId = options.requestFrame(() => {
+        frameId = null;
+        captureAndSave();
+      });
+    },
+    flush() {
+      if (!enabled) return;
+      if (frameId !== null) {
+        options.cancelFrame(frameId);
+        frameId = null;
+      }
+      captureAndSave();
+    },
+  };
+}
+
 type HistoryTaskCardCenter = {
   card: HTMLElement;
   x: number;

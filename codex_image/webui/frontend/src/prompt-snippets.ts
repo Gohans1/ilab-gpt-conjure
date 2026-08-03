@@ -326,10 +326,21 @@ function findPromptSnippetByTag(tag: any) {
 
 function expandPromptSnippets(prompt: any) {
   const text = String(prompt || "");
-  return text.replace(/(^|[\s\n，。,.；;：:！？!?、（）()\[\]【】"'“”‘’])([~～〜∼˜]+)([^\s~～〜∼˜@#，。,.；;：:！？!?、（）()\[\]【】"'“”‘’]+)/g, (full: any, prefix: any, _trigger: any, tag: any) => {
+  let previousSnippetEnd = -1;
+  return text.replace(/([~～〜∼˜]+)([^\s~～〜∼˜@#，。,.；;：:！？!?、（）()\[\]【】"'“”‘’]+)/g, (full: any, _trigger: any, tag: any, offset: any) => {
+    const previous = offset > 0 ? text[offset - 1] : "";
+    const followsSnippet = offset === previousSnippetEnd;
+    if (!isPromptSnippetBoundaryChar(previous) && !followsSnippet) {
+      previousSnippetEnd = -1;
+      return full;
+    }
     const snippet = findPromptSnippetByTag(tag);
-    if (!snippet) return full;
-    return `${prefix}${snippet.content}`;
+    if (!snippet) {
+      previousSnippetEnd = -1;
+      return full;
+    }
+    previousSnippetEnd = offset + full.length;
+    return snippet.content;
   });
 }
 
@@ -448,6 +459,8 @@ function hidePromptSnippetSelectionButton() {
   button?.classList.add("hidden");
   button?.style.removeProperty("--prompt-snippet-save-left");
   button?.style.removeProperty("--prompt-snippet-save-top");
+  state.promptSnippetSelectionRange = null;
+  state.promptSnippetSelectionText = "";
 }
 
 function openPromptSnippetSavePopover() {

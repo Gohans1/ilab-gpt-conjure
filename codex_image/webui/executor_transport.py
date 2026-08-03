@@ -12,6 +12,7 @@ from typing import Any, AsyncContextManager, Callable
 from urllib import error as urllib_error
 
 from codex_image.client import CodexImagesImageClient, ImageResult, OpenAIImagesImageClient, OpenAIResponsesImageClient
+from codex_image.httpx_transport import cancellable_http_request_scope
 from codex_image.prompt_guard import build_guarded_prompt
 
 from .storage import TaskStorage
@@ -177,26 +178,41 @@ async def _call_image_client_once(
     timeout_seconds: float | None,
     kwargs: dict[str, Any],
 ) -> ImageResult:
-    call = asyncio.create_task(asyncio.to_thread(method, **kwargs))
-    if timeout_seconds is None:
-        return await call
-    started_at = time.monotonic()
-    try:
-        return await asyncio.wait_for(asyncio.shield(call), timeout=timeout_seconds)
-    except TimeoutError as exc:
-        if call.done() and not call.cancelled():
-            raise
-        elapsed = _format_elapsed_seconds(time.monotonic() - started_at)
-        timeout_error = TimeoutError(
-            f"Image request timed out after {elapsed}s (timeout limit {timeout_seconds:g}s)"
-        )
+    loop = asyncio.get_running_loop()
+    with cancellable_http_request_scope(loop) as cancellation_scope:
+        call = asyncio.create_task(asyncio.to_thread(method, **kwargs))
+        if timeout_seconds is None:
+            return await call
+        started_at = time.monotonic()
         try:
-            await asyncio.shield(call)
+            return await asyncio.wait_for(asyncio.shield(call), timeout=timeout_seconds)
+        except TimeoutError as exc:
+            if call.done() and not call.cancelled():
+                raise
+            elapsed = _format_elapsed_seconds(time.monotonic() - started_at)
+            timeout_error = TimeoutError(
+                f"Image request timed out after {elapsed}s (timeout limit {timeout_seconds:g}s)"
+            )
+            cancellation_scope.cancel()
+            try:
+                await asyncio.shield(call)
+            except asyncio.CancelledError:
+                current_task = asyncio.current_task()
+                if current_task is not None and current_task.cancelling():
+                    raise
+            except BaseException:
+                pass
+            await cancellation_scope.wait_closed()
+            raise timeout_error from exc
         except asyncio.CancelledError:
+            request_was_active = cancellation_scope.cancel()
+            if request_was_active:
+                try:
+                    await asyncio.shield(call)
+                except BaseException:
+                    pass
+                await cancellation_scope.wait_closed()
             raise
-        except BaseException:
-            pass
-        raise timeout_error from exc
 
 
 async def _call_image_client(

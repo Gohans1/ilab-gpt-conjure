@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import asdict
 from pathlib import Path
+import re
 from typing import Any, Literal
 
 from fastapi import FastAPI, HTTPException, Query
@@ -26,7 +27,11 @@ from codex_image.webui.history_organizer import (
     TagNameConflictError,
     TagNotFoundError,
 )
+from codex_image.webui.history_query import HistoryFilter
 from codex_image.webui.storage import HistoryTaskNotFoundError
+
+
+_SAFE_ANCHOR_TASK_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
 
 
 def _unique_nonempty(values: list[str]) -> list[str]:
@@ -162,6 +167,7 @@ def register_history_routes(
     def task_history_tasks(
         limit: int = Query(50, ge=1, le=100),
         cursor: str | None = Query(None),
+        anchor_task_id: str | None = Query(None, max_length=128),
         q: str = Query(""),
         month: str = Query(""),
         mode: str = Query(""),
@@ -187,6 +193,51 @@ def register_history_routes(
                     "untagged cannot be combined with tag filters"
                 ),
             )
+        if anchor_task_id is not None:
+            clean_anchor = anchor_task_id.strip()
+            if not _SAFE_ANCHOR_TASK_ID_RE.fullmatch(clean_anchor):
+                raise HTTPException(
+                    status_code=422,
+                    detail="anchor_task_id is invalid",
+                )
+            if cursor is not None or direction == "previous":
+                raise HTTPException(
+                    status_code=422,
+                    detail=(
+                        "anchor_task_id cannot be combined with cursor "
+                        "or previous direction"
+                    ),
+                )
+            try:
+                filters = HistoryFilter(
+                    q=q,
+                    month=month,
+                    mode=mode,
+                    status=status,
+                    prompt_mode=prompt_mode,
+                    size=size,
+                    quality=quality,
+                    ratio=ratio,
+                    orientation=orientation,
+                    backend=backend,
+                    provider=provider,
+                    archived=archived,
+                    favorite=favorite,
+                    tag_ids=tuple(tag_ids),
+                    untagged=untagged,
+                    sort="oldest" if sort == "oldest" else "newest",
+                )
+                ctx.storage.refresh_stale_task_index()
+                return ctx.storage.task_index.query_history_around(
+                    clean_anchor,
+                    filters,
+                    limit=limit,
+                )
+            except ValueError as exc:
+                raise HTTPException(
+                    status_code=422,
+                    detail=str(exc),
+                ) from exc
         try:
             return ctx.storage.query_task_history(
                 limit=limit,

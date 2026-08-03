@@ -9,6 +9,7 @@ from .network_egress import register_network_egress_routes
 from .generation_catalog import register_generation_catalog_routes
 from .generation import register_generation_routes
 from .history import register_history_routes
+from .history_backup import register_history_backup_routes
 from .media import register_media_routes
 from .queue import register_queue_routes
 from .reference_files import register_reference_file_routes
@@ -22,6 +23,7 @@ def register_webui_routes(app: FastAPI, ctx: WebUIContext) -> None:
     register_media_routes(app, ctx)
     register_task_routes(app, ctx)
     register_history_routes(app, ctx)
+    register_history_backup_routes(app, ctx)
     register_queue_routes(app, ctx)
     register_gallery_routes(app, ctx)
     register_reference_file_routes(app, ctx)

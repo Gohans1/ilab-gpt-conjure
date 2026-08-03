@@ -21,6 +21,10 @@ import {
   updateApiProviderListPresentation,
 } from "./api-provider-list-ui";
 import {
+  cancelApiProviderSortInteraction,
+  isCompleteProviderOrder,
+} from "./api-provider-sort";
+import {
   BINDING_PROTOCOL_LABELS,
   BINDING_COMPATIBILITY_LABELS,
   availableCompatibilityLayers,
@@ -314,6 +318,7 @@ function defaultsForProviderDraft(provider: any): Record<string, string> {
 }
 
 export function renderApiProviderList(): void {
+  cancelApiProviderSortInteraction(true);
   const settings = normalizeApiSettings(state.apiSettings);
   state.apiSettings = settings;
   const sorting = Boolean(state.apiProviderSortMode && settings.providers.length > 1);
@@ -334,7 +339,7 @@ export function renderApiProviderList(): void {
   els.apiProviderList.classList.toggle("is-sorting", sorting);
   els.apiProviderList.setAttribute("role", sorting ? "list" : "listbox");
   if (sorting) {
-    const rows = settings.providers.map((provider: any, index: number) => {
+    const rows = settings.providers.map((provider: any) => {
       const row = document.createElement("div");
       row.className = `api-provider-sort-row${provider.id === settings.active_provider_id ? " active" : ""}`;
       row.dataset.apiProviderId = provider.id;
@@ -347,23 +352,24 @@ export function renderApiProviderList(): void {
       const meta = document.createElement("span");
       meta.textContent = providerMetaLabel(provider);
       content.append(name, meta);
-      const controls = document.createElement("div");
-      controls.className = "api-provider-sort-actions";
-      [
-        ["up", "apiSettings.moveProviderUp", "apiSettings.moveProviderUpAria", index <= 0],
-        ["down", "apiSettings.moveProviderDown", "apiSettings.moveProviderDownAria", index >= settings.providers.length - 1],
-      ].forEach(([direction, labelKey, ariaKey, disabled]: any[]) => {
-        const button = document.createElement("button");
-        button.type = "button";
-        button.className = "ghost-button api-provider-sort-button";
-        button.dataset.apiProviderId = provider.id;
-        button.dataset.apiProviderSort = direction;
-        button.disabled = Boolean(disabled);
-        button.textContent = translate(labelKey);
-        button.setAttribute("aria-label", formatTranslation(ariaKey, { provider: provider.name || provider.id }));
-        controls.append(button);
+      const handle = document.createElement("button");
+      handle.type = "button";
+      handle.className = "api-provider-sort-handle";
+      handle.dataset.apiProviderId = provider.id;
+      handle.dataset.apiProviderSortHandle = "";
+      const handleLabel = formatTranslation("apiSettings.sortProviderHandleAria", {
+        provider: provider.name || provider.id,
       });
-      row.append(content, controls);
+      handle.setAttribute("aria-label", handleLabel);
+      handle.setAttribute("title", handleLabel);
+      const grip = document.createElement("span");
+      grip.className = "api-provider-sort-grip";
+      grip.setAttribute("aria-hidden", "true");
+      for (let dotIndex = 0; dotIndex < 6; dotIndex += 1) {
+        grip.append(document.createElement("span"));
+      }
+      handle.append(grip);
+      row.append(content, handle);
       return row;
     });
     els.apiProviderList.replaceChildren(...rows);
@@ -755,21 +761,42 @@ export function toggleApiProviderSortMode(): void {
   }
   const settings = normalizeApiSettings(state.apiSettings);
   if (settings.providers.length <= 1) return;
+  cancelApiProviderSortInteraction(true);
   state.apiProviderSortMode = !state.apiProviderSortMode;
   renderApiProviderList();
   if (!state.apiProviderSortMode) scrollActiveApiProviderCardIntoView(settings.active_provider_id, "center");
   setApiSettingsFeedback(state.apiProviderSortMode ? translate("apiSettings.sortProviderModeStatus") : "", state.apiProviderSortMode ? "running" : "");
 }
 
-export function moveApiProvider(providerId: any, direction: any): void {
-  if (!state.apiProviderSortMode || apiProviderEditorActive()) return;
+function focusedApiProviderSortId(): string {
+  if (!state.apiProviderSortMode) return "";
+  const handle = (document.activeElement as HTMLElement | null)?.closest<HTMLButtonElement>(
+    "button[data-api-provider-sort-handle][data-api-provider-id]",
+  );
+  return handle?.dataset.apiProviderId || "";
+}
+
+function focusApiProviderSortHandle(providerId: string): void {
+  if (!providerId) return;
+  window.requestAnimationFrame(() => {
+    const escapedId = CSS.escape(providerId);
+    (els.apiProviderList as HTMLElement | null)
+      ?.querySelector<HTMLButtonElement>(`button[data-api-provider-sort-handle][data-api-provider-id="${escapedId}"]`)
+      ?.focus({ preventScroll: true });
+  });
+}
+
+export function reorderApiProviders(orderedIds: readonly string[], focusProviderId = ""): boolean {
+  if (!state.apiProviderSortMode || apiProviderEditorActive() || !Array.isArray(orderedIds)) return false;
   const settings = normalizeApiSettings(state.apiSettings);
-  const index = settings.providers.findIndex((provider: any) => provider.id === providerId);
-  const offset = direction === "up" ? -1 : direction === "down" ? 1 : 0;
-  const nextIndex = index + offset;
-  if (index < 0 || nextIndex < 0 || nextIndex >= settings.providers.length) return;
-  const providers = [...settings.providers];
-  [providers[index], providers[nextIndex]] = [providers[nextIndex], providers[index]];
+  const currentIds = settings.providers.map((provider: any) => provider.id);
+  const candidate = orderedIds.map((id) => String(id || ""));
+  if (!isCompleteProviderOrder(candidate, currentIds)) return false;
+  if (candidate.every((id, index) => id === currentIds[index])) return false;
+  const providersById = new Map<string, any>(
+    settings.providers.map((provider: any) => [provider.id, provider]),
+  );
+  const providers = candidate.map((id) => providersById.get(id));
   state.apiSettings = normalizeApiSettings({
     ...settings,
     providers,
@@ -779,6 +806,8 @@ export function moveApiProvider(providerId: any, direction: any): void {
   renderApiProviderList();
   setApiSettingsFeedback(translate("apiSettings.sortProviderStatus"), "running");
   queueApiSettingsAutosave();
+  focusApiProviderSortHandle(focusProviderId);
+  return true;
 }
 
 export async function saveApiProviderEdit(): Promise<void> {
@@ -1105,6 +1134,7 @@ function setSaveButtonText(stateName: "saving" | "saved" | "failed" | "default")
 export async function saveApiSettings(options: any = {}): Promise<boolean> {
   const autoSave = Boolean(options.auto);
   if (autoSave && apiProviderEditorActive()) return true;
+  const sortFocusId = autoSave ? focusedApiProviderSortId() : "";
   if (state.apiSettingsSaveTimerId) {
     window.clearTimeout(state.apiSettingsSaveTimerId);
     state.apiSettingsSaveTimerId = null;
@@ -1172,6 +1202,7 @@ export async function saveApiSettings(options: any = {}): Promise<boolean> {
     state.apiProviderDraftIsNew = false;
     persistApiSettings();
     populateApiSettingsForm();
+    focusApiProviderSortHandle(sortFocusId);
     setApiSettingsFeedback(autoSave ? translate("apiSettings.autoSaved") : formatTranslation("apiSettings.savedSummary", {
       codex: codexModeLabel(currentCodexMode()),
       provider: activeApiProvider().name,
@@ -1196,6 +1227,7 @@ export async function saveApiSettings(options: any = {}): Promise<boolean> {
     state.apiProviderDraftIsNew = previousDraftIsNew;
     persistApiSettings();
     populateApiSettingsForm();
+    focusApiProviderSortHandle(sortFocusId);
     setApiSettingsFeedback(error.message || translate("apiSettings.saveFailed"), "error");
     if (!autoSave) setSaveButtonText("failed");
     setStatus(error.message || translate("apiSettings.saveFailed"), "error");

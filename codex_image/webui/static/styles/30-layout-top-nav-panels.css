@@ -175,7 +175,7 @@
   min-height: 72px;
   display: grid;
   place-items: center;
-  color: var(--muted);
+  color: var(--text-muted);
   font-size: 12px;
 }
 
@@ -221,7 +221,7 @@
   place-items: center;
   border-radius: 8px;
   background: var(--surface);
-  color: var(--muted);
+  color: var(--text-muted);
   font-size: 18px;
 }
 
@@ -395,7 +395,7 @@
 
 .generation-provider-label {
   flex: 0 0 auto;
-  color: var(--muted);
+  color: var(--text-muted);
   font-size: 11px;
   line-height: 1;
   white-space: nowrap;
@@ -432,7 +432,7 @@
 }
 
 .generation-provider-select-shell .themed-select-trigger:disabled {
-  color: var(--muted);
+  color: var(--text-muted);
   cursor: not-allowed;
 }
 
@@ -538,7 +538,7 @@
 .auth-source-detail {
   flex: 0 0 auto;
   width: 150px;
-  color: var(--muted);
+  color: var(--text-muted);
   font-size: 11px;
   line-height: 1.2;
   text-align: right;
@@ -572,6 +572,7 @@
 }
 
 .controls-col {
+  --control-label-optical-inset: 2px;
   width: 100%;
   max-width: 760px;
 }
@@ -643,6 +644,11 @@
 
 .panel-heading h2 {
   margin: 0;
+}
+
+.controls-col .panel-heading h2,
+.controls-col .output-settings-header h2 {
+  padding-inline-start: var(--control-label-optical-inset);
 }
 
 .preview-heading-actions {

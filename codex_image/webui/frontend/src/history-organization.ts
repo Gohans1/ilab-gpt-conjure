@@ -334,7 +334,11 @@ export function historyFavoriteButtonHtml(
       aria-pressed="${favorite ? "true" : "false"}"
       aria-label="${escapeHtml(label)}"
       title="${escapeHtml(label)}"
-    >★</button>
+    >
+      <svg class="history-favorite-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M12 3.7l2.5 5.1 5.6.8-4.1 4 1 5.6-5-2.6-5 2.6 1-5.6-4.1-4 5.6-.8L12 3.7Z" />
+      </svg>
+    </button>
   `;
 }
 

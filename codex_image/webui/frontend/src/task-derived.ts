@@ -241,18 +241,34 @@ function taskThumbnailUrls(task: any) {
 function taskOutputUrls(task: any) {
   if (!task) return [];
   const deletedIndexes = taskDeletedOutputIndexes(task);
-  if (Array.isArray(task.output_urls) && task.output_urls.length) {
-    return task.output_urls.filter((url: any, fallbackIndex: any) => {
+  const urlsByIndex = new Map<number, any>();
+  const seenUrls = new Set<string>();
+  const addUrl = (url: any, index: number | null) => {
+    const urlKey = String(url || "");
+    if (!urlKey || index === null || deletedIndexes.has(index) || urlsByIndex.has(index) || seenUrls.has(urlKey)) return;
+    urlsByIndex.set(index, url);
+    seenUrls.add(urlKey);
+  };
+  const structuredOutputs = Array.isArray(task.outputs) ? task.outputs : [];
+  structuredOutputs.forEach((record: any, fallbackIndex: number) => {
+    if (!record || record.status !== "completed" || taskOutputRecordIsDeleted(record)) return;
+    const index = positiveInt(record.index) || fallbackIndex + 1;
+    addUrl(record.url, index);
+  });
+  if (Array.isArray(task.output_urls)) {
+    task.output_urls.forEach((url: any, fallbackIndex: number) => {
       const record = Array.isArray(task?.outputs)
         ? task.outputs.find((item: any) => taskOutputRecordMatchesUrl(item, url))
         : null;
       const index = positiveInt(record?.index) || taskOutputIndexFromUrl(url) || fallbackIndex + 1;
-      return !deletedIndexes.has(index) && !taskOutputRecordIsDeleted(record);
+      if (!taskOutputRecordIsDeleted(record)) addUrl(url, index);
     });
   }
   const singleIndex = taskOutputIndexFromUrl(task.output_url) || 1;
-  if (task.output_url && !deletedIndexes.has(singleIndex)) return [task.output_url];
-  return [];
+  addUrl(task.output_url, singleIndex);
+  return [...urlsByIndex.entries()]
+    .sort(([left], [right]) => left - right)
+    .map(([, url]) => url);
 }
 
 function taskDeletedOutputIndexes(task: any) {

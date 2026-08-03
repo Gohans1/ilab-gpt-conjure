@@ -10,6 +10,46 @@ from tests.webui_helpers import WebUIStaticTestCase
 
 
 class WebUIStaticI18nTests(WebUIStaticTestCase):
+    def test_history_backup_restore_copy_exists_in_every_locale(self) -> None:
+        required_keys = (
+            "historyBackup.open", "historyBackup.importOpen", "historyBackup.mode",
+            "historyBackup.scopeSelected", "historyBackup.scopeFiltered", "historyBackup.scopeAll",
+            "historyBackup.scopeCount", "historyBackup.scopeCounting",
+            "historyBackup.scopeCountUnavailable", "historyBackup.scopeNoneSelected",
+            "historyBackup.willBackup", "historyBackup.selectTasksFirst",
+            "historyBackup.scopeLockedUnknown", "historyBackup.scopeLocked",
+            "historyBackup.scopeLockedPending", "historyBackup.progressLabel",
+            "historyBackup.start", "historyBackup.cancel", "historyBackup.download",
+            "historyBackup.dismiss", "historyBackup.discard", "historyBackup.closePanel",
+            "historyBackup.downloadStartedTitle", "historyBackup.idle", "historyBackup.queued", "historyBackup.planning",
+            "historyBackup.packing", "historyBackup.ready", "historyBackup.failed",
+            "historyBackup.readyDetail", "historyBackup.downloaded",
+            "historyBackup.missingInputsWarning",
+            "historyBackup.interrupted", "historyBackup.stats", "historyBackup.errorDisk",
+            "historyBackup.errorSourceChanged", "historyImport.title", "historyImport.choose",
+            "historyImport.uploading", "historyImport.validating", "historyImport.preview",
+            "historyImport.restorable", "historyImport.duplicate", "historyImport.conflict",
+            "historyImport.invalid", "historyImport.confirm", "historyImport.restoring",
+            "historyImport.restored", "historyImport.failed", "historyImport.cleanupWarnings",
+            "historyImport.reselect", "historyImport.noOverwrite",
+            "historyImport.reasonInvalid", "historyImport.reasonSensitive",
+            "historyImport.reasonMismatch",
+        )
+        locale_paths = sorted(Path("codex_image/webui/frontend/src/i18n").glob("*.ts"))
+        locale_paths = [path for path in locale_paths if path.name not in {"types.ts", "dictionaries.ts"}]
+        self.assertEqual(14, len(locale_paths))
+        reference = None
+        for path in locale_paths:
+            source = path.read_text(encoding="utf-8")
+            keys = {key for key in required_keys if f'"{key}"' in source}
+            self.assertEqual(set(required_keys), keys, f"{path.name} backup locale keys differ")
+            values = [re.search(rf'"{re.escape(key)}":\s*"([^"]+)"', source) for key in required_keys]
+            self.assertTrue(all(match and match.group(1).strip() for match in values), path.name)
+            if path.name == "en.ts":
+                reference = [match.group(1) for match in values if match]
+            elif path.name not in {"zh-cn.ts", "zh-tw.ts", "zh-hk.ts"} and reference:
+                self.assertNotEqual(reference, [match.group(1) for match in values if match], f"{path.name} must not be an English placeholder block")
+
     def test_network_settings_strings_exist_in_every_locale(self) -> None:
         required_keys = (
             "systemSettings.networkTab",
@@ -42,6 +82,7 @@ class WebUIStaticI18nTests(WebUIStaticTestCase):
 
     def test_batch_cancel_copy_exists_in_every_locale(self) -> None:
         required_keys = (
+            "batch.selectWaiting",
             "batch.cancelTasksShortcut",
             "batch.cancelSelected",
             "batch.noActiveSelected",
@@ -71,6 +112,8 @@ class WebUIStaticI18nTests(WebUIStaticTestCase):
             "recentAssets.hideMessage",
             "recentAssets.hideFailed",
             "recentAssets.hidden",
+            "recentAssets.hidePreviews",
+            "recentAssets.showPreviews",
         )
         locale_paths = sorted(Path("codex_image/webui/frontend/src/i18n").glob("*.ts"))
         locale_paths = [path for path in locale_paths if path.name not in {"types.ts", "dictionaries.ts"}]
@@ -565,7 +608,7 @@ class WebUIStaticI18nTests(WebUIStaticTestCase):
         en_entries = dictionary_entries("codex_image/webui/frontend/src/i18n/en.ts")
         vi_entries = dictionary_entries("codex_image/webui/frontend/src/i18n/vi.ts")
 
-        self.assertEqual(len(vi_entries), 1092)
+        self.assertEqual(len(vi_entries), len(en_entries))
         self.assertEqual([key for key, _value in vi_entries], [key for key, _value in zh_entries])
         self.assertEqual([key for key, _value in vi_entries], [key for key, _value in en_entries])
 
@@ -583,7 +626,9 @@ class WebUIStaticI18nTests(WebUIStaticTestCase):
 
         self.assertRegex(styles, r"\.language-settings-panel\s*\{[^}]*display:\s*grid")
         self.assertRegex(styles, r"\.language-settings-panel\s*\{[^}]*max-width:\s*640px")
-        self.assertRegex(styles, r"\.language-select-field\s*\{[^}]*max-width:\s*420px")
+        self.assertRegex(styles, r"\.language-select-field\s*\{[^}]*max-width:\s*420px[^}]*gap:\s*8px")
+        self.assertRegex(styles, r"\.settings-grid \.field\s*\{[^}]*gap:\s*var\(--compact-field-gap\)")
+        self.assertNotRegex(styles, r"(?m)^\s*\.field\s*\{\s*gap:\s*var\(--compact-field-gap\)")
         self.assertNotRegex(styles, r"\.language-switcher\s*\{")
         self.assertNotRegex(styles, r"\.language-option\s*\{")
 
@@ -671,7 +716,9 @@ class WebUIStaticI18nTests(WebUIStaticTestCase):
             "taskList.viewing",
             "referenceCollector.title",
             "referenceCollector.addAll",
+            "referenceCollector.replaceAll",
             "referenceCollector.added",
+            "referenceCollector.replaced",
             "preview.selectedCount",
             "preview.selectedFeatured",
             "preview.removeFeatured",
@@ -760,7 +807,9 @@ class WebUIStaticI18nTests(WebUIStaticTestCase):
         self.assertIn('formatTranslation("status.historyInputLoadFailed"', runtime_sources["task_selection"])
         self.assertIn('formatTranslation("referenceCollector.title"', runtime_sources["input_sources"])
         self.assertIn('translate("referenceCollector.addAll")', runtime_sources["input_sources"])
+        self.assertIn('translate("referenceCollector.replaceAll")', runtime_sources["input_sources"])
         self.assertIn('formatTranslation("referenceCollector.added"', runtime_sources["input_sources"])
+        self.assertIn('formatTranslation("referenceCollector.replaced"', runtime_sources["input_sources"])
         self.assertIn('formatTranslation("preview.selectedCount"', runtime_sources["task_preview"])
         self.assertIn('translate("preview.selectedFeatured")', runtime_sources["task_preview"])
         self.assertIn('translate("preview.removeFeatured")', runtime_sources["task_preview"])

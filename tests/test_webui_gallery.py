@@ -52,6 +52,69 @@ from tests.webui_helpers import (
 
 
 class WebUIGalleryTests(unittest.TestCase):
+    def test_gallery_restore_handle_preserves_item_after_metadata_mutation(self) -> None:
+        from codex_image.webui.gallery_storage import GalleryStorage
+
+        with tempfile.TemporaryDirectory() as tmp:
+            storage = GalleryStorage(Path(tmp) / "gallery")
+            payload = self._image_bytes()
+            created = storage.restore_content(
+                "Imported", "portrait", "item.png", payload, "image/png"
+            )
+
+            updated = storage.update_item(
+                str(created.record["id"]),
+                name="Renamed",
+                prompt_note="concurrent prompt",
+                order=40,
+            )
+
+            self.assertFalse(storage.rollback_restore(created))
+            self.assertEqual(storage.read_item(str(created.record["id"])), updated)
+
+    def test_gallery_restore_identity_ignores_category_derived_fields(self) -> None:
+        from codex_image.webui.gallery_storage import GalleryStorage
+
+        with tempfile.TemporaryDirectory() as tmp:
+            storage = GalleryStorage(Path(tmp) / "gallery")
+            created = storage.restore_content(
+                "Imported",
+                "portrait",
+                "item.png",
+                self._image_bytes(),
+                "image/png",
+            )
+
+            storage.update_category(
+                "portrait",
+                name="Renamed category",
+                prompt_role="Changed derived role",
+            )
+
+            self.assertTrue(storage.rollback_restore(created))
+            self.assertEqual(storage.list_items(), [])
+
+    def test_gallery_restore_metadata_failure_leaves_no_image_and_reuse_blocks_rollback(self) -> None:
+        from codex_image.webui.gallery_storage import GalleryStorage
+
+        with tempfile.TemporaryDirectory() as tmp:
+            storage = GalleryStorage(Path(tmp) / "gallery")
+            data = BytesIO()
+            Image.new("RGB", (2, 2), (1, 2, 3)).save(data, format="PNG")
+            payload = data.getvalue()
+            with patch.object(storage, "_write_item_metadata", side_effect=OSError("metadata")):
+                with self.assertRaises(OSError):
+                    storage.restore_content("Imported", "portrait", "item.png", payload, "image/png")
+            self.assertEqual(storage.list_items(), [])
+            self.assertFalse(any(path.is_file() for path in storage.root.rglob("*")))
+
+            created = storage.restore_content("Imported", "portrait", "item.png", payload, "image/png")
+            reused = storage.restore_content("Ignored", "portrait", "item.png", payload, "image/png")
+            self.assertTrue(created.created)
+            self.assertFalse(reused.created)
+            self.assertFalse(storage.rollback_restore(created))
+            self.assertEqual(storage.image_path(created.record["id"]).read_bytes(), payload)
+
     def _image_bytes(self, image_format: str = "PNG") -> bytes:
         image = Image.new("RGB", (12, 8), (90, 140, 190))
         buffer = BytesIO()

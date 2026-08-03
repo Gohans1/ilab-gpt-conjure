@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from io import BytesIO
 import json
+import os
 import threading
 import tempfile
 import time
@@ -20,6 +21,196 @@ def _png_bytes(size: tuple[int, int] = (400, 600)) -> bytes:
 
 
 class WebUIStorageTests(unittest.TestCase):
+    def test_restore_resource_metadata_failure_leaves_no_reference_blob(self) -> None:
+        from codex_image.webui.reference_assets import ReferenceAssetStorage
+        from codex_image.webui.reference_files import ReferenceFileStorage, validate_reference_file
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            asset_storage = ReferenceAssetStorage(root / "assets")
+            with patch("codex_image.webui.reference_assets.atomic_write_text", side_effect=OSError("metadata")):
+                with self.assertRaises(OSError):
+                    asset_storage.restore_content("asset.png", _png_bytes(), "image/png")
+            self.assertEqual(list((root / "assets").rglob("*.*")), [])
+
+            file_storage = ReferenceFileStorage(root / "files")
+            validated = validate_reference_file("notes.txt", b"safe notes", "text/plain")
+            with patch.object(file_storage, "_stage_metadata", side_effect=OSError("metadata")):
+                with self.assertRaises(ValueError):
+                    file_storage.restore_validated(validated)
+            self.assertEqual(list((root / "files").rglob("*.*")), [])
+
+    def test_reference_restore_handle_does_not_delete_concurrently_reused_content(self) -> None:
+        from codex_image.webui.reference_assets import ReferenceAssetStorage
+
+        with tempfile.TemporaryDirectory() as tmp:
+            storage = ReferenceAssetStorage(Path(tmp) / "assets")
+            data = _png_bytes()
+            created = storage.restore_content("one.png", data, "image/png")
+            reused = storage.restore_content("two.png", data, "image/png")
+            self.assertTrue(created.created)
+            self.assertFalse(reused.created)
+            self.assertFalse(storage.rollback_restore(created))
+            self.assertEqual(storage.image_path(created.record["id"]).read_bytes(), data)
+
+    def test_restore_task_files_rolls_back_metadata_written_before_index_failure(self) -> None:
+        from codex_image.webui.storage import (
+            RestoredTaskBinary,
+            RestoredTaskFilesPlan,
+            TaskStorage,
+        )
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            storage = TaskStorage(
+                input_root=root / "inputs",
+                output_root=root / "outputs",
+                source_data_root=root / "outputs" / "source-data",
+            )
+            task_id = "restore-index-failure"
+            plan = RestoredTaskFilesPlan(
+                task_id=task_id,
+                metadata={"task_id": task_id, "created_at": "2026-08-01T00:00:00Z", "status": "completed"},
+                request={"prompt": "safe"},
+                binaries=(RestoredTaskBinary("output", 1, "output-0001.png", _png_bytes()),),
+            )
+            sentinel = root / "sentinel.bin"
+            sentinel.write_bytes(b"keep")
+
+            with patch.object(storage.task_index, "upsert", side_effect=OSError("index unavailable")):
+                with self.assertRaises(OSError):
+                    storage.restore_task_files(plan)
+
+            self.assertFalse(storage.metadata_path(task_id).exists())
+            self.assertFalse(storage.request_path(task_id).exists())
+            self.assertFalse(any(storage.output_root.rglob(f"{task_id}-*")))
+            self.assertNotIn(task_id, storage.task_index.existing_task_ids([task_id]))
+            self.assertEqual(sentinel.read_bytes(), b"keep")
+
+    def test_restore_task_rollback_reports_only_real_pending_work(self) -> None:
+        from codex_image.webui.storage import (
+            RestoredTaskFilesJournal,
+            RestoredTaskRollbackIncomplete,
+            TaskStorage,
+        )
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            storage = TaskStorage(
+                input_root=root / "inputs",
+                output_root=root / "outputs",
+                source_data_root=root / "outputs" / "source-data",
+            )
+            task_id = "restore-pending-only"
+            restore_token = "a" * 32
+            storage._write_restore_ownership(task_id, restore_token)
+            deleted = storage.metadata_path(task_id)
+            pending = storage.request_path(task_id)
+            deleted.parent.mkdir(parents=True, exist_ok=True)
+            deleted.write_bytes(b"deleted")
+            pending.write_bytes(b"pending")
+            original_unlink = os.unlink
+
+            def fail_one(path, *args, **kwargs):
+                if path == pending.name and kwargs.get("dir_fd") is not None:
+                    raise OSError("pending unlink")
+                return original_unlink(path, *args, **kwargs)
+
+            with patch("codex_image.webui.storage.os.unlink", side_effect=fail_one), patch.object(
+                storage.task_index, "delete", side_effect=OSError("index pending")
+            ):
+                with self.assertRaises(RestoredTaskRollbackIncomplete) as caught:
+                    storage.rollback_restored_task_files(
+                        RestoredTaskFilesJournal(task_id, (deleted, pending), restore_token)
+                    )
+
+            self.assertFalse(deleted.exists())
+            self.assertTrue(pending.exists())
+            self.assertEqual(caught.exception.journal.pending_paths, (pending,))
+            self.assertTrue(caught.exception.journal.index_pending)
+
+    def test_secure_reference_snapshot_reads_unicode_legacy_and_dated_metadata(self) -> None:
+        from codex_image.webui.storage import TaskStorage
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            storage = TaskStorage(
+                input_root=root / "inputs",
+                output_root=root / "outputs",
+                source_data_root=root / "outputs" / "source-data",
+            )
+            legacy = storage.source_data_root / "中文任务.metadata.json"
+            legacy.write_text(json.dumps({
+                "task_id": "中文任务",
+                "reference_assets": [{"id": "asset-unicode"}],
+                "gallery_refs": [],
+                "reference_files": [],
+            }), encoding="utf-8")
+            dated_root = storage.source_data_root / "tasks" / "2026-08-01"
+            dated_root.mkdir(parents=True)
+            dated = dated_root / "20260801010101-abcd1234.metadata.json"
+            dated.write_text(json.dumps({
+                "task_id": "20260801010101-abcd1234",
+                "reference_assets": [],
+                "gallery_refs": [{"id": "图库-一"}],
+                "reference_files": [{"id": "文档-一"}],
+            }), encoding="utf-8")
+
+            snapshot = storage.resource_reference_snapshot()
+
+            self.assertEqual(snapshot["reference_asset"]["asset-unicode"], {"中文任务"})
+            self.assertEqual(snapshot["gallery"]["图库-一"], {"20260801010101-abcd1234"})
+            self.assertEqual(snapshot["reference_file"]["文档-一"], {"20260801010101-abcd1234"})
+            self.assertEqual({path.name for path in storage.iter_metadata_paths()}, {legacy.name, dated.name})
+
+    def test_secure_metadata_order_always_prefers_canonical_over_legacy(self) -> None:
+        from codex_image.webui.storage import TaskStorage
+
+        for tasks_first in (True, False):
+            with self.subTest(tasks_first=tasks_first), tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                storage = TaskStorage(
+                    input_root=root / "inputs",
+                    output_root=root / "outputs",
+                    source_data_root=root / "outputs" / "source-data",
+                )
+                task_id = "20260801010101-abcd1234"
+                legacy = storage.source_data_root / f"{task_id}.metadata.json"
+                dated_root = storage.source_data_root / "tasks" / "2026-08-01"
+                canonical = dated_root / f"{task_id}.metadata.json"
+                legacy_payload = {
+                    "task_id": task_id, "created_at": "2026-08-01T00:00:00Z",
+                    "status": "completed", "source_marker": "legacy",
+                    "reference_assets": [{"id": "legacy-asset"}],
+                }
+                canonical_payload = {
+                    **legacy_payload,
+                    "source_marker": "canonical",
+                    "reference_assets": [{"id": "canonical-asset"}],
+                }
+                if tasks_first:
+                    dated_root.mkdir(parents=True)
+                    canonical.write_text(json.dumps(canonical_payload), encoding="utf-8")
+                    legacy.write_text(json.dumps(legacy_payload), encoding="utf-8")
+                else:
+                    legacy.write_text(json.dumps(legacy_payload), encoding="utf-8")
+                    dated_root.mkdir(parents=True)
+                    canonical.write_text(json.dumps(canonical_payload), encoding="utf-8")
+
+                paths = storage.iter_metadata_paths()
+
+                self.assertEqual(paths, [legacy, canonical])
+                self.assertEqual(
+                    storage._list_tasks_from_metadata(paths, update_index=False)[0]["source_marker"],
+                    "canonical",
+                )
+                self.assertEqual(storage.read_tasks_from_metadata()[0]["source_marker"], "canonical")
+                self.assertEqual(storage.rebuild_task_index()[0]["source_marker"], "canonical")
+                self.assertEqual(storage.read_metadata(task_id)["source_marker"], "canonical")
+                asset_snapshot = storage.resource_reference_snapshot()["reference_asset"]
+                self.assertEqual(asset_snapshot["legacy-asset"], {task_id})
+                self.assertEqual(asset_snapshot["canonical-asset"], {task_id})
+
     def test_stale_progress_write_cannot_erase_pending_cancellation(self) -> None:
         from codex_image.webui.cancellation import request_task_cancellation
         from codex_image.webui.storage import TaskStorage

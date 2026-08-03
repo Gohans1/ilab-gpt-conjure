@@ -32,6 +32,10 @@ def _thumbnail_route_url(task_id: str, output_index: int) -> str:
     return f"/api/tasks/{quote(task_id, safe='')}/outputs/{output_index}/thumbnail"
 
 
+def _output_image_route_url(task_id: str, output_index: int) -> str:
+    return f"/api/tasks/{quote(task_id, safe='')}/outputs/{output_index}/image"
+
+
 def _gallery_item_response(item: dict[str, Any]) -> dict[str, Any]:
     item_id = str(item.get("id") or "")
     enriched = dict(item)
@@ -270,6 +274,8 @@ def _with_output_thumbnail_urls(enriched: dict[str, Any], metadata: dict[str, An
             record = dict(raw_record)
             index = _positive_int(record.get("index")) or fallback_index
             if record.get("status") == "completed" and index not in deleted_indexes and (record.get("url") or record.get("file")):
+                if not record.get("url") and record.get("file"):
+                    record["url"] = _output_image_route_url(task_id, index)
                 thumbnail_url = _output_record_thumbnail_url(task_id, record, fallback_index)
                 if thumbnail_url:
                     record["thumbnail_url"] = thumbnail_url

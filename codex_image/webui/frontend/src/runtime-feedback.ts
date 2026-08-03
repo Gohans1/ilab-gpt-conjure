@@ -215,6 +215,8 @@ export function updatePromptCount(): void {
 
 export function addPendingTask(task: WebUITask): void {
   const state = getLegacyBridge().state;
+  state.historyTaskReveal = null;
+  state.historyTaskRevealSeq += 1;
   state.pendingTaskId = task.task_id;
   state.selectedTaskId = task.task_id;
   state.tasks = [task, ...state.tasks.filter((item: any) => item.task_id !== task.task_id)];

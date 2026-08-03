@@ -313,6 +313,10 @@ ILAB_CONJURE_DATA_DIR="${BUILD_ROOT}/_standard-data-probe" \
 PYTHONPATH="${APP_DIR}:${APP_DIR}/.deps" \
   "$PYTHON_BIN" -c "import fastapi, uvicorn, multipart, httpx, PIL; import standard_webui_app; print('standard import ok')"
 rm -rf "${BUILD_ROOT}/_standard-data-probe"
+"$PYTHON_BIN" "${SCRIPT_DIR}/../cleanup-runtime.py" \
+  --app-dir "$APP_DIR" \
+  --runtime-dir "$PYTHON_DIR" \
+  --platform macos
 
 if ! command -v cargo >/dev/null 2>&1; then
   echo "cargo was not found. Install Rust toolchain before building the standard app launcher." >&2

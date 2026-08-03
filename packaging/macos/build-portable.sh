@@ -311,6 +311,10 @@ if [[ ! -f "${APP_DIR}/.deps/certifi/cacert.pem" ]]; then
 fi
 PYTHONPATH="${APP_DIR}:${APP_DIR}/.deps" "$PYTHON_BIN" -m pip freeze | tee "${BUNDLE_ROOT}/python-requirements.lock.txt" >/dev/null
 PYTHONPATH="${APP_DIR}:${APP_DIR}/.deps" "$PYTHON_BIN" -c "import fastapi, uvicorn, multipart, httpx, PIL; import portable_webui_app; print('portable import ok')"
+"$PYTHON_BIN" "${SCRIPT_DIR}/../cleanup-runtime.py" \
+  --app-dir "$APP_DIR" \
+  --runtime-dir "$PYTHON_DIR" \
+  --platform macos
 
 if ! command -v cargo >/dev/null 2>&1; then
   echo "cargo was not found. Install Rust toolchain before building the portable tray launcher." >&2

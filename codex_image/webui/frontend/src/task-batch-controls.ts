@@ -1,5 +1,6 @@
 import { getLegacyBridge } from "./state";
 import { formatTranslation, LOCALE_CHANGE_EVENT } from "./i18n";
+import { waitingBatchTaskIds } from "./task-batch-selection-model";
 
 const bridge = getLegacyBridge();
 const state = bridge.state;
@@ -130,7 +131,7 @@ function syncBatchTaskSelectionVisuals() {
     const selected = selectedIds.has(String(card.dataset.taskId || ""));
     card.classList.toggle("batch-selected", selected);
     const selectButton = card.querySelector("[data-batch-select-task-id]");
-    if (selectButton) selectButton.setAttribute("aria-pressed", selected ? "true" : "false");
+    if (selectButton) selectButton.setAttribute("aria-checked", selected ? "true" : "false");
   });
   renderBatchToolbar();
 }
@@ -149,6 +150,7 @@ function renderBatchToolbar() {
   els.batchToolbar.classList.toggle("hidden", !state.batchMode);
   els.taskList?.classList.toggle("batch-marquee-enabled", state.batchMode);
   els.batchManageButton?.classList.toggle("active", state.batchMode);
+  els.batchManageButton?.setAttribute("aria-pressed", state.batchMode ? "true" : "false");
   const count = state.batchSelectedTaskIds.length;
   const activeIdSet = new Set(activeIds);
   const selectedActiveCount = state.batchSelectedTaskIds.filter((taskId: any) => activeIdSet.has(String(taskId))).length;
@@ -158,12 +160,22 @@ function renderBatchToolbar() {
   if (els.batchSelectGroupButton) {
     els.batchSelectGroupButton.disabled = !["today", "yesterday", "last7"].includes(String(state.expandedTaskGroupKey || ""));
   }
+  if (els.batchSelectWaitingButton) {
+    els.batchSelectWaitingButton.disabled = waitingBatchTaskIds(state.queue).length === 0;
+  }
   [els.batchArchiveButton, els.batchDeleteButton].forEach((button: any) => {
     if (button) button.disabled = count === 0;
   });
   if (els.batchCancelSelectedButton) {
     els.batchCancelSelectedButton.disabled = selectedActiveCount === 0;
   }
+}
+
+function selectWaitingTasksForBatch() {
+  const taskIds = waitingBatchTaskIds(state.queue);
+  if (!taskIds.length) return;
+  state.batchSelectionIncludesUnloaded = false;
+  applyBatchTaskSelection(taskIds, taskIds[0] || null);
 }
 
 async function selectAllMatchingTasksInExpandedGroup() {
@@ -441,7 +453,7 @@ function applyBatchSelectionPreview(taskIds: any) {
     const selected = nextSet.has(String(card.dataset.taskId));
     card.classList.toggle("batch-selected", selected);
     const selectButton = card.querySelector("[data-batch-select-task-id]");
-    if (selectButton) selectButton.setAttribute("aria-pressed", selected ? "true" : "false");
+    if (selectButton) selectButton.setAttribute("aria-checked", selected ? "true" : "false");
   });
   renderBatchToolbar();
 }
@@ -493,6 +505,7 @@ export function initTaskBatchControlsFeature() {
     renderBatchToolbar,
     activeTaskIds,
     selectActiveTasksForBatchCancel,
+    selectWaitingTasksForBatch,
     selectAllMatchingTasksInExpandedGroup,
     openBatchCancelConfirm,
     cancelSelectedActiveTasks,

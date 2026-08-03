@@ -112,6 +112,8 @@ export function createDefaultState(): WebUIState {
   activeTaskGroupCollapsed: false,
   expandedTaskGroupKey: null,
   expandedTaskGroupAnimationPending: false,
+  historyTaskReveal: null,
+  historyTaskRevealSeq: 0,
   latestTaskNoticeCount: 0,
   latestTaskKeepAtTop: false,
   latestTaskKeepAtTopExpiresAt: 0,

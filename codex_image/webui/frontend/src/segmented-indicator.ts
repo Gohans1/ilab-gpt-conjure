@@ -2,11 +2,12 @@ const HOST_SELECTORS = [
   ".radio-group:not(.ratio-group):not(.model-parameter-segmented-multiline):not(.model-aspect-ratio-grid)",
   "#authSourceGroup",
   "#systemSettingsTabs",
+  ".network-egress-mode-selector",
   ".history-view-toggle",
   ".history-sort-toggle",
 ];
 const HOST_SELECTOR = HOST_SELECTORS.join(", ");
-const BUTTON_SELECTOR = ".radio-btn, .auth-source-button, .system-settings-tab, .history-view-button, .history-sort-button";
+const BUTTON_SELECTOR = ".radio-btn, .auth-source-button, .system-settings-tab, .network-egress-mode-button, .history-view-button, .history-sort-button";
 const INDICATOR_CLASS = "segmented-indicator";
 const HOST_CLASS = "segmented-indicator-host";
 const READY_CLASS = "segmented-indicator-ready";
@@ -17,7 +18,7 @@ let segmentedIndicatorsInitialized = false;
 let resizeObserver: ResizeObserver | null = null;
 
 function activeSegment(host: HTMLElement): HTMLElement | null {
-  return host.querySelector<HTMLElement>(".radio-btn.active, .auth-source-button.active, .system-settings-tab.active, .history-view-button.active, .history-sort-button.active");
+  return host.querySelector<HTMLElement>(".radio-btn.active, .auth-source-button.active, .system-settings-tab.active, .network-egress-mode-button.active, .history-view-button.active, .history-sort-button.active");
 }
 
 function ensureIndicator(host: HTMLElement): HTMLElement {

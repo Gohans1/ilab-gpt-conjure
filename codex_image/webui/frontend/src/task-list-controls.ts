@@ -22,13 +22,14 @@ const setExpandedTaskGroupKey = (...args: any[]) => legacyMethod("setExpandedTas
 const scrollExpandedTaskGroupToTop = (...args: any[]) => legacyMethod("scrollExpandedTaskGroupToTop", ...args);
 const captureTaskHistoryLayout = (...args: any[]) => legacyMethod("captureTaskHistoryLayout", ...args);
 const animateTaskHistoryLayout = (...args: any[]) => legacyMethod("animateTaskHistoryLayout", ...args);
-const archiveTask = (...args: any[]) => legacyMethod("archiveTask", ...args);
-const openTaskDeleteConfirm = (...args: any[]) => legacyMethod("openTaskDeleteConfirm", ...args);
+const revealTaskCardAction = (...args: any[]) => legacyMethod("revealTaskCardAction", ...args);
+const closeOpenTaskCardDrawer = (...args: any[]) => legacyMethod("closeOpenTaskCardDrawer", ...args);
 const toggleBatchMode = (...args: any[]) => legacyMethod("toggleBatchMode", ...args);
 const toggleBatchTaskSelection = (...args: any[]) => legacyMethod("toggleBatchTaskSelection", ...args);
 const handleBatchTaskShortcutSelection = (...args: any[]) => legacyMethod("handleBatchTaskShortcutSelection", ...args);
 const archiveSelectedTasks = (...args: any[]) => legacyMethod("archiveSelectedTasks", ...args);
 const selectActiveTasksForBatchCancel = (...args: any[]) => legacyMethod("selectActiveTasksForBatchCancel", ...args);
+const selectWaitingTasksForBatch = (...args: any[]) => legacyMethod("selectWaitingTasksForBatch", ...args);
 const openBatchCancelConfirm = (...args: any[]) => legacyMethod("openBatchCancelConfirm", ...args);
 const openBatchDeleteConfirm = (...args: any[]) => legacyMethod("openBatchDeleteConfirm", ...args);
 const selectAllMatchingTasksInExpandedGroup = (...args: any[]) => legacyMethod("selectAllMatchingTasksInExpandedGroup", ...args);
@@ -120,10 +121,10 @@ function bindTaskListControlEvents() {
   els.batchCancelTasksButton?.addEventListener("click", selectActiveTasksForBatchCancel);
   els.batchManageButton?.addEventListener("click", () => toggleBatchMode());
   els.batchSelectGroupButton?.addEventListener("click", selectAllMatchingTasksInExpandedGroup);
+  els.batchSelectWaitingButton?.addEventListener("click", selectWaitingTasksForBatch);
   els.batchArchiveButton?.addEventListener("click", archiveSelectedTasks);
   els.batchCancelSelectedButton?.addEventListener("click", openBatchCancelConfirm);
   els.batchDeleteButton?.addEventListener("click", openBatchDeleteConfirm);
-  els.batchCancelButton?.addEventListener("click", () => toggleBatchMode(false));
   els.taskSearch.addEventListener("input", handleTaskSearchInput);
   els.taskSearchClearButton?.addEventListener("click", clearTaskSearch);
   els.taskFilterButton?.addEventListener("click", toggleTaskFilterPopover);
@@ -254,13 +255,6 @@ function handleTaskListClick(event: any) {
     return;
   }
 
-  const archiveButton = event.target.closest("[data-archive-task-id]");
-  if (archiveButton) {
-    event.stopPropagation();
-    archiveTask(archiveButton.dataset.archiveTaskId);
-    return;
-  }
-
   const batchButton = event.target.closest("[data-batch-select-task-id]");
   if (batchButton) {
     event.stopPropagation();
@@ -268,16 +262,15 @@ function handleTaskListClick(event: any) {
     return;
   }
 
-  const deleteButton = event.target.closest("[data-delete-task-id]");
-  if (deleteButton) {
-    event.stopPropagation();
-    openTaskDeleteConfirm(deleteButton, deleteButton.dataset.deleteTaskId);
-    return;
-  }
+  if (event.target.closest("[data-task-card-action]")) return;
 
   const card = event.target.closest(".task-card[data-task-id]");
   const root = taskHistoryInteractiveRoot();
   if (!card || !root?.contains(card)) return;
+  if (card.classList.contains("task-card-swipe-open")) {
+    closeOpenTaskCardDrawer({ focusCard: true });
+    return;
+  }
   if (handleBatchTaskShortcutSelection(card.dataset.taskId, event)) return;
   if (state.batchMode) {
     toggleBatchTaskSelection(card.dataset.taskId);
@@ -292,6 +285,14 @@ function handleTaskListKeydown(event: any) {
   const root = taskHistoryInteractiveRoot();
   if (!card || !root?.contains(card)) return;
   if (handleTaskCardArrowNavigation(card, event)) return;
+  if (event.key === "Delete" && !state.batchMode) {
+    const action = card.dataset.taskSwipeNegativeAction;
+    if (!action) return;
+    event.preventDefault();
+    event.stopPropagation();
+    revealTaskCardAction(card.dataset.taskId, action, true);
+    return;
+  }
   if (event.key !== "Enter" && event.key !== " ") return;
   event.preventDefault();
   if (handleBatchTaskShortcutSelection(card.dataset.taskId, event)) return;

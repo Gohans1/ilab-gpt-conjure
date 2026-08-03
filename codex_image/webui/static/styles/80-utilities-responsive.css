@@ -407,12 +407,12 @@ button:disabled {
 
   .settings-grid {
     --compact-settings-control-height: clamp(
-      22px,
+      24px,
       calc(2.25dvh + 4.7px - var(--compact-settings-shell-adjustment, 0px)),
       36px
     );
     --compact-settings-segment-height: clamp(
-      18px,
+      24px,
       calc(1.93dvh + 3.2px - var(--compact-settings-shell-adjustment, 0px)),
       30px
     );
@@ -421,7 +421,7 @@ button:disabled {
     gap: var(--compact-settings-gap);
   }
 
-  .field {
+  .settings-grid .field {
     gap: var(--compact-field-gap);
   }
 
@@ -894,6 +894,7 @@ button:disabled {
   .sidebar-footer,
   .task-active-list,
   .task-history-anchor-rail,
+  .task-history-current-anchor,
   .task-history-library-slot,
   .batch-toolbar {
     display: none;
@@ -939,11 +940,21 @@ button:disabled {
     justify-content: flex-start;
     gap: 10px;
     overflow-x: auto;
-    scrollbar-width: none;
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb) transparent;
   }
 
   .nav-actions::-webkit-scrollbar {
-    display: none;
+    height: 4px;
+  }
+
+  .nav-actions::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .nav-actions::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: var(--scrollbar-thumb);
   }
 
   .auth-source-switcher {
@@ -951,8 +962,8 @@ button:disabled {
   }
 
   .generation-provider-control {
-    flex: 0 0 min(280px, 78vw);
-    max-width: min(280px, 78vw);
+    flex: 0 0 min(240px, 62vw);
+    max-width: min(240px, 62vw);
   }
 
   .auth-source-detail {

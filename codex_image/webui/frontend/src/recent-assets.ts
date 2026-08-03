@@ -9,6 +9,9 @@ let recentAssetsFeatureInitialized = false;
 const RECENT_ASSET_RENDER_BATCH_SIZE = 12;
 const RECENT_ASSET_LOAD_AHEAD_PX = 96;
 let recentAssetRenderLimit = RECENT_ASSET_RENDER_BATCH_SIZE;
+let recentAssetPreviewsHidden = false;
+let recentAssetLoadState: "idle" | "loading" | "error" = "idle";
+let recentAssetLoadError = "";
 
 function legacyMethod(name: string, ...args: any[]): any {
   const method = getLegacyBridge().methods[name];
@@ -50,8 +53,27 @@ function recentAssetRequestError(data: any, fallback: string): string {
   return fallback;
 }
 
+function syncRecentAssetPreviewVisibility() {
+  els.recentAssetDock?.classList.toggle("previews-hidden", recentAssetPreviewsHidden);
+  els.recentAssetList?.setAttribute("aria-hidden", String(recentAssetPreviewsHidden));
+  els.recentAssetList?.toggleAttribute("inert", recentAssetPreviewsHidden);
+  const label = translate(recentAssetPreviewsHidden ? "recentAssets.showPreviews" : "recentAssets.hidePreviews");
+  els.recentAssetVisibilityToggle?.setAttribute("aria-expanded", String(!recentAssetPreviewsHidden));
+  els.recentAssetVisibilityToggle?.setAttribute("aria-label", label);
+  els.recentAssetVisibilityToggle?.setAttribute("title", label);
+}
+
+function toggleRecentAssetPreviews() {
+  recentAssetPreviewsHidden = !recentAssetPreviewsHidden;
+  syncRecentAssetPreviewVisibility();
+}
+
 async function refreshRecentAssets() {
   if (!els.recentAssetList) return;
+  recentAssetLoadState = "loading";
+  recentAssetLoadError = "";
+  els.recentAssetList.setAttribute("aria-busy", "true");
+  renderRecentAssets();
   try {
     const response = await fetch("/api/reference-assets/recent?limit=50");
     const data = await response.json();
@@ -60,19 +82,45 @@ async function refreshRecentAssets() {
     }
     state.recentAssets = Array.isArray(data.items) ? data.items : [];
     recentAssetRenderLimit = RECENT_ASSET_RENDER_BATCH_SIZE;
-    renderRecentAssets();
-  } catch {
-    state.recentAssets = [];
+    recentAssetLoadState = "idle";
+  } catch (error: any) {
+    recentAssetLoadState = "error";
+    recentAssetLoadError = error?.message || translate("recentAssets.loadFailed");
     recentAssetRenderLimit = RECENT_ASSET_RENDER_BATCH_SIZE;
+  } finally {
+    els.recentAssetList.removeAttribute("aria-busy");
     renderRecentAssets();
   }
+}
+
+function renderRecentAssetStatus() {
+  if (!els.recentAssetStatus) return;
+  if (recentAssetLoadState === "idle") {
+    els.recentAssetStatus.hidden = true;
+    els.recentAssetStatus.innerHTML = "";
+    return;
+  }
+  els.recentAssetStatus.hidden = false;
+  if (recentAssetLoadState === "loading") {
+    els.recentAssetStatus.className = "recent-asset-status is-loading";
+    els.recentAssetStatus.textContent = translate("history.loading");
+    return;
+  }
+  els.recentAssetStatus.className = "recent-asset-status is-error";
+  els.recentAssetStatus.innerHTML = `
+    <span>${escapeHtml(recentAssetLoadError || translate("recentAssets.loadFailed"))}</span>
+    <button class="ghost-button text-sm" type="button" data-recent-assets-retry>${escapeHtml(translate("action.refresh"))}</button>
+  `;
 }
 
 function renderRecentAssets() {
   if (!els.recentAssetDock || !els.recentAssetList) return;
   const items = state.recentAssets.filter((item: any) => item?.id && item?.image_url);
   const visibleItems = items.slice(0, recentAssetRenderLimit);
-  els.recentAssetDock.classList.toggle("hidden", !items.length);
+  els.recentAssetDock.classList.toggle("hidden", !items.length && recentAssetLoadState === "idle");
+  els.recentAssetDock.classList.toggle("is-loading", recentAssetLoadState === "loading");
+  renderRecentAssetStatus();
+  syncRecentAssetPreviewVisibility();
   els.recentAssetList.innerHTML = visibleItems.map((item: any) => {
     const name = recentAssetName(item);
     const referenceCount = recentAssetReferenceCount(item);
@@ -226,12 +274,19 @@ export function initRecentAssetsFeature() {
   els.recentAssetList?.addEventListener("wheel", handleRecentAssetWheel, { passive: false });
   els.recentAssetList?.addEventListener("scroll", handleRecentAssetScroll, { passive: true });
   els.recentAssetList?.addEventListener("click", handleRecentAssetClick);
+  els.recentAssetStatus?.addEventListener("click", (event: Event) => {
+    const target = event.target instanceof Element ? event.target : null;
+    if (!target?.closest("[data-recent-assets-retry]")) return;
+    void refreshRecentAssets();
+  });
+  els.recentAssetVisibilityToggle?.addEventListener("click", toggleRecentAssetPreviews);
   document.addEventListener(LOCALE_CHANGE_EVENT, renderRecentAssets);
   Object.assign(getLegacyBridge().methods, {
     refreshRecentAssets,
     renderRecentAssets,
     handleRecentAssetWheel,
     handleRecentAssetScroll,
+    toggleRecentAssetPreviews,
     hideRecentAsset,
     deleteRecentAsset,
   });

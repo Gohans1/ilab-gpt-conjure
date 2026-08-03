@@ -181,6 +181,10 @@ Remove-Item -Recurse -Force $env:ILAB_CONJURE_DATA_DIR -ErrorAction SilentlyCont
 Remove-Item Env:APP_LAUNCHER_MODE -ErrorAction SilentlyContinue
 Remove-Item Env:ILAB_CONJURE_APP_DIR -ErrorAction SilentlyContinue
 Remove-Item Env:ILAB_CONJURE_DATA_DIR -ErrorAction SilentlyContinue
+& $PythonExe (Join-Path $ScriptDir "..\cleanup-runtime.py") `
+  --app-dir $AppDir `
+  --runtime-dir $PythonDir `
+  --platform windows
 
 if ($null -eq (Get-Command cargo -ErrorAction SilentlyContinue)) {
   throw "cargo was not found. Install Rust toolchain before building the standard app launcher."

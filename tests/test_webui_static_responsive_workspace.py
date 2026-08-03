@@ -34,7 +34,7 @@ class WebUIResponsiveWorkspaceContractTests(unittest.TestCase):
             responsive,
             r"@media \(max-width: 1180px\)[\s\S]*?"
             r"\.generation-provider-control\s*\{[^}]*"
-            r"flex:\s*0\s+0\s+min\(280px,\s*78vw\)",
+            r"flex:\s*0\s+0\s+min\(240px,\s*62vw\)",
         )
 
     def test_dynamic_parameters_and_bindings_collapse_without_horizontal_overflow(self) -> None:

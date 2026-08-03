@@ -136,6 +136,12 @@ function isPromptEditorArrowKey(key: string): boolean {
 }
 
 export function handlePromptEditorClick(event: any): void {
+  if (event.detail >= 3 && !event.target.closest?.("button")) {
+    event.preventDefault();
+    event.stopPropagation();
+    selectPromptEditorContents();
+    return;
+  }
   const removeButton = event.target.closest?.("[data-remove-gallery-chip], [data-remove-color-chip], [data-remove-prompt-snippet-chip]");
   if (removeButton && els.promptEditor.contains(removeButton)) {
     event.preventDefault();

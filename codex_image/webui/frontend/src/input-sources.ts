@@ -2,6 +2,7 @@ import { getEls } from "./dom";
 import { formatTranslation, LOCALE_CHANGE_EVENT, translate } from "./i18n";
 import { getLegacyBridge, getState } from "./state";
 import { addReferenceFileInput, partitionReferenceDropFiles } from "./reference-file-inputs";
+import { persistStagedReferences, readStagedReferences } from "./staged-references-session";
 
 let inputSourcesFeatureInitialized = false;
 const HISTORY_REFERENCE_HANDOFF_KEY = "codex-image-history-reference-handoff";
@@ -394,6 +395,7 @@ function collectReferenceOutput(url: string, options: any = {}) {
     sourceTaskId: options.sourceTaskId || "",
     outputIndex: options.outputIndex || null,
   });
+  persistStagedReferences(state.collectedReferences);
   renderReferenceCollector();
   setStatus(formatTranslation("referenceCollector.staged", { count: state.collectedReferences.length }), "ok");
 }
@@ -401,8 +403,9 @@ function collectReferenceOutput(url: string, options: any = {}) {
 function renderReferenceCollector() {
   const state = getState();
   const els = getEls();
-  if (!els.referenceCollector) return;
   const items = state.collectedReferences;
+  els.imageUploaderGrid?.classList.toggle("has-collected-references", Boolean(items.length));
+  if (!els.referenceCollector) return;
   if (!items.length) {
     els.referenceCollector.classList.add("hidden");
     els.referenceCollector.innerHTML = "";
@@ -410,12 +413,8 @@ function renderReferenceCollector() {
   }
   els.referenceCollector.classList.remove("hidden");
   els.referenceCollector.innerHTML = `
-    <div class="reference-collector-header">
+    <div class="reference-collector-summary">
       <span>${escapeHtml(formatTranslation("referenceCollector.title", { count: items.length }))}</span>
-      <div class="reference-collector-actions">
-        <button class="ghost-button text-sm" type="button" data-reference-collector-add-all>${escapeHtml(translate("referenceCollector.addAll"))}</button>
-        <button class="ghost-button text-sm" type="button" data-reference-collector-clear>${escapeHtml(translate("action.clear"))}</button>
-      </div>
     </div>
     <div class="reference-collector-list">
       ${items.map((item: any, index: number) => `
@@ -425,8 +424,18 @@ function renderReferenceCollector() {
         </div>
       `).join("")}
     </div>
+    <div class="reference-collector-actions">
+      <button class="ghost-button text-sm reference-collector-add" type="button" data-reference-collector-add-all>${escapeHtml(translate("referenceCollector.addAll"))}</button>
+      <button class="ghost-button text-sm reference-collector-replace" type="button" data-reference-collector-replace-all title="${escapeHtml(translate("referenceCollector.replaceAll"))}">${escapeHtml(translate("referenceCollector.replaceAll"))}</button>
+      <button class="ghost-button text-sm quiet-danger-button" type="button" data-reference-collector-clear>${escapeHtml(translate("action.clear"))}</button>
+    </div>
   `;
-  els.referenceCollector.querySelector("[data-reference-collector-add-all]")?.addEventListener("click", addCollectedReferencesToInput);
+  els.referenceCollector.querySelector("[data-reference-collector-add-all]")?.addEventListener("click", () => {
+    void addCollectedReferencesToInput();
+  });
+  els.referenceCollector.querySelector("[data-reference-collector-replace-all]")?.addEventListener("click", () => {
+    void addCollectedReferencesToInput({ replace: true });
+  });
   els.referenceCollector.querySelector("[data-reference-collector-clear]")?.addEventListener("click", () => clearCollectedReferences());
   els.referenceCollector.querySelectorAll("[data-reference-collector-remove]").forEach((button: any) => {
     button.addEventListener("click", () => removeCollectedReference(button.dataset.referenceCollectorRemove));
@@ -437,13 +446,20 @@ function removeCollectedReference(index: any) {
   const itemIndex = Number.parseInt(index, 10);
   if (!Number.isInteger(itemIndex) || itemIndex < 0 || itemIndex >= getState().collectedReferences.length) return;
   getState().collectedReferences.splice(itemIndex, 1);
+  persistStagedReferences(getState().collectedReferences);
   renderReferenceCollector();
 }
 
 function clearCollectedReferences(options: any = {}) {
   getState().collectedReferences = [];
+  persistStagedReferences([]);
   renderReferenceCollector();
   if (!options.silent) setStatus(translate("referenceCollector.cleared"), "ok");
+}
+
+function restoreCollectedReferences() {
+  getState().collectedReferences = readStagedReferences();
+  renderReferenceCollector();
 }
 
 function imageExtensionFromType(type: any) {
@@ -485,20 +501,32 @@ function collectedReferenceFilename(item: any, index: number) {
   return ensureImageFilenameExtension(item?.name || `collected-reference-${index + 1}`, "image/png");
 }
 
-async function addCollectedReferencesToInput() {
+async function addCollectedReferencesToInput(options: { replace?: boolean } = {}) {
   const state = getState();
   const els = getEls();
   const items = state.collectedReferences.slice();
   if (!items.length) return;
-  const addButton = els.referenceCollector?.querySelector("[data-reference-collector-add-all]");
-  if (addButton) addButton.disabled = true;
+  const actionButtons = els.referenceCollector?.querySelectorAll(
+    "[data-reference-collector-add-all], [data-reference-collector-replace-all]",
+  );
+  actionButtons?.forEach((button: any) => {
+    button.disabled = true;
+  });
   try {
     const files: File[] = [];
     for (const [index, item] of items.entries()) {
       files.push(await imageFileFromUrl(item.url, collectedReferenceFilename(item, index)));
     }
+    if (options.replace) {
+      const previousImages = state.images;
+      legacyMethod("revokeUploadPreviewUrls", previousImages);
+      state.images = [];
+      legacyMethod("syncPromptGalleryMentionsFromInputs");
+    }
     const added = addImageFiles(files, {
-      successMessage: (count: number) => formatTranslation("referenceCollector.added", { count }),
+      successMessage: (count: number) => options.replace
+        ? formatTranslation("referenceCollector.replaced", { count })
+        : formatTranslation("referenceCollector.added", { count }),
     });
     if (added) clearCollectedReferences({ silent: true });
   } catch (error: any) {
@@ -617,6 +645,8 @@ export function initInputSourcesFeature() {
     addReferenceAssetInput,
     collectReferenceOutput,
     renderReferenceCollector,
+    restoreCollectedReferences,
+    addCollectedReferencesToInput,
     imageFileFromUrl,
     restoreHistoryReferenceHandoff,
   });

@@ -304,6 +304,8 @@ function resetForm() {
   closeArchiveModal();
   closeGallery();
   closeImageEditor();
+  state.historyTaskReveal = null;
+  state.historyTaskRevealSeq += 1;
   state.selectedTaskId = null;
   clearTaskParameterInspection();
   state.mode = "generate";

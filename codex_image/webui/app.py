@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import asyncio
 import base64
+from contextlib import asynccontextmanager
 from functools import wraps
 from io import BytesIO
 import json
@@ -126,12 +128,18 @@ from .security import LocalWebUISecurityMiddleware
 from .context import WebUIContext
 from .events import event_key, event_snapshot, queue_snapshot, queued_or_running_task_ids, sse_message, task_event
 from .history_export import HistoryExportService
+from .history_backup_export import HistoryBackupExportService
+from .history_backup_import import HistoryBackupImportService
+from .history_backup_plan import TaskBackupPlanner
 from .image_uploads import InvalidRasterImage, read_validated_raster_upload
 from .instance_lock import (
     WebUIInstanceLock,
     validate_single_worker_environment,
 )
 from .routes import register_webui_routes
+from .routes.history_backup import (
+    shutdown_history_backup_services,
+)
 from .executor import (
     _call_image_client,
     _debug_sse_path,
@@ -261,6 +269,7 @@ def create_app(
     webui_settings_path: Path | str = DEFAULT_WEBUI_SETTINGS_PATH,
     queue_path: Path | str | None = None,
     history_export_temp_root: Path | str | None = None,
+    history_backup_temp_root: Path | str | None = None,
     auto_start_queue: bool = True,
     auto_retry: bool = False,
     enforce_single_instance: bool = False,
@@ -312,13 +321,34 @@ def create_app(
         storage,
         temp_root=history_export_temp_root,
     )
+    history_backup_path = (
+        Path(history_backup_temp_root)
+        if history_backup_temp_root is not None
+        else source_data_path / "history-backups"
+    )
+    history_backup_planner = TaskBackupPlanner(
+        storage,
+        gallery_storage,
+        reference_asset_storage,
+        reference_file_storage,
+    )
+    history_backup_export_service = HistoryBackupExportService(
+        history_backup_planner,
+        history_backup_path,
+        recover_on_init=False,
+    )
+    history_backup_import_service = HistoryBackupImportService(
+        history_backup_planner,
+        history_backup_path,
+        recover_on_init=False,
+    )
     static_path = Path(static_dir) if static_dir is not None else Path(__file__).parent / "static"
     make_client = client_factory or (lambda: _client_for_auth_source(auth_settings.read_source(), api_settings=api_settings))
     check_auth = auth_checker or (lambda: bool(_auth_status(auth_settings.read_source(), api_settings=api_settings)["auth_available"]))
 
     app = FastAPI(
         title="iLab CONJURE",
-        lifespan=queue_lifespan,
+        lifespan=_webui_lifespan,
         docs_url=None,
         redoc_url=None,
         openapi_url=None,
@@ -341,6 +371,10 @@ def create_app(
         prompt_snippet_settings=prompt_snippet_settings,
         prompt_template_settings=prompt_template_settings,
         history_export_service=history_export_service,
+        history_backup_planner=history_backup_planner,
+        history_backup_export_service=history_backup_export_service,
+        history_backup_import_service=history_backup_import_service,
+        history_backup_temp_root=history_backup_path,
         client_factory=make_client,
         auth_checker=check_auth,
         input_root=input_path,
@@ -469,6 +503,60 @@ def create_app(
     register_webui_routes(app, ctx)
 
     return app
+
+
+@asynccontextmanager
+async def _webui_lifespan(app_instance: FastAPI):
+    async with queue_lifespan(app_instance):
+        ctx = app_instance.state.ctx
+        owner_lock = WebUIInstanceLock.acquire(ctx.history_backup_temp_root)
+        ctx.history_backup_owner_lock = owner_lock
+        app_instance.state.history_backup_owner_lock = owner_lock
+        cleanup_stop: asyncio.Event | None = None
+        cleanup_task: asyncio.Task[None] | None = None
+        try:
+            ctx.history_backup_export_service.recover_startup()
+            ctx.history_backup_import_service.recover_startup()
+            ctx.history_backup_accepting_jobs = True
+            app_instance.state.history_backup_accepting_jobs = True
+            cleanup_stop = asyncio.Event()
+            cleanup_task = asyncio.create_task(
+                _history_backup_cleanup_loop(
+                    ctx.history_backup_export_service,
+                    cleanup_stop,
+                )
+            )
+            yield
+        finally:
+            try:
+                ctx.history_backup_accepting_jobs = False
+                app_instance.state.history_backup_accepting_jobs = False
+                if cleanup_stop is not None:
+                    cleanup_stop.set()
+                if cleanup_task is not None:
+                    await cleanup_task
+                shutdown_history_backup_services(ctx)
+            finally:
+                owner_lock.release()
+                ctx.history_backup_owner_lock = None
+                app_instance.state.history_backup_owner_lock = None
+
+
+async def _history_backup_cleanup_loop(
+    export_service: Any,
+    stop: asyncio.Event,
+    *,
+    interval_seconds: float = 60.0,
+) -> None:
+    while not stop.is_set():
+        try:
+            await asyncio.wait_for(stop.wait(), timeout=interval_seconds)
+        except TimeoutError:
+            try:
+                await asyncio.to_thread(export_service.cleanup_expired)
+            except Exception:
+                # Cleanup is best-effort and will retry on the next interval.
+                continue
 
 
 def _default_client_factory() -> CodexImageClient:

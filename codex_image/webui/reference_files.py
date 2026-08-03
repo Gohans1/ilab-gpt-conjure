@@ -14,6 +14,7 @@ from typing import Any, Iterable, Literal
 
 from fastapi import UploadFile
 
+from .atomic_files import _fsync_parent, atomic_write_text
 from .reference_file_policy import REFERENCE_FILE_TYPES, ReferenceFileFamily
 from .storage_utils import utc_now
 
@@ -30,6 +31,14 @@ class ValidatedReferenceFile:
     data: bytes
     size_bytes: int
     detail: Literal["auto"] | None
+
+
+@dataclass(frozen=True)
+class ReferenceFileRestore:
+    record: dict[str, Any]
+    created: bool
+    version: int
+    restore_token: str | None = None
 
 _COMPOUND_FILE_SIGNATURE = bytes.fromhex("d0cf11e0a1b11ae1")
 _DISALLOWED_TEXT_MAGIC = (
@@ -206,6 +215,7 @@ class ReferenceFileStorage:
     def __init__(self, root: Path | str) -> None:
         self.root = Path(root).resolve()
         self._lock = threading.RLock()
+        self._restore_versions: dict[str, int] = {}
 
     def create_or_touch(self, file: ValidatedReferenceFile) -> dict[str, Any]:
         if not isinstance(file, ValidatedReferenceFile):
@@ -215,6 +225,8 @@ class ReferenceFileStorage:
         if file.asset_id != expected_id or file.size_bytes != expected_size:
             raise ValueError("reference_file_invalid")
         with self._lock:
+            self._invalidate_restore_ownership(file.asset_id)
+            self._restore_versions[file.asset_id] = self._restore_versions.get(file.asset_id, 0) + 1
             data_path, metadata_path = self._item_paths(file.asset_id)
             data_path.parent.mkdir(parents=True, exist_ok=True)
             if data_path.exists():
@@ -247,6 +259,125 @@ class ReferenceFileStorage:
                 family=file.family,
             )
 
+    def restore_validated(self, file: ValidatedReferenceFile) -> ReferenceFileRestore:
+        uploads = self._validated_unique_uploads([file])
+        if len(uploads) != 1:
+            raise ValueError("reference_file_invalid")
+        with self._lock:
+            asset_id = file.asset_id
+            version = self._restore_versions.get(asset_id, 0) + 1
+            self._restore_versions[asset_id] = version
+            data_path, metadata_path = self._item_paths(asset_id)
+            if data_path.exists() or metadata_path.exists():
+                metadata = self._read_verified_metadata(asset_id)
+                self._invalidate_restore_ownership(asset_id)
+                return ReferenceFileRestore(
+                    reference_file_task_record({
+                        **metadata,
+                        "filename": file.filename,
+                        "mime_type": file.mime_type,
+                        "family": file.family,
+                    }),
+                    False,
+                    version,
+                    None,
+                )
+            staged_blob: Path | None = None
+            staged_metadata: Path | None = None
+            try:
+                staged_blob = self._stage_bytes(data_path, file.data)
+                metadata = self._new_metadata(file, touched_at=utc_now())
+                staged_metadata = self._stage_metadata(metadata_path, metadata)
+                self._publish_staged(staged_blob, data_path)
+                staged_blob = None
+                try:
+                    self._publish_staged(staged_metadata, metadata_path)
+                    staged_metadata = None
+                except Exception:
+                    data_path.unlink(missing_ok=True)
+                    raise
+            except Exception as exc:
+                data_path.unlink(missing_ok=True)
+                metadata_path.unlink(missing_ok=True)
+                if staged_blob is not None:
+                    staged_blob.unlink(missing_ok=True)
+                if staged_metadata is not None:
+                    staged_metadata.unlink(missing_ok=True)
+                try:
+                    data_path.parent.rmdir()
+                except OSError:
+                    pass
+                raise ValueError("reference_file_invalid") from exc
+            restore_token = uuid.uuid4().hex
+            atomic_write_text(self._restore_token_path(asset_id), restore_token, mode=0o600)
+            return ReferenceFileRestore(reference_file_task_record(file), True, version, restore_token)
+
+    def rollback_restore(self, handle: ReferenceFileRestore) -> bool:
+        if not isinstance(handle, ReferenceFileRestore) or not handle.created:
+            return False
+        asset_id = str(handle.record.get("id") or "")
+        with self._lock:
+            if not self.restore_identity_matches(handle):
+                return False
+            try:
+                metadata = self._read_verified_metadata(asset_id)
+            except (FileNotFoundError, OSError, ValueError):
+                return False
+            if metadata.get("sha256") != asset_id:
+                return False
+            self.delete_created(asset_id)
+            self._restore_versions.pop(asset_id, None)
+            return True
+
+    def restore_identity_matches(self, handle: ReferenceFileRestore) -> bool:
+        if not isinstance(handle, ReferenceFileRestore) or not handle.created or not handle.restore_token:
+            return False
+        asset_id = str(handle.record.get("id") or "")
+        try:
+            return self._restore_token_path(asset_id).read_text(encoding="utf-8") == handle.restore_token
+        except OSError:
+            return False
+
+    def restore_target_exists(self, handle: ReferenceFileRestore) -> bool:
+        asset_id = str(handle.record.get("id") or "")
+        try:
+            data_path, metadata_path = self._item_paths(asset_id)
+        except ValueError:
+            return True
+        return any((
+            data_path.exists(),
+            metadata_path.exists(),
+            self._restore_token_path(asset_id).exists(),
+        ))
+
+    def release_restore_ownership(self, handle: ReferenceFileRestore) -> bool:
+        if not isinstance(handle, ReferenceFileRestore) or not handle.created or not handle.restore_token:
+            return True
+        with self._lock:
+            path = self._restore_token_path(str(handle.record.get("id") or ""))
+            try:
+                current = path.read_text(encoding="utf-8")
+            except FileNotFoundError:
+                return True
+            except OSError:
+                return False
+            if current != handle.restore_token:
+                return True
+            try:
+                path.unlink()
+                _fsync_parent(path)
+            except OSError:
+                return False
+            return True
+
+    def _invalidate_restore_ownership(self, asset_id: str) -> None:
+        path = self._restore_token_path(asset_id)
+        try:
+            path.unlink()
+        except FileNotFoundError:
+            return
+        _fsync_parent(path)
+
     def touch(
         self,
         asset_id: str,
@@ -256,6 +387,7 @@ class ReferenceFileStorage:
         family: str | None = None,
     ) -> dict[str, Any]:
         with self._lock:
+            self._invalidate_restore_ownership(asset_id)
             metadata = self._read_metadata(asset_id, require_data=True)
             return self._touch_metadata(metadata, filename=filename, mime_type=mime_type, family=family)
 
@@ -292,6 +424,7 @@ class ReferenceFileStorage:
             try:
                 for record in task_records:
                     asset_id = str(record["id"])
+                    self._invalidate_restore_ownership(asset_id)
                     upload = upload_by_id.get(asset_id)
                     data_path, metadata_path = self._item_paths(asset_id)
                     if upload is not None:
@@ -406,6 +539,22 @@ class ReferenceFileStorage:
                 raise ValueError("reference_file_invalid")
             self._verify_blob(data_path, expected_id=asset_id, expected_size=stored_size)
             return data_path
+
+    def delete_created(self, asset_id: str) -> None:
+        """Remove one caller-journaled newly created item, never a directory tree."""
+        with self._lock:
+            data_path, metadata_path = self._item_paths(asset_id)
+            data_path.unlink(missing_ok=True)
+            metadata_path.unlink(missing_ok=True)
+            self._restore_token_path(asset_id).unlink(missing_ok=True)
+            try:
+                data_path.parent.rmdir()
+            except OSError:
+                pass
+
+    def _restore_token_path(self, asset_id: str) -> Path:
+        data_path, _ = self._item_paths(asset_id)
+        return data_path.parent / ".restore-owner"
 
     def _touch_metadata(
         self,

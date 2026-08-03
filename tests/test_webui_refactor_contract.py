@@ -410,6 +410,17 @@ class WebUIRefactorContractTests(unittest.TestCase):
                 ("/api/task-history/organize", "POST"),
                 ("/api/task-history/exports", "POST"),
                 ("/api/task-history/exports/{export_id}", "GET"),
+                ("/api/task-history/backup-exports", "POST"),
+                ("/api/task-history/backup-exports/estimate", "POST"),
+                ("/api/task-history/backup-exports/{job_id}", "GET"),
+                ("/api/task-history/backup-exports/{job_id}", "DELETE"),
+                ("/api/task-history/backup-exports/{job_id}/download", "GET"),
+                ("/api/task-history/backup-imports", "POST"),
+                ("/api/task-history/backup-imports/{session_id}/chunks", "PUT"),
+                ("/api/task-history/backup-imports/{session_id}", "GET"),
+                ("/api/task-history/backup-imports/{session_id}", "DELETE"),
+                ("/api/task-history/backup-imports/{session_id}/validate", "POST"),
+                ("/api/task-history/backup-imports/{session_id}/restore", "POST"),
                 ("/api/tasks/{task_id}", "GET"),
                 ("/api/tasks/{task_id}", "DELETE"),
                 ("/api/tasks/{task_id}/viewed", "PATCH"),
@@ -450,6 +461,7 @@ class WebUIRefactorContractTests(unittest.TestCase):
                 ("/api/reference-assets/{asset_id}/image", "GET"),
                 ("/api/reference-files/recent", "GET"),
                 ("/api/generation-catalog", "GET"),
+                ("/api/tasks/sidebar/groups/{group_key}/position/{task_id}", "GET"),
                 ("/api/network-egress", "GET"),
                 ("/api/network-egress", "PATCH"),
                 ("/api/network-egress/test", "POST"),
@@ -473,6 +485,9 @@ class WebUIRefactorContractTests(unittest.TestCase):
             self.assertIs(app.state.ctx.storage, app.state.storage)
             self.assertIs(app.state.ctx.queue_storage, app.state.queue_storage)
             self.assertIs(app.state.ctx.queue_manager, app.state.queue_manager)
+            self.assertIs(app.state.ctx.history_backup_planner, app.state.history_backup_planner)
+            self.assertIs(app.state.ctx.history_backup_export_service, app.state.history_backup_export_service)
+            self.assertIs(app.state.ctx.history_backup_import_service, app.state.history_backup_import_service)
 
     def test_health_route_still_reports_auth_status(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

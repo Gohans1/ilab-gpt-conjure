@@ -206,6 +206,13 @@ def register_task_routes(app: FastAPI, ctx: WebUIContext) -> None:
             raise HTTPException(status_code=409, detail="Too many matching tasks; narrow the filters first")
         return result
 
+    @app.get("/api/tasks/sidebar/groups/{group_key}/position/{task_id}")
+    def locate_sidebar_task_group_position(group_key: str, task_id: str) -> dict[str, Any]:
+        try:
+            return ctx.storage.generation_sidebar_group_task_position(group_key, task_id)
+        except ValueError as exc:
+            raise HTTPException(status_code=404, detail="Task group not found") from exc
+
     @app.post("/api/tasks/delete-batch")
     def delete_tasks_batch(payload: dict[str, Any] = Body(...)) -> dict[str, Any]:
         raw_ids = payload.get("task_ids")

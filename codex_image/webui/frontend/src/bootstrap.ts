@@ -146,6 +146,7 @@ const bridgeMethods: LegacyMethods = {
   restoreExpandedTaskGroupKey: proxy("restoreExpandedTaskGroupKey"),
   restoreLegacyArchivedTasks: proxy("restoreLegacyArchivedTasks"),
   restoreMainModel: proxy("restoreMainModel"),
+  restoreCollectedReferences: proxy("restoreCollectedReferences"),
   restoreSidebarWidth: proxy("restoreSidebarWidth"),
   restoreThemePreference: proxy("restoreThemePreference"),
   revokeTaskUploadPreviewUrls: proxy("revokeTaskUploadPreviewUrls"),

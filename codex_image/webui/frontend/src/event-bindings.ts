@@ -70,11 +70,7 @@ export function bindSharedTopNavSettingsEvents(
   });
   els.apiProviderSearch?.addEventListener("input", () => call(methods, "renderApiProviderList"));
   els.apiProviderList?.addEventListener("click", (event: Event) => {
-    const sortButton = (event.target as HTMLElement | null)?.closest?.("[data-api-provider-sort]") as HTMLElement | null;
-    if (sortButton) {
-      call(methods, "moveApiProvider", sortButton.dataset.apiProviderId, sortButton.dataset.apiProviderSort);
-      return;
-    }
+    if ((event.target as HTMLElement | null)?.closest?.("[data-api-provider-sort-handle]")) return;
     const button = (event.target as HTMLElement | null)?.closest?.("[data-api-provider-id]") as HTMLElement | null;
     if (!button) return;
     call(methods, "selectApiProvider", button.dataset.apiProviderId);

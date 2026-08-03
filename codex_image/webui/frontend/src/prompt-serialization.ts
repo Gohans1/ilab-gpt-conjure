@@ -145,6 +145,7 @@ export function setPromptWithGalleryRefs(text: any, refs: any): void {
   const refList = Array.isArray(refs) ? refs : [];
   const sortedRefs = galleryRefsByMentionLength(refList);
   const promptText = normalizePromptEditorText(text);
+  clearPromptEditorSelection();
   els.promptEditor.innerHTML = "";
   let cursor = 0;
   let plainStart = 0;
@@ -182,6 +183,16 @@ export function setPromptWithGalleryRefs(text: any, refs: any): void {
   hideMentionSuggest();
   hideColorSuggest();
   hidePromptSnippetSuggest();
+  hidePromptSnippetSelectionButton();
+  closePromptSnippetPopover();
+}
+
+function clearPromptEditorSelection(): void {
+  const selection = window.getSelection();
+  if (!selection?.rangeCount || !els.promptEditor) return;
+  const intersectsEditor = Array.from({ length: selection.rangeCount }, (_, index) => selection.getRangeAt(index))
+    .some((range) => rangeIntersectsNode(range, els.promptEditor));
+  if (intersectsEditor) selection.removeAllRanges();
 }
 
 export function appendPromptText(text: any): void {

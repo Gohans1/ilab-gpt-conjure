@@ -1,75 +1,54 @@
 # 下载 / Releases
 
-当前正式版本：[v0.7.3](https://github.com/kadevin/ilab-conjure/releases/tag/v0.7.3)
+当前正式版本：[v0.8.0](https://github.com/kadevin/ilab-conjure/releases/tag/v0.8.0)
 
 ## 版本说明
 
-当前版本：`v0.7.3`。本版重点解决程序长时间运行时可能出现的持续硬盘写入、任务状态不同步和退出不完整问题，同时加强本地数据、参考图和 API Key 的保护，并修复近期反馈的多项界面问题。建议经常并发生成、多图生成或长期保持程序运行的用户更新。
+当前版本：`v0.8.0`。本版把历史库升级为可备份、恢复和高效批量整理的本地工作空间，并统一任务卡、参考图和大图查看交互，同时提供更轻的一键包。适合历史任务较多、经常使用参考图迭代，或需要迁移本地任务记录的用户更新。
 
-本版重点：降低空闲状态下的磁盘写入，提升任务队列、取消和程序退出的可靠性；升级不会迁移、重置或删除已有设置、任务数据库、历史图库、输入图和输出图。
+本版重点：新增历史任务原始数据备份与恢复、按传统桌面文件管理选择方式操作任务并提供上下文操作、任务卡滑动与批量交互、参考图暂存、统一大图查看、API 供应商拖拽排序和可取消网络请求；升级不会迁移、重置或删除已有设置、任务数据库、历史图库、输入图和输出图。
 
 本版详情：
 
-### 硬盘写入与队列稳定性
+### 历史任务备份与恢复
 
-- 修复队列空闲时仍可能持续访问任务数据库、造成高频硬盘写入的问题。
-- 空闲状态不再反复检查所有供应商通道；只有新增任务、重试、设置变化或程序恢复时才唤醒队列。
-- 运行中的任务按实际开始顺序稳定排列，新开始的任务追加在后面，不再出现顺序来回跳动。
-- 修复刷新任务列表或删除其他任务后，多图任务的多个生成状态指示变成单个的问题。
-- 修复等待任务切换为运行中时，任务卡短暂显示不一致状态或明显卡顿的问题。
+- 可在历史库后台打包任务原始记录及关联文件，打包完成后通过一次性下载取回备份，不必阻塞当前浏览和整理操作。
+- 支持把备份 ZIP 分块上传并先行预检，再恢复到当前本地数据目录；已存在且内容一致的任务会跳过，标识相同但内容冲突的任务会明确拒绝。
+- 导入过程包含路径、格式和资源限制检查；失败时回滚本次写入，不改动原备份，也不覆盖已有任务。
+- 导入完成后会重建必要索引；重新启动程序后，恢复的任务仍可在历史库中正常搜索、筛选和打开。
 
-### 任务取消与程序退出
+### 历史库选择、定位与批量整理
 
-- 取消运行中的任务后会显示“正在取消”。服务商调用真正返回前，任务仍保留运行槽位，避免后续任务过早开始或并发数量失真。
-- 取消提示会明确说明：已经发出的服务商调用在返回前可能仍会继续，也可能仍会计费。
-- 正常关闭标准 App、portable 一键包或源码运行程序时，未完成且未被用户取消的任务会回到等待队列，重新启动后继续。
-- 优化启动器和快捷启动脚本的进程管理，减少程序关闭后仍残留 WebUI 服务或日志进程的情况。
-- 同一数据目录只允许一个程序实例运行。重复启动时只会提示关闭已有实例，不会尝试重置数据库或清理历史文件。
+- 按传统桌面文件管理选择方式操作任务：支持单击、追加选择、范围选择、键盘快捷键和空白处清除，网格与列表视图保持一致。
+- 选中任务后显示与当前状态匹配的上下文操作面板，批量收藏、标签、导出和删除等操作更集中；隐藏或失效的选择不会继续参与操作。
+- 当前筛选条件以可移除标签呈现，移动端提供独立筛选入口；网格密度和任务卡布局会随可用空间调整。
+- 浏览位置改为按任务锚点记忆。切换筛选、排序、视图、打开详情或刷新后，会尽量回到原任务；目标不在首批结果时也能由服务端加载对应窗口。
 
-### 生成页与历史库修复
+### 任务卡、参考图与提示词
 
-- 任务完成通知现在会显示在大图查看层上方，不再被图片遮住。
-- 历史库滚动到中间或后面查看任务时，新任务完成不会再把页面拉回顶部。
-- 精选、取消精选或删除未精选图片后，任务继续保持已读状态。
-- 统一创建任务前后的预览区域尺寸，减少右侧预览框瞬间放大、缩小的闪动。
-- 运行状态动画在任务卡刷新后保持连续，减少等待和运行状态切换时的视觉跳动。
-- 放大任务卡悬浮操作图标和停止图标，改善图标与按钮外轮廓比例。
-- “正在取消”的任务会保持明确状态，避免被重复删除或错误显示为已结束。
+- 等待中、运行中和历史任务卡支持触控或鼠标滑动操作，并补充批量选择和键盘交互，常用任务操作不必反复打开菜单。
+- 任务卡的选中、焦点、状态和操作层级重新整理；浅色／深色主题、窄屏和减少动态效果设置下均提供更清晰反馈。
+- 生成页新增参考图暂存：切换任务或浏览历史时，尚未提交的参考图和输入状态可恢复，减少多轮迭代时重复选图。
+- 提示词片段可在当前光标位置展开并继续组合，快捷 chip 与编辑器内容保持同步。
 
-### 最近上传与参考图保护
+### 统一大图查看
 
-- 未被任何任务引用的最近上传图片可以永久删除，并从当前输入中移除同一图片。
-- 已被任务引用的图片不再允许永久删除，只能从“最近上传”栏隐藏；原图、当前输入和历史任务预览都会保留。
-- 再次上传相同图片时，之前隐藏的图片会重新出现在最近上传栏。
-- 自动整理最近上传图片时会跳过仍被任务引用的素材，避免历史任务参考图意外丢失。
-- 修复最近上传图片的删除按钮顶部被裁切的问题。
-- 修复横向滚动到后续图片时，缩略图必须经过鼠标悬停才开始加载的问题。
+- 生成页与历史库共用统一大图查看控制，支持缩放、拖动、重置、上一张／下一张和键盘导航。
+- 按钮状态、焦点管理和无障碍标签统一，触控、鼠标和键盘操作得到一致反馈。
 
-### 提示词与供应商设置
+### API 供应商与任务取消
 
-- 原始模式严格按用户输入的原文发送，不再追加应用级比例文字或保真指令。
-- 保真模式根据提交任务时的界面语言生成约束，并在任务创建时固定下来。
-- 排队、重试和程序重启不会重新翻译提示词，也不会重复追加比例或保真说明。
-- API Key 按协议、主机和端口进行隔离。只修改同一中转站内的路径时继续保留已有 Key。
-- 主动更换协议、域名或端口时，需要同时输入新地址对应的 API Key，防止旧 Key 被误发到其他服务。
-- 已经排队的任务不会因为后来更换供应商地址而误用新地址的 Key；需要确认设置后重新提交。
+- API 供应商卡片支持拖拽排序，顺序保存在本机；连接检查会针对当前选中的供应商执行，减少误测其他配置。
+- 网络执行层改为可取消的异步请求。用户取消任务或关闭程序时，取消信号可以传递到仍在等待的请求，减少不必要的等待。
 
-### 本地数据与资源保护
+### 更轻的一键包
 
-- 加强本机访问限制，拒绝其他网站对本地 WebUI 发起写入操作。
-- 任务数据库、设置、任务记录和调试文件不会作为普通静态文件提供。
-- 任务图片只有在能够确认属于对应任务时才允许访问，未归属文件不会意外暴露。
-- 加强上传图片、服务商返回结果和大文件下载的有效性与资源限制，防止损坏文件或异常大的内容占用过多内存和磁盘。
-- 生成请求会先完成输入、供应商和参数检查，再创建任务和保存素材；提交失败不会留下孤立任务或误删已有文件。
-- 多图 ZIP 下载增加总量保护，打包失败不会修改原始图片。
+- portable 和标准包构建会移除仅用于开发或重建的 TypeScript/CSS 源、source map、前端构建元数据、测试目录和 Python 打包工具，保留运行所需源码、已编译 WebUI 与依赖。
+- README 截图改用 WebP，进一步降低仓库和下载体积；一键包的启动、更新、备份目录和本地 `data/` 保留方式不变。
 
 ### 安装与升级
 
-- 标准包和 portable 包自带的依赖已经匹配时，不会额外安装依赖。
-- 使用旧 `.venv` 的源码或快捷脚本启动方式，首次运行新版时可能显示 `Installing WebUI dependencies...`，完成后即可正常启动。
-- 依赖安装失败只会阻止本次启动，不会删除或重置设置、任务、图库和图片。
 - 升级前应先退出旧实例；如果提示数据目录正在使用，只需关闭旧程序后重试。
-- API 地址没有变化时，升级不要求重新输入 API Key。
 - 已有设置、任务数据库、历史图库、输入图和输出图全部保留，不需要重置配置或手动迁移。
 - `v0.5.4` 及更早 portable 用户首次升级到当前版本时，建议手动下载完整标准包或完整 portable 包；旧 updater 只保证升级 WebUI/依赖，不保证安装新的小兔子启动器、标准 `.app` / `.exe` 入口和迁移助手。
 
@@ -77,9 +56,9 @@
 
 | 平台 | 推荐给 | 下载 | SHA256 |
 | --- | --- | --- | --- |
-| macOS Apple Silicon | 新用户，M1/M2/M3/M4 | [iLab-GPT-CONJURE-macos-arm64-0.7.3.dmg](https://github.com/kadevin/ilab-conjure/releases/download/v0.7.3/iLab-GPT-CONJURE-macos-arm64-0.7.3.dmg) | [sha256](https://github.com/kadevin/ilab-conjure/releases/download/v0.7.3/iLab-GPT-CONJURE-macos-arm64-0.7.3.dmg.sha256.txt) |
-| macOS Intel | 新用户，Intel x64 | [iLab-GPT-CONJURE-macos-x64-0.7.3.dmg](https://github.com/kadevin/ilab-conjure/releases/download/v0.7.3/iLab-GPT-CONJURE-macos-x64-0.7.3.dmg) | [sha256](https://github.com/kadevin/ilab-conjure/releases/download/v0.7.3/iLab-GPT-CONJURE-macos-x64-0.7.3.dmg.sha256.txt) |
-| Windows x64 | 新用户，Windows 10/11 x64 | [iLab-GPT-CONJURE-windows-x64_0.7.3.zip](https://github.com/kadevin/ilab-conjure/releases/download/v0.7.3/iLab-GPT-CONJURE-windows-x64_0.7.3.zip) | [sha256](https://github.com/kadevin/ilab-conjure/releases/download/v0.7.3/iLab-GPT-CONJURE-windows-x64_0.7.3.zip.sha256.txt) |
+| macOS Apple Silicon | 新用户，M1/M2/M3/M4 | [iLab-GPT-CONJURE-macos-arm64-0.8.0.dmg](https://github.com/kadevin/ilab-conjure/releases/download/v0.8.0/iLab-GPT-CONJURE-macos-arm64-0.8.0.dmg) | [sha256](https://github.com/kadevin/ilab-conjure/releases/download/v0.8.0/iLab-GPT-CONJURE-macos-arm64-0.8.0.dmg.sha256.txt) |
+| macOS Intel | 新用户，Intel x64 | [iLab-GPT-CONJURE-macos-x64-0.8.0.dmg](https://github.com/kadevin/ilab-conjure/releases/download/v0.8.0/iLab-GPT-CONJURE-macos-x64-0.8.0.dmg) | [sha256](https://github.com/kadevin/ilab-conjure/releases/download/v0.8.0/iLab-GPT-CONJURE-macos-x64-0.8.0.dmg.sha256.txt) |
+| Windows x64 | 新用户，Windows 10/11 x64 | [iLab-GPT-CONJURE-windows-x64_0.8.0.zip](https://github.com/kadevin/ilab-conjure/releases/download/v0.8.0/iLab-GPT-CONJURE-windows-x64_0.8.0.zip) | [sha256](https://github.com/kadevin/ilab-conjure/releases/download/v0.8.0/iLab-GPT-CONJURE-windows-x64_0.8.0.zip.sha256.txt) |
 
 标准包数据目录：
 
@@ -92,13 +71,13 @@
 
 | 平台 | 适用设备 | 下载 | SHA256 |
 | --- | --- | --- | --- |
-| Windows x64 | Windows 10/11 x64 | [ilab-gpt-conjure_windows_portable_x64_0.7.3.zip](https://github.com/kadevin/ilab-conjure/releases/download/v0.7.3/ilab-gpt-conjure_windows_portable_x64_0.7.3.zip) | [sha256](https://github.com/kadevin/ilab-conjure/releases/download/v0.7.3/ilab-gpt-conjure_windows_portable_x64_0.7.3.zip.sha256.txt) |
-| macOS Apple Silicon | M1/M2/M3/M4 | [ilab-gpt-conjure_macos_portable_arm64_0.7.3.zip](https://github.com/kadevin/ilab-conjure/releases/download/v0.7.3/ilab-gpt-conjure_macos_portable_arm64_0.7.3.zip) | [sha256](https://github.com/kadevin/ilab-conjure/releases/download/v0.7.3/ilab-gpt-conjure_macos_portable_arm64_0.7.3.zip.sha256.txt) |
-| macOS Intel | Intel x64 | [ilab-gpt-conjure_macos_portable_x64_0.7.3.zip](https://github.com/kadevin/ilab-conjure/releases/download/v0.7.3/ilab-gpt-conjure_macos_portable_x64_0.7.3.zip) | [sha256](https://github.com/kadevin/ilab-conjure/releases/download/v0.7.3/ilab-gpt-conjure_macos_portable_x64_0.7.3.zip.sha256.txt) |
+| Windows x64 | Windows 10/11 x64 | [ilab-gpt-conjure_windows_portable_x64_0.8.0.zip](https://github.com/kadevin/ilab-conjure/releases/download/v0.8.0/ilab-gpt-conjure_windows_portable_x64_0.8.0.zip) | [sha256](https://github.com/kadevin/ilab-conjure/releases/download/v0.8.0/ilab-gpt-conjure_windows_portable_x64_0.8.0.zip.sha256.txt) |
+| macOS Apple Silicon | M1/M2/M3/M4 | [ilab-gpt-conjure_macos_portable_arm64_0.8.0.zip](https://github.com/kadevin/ilab-conjure/releases/download/v0.8.0/ilab-gpt-conjure_macos_portable_arm64_0.8.0.zip) | [sha256](https://github.com/kadevin/ilab-conjure/releases/download/v0.8.0/ilab-gpt-conjure_macos_portable_arm64_0.8.0.zip.sha256.txt) |
+| macOS Intel | Intel x64 | [ilab-gpt-conjure_macos_portable_x64_0.8.0.zip](https://github.com/kadevin/ilab-conjure/releases/download/v0.8.0/ilab-gpt-conjure_macos_portable_x64_0.8.0.zip) | [sha256](https://github.com/kadevin/ilab-conjure/releases/download/v0.8.0/ilab-gpt-conjure_macos_portable_x64_0.8.0.zip.sha256.txt) |
 
 portable 自动更新 manifest：
 
-- [latest.json](https://github.com/kadevin/ilab-conjure/releases/download/v0.7.3/latest.json)
+- [latest.json](https://github.com/kadevin/ilab-conjure/releases/download/v0.8.0/latest.json)
 
 使用方式：
 

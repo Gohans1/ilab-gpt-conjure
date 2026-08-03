@@ -121,7 +121,7 @@
         });
       })();
     </script>
-    <link rel="stylesheet" href="/static/styles.css?v=runtime-666" />
+    <link rel="stylesheet" href="/static/styles.css?v=runtime-768" />
   </head>
   <body>
     <div class="layout-container">
@@ -264,17 +264,17 @@
                 data-i18n="batch.cancelTasksShortcut"
                 hidden
               >批量取消</button>
-              <button id="batchManageButton" class="ghost-button icon-button task-history-batch-button" type="button" data-i18n="footer.batch">批量管理</button>
+              <button id="batchManageButton" class="ghost-button icon-button task-history-batch-button" type="button" aria-pressed="false" data-i18n="footer.batch">批量管理</button>
             </div>
           </div>
           <div id="batchToolbar" class="batch-toolbar hidden" aria-live="polite">
             <div id="batchSelectedCount" class="batch-selected-count" data-i18n="batch.selected">已选择 0 个</div>
             <div class="batch-toolbar-actions">
               <button id="batchSelectGroupButton" class="ghost-button text-sm" type="button" data-i18n="batch.selectCurrentGroup">全选本组</button>
+              <button id="batchSelectWaitingButton" class="ghost-button text-sm" type="button" data-i18n="batch.selectWaiting">全选等待中</button>
               <button id="batchArchiveButton" class="ghost-button text-sm" type="button" disabled data-i18n="action.archive">归档</button>
-              <button id="batchCancelSelectedButton" class="ghost-button text-sm danger-button" type="button" disabled data-i18n="batch.cancelSelected">取消任务</button>
               <button id="batchDeleteButton" class="ghost-button text-sm danger-button" type="button" disabled data-i18n="action.delete">删除</button>
-              <button id="batchCancelButton" class="ghost-button text-sm" type="button" data-i18n="action.cancel">取消</button>
+              <button id="batchCancelSelectedButton" class="ghost-button text-sm danger-button" type="button" disabled data-i18n="batch.cancelSelected">取消任务</button>
             </div>
           </div>
           <div
@@ -288,6 +288,10 @@
             class="task-history-anchor-rail task-history-anchor-rail-top hidden"
             aria-label="顶部时间导航"
             data-i18n-attr="aria-label:sidebar.topAnchors"
+          ></div>
+          <div
+            id="taskHistoryCurrentAnchor"
+            class="task-history-current-anchor hidden"
           ></div>
           <div class="sidebar-content">
             <button
@@ -330,6 +334,7 @@
             <span id="versionUpdateBadge" class="version-update-badge hidden" aria-hidden="true"></span>
           </button>
         </div>
+        <div id="taskQueueDragLayer" class="task-queue-drag-layer"></div>
         <div
           id="sidebarResizeHandle"
           class="sidebar-resize-handle"
@@ -394,6 +399,7 @@
 
         <!-- Dashboard Workspace -->
         <main class="dashboard">
+          <h1 class="sr-only">iLab CONJURE</h1>
           <div class="dashboard-col controls-col">
             <input id="model" type="hidden" value="gpt-image-2" />
             <!-- Image Input -->
@@ -406,6 +412,7 @@
                 <div class="image-input-left">
                   <div class="image-input-main">
                     <div class="image-uploader-grid">
+                      <div id="referenceCollector" class="reference-collector hidden" aria-live="polite"></div>
                       <div id="imageStrip" class="image-strip">
                         <div id="imageThumbList" class="image-thumb-list">
                           <div id="imageThumbItems" class="image-thumb-items"></div>
@@ -425,7 +432,6 @@
                           </label>
                         </div>
                       </div>
-                      <div id="referenceCollector" class="reference-collector hidden" aria-live="polite"></div>
                     </div>
                   </div>
                   <div class="image-input-footer">
@@ -444,7 +450,27 @@
                       </button>
                     </div>
                     <div id="recentAssetDock" class="recent-asset-dock hidden" aria-label="最近上传图片" data-i18n-attr="aria-label:imageInput.recent">
-                      <div class="recent-asset-heading" data-i18n="imageInput.recent">最近上传</div>
+                      <div class="recent-asset-heading">
+                        <span data-i18n="imageInput.recent">最近上传</span>
+                        <button
+                          id="recentAssetVisibilityToggle"
+                          class="recent-asset-visibility-toggle"
+                          type="button"
+                          aria-expanded="true"
+                          aria-controls="recentAssetList"
+                          aria-label="隐藏最近上传图片"
+                          title="隐藏最近上传图片"
+                          data-i18n-attr="aria-label:recentAssets.hidePreviews;title:recentAssets.hidePreviews"
+                        >
+                          <svg class="recent-asset-visibility-icon recent-asset-visibility-icon-hide" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                            <path d="M3 3l18 18M10.6 10.7a2 2 0 0 0 2.7 2.7M9.9 4.3A10.9 10.9 0 0 1 12 4c5.5 0 9 5.5 9 8a9.8 9.8 0 0 1-2.1 3.6M6.2 6.2C4.2 7.6 3 10.2 3 12c0 2.5 3.5 8 9 8 1.2 0 2.3-.3 3.3-.7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                          </svg>
+                          <svg class="recent-asset-visibility-icon recent-asset-visibility-icon-show" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                            <path d="M3 12c0-2.5 3.5-8 9-8s9 5.5 9 8-3.5 8-9 8-9-5.5-9-8Z M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                          </svg>
+                        </button>
+                      </div>
+                      <div id="recentAssetStatus" class="recent-asset-status" role="status" aria-live="polite" hidden></div>
                       <div id="recentAssetList" class="recent-asset-list"></div>
                     </div>
                   </div>
@@ -657,7 +683,7 @@
                           </svg>
                         </button>
                       </div>
-                      <div class="radio-group" id="promptFidelityGroup">
+                      <div class="radio-group" id="promptFidelityGroup" role="group" aria-label="提示词处理模式" data-i18n-attr="aria-label:output.promptMode">
                         <button class="radio-btn" data-val="original" type="button" data-i18n="output.modeOriginal">原文</button>
                         <button class="radio-btn active" data-val="strict" type="button" data-i18n="output.modeStrict">保真</button>
                         <button class="radio-btn" data-val="off" type="button" data-i18n="output.modeCreative">自动</button>
@@ -684,7 +710,7 @@
 
                 <div class="field orientation-field">
                   <span data-i18n="output.orientation">方向</span>
-                  <div class="radio-group" id="orientationGroup">
+                  <div class="radio-group" id="orientationGroup" role="group" aria-label="方向" data-i18n-attr="aria-label:output.orientation">
                     <button class="radio-btn active" data-val="square" type="button">
                       <svg class="orientation-option-icon orientation-option-icon-square" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
                         <rect x="5" y="5" width="10" height="10" rx="2"></rect>
@@ -713,7 +739,7 @@
 
                 <div class="field resolution-field">
                   <span data-i18n="output.resolution">分辨率</span>
-                  <div class="radio-group" id="resolutionGroup">
+                  <div class="radio-group" id="resolutionGroup" role="group" aria-label="分辨率" data-i18n-attr="aria-label:output.resolution">
                     <button class="radio-btn active" data-val="standard" type="button">1K</button>
                     <button class="radio-btn" data-val="2k" type="button">2K</button>
                     <button class="radio-btn" data-val="4k" type="button">4K</button>
@@ -787,7 +813,7 @@
 
                 <div class="field full-width ratio-field">
                   <span data-i18n="output.ratio">比例</span>
-                  <div class="radio-group ratio-group" id="ratioGroup">
+                  <div class="radio-group ratio-group" id="ratioGroup" role="group" aria-label="比例" data-i18n-attr="aria-label:output.ratio">
                     <button class="radio-btn active" data-val="1:1" type="button">1:1</button>
                     <button class="radio-btn" data-val="4:5" type="button">4:5</button>
                     <button class="radio-btn" data-val="5:4" type="button">5:4</button>
@@ -818,7 +844,7 @@
                 <div class="field-pair full-width quantity-quality-row">
                   <div class="field quality-field">
                     <span data-i18n="output.quality">质量</span>
-                    <div class="radio-group">
+                    <div class="radio-group" id="qualityGroup" role="group" aria-label="质量" data-i18n-attr="aria-label:output.quality">
                       <button class="radio-btn active" data-val="auto" type="button" data-i18n="output.qualityAuto">自动</button>
                       <button class="radio-btn" data-val="low" type="button" data-i18n="output.qualityLow">低</button>
                       <button class="radio-btn" data-val="medium" type="button" data-i18n="output.qualityMedium">中</button>
@@ -834,7 +860,7 @@
 
                   <div class="field quantity-field">
                     <span data-i18n="output.quantity">数量</span>
-                    <div class="radio-group quantity-group" id="quantityGroup">
+                    <div class="radio-group quantity-group" id="quantityGroup" role="group" aria-label="数量" data-i18n-attr="aria-label:output.quantity">
                       <button class="radio-btn active" data-val="1" type="button">1</button>
                       <button class="radio-btn" data-val="2" type="button">2</button>
                       <button class="radio-btn" data-val="3" type="button">3</button>
@@ -849,7 +875,7 @@
                   </div>
                 </div>
 
-                <div id="pixelPreview" class="full-width" style="text-align: center; font-size: 13px; color: var(--primary); padding: 8px; background: var(--primary-light); border-radius: 6px;">
+                <div id="pixelPreview" class="full-width" style="text-align: center; font-size: 13px; color: var(--primary-strong); padding: 8px; background: var(--primary-light); border-radius: 6px;">
                   <span data-i18n="output.pixelPreview">输出像素: 1024 x 1024 px</span>
                 </div>
 
@@ -857,10 +883,10 @@
 
                 <div id="outputFormatField" class="field output-format-field">
                   <span data-i18n="output.format">输出格式</span>
-                  <div id="outputFormatGroup" class="radio-group">
-                    <button class="radio-btn active" data-val="png">png</button>
-                    <button class="radio-btn" data-val="jpeg">jpeg</button>
-                    <button class="radio-btn" data-val="webp">webp</button>
+                  <div id="outputFormatGroup" class="radio-group" role="group" aria-label="输出格式" data-i18n-attr="aria-label:output.format">
+                    <button class="radio-btn active" data-val="png" type="button">png</button>
+                    <button class="radio-btn" data-val="jpeg" type="button">jpeg</button>
+                    <button class="radio-btn" data-val="webp" type="button">webp</button>
                   </div>
                   <select id="outputFormat" class="hidden">
                     <option value="png">png</option>
@@ -880,9 +906,9 @@
 
                 <div class="field moderation-field">
                   <span data-i18n="output.moderation">审核</span>
-                  <div class="radio-group">
-                    <button class="radio-btn active" data-val="auto">auto</button>
-                    <button class="radio-btn" data-val="low">low</button>
+                  <div class="radio-group" id="moderationGroup" role="group" aria-label="审核" data-i18n-attr="aria-label:output.moderation">
+                    <button class="radio-btn active" data-val="auto" type="button">auto</button>
+                    <button class="radio-btn" data-val="low" type="button">low</button>
                   </div>
                   <select id="moderation" class="hidden">
                     <option value="auto">auto</option>
@@ -1472,7 +1498,7 @@
     </div>
 
     <div id="taskNotificationToastRegion" class="task-notification-toast-region" aria-live="polite"></div>
-  <script src="/static/app.js?v=runtime-666"></script>
+  <script src="/static/app.js?v=runtime-768"></script>
     <script>
       (() => {
         document.querySelectorAll(".radio-group").forEach((group) => {
@@ -1481,7 +1507,9 @@
 
           const syncButtons = () => {
             group.querySelectorAll(".radio-btn").forEach((button) => {
-              button.classList.toggle("active", button.getAttribute("data-val") === select.value);
+              const active = button.getAttribute("data-val") === select.value;
+              button.classList.toggle("active", active);
+              button.setAttribute("aria-pressed", String(active));
             });
           };
 

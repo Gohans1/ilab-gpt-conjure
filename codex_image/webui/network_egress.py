@@ -9,7 +9,7 @@ from types import MappingProxyType
 from typing import Any, Literal, Mapping, cast
 from urllib.parse import urlsplit, urlunsplit
 
-from codex_image.http import UrllibTransport
+from codex_image.httpx_transport import HttpxTransport
 
 from .schemas import DEFAULT_WEBUI_NETWORK_EGRESS_SETTINGS_PATH
 
@@ -152,5 +152,5 @@ class NetworkEgressManager:
         )
 
     @staticmethod
-    def transport(snapshot: NetworkEgressSnapshot) -> UrllibTransport:
-        return UrllibTransport(proxy_map=snapshot.proxy_map)
+    def transport(snapshot: NetworkEgressSnapshot) -> HttpxTransport:
+        return HttpxTransport(proxy_map=snapshot.proxy_map)

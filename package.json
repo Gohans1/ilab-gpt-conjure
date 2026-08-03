@@ -7,7 +7,7 @@
     "check:webui": "npm run build:webui:css && npm run typecheck:webui && npm run build:webui"
   },
   "devDependencies": {
-    "esbuild": "^0.28.0",
+    "esbuild": "^0.28.1",
     "typescript": "^6.0.3"
   },
   "dependencies": {

@@ -420,7 +420,7 @@ class WebUIStaticPromptTests(WebUIStaticTestCase):
         self.assertRegex(styles, r"\.prompt-template-recent-dock\s*\{[^}]*display:\s*flex")
         self.assertRegex(styles, r"\.prompt-template-recent-dock\s*\{[^}]*justify-content:\s*flex-end")
         self.assertRegex(styles, r"\.prompt-template-summary\.ok\s*\{[^}]*color:\s*var\(--primary\)")
-        self.assertRegex(styles, r"\.prompt-template-summary\.error\s*\{[^}]*color:\s*var\(--danger\)")
+        self.assertRegex(styles, r"\.prompt-template-summary\.error,\s*\.prompt-template-summary\.is-error\s*\{[^}]*color:\s*var\(--danger\)")
         toolbar_styles = self._extract_css_block(styles, ".prompt-template-toolbar")
         self.assertIn("grid-template-columns: minmax(0, 1fr) repeat(3, 64px)", toolbar_styles)
         self.assertIn("align-items: stretch", toolbar_styles)
@@ -970,6 +970,19 @@ class WebUIStaticPromptTests(WebUIStaticTestCase):
         self.assertRegex(styles, r"\.prompt-snippet-save-button\s*\{[^}]*position:\s*fixed")
         self.assertRegex(styles, r"\.prompt-snippet-popover\s*\{[^}]*position:\s*fixed")
         self.assertRegex(styles, r"\.prompt-snippet-popover-actions\s*\{[^}]*display:\s*flex")
+        serialization_source = Path("codex_image/webui/frontend/src/prompt-serialization.ts").read_text(encoding="utf-8")
+        snippets_source = Path("codex_image/webui/frontend/src/prompt-snippets.ts").read_text(encoding="utf-8")
+        prompt_with_refs = serialization_source.split("export function setPromptWithGalleryRefs", 1)[1].split(
+            "\n}\n\nexport function appendPromptText", 1
+        )[0]
+        hide_selection = snippets_source.split("function hidePromptSnippetSelectionButton() {", 1)[1].split(
+            "\n}\n\nfunction openPromptSnippetSavePopover", 1
+        )[0]
+        self.assertIn("clearPromptEditorSelection()", prompt_with_refs)
+        self.assertIn("hidePromptSnippetSelectionButton()", prompt_with_refs)
+        self.assertIn("closePromptSnippetPopover()", prompt_with_refs)
+        self.assertIn("state.promptSnippetSelectionRange = null", hide_selection)
+        self.assertIn('state.promptSnippetSelectionText = ""', hide_selection)
 
     def test_prompt_selection_save_button_stays_inside_visible_editor_rect(self) -> None:
         script = self._frontend_script_source()
@@ -1004,6 +1017,8 @@ class WebUIStaticPromptTests(WebUIStaticTestCase):
         self.assertRegex(script, r"function handlePromptEditorKeydown\(event\)\s*\{[\s\S]*event\.key\.toLowerCase\(\) === \"a\"[\s\S]*selectPromptEditorContents\(\)")
         self.assertRegex(styles, r"\.gallery-chip\.prompt-chip-selected\s*,\s*\.color-chip\.prompt-chip-selected\s*,\s*\.prompt-snippet-chip\.prompt-chip-selected\s*\{[^}]*box-shadow:")
         self.assertRegex(styles, r"\.gallery-chip-remove\s*,\s*\.color-chip-swatch\s*,\s*\.color-chip-remove\s*,\s*\.prompt-snippet-chip-remove\s*\{[^}]*user-select:\s*none")
+        self.assertRegex(styles, r"\.gallery-chip\s*,\s*\.color-chip\s*,\s*\.prompt-snippet-chip\s*\{[^}]*user-select:\s*none")
+        self.assertRegex(script, r"function handlePromptEditorClick\(event\)\s*\{[\s\S]*event\.detail\s*>=\s*3[\s\S]*selectPromptEditorContents\(\)")
     def test_prompt_editor_paste_strips_web_html_styles(self) -> None:
         events_source = Path("codex_image/webui/frontend/src/prompt-editor-events.ts").read_text(encoding="utf-8")
         source = Path("codex_image/webui/frontend/src/prompt-editor-paste.ts").read_text(encoding="utf-8")
@@ -1211,8 +1226,8 @@ console.log(cases.map((color) => readableTextColor(color)).join("\\n"));
         self.assertIn('id="mainModelToggle"', html)
         self.assertIn('id="mainModelOptions"', html)
         self.assertIn('role="listbox"', html)
-        self.assertIn('/static/app.js?v=runtime-666', html)
-        self.assertIn('/static/styles.css?v=runtime-666', html)
+        self.assertIn('/static/app.js?v=runtime-768', html)
+        self.assertIn('/static/styles.css?v=runtime-768', html)
         self.assertIn("mainModel: document.querySelector", script)
         self.assertIn("mainModelCombobox: document.querySelector", script)
         self.assertIn("mainModelToggle: document.querySelector", script)

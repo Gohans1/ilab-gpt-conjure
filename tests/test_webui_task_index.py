@@ -8,10 +8,112 @@ import sqlite3
 from tempfile import TemporaryDirectory
 import unittest
 
+from codex_image.webui.history_organizer import HistoryOrganizer
+from codex_image.webui.history_query import HistoryFilter
 from codex_image.webui.task_index import RATIO_OTHER_VALUE, SQLiteTaskIndex, _encode_cursor
 
 
 class WebUITaskIndexTests(unittest.TestCase):
+    def test_history_enumeration_applies_filters_without_page_cap(self) -> None:
+        with TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            index = SQLiteTaskIndex(root / "webui-task-index.db")
+            organizer = HistoryOrganizer(root / "webui-history-organizer.db")
+            portrait_tag = organizer.create_tag("Portrait")
+            favorite_tag = organizer.create_tag("Favorite set")
+            terminal_ids: list[str] = []
+            for number in range(350):
+                task_id = f"task-{number:03d}"
+                timestamp = f"2026-05-{number // 24 + 1:02d}T{number % 24:02d}:00:00+00:00"
+                status = "running" if number >= 340 else (
+                    "partial_failed" if number % 3 == 2 else "failed" if number % 3 == 1 else "completed"
+                )
+                index.upsert(
+                    {
+                        "task_id": task_id,
+                        "created_at": timestamp,
+                        "updated_at": timestamp,
+                        "status": status,
+                        "mode": "generate" if number % 2 == 0 else "animation_edit",
+                        "prompt": f"portrait batch {number}",
+                        "params": {
+                            "size": "1152x2048",
+                            "quality": "high",
+                            "ratio": "9:16",
+                            "orientation": "portrait",
+                            "prompt_fidelity": "strict",
+                        },
+                        "backend": "openai_images",
+                        "api_provider_name": "openai",
+                        "archived_at": "2026-06-01T00:00:00+00:00" if number % 5 == 0 else "",
+                    }
+                )
+                if status != "running":
+                    terminal_ids.append(task_id)
+
+            matching_ids = ["task-006", "task-012"]
+            organizer.organize(
+                matching_ids,
+                favorite=True,
+                add_tag_ids=[portrait_tag.tag_id, favorite_tag.tag_id],
+            )
+            organizer.organize(
+                ["task-018"],
+                favorite=True,
+                add_tag_ids=[portrait_tag.tag_id],
+            )
+
+            newest = list(index.iter_history_task_ids(HistoryFilter()))
+            oldest = list(index.iter_history_task_ids(HistoryFilter(sort="oldest")))
+            all_rows = list(
+                index._history_query_service().iter_matching_task_statuses(
+                    HistoryFilter(sort="oldest")
+                )
+            )
+            filtered = list(
+                index.iter_history_task_ids(
+                    HistoryFilter(
+                        q="portrait batch",
+                        month="2026-05",
+                        mode="generate",
+                        status="completed",
+                        prompt_mode="strict",
+                        size="1152x2048",
+                        quality="high",
+                        ratio="9:16",
+                        orientation="portrait",
+                        backend="openai_images",
+                        provider="openai",
+                        archived=False,
+                        favorite=True,
+                        tag_ids=(portrait_tag.tag_id, favorite_tag.tag_id),
+                    )
+                )
+            )
+            untagged = list(index.iter_history_task_ids(HistoryFilter(untagged=True)))
+
+            self.assertGreater(len(newest), 300)
+            self.assertEqual(len(newest), 340)
+            self.assertEqual(len(all_rows), 350)
+            self.assertEqual(
+                all_rows[:2],
+                [("task-000", "completed"), ("task-001", "failed")],
+            )
+            self.assertEqual(all_rows[-1], ("task-349", "running"))
+            self.assertEqual(newest, list(reversed(oldest)))
+            self.assertEqual(set(newest), set(terminal_ids))
+            self.assertEqual(filtered, ["task-012", "task-006"])
+            self.assertNotIn("task-006", untagged)
+            with self.assertRaisesRegex(ValueError, "untagged"):
+                list(
+                    index.iter_history_task_ids(
+                        HistoryFilter(
+                            tag_ids=(portrait_tag.tag_id,),
+                            untagged=True,
+                        )
+                    )
+                )
+
     def test_sidebar_uses_stable_terminal_time_instead_of_maintenance_update_time(self) -> None:
         with TemporaryDirectory() as tmp:
             index = SQLiteTaskIndex(Path(tmp) / "tasks.db")
@@ -78,6 +180,16 @@ class WebUITaskIndexTests(unittest.TestCase):
             second = index.generation_sidebar_group("today", offset=50, limit=50, now=query_now)
             third = index.generation_sidebar_group("today", offset=100, limit=50, now=query_now)
             failed_ids = index.generation_sidebar_group_task_ids("today", status="failed", now=query_now)
+            hidden_position = index.generation_sidebar_group_task_position(
+                "today",
+                "task-024",
+                now=query_now,
+            )
+            missing_position = index.generation_sidebar_group_task_position(
+                "today",
+                "task-missing",
+                now=query_now,
+            )
 
         all_ids = [
             task["task_id"]
@@ -91,6 +203,8 @@ class WebUITaskIndexTests(unittest.TestCase):
         self.assertEqual(len(all_ids), len(set(all_ids)))
         self.assertEqual(len(failed_ids["task_ids"]), 62)
         self.assertEqual(failed_ids["count"], 62)
+        self.assertEqual(hidden_position, {"key": "today", "count": 125, "found": True, "position": 100})
+        self.assertEqual(missing_position, {"key": "today", "count": 125, "found": False, "position": None})
 
     def test_index_preserves_user_cancellation_marker(self) -> None:
         with TemporaryDirectory() as tmp:

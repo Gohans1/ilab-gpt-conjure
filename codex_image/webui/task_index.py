@@ -6,10 +6,11 @@ from contextlib import closing
 from datetime import UTC, datetime, timedelta
 from math import gcd
 from pathlib import Path
-from typing import Any
+from typing import Any, Iterator
 
 from .history_organizer import HistoryOrganizer
 from .history_query import (
+    HistoryFilter,
     HistoryQueryService,
     RATIO_OTHER_VALUE,
     encode_history_cursor as _encode_cursor,
@@ -556,6 +557,51 @@ class SQLiteTaskIndex:
             "truncated": count > safe_limit,
         }
 
+    def generation_sidebar_group_task_position(
+        self,
+        key: str,
+        task_id: str,
+        *,
+        now: datetime | None = None,
+    ) -> dict[str, Any]:
+        where, params = self._generation_sidebar_group_query(
+            key,
+            now=now,
+            status="",
+            prompt_mode="",
+            ratio="",
+            orientation="",
+            resolution="",
+        )
+        with closing(self._connect()) as connection:
+            count = int(
+                connection.execute(
+                    f"select count(*) from task_index where {' and '.join(where)}",
+                    tuple(params),
+                ).fetchone()[0]
+            )
+            row = connection.execute(
+                f"""
+                with ranked as (
+                    select
+                        task_id,
+                        row_number() over (
+                            order by activity_at desc, created_at desc, task_id desc
+                        ) - 1 as position
+                    from task_index
+                    where {' and '.join(where)}
+                )
+                select position from ranked where task_id = ?
+                """,
+                (*params, str(task_id or "")),
+            ).fetchone()
+        return {
+            "key": key,
+            "count": count,
+            "found": row is not None,
+            "position": int(row["position"]) if row is not None else None,
+        }
+
     def _generation_sidebar_group_query(
         self,
         key: str,
@@ -649,6 +695,25 @@ class SQLiteTaskIndex:
             untagged=untagged,
             sort=sort,
             direction=direction,
+        )
+
+    def iter_history_task_ids(
+        self,
+        filters: HistoryFilter,
+    ) -> Iterator[str]:
+        return self._history_query_service().iter_task_ids(filters)
+
+    def query_history_around(
+        self,
+        anchor_task_id: str,
+        filters: HistoryFilter,
+        *,
+        limit: int = 50,
+    ) -> dict[str, Any]:
+        return self._history_query_service().query_around(
+            anchor_task_id,
+            filters,
+            limit=limit,
         )
 
     def history_summary(self) -> dict[str, Any]:

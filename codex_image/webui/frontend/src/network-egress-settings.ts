@@ -149,7 +149,7 @@ async function saveNetworkEgress(): Promise<void> {
 }
 
 async function testNetworkEgress(): Promise<void> {
-  const { els } = getLegacyBridge();
+  const { els, state } = getLegacyBridge();
   if (!els.testNetworkEgressButton) return;
   const payload = networkEgressFormPayload();
   if (!networkEgressPayloadIsValid(payload)) {
@@ -159,10 +159,14 @@ async function testNetworkEgress(): Promise<void> {
   els.testNetworkEgressButton.disabled = true;
   setNetworkEgressFeedback(translate("networkEgress.test"), "running");
   try {
+    const selectedProviderId = String(state.selectedProviderId || "").trim();
+    const testPayload = selectedProviderId
+      ? { ...payload, provider_id: selectedProviderId }
+      : payload;
     const response = await fetch("/api/network-egress/test", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
+      body: JSON.stringify(testPayload),
     });
     const data = await response.json();
     if (!response.ok || !data.ok) {

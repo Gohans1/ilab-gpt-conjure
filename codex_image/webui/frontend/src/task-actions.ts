@@ -6,11 +6,12 @@ const bridge = getLegacyBridge();
 const state = bridge.state;
 const els = bridge.els;
 const TASK_CARD_REMOVING_CLASS = "task-card-removing";
-const TASK_CARD_REMOVAL_FALLBACK_MS = 240;
+const TASK_CARD_REMOVAL_FALLBACK_MS = 320;
 const TASK_CARD_REFLOW_DURATION_MS = 180;
 const TASK_CARD_REFLOW_EASING = "cubic-bezier(0.22, 1, 0.36, 1)";
 
 type TaskCardLayout = Record<string, { left: number; top: number }>;
+type TaskCardRemovalAction = "default" | "archive" | "delete";
 
 function legacyMethod(name: string, ...args: any[]): any {
   const method = getLegacyBridge().methods[name];
@@ -88,10 +89,12 @@ function animateTaskCardReflow(previousLayout: TaskCardLayout) {
       const dx = previous.left - rect.left;
       const dy = previous.top - rect.top;
       if (Math.abs(dx) <= 0.5 && Math.abs(dy) <= 0.5) return;
+      const computedTransform = getComputedStyle(card).transform;
+      const settledTransform = computedTransform === "none" ? "translate(0px, 0px)" : computedTransform;
       card.animate(
         [
-          { transform: `translate(${dx}px, ${dy}px)` },
-          { transform: "translate(0px, 0px)" },
+          { transform: `translate(${dx}px, ${dy}px) ${settledTransform}` },
+          { transform: settledTransform },
         ],
         {
           duration: TASK_CARD_REFLOW_DURATION_MS,
@@ -102,7 +105,7 @@ function animateTaskCardReflow(previousLayout: TaskCardLayout) {
   });
 }
 
-function waitForTaskCardRemoval(card: HTMLElement) {
+function waitForTaskCardRemoval(card: HTMLElement, action: TaskCardRemovalAction) {
   return new Promise<void>((resolve) => {
     let settled = false;
     const finish = () => {
@@ -113,12 +116,17 @@ function waitForTaskCardRemoval(card: HTMLElement) {
     card.addEventListener("animationend", finish, { once: true });
     window.setTimeout(finish, TASK_CARD_REMOVAL_FALLBACK_MS);
     card.classList.add(TASK_CARD_REMOVING_CLASS);
+    card.dataset.taskRemovalAction = action;
     card.setAttribute("aria-busy", "true");
     card.tabIndex = -1;
   });
 }
 
-async function runTaskCardRemovalTransition(taskIds: any[], commit: () => void) {
+async function runTaskCardRemovalTransition(
+  taskIds: any[],
+  commit: () => void,
+  action: TaskCardRemovalAction = "default",
+) {
   const removingIds = normalizedTaskIdSet(taskIds);
   const previousCardLayout = captureTaskCardLayout([...removingIds]);
   const previousHistoryLayout = captureTaskHistoryLayout();
@@ -127,7 +135,7 @@ async function runTaskCardRemovalTransition(taskIds: any[], commit: () => void) 
   );
 
   if (!prefersReducedMotion() && removingCards.length) {
-    await Promise.all(removingCards.map(waitForTaskCardRemoval));
+    await Promise.all(removingCards.map((card) => waitForTaskCardRemoval(card, action)));
   }
 
   commit();
@@ -187,7 +195,7 @@ async function refreshTaskAfterActionConflict(taskId: any): Promise<boolean> {
 
 async function archiveTask(taskId: any) {
   const task = state.tasks.find((item: any) => String(item.task_id) === String(taskId));
-  if (!task) return;
+  if (!task) return false;
   try {
     const updatedTask = await setTaskArchiveState(taskId, true);
     replaceTask(updatedTask);
@@ -195,13 +203,15 @@ async function archiveTask(taskId: any) {
     if (String(state.selectedTaskId) === String(taskId)) {
       state.selectedTaskId = firstVisibleTaskId();
     }
-    renderTasks();
+    await runTaskCardRemovalTransition([taskId], renderTasks, "archive");
     renderArchiveButton();
     renderArchiveModal();
     renderPreview();
     setStatus(translate("taskActions.archived"), "ok");
+    return true;
   } catch (error) {
     setStatus(errorMessage(error, translate("taskActions.archiveFailed")), "error");
+    return false;
   }
 }
 
@@ -209,14 +219,16 @@ async function deleteTask(taskId: any) {
   closePromptPopover();
   try {
     await deleteTaskById(taskId);
-    await runTaskCardRemovalTransition([taskId], renderTasks);
+    await runTaskCardRemovalTransition([taskId], renderTasks, "delete");
     await refreshTasksAfterDeletion();
     renderArchiveButton();
     renderArchiveModal();
     renderPreview();
     setStatus(translate("taskActions.deleted"), "ok");
+    return true;
   } catch (error) {
     setStatus(errorMessage(error, translate("taskActions.deleteFailed")), "error");
+    return false;
   }
 }
 

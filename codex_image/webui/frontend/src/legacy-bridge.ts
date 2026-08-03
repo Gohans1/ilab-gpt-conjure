@@ -71,6 +71,7 @@ export interface LegacyMethods {
   addReferenceAssetInput(item: any): void;
   collectReferenceOutput(url: string, options?: any): void;
   renderReferenceCollector(): void;
+  restoreCollectedReferences(): void;
   addPendingTask(task: WebUITask): void;
   replacePendingTask(pendingTaskId: string, completedTask: WebUITask): void;
   syncPromptGalleryMentionsFromInputs(): void;

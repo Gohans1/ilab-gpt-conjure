@@ -1,4 +1,23 @@
 import { translate } from "./i18n";
+import {
+  bindLightboxZoomChrome,
+  hideLightboxShortcutHint,
+  isLightboxAtOrBelowFitScale,
+  lightboxActionForKey,
+  lightboxImageActualSizeScale,
+  lightboxScaleFromWheel,
+  lightboxSteppedScale,
+  lightboxZoomChromeHtml,
+  normalizeLightboxScale,
+  showLightboxShortcutHint,
+  shouldCloseLightboxFromClick,
+  updateLightboxZoomChrome,
+} from "./lightbox-controls";
+import type {
+  LightboxTaskDirection,
+  LightboxTaskNavigation,
+  LightboxTaskNavigationContext,
+} from "./lightbox-controls";
 import { escapeHtml } from "./webui-utils";
 
 type HistoryLightboxState = {
@@ -15,16 +34,10 @@ type HistoryLightboxState = {
   isTransitioning: boolean;
 };
 
-export type HistoryLightboxTaskDirection = "previous" | "next";
-export type HistoryLightboxTaskNavigationContext = {
-  taskId: string;
-  imageIndex: number;
-};
-export type HistoryLightboxTaskNavigation = (
-  direction: HistoryLightboxTaskDirection,
-  context: HistoryLightboxTaskNavigationContext,
-) => void | Promise<void>;
-type HistoryLightboxOptions = {
+export type HistoryLightboxTaskDirection = LightboxTaskDirection;
+export type HistoryLightboxTaskNavigationContext = LightboxTaskNavigationContext;
+export type HistoryLightboxTaskNavigation = LightboxTaskNavigation;
+export type HistoryLightboxOptions = {
   taskId?: string;
   onTaskNavigate?: HistoryLightboxTaskNavigation;
 };
@@ -291,7 +304,10 @@ function isHistoryLightboxActive(): boolean {
 
 function stopHistoryLightboxPanning(): void {
   historyLightboxState.panning = false;
-  historyLightboxEl?.classList.toggle("is-zoomed", historyLightboxState.scale !== 1);
+  historyLightboxEl?.classList.toggle(
+    "is-zoomed",
+    !isLightboxAtOrBelowFitScale(historyLightboxState.scale),
+  );
 }
 
 function setHistoryLightboxTransform(): void {
@@ -300,8 +316,27 @@ function setHistoryLightboxTransform(): void {
   image.style.transform = `translate(${historyLightboxState.pointX}px, ${historyLightboxState.pointY}px) scale(${historyLightboxState.scale})`;
   historyLightboxEl?.classList.toggle(
     "is-zoomed",
-    historyLightboxState.scale !== 1 || historyLightboxState.panning,
+    !isLightboxAtOrBelowFitScale(historyLightboxState.scale) || historyLightboxState.panning,
   );
+  updateLightboxZoomChrome(historyLightboxEl, historyLightboxState.scale, image);
+}
+
+function setHistoryLightboxScale(scale: number): void {
+  historyLightboxState.scale = normalizeLightboxScale(scale);
+  if (isLightboxAtOrBelowFitScale(historyLightboxState.scale)) {
+    historyLightboxState.pointX = 0;
+    historyLightboxState.pointY = 0;
+    historyLightboxState.panning = false;
+  }
+  setHistoryLightboxTransform();
+}
+
+function zoomHistoryLightbox(direction: "in" | "out"): void {
+  setHistoryLightboxScale(lightboxSteppedScale(historyLightboxState.scale, direction));
+}
+
+function showHistoryLightboxActualSize(): void {
+  setHistoryLightboxScale(lightboxImageActualSizeScale(historyLightboxImage()));
 }
 
 function resetHistoryLightboxTransform(): void {
@@ -320,6 +355,7 @@ function updateHistoryLightboxControls(): void {
   if (counter) {
     counter.textContent = hasMultipleImages ? `${historyLightboxState.index + 1} / ${historyLightboxState.urls.length}` : "";
   }
+  updateLightboxZoomChrome(historyLightboxEl, historyLightboxState.scale, historyLightboxImage());
 }
 
 function showHistoryLightboxImage(index: number): void {
@@ -411,28 +447,37 @@ function ensureHistoryLightbox(): HTMLDivElement {
       <img alt="" draggable="false">
     </button>
     <div class="history-lightbox-counter" data-history-lightbox-counter aria-live="polite"></div>
+    ${lightboxZoomChromeHtml()}
   `;
   document.body.append(historyLightboxEl);
 
   historyLightboxEl.querySelector<HTMLElement>("[data-history-lightbox-close]")?.addEventListener("click", closeHistoryLightbox);
   historyLightboxSlot("previous")?.addEventListener("click", showPreviousHistoryLightboxImage);
   historyLightboxSlot("next")?.addEventListener("click", showNextHistoryLightboxImage);
+  bindLightboxZoomChrome(historyLightboxEl, {
+    zoomOut: () => zoomHistoryLightbox("out"),
+    zoomIn: () => zoomHistoryLightbox("in"),
+    fit: resetHistoryLightboxTransform,
+    actualSize: showHistoryLightboxActualSize,
+  });
 
   historyLightboxEl.addEventListener("wheel", (event) => {
     if (!isHistoryLightboxActive()) return;
     event.preventDefault();
-    const delta = event.deltaY * -0.005;
-    historyLightboxState.scale = Math.min(Math.max(0.5, historyLightboxState.scale + delta), 5);
-    setHistoryLightboxTransform();
+    setHistoryLightboxScale(lightboxScaleFromWheel(historyLightboxState.scale, event.deltaY));
   }, { passive: false });
 
   historyLightboxEl.addEventListener("click", (event) => {
-    if (event.target === historyLightboxEl) closeHistoryLightbox();
+    if (shouldCloseLightboxFromClick(event.target, historyLightboxEl!)) closeHistoryLightbox();
   });
 
   const image = historyLightboxImage();
   image?.addEventListener("mousedown", (event) => {
     if (event.button !== 0) {
+      stopHistoryLightboxPanning();
+      return;
+    }
+    if (isLightboxAtOrBelowFitScale(historyLightboxState.scale)) {
       stopHistoryLightboxPanning();
       return;
     }
@@ -442,6 +487,7 @@ function ensureHistoryLightbox(): HTMLDivElement {
     historyLightboxState.startY = event.clientY - historyLightboxState.pointY;
   });
   image?.addEventListener("contextmenu", stopHistoryLightboxPanning);
+  image?.addEventListener("load", updateHistoryLightboxControls);
 
   window.addEventListener("mousemove", (event) => {
     if (!historyLightboxState.panning) return;
@@ -457,30 +503,47 @@ function ensureHistoryLightbox(): HTMLDivElement {
   window.addEventListener("blur", stopHistoryLightboxPanning);
   window.addEventListener("keydown", (event) => {
     if (!isHistoryLightboxActive()) return;
-    if (event.key === "ArrowLeft") {
+    const action = lightboxActionForKey(event.key);
+    if (event.key === "Escape") {
+      event.preventDefault();
+      event.stopPropagation();
+      closeHistoryLightbox();
+    } else if (event.key === "ArrowLeft" && action === "previous-image") {
       event.preventDefault();
       event.stopPropagation();
       showPreviousHistoryLightboxImage();
-    } else if (event.key === "ArrowRight") {
+    } else if (event.key === "ArrowRight" && action === "next-image") {
       event.preventDefault();
       event.stopPropagation();
       showNextHistoryLightboxImage();
-    } else if (event.key === "ArrowUp") {
+    } else if (event.key === "ArrowUp" && action === "previous-task") {
       event.preventDefault();
       event.stopPropagation();
       showPreviousHistoryTask();
-    } else if (event.key === "ArrowDown") {
+    } else if (event.key === "ArrowDown" && action === "next-task") {
       event.preventDefault();
       event.stopPropagation();
       showNextHistoryTask();
-    } else if (event.key === "PageUp") {
+    } else if (event.key === "PageUp" && action === "previous-task") {
       event.preventDefault();
       event.stopPropagation();
       showPreviousHistoryTask();
-    } else if (event.key === "PageDown") {
+    } else if (event.key === "PageDown" && action === "next-task") {
       event.preventDefault();
       event.stopPropagation();
       showNextHistoryTask();
+    } else if (action === "zoom-in") {
+      event.preventDefault();
+      zoomHistoryLightbox("in");
+    } else if (action === "zoom-out") {
+      event.preventDefault();
+      zoomHistoryLightbox("out");
+    } else if (action === "fit") {
+      event.preventDefault();
+      resetHistoryLightboxTransform();
+    } else if (action === "actual-size") {
+      event.preventDefault();
+      showHistoryLightboxActualSize();
     }
   });
 
@@ -490,6 +553,7 @@ function ensureHistoryLightbox(): HTMLDivElement {
 export function openHistoryLightbox(urls: string[], index = 0, options: HistoryLightboxOptions = {}): void {
   const nextUrls = Array.isArray(urls) ? urls.filter(Boolean) : [];
   if (!nextUrls.length) return;
+  const wasActive = isHistoryLightboxActive();
   const lightbox = ensureHistoryLightbox();
   historyLightboxState.urls = nextUrls;
   historyLightboxState.index = clampedHistoryLightboxIndex(index, nextUrls.length);
@@ -500,6 +564,22 @@ export function openHistoryLightbox(urls: string[], index = 0, options: HistoryL
   lightbox.hidden = false;
   document.body.classList.add("history-lightbox-open");
   lightbox.focus({ preventScroll: true });
+  updateHistoryLightboxControls();
+  if (!wasActive) {
+    showLightboxShortcutHint(lightbox, Boolean(historyLightboxState.onTaskNavigate));
+  }
+}
+
+export function syncHistoryLightboxUrls(urls: string[]): void {
+  if (!isHistoryLightboxActive() || !Array.isArray(urls) || !urls.length) return;
+  const currentUrl = historyLightboxState.urls[historyLightboxState.index];
+  if (!currentUrl) return;
+  const nextUrls = urls.filter(Boolean);
+  const nextIndex = nextUrls.indexOf(currentUrl);
+  if (nextIndex === -1) return;
+  historyLightboxState.urls = nextUrls;
+  historyLightboxState.index = nextIndex;
+  bindHistoryLightboxSlots();
   updateHistoryLightboxControls();
 }
 
@@ -518,6 +598,7 @@ export function closeHistoryLightbox(): void {
   historyLightboxState.taskId = "";
   historyLightboxState.onTaskNavigate = null;
   historyLightboxState.isTransitioning = false;
+  hideLightboxShortcutHint(historyLightboxEl);
   resetHistoryLightboxTransform();
   document.body.classList.remove("history-lightbox-open");
 }

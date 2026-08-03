@@ -1,5 +1,6 @@
 /* Sidebar */
 .sidebar {
+  --sidebar-content-inset: 12px;
   position: relative;
   width: clamp(var(--sidebar-min-width), var(--sidebar-width), var(--sidebar-max-width));
   background: var(--surface);
@@ -52,7 +53,7 @@
 }
 
 .sidebar-header {
-  padding: 16px 16px 10px;
+  padding: 16px var(--sidebar-content-inset) 10px;
 }
 
 .brand {
@@ -80,7 +81,7 @@
   background:
     radial-gradient(circle at 58% 48%, rgba(247, 213, 157, 0.42) 0 10%, transparent 11%),
     linear-gradient(145deg, #2f604f 0%, #4d8b72 66%, #b89155 100%);
-  border-radius: 15px;
+  border-radius: var(--radius-xl);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -126,19 +127,21 @@
 .model-family-segments {
   --segmented-control-padding: 3px;
   --segmented-control-height: 30px;
-  --segmented-indicator-radius: 7px;
+  --segmented-indicator-radius: calc(var(--radius-lg) - var(--segmented-control-padding));
   width: 100%;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   margin: 0 0 10px;
-  border-radius: 10px;
+  border-radius: var(--radius-lg);
 }
 
 .sidebar .model-family-segments {
+  --segmented-indicator-radius: calc(var(--radius-lg) - var(--segmented-control-padding));
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  background: color-mix(in srgb, var(--surface-soft) 88%, var(--surface));
-  border-color: color-mix(in srgb, var(--line) 86%, transparent);
+  border-radius: var(--radius-lg);
+  background: var(--model-family-rail-surface);
+  border: 0;
 }
 
 .model-family-segments .model-family-segment {
@@ -152,13 +155,14 @@
   color: var(--text-secondary);
   font-size: 13px;
   font-weight: 650;
+  border-radius: var(--segmented-indicator-radius);
   white-space: nowrap;
 }
 
 .model-family-segments .segmented-indicator {
   box-sizing: border-box;
-  border: 1px solid color-mix(in srgb, var(--primary) 22%, var(--line));
-  background: color-mix(in srgb, var(--primary-light) 48%, var(--surface));
+  border: 0;
+  background: var(--model-family-indicator-surface);
   box-shadow: none;
 }
 
@@ -174,7 +178,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: var(--muted);
+  color: var(--text-muted);
 }
 
 .model-family-brand-mark {
@@ -254,7 +258,7 @@
   height: 36px;
   padding: 0 82px 0 32px;
   border: 1px solid var(--line);
-  border-radius: 18px;
+  border-radius: var(--radius-lg);
   background: var(--surface-soft) url('data:image/svg+xml;utf8,<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="%23889d95" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>') no-repeat 12px center;
   outline: none;
   font-size: 13px;
@@ -281,7 +285,7 @@
   border: 0;
   border-radius: 999px;
   background: transparent;
-  color: var(--muted);
+  color: var(--text-muted);
   display: inline-grid;
   place-items: center;
   transform: translateY(-50%);
@@ -430,7 +434,7 @@
   min-height: 0;
   display: flex;
   flex-direction: column;
-  padding: 0 12px;
+  padding: 0 var(--sidebar-content-inset);
   gap: 6px;
 }
 
@@ -441,12 +445,12 @@
   align-items: center;
   gap: 8px;
   min-height: 34px;
-  padding-right: var(--task-history-scrollbar-offset, 0px);
 }
 
-.task-history-batch-button {
+.sidebar .task-history-batch-button {
   min-height: 30px;
   padding: 0 10px;
+  border-radius: var(--radius);
   white-space: nowrap;
 }
 
@@ -460,15 +464,26 @@
 .sidebar-content {
   flex: 1;
   min-height: 0;
+  margin-inline: -12px;
+  padding-inline: 12px;
+  overflow-x: hidden;
   overflow-y: auto;
   scrollbar-gutter: stable;
+}
+
+.task-history-current-anchor {
+  flex: 0 0 auto;
+  display: grid;
+}
+
+.task-history-current-anchor.hidden {
+  display: none;
 }
 
 .task-history-anchor-rail {
   flex: 0 0 auto;
   display: grid;
   gap: 6px;
-  padding-right: var(--task-history-scrollbar-offset, 0px);
 }
 
 .task-history-anchor-rail-top {
@@ -482,7 +497,6 @@
 .task-history-library-slot {
   flex: 0 0 auto;
   margin-bottom: 12px;
-  padding-right: var(--task-history-scrollbar-offset, 0px);
 }
 
 .task-history-library-slot.hidden {

@@ -77,7 +77,7 @@
 }
 
 .gallery-category-manage-copy span {
-  color: var(--muted);
+  color: var(--text-muted);
   font-size: 11px;
 }
 
@@ -245,7 +245,7 @@
 
 .gallery-drag-preview-copy span {
   font-size: 12px;
-  color: var(--muted);
+  color: var(--text-muted);
 }
 
 .gallery-drag-preview-clone {
@@ -316,7 +316,7 @@
   place-items: center;
   border: 1px dashed color-mix(in srgb, var(--text-secondary) 30%, var(--line));
   border-radius: 12px;
-  color: var(--muted);
+  color: var(--text-muted);
 }
 
 .archive-list {
@@ -326,9 +326,9 @@
 
 .language-settings-panel {
   display: grid;
-  gap: 12px;
+  gap: 16px;
   max-width: 640px;
-  padding: 14px;
+  padding: 16px;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--surface-soft);
@@ -336,11 +336,12 @@
 
 .language-select-field {
   max-width: 420px;
+  gap: 8px;
 }
 
 .language-settings-status {
   margin: 0;
   width: fit-content;
   max-width: 100%;
+  line-height: 1.5;
 }
-

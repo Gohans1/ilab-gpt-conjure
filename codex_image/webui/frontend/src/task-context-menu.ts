@@ -1,5 +1,6 @@
 import { getLegacyBridge } from "./state";
 import { LOCALE_CHANGE_EVENT, translate } from "./i18n";
+import { moveQueueTask } from "./queue";
 
 const bridge = getLegacyBridge();
 const state = bridge.state;
@@ -22,31 +23,41 @@ function escapeHtml(...args: any[]) { return legacyMethod("escapeHtml", ...args)
 function setStatus(...args: any[]) { return legacyMethod("setStatus", ...args); }
 function closePromptPopover(...args: any[]) { return legacyMethod("closePromptPopover", ...args); }
 function selectTask(...args: any[]) { return legacyMethod("selectTask", ...args); }
-function archiveTask(...args: any[]) { return legacyMethod("archiveTask", ...args); }
-function openTaskDeleteConfirm(...args: any[]) { return legacyMethod("openTaskDeleteConfirm", ...args); }
+function revealTaskCardAction(...args: any[]) { return legacyMethod("revealTaskCardAction", ...args); }
 
 function bindTaskContextMenuEvents() {
   if (taskContextMenuEventsBound) return;
   taskContextMenuEventsBound = true;
 
-  els.taskList.addEventListener("contextmenu", handleTaskListContextMenu);
-  els.taskList.addEventListener("keydown", handleTaskListContextMenuKeydown);
+  taskContextMenuRoots().forEach((root) => {
+    root.addEventListener("contextmenu", handleTaskListContextMenu);
+    root.addEventListener("keydown", handleTaskListContextMenuKeydown);
+  });
   document.addEventListener("click", handleTaskContextDocumentClick, true);
   document.addEventListener("keydown", handleTaskContextDocumentKeydown);
   document.addEventListener("scroll", closeTaskContextMenu, true);
   window.addEventListener("resize", closeTaskContextMenu);
   if ("MutationObserver" in window) {
     taskListMutationObserver = new MutationObserver(closeTaskContextMenu);
-    taskListMutationObserver.observe(els.taskList, { childList: true });
+    taskContextMenuRoots().forEach((root) => taskListMutationObserver?.observe(root, { childList: true }));
   }
+}
+
+function taskContextMenuRoots(): HTMLElement[] {
+  return [els.taskActiveList, els.taskList].filter((root): root is HTMLElement => root instanceof HTMLElement);
+}
+
+function taskContextMenuContains(card: HTMLElement): boolean {
+  return taskContextMenuRoots().some((root) => root.contains(card));
 }
 
 function handleTaskListContextMenu(event: MouseEvent) {
   const target = eventTargetElement(event);
   const card = target?.closest(".task-card[data-task-id]") as HTMLElement | null;
-  if (!card || !els.taskList.contains(card)) return;
+  if (!card || !taskContextMenuContains(card)) return;
   event.preventDefault();
   event.stopPropagation();
+  if (card.classList.contains("queue-reorder-armed") || card.classList.contains("queue-dragging")) return;
   openTaskContextMenu(card, event.clientX, event.clientY);
 }
 
@@ -54,7 +65,7 @@ function handleTaskListContextMenuKeydown(event: KeyboardEvent) {
   if (event.key !== "ContextMenu" && !(event.shiftKey && event.key === "F10")) return;
   const target = eventTargetElement(event);
   const card = target?.closest(".task-card[data-task-id]") as HTMLElement | null;
-  if (!card || !els.taskList.contains(card)) return;
+  if (!card || !taskContextMenuContains(card)) return;
   event.preventDefault();
   const rect = card.getBoundingClientRect();
   openTaskContextMenu(card, rect.left + 18, rect.top + 18);
@@ -115,7 +126,24 @@ function rerenderTaskContextMenuForLocale() {
 
 function taskContextMenuHtml(task: any) {
   const hasOutput = taskHasOutput(task);
-  const blocked = Boolean(task.local_pending || task.status === "running" || task.status === "cancelling" || task.status === "submitting" || task.status === "queued");
+  const queueSection = taskContextQueueSection(task);
+  const waitingIndex = queueSection === "waiting"
+    ? (state.queue.waiting || []).findIndex((item: any) => String(item?.task_id || "") === String(task?.task_id || ""))
+    : -1;
+  const waitingCount = (state.queue.waiting || []).length;
+  const lifecycleActions = queueSection === "running"
+    ? taskContextButton("stop", translate("action.stop"), task.status === "cancelling", true)
+    : queueSection === "waiting"
+      ? [
+          taskContextButton("move-up", translate("queue.moveUpTitle"), waitingIndex <= 0),
+          taskContextButton("move-down", translate("queue.moveDownTitle"), waitingIndex < 0 || waitingIndex >= waitingCount - 1),
+          taskContextButton("promote", translate("queue.promote")),
+          taskContextButton("cancel", translate("action.cancel"), false, true),
+        ].join("")
+      : [
+          taskContextButton("archive", translate("taskContext.archive")),
+          taskContextButton("delete", translate("taskContext.delete"), false, true),
+        ].join("");
   return `
     <div class="task-context-menu-section">
       ${taskContextButton("view", translate("taskContext.view"))}
@@ -126,10 +154,22 @@ function taskContextMenuHtml(task: any) {
       ${taskContextButton("reveal-output", translate("taskContext.revealOutput"), !hasOutput)}
     </div>
     <div class="task-context-menu-section">
-      ${taskContextButton("archive", translate("taskContext.archive"))}
-      ${taskContextButton("delete", translate("taskContext.delete"), blocked, true)}
+      ${lifecycleActions}
     </div>
   `;
+}
+
+function taskContextQueueSection(task: any): "running" | "waiting" | null {
+  const taskId = String(task?.task_id || "");
+  if ((state.queue.running || []).some((item: any) => String(item?.task_id || "") === taskId)) {
+    return "running";
+  }
+  if ((state.queue.waiting || []).some((item: any) => String(item?.task_id || "") === taskId)) {
+    return "waiting";
+  }
+  if (["running", "cancelling"].includes(String(task?.status || ""))) return "running";
+  if (String(task?.status || "") === "queued") return "waiting";
+  return null;
 }
 
 function taskContextButton(action: string, label: string, disabled = false, danger = false) {
@@ -158,9 +198,15 @@ async function handleTaskContextMenuAction(button: HTMLButtonElement) {
     return;
   }
 
-  if (action === "delete") {
-    openTaskDeleteConfirm(button, taskId);
+  if (["archive", "delete", "stop", "promote", "cancel"].includes(action)) {
     closeTaskContextMenu();
+    revealTaskCardAction(taskId, action, true);
+    return;
+  }
+
+  if (action === "move-up" || action === "move-down") {
+    closeTaskContextMenu();
+    moveQueueTask(taskId, action === "move-up" ? "up" : "down");
     return;
   }
 
@@ -179,8 +225,6 @@ async function handleTaskContextMenuAction(button: HTMLButtonElement) {
       setStatus(translate("taskContext.promptCopied"), "ok");
     } else if (action === "reveal-output") {
       await revealTaskOutputDirectory(taskId);
-    } else if (action === "archive") {
-      await archiveTask(taskId);
     }
   } catch (error) {
     setStatus(errorMessage(error, translate("taskContext.actionFailed")), "error");
