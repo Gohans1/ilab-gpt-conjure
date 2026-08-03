@@ -361,7 +361,7 @@ jobs:
           - macOS Intel：iLab-GPT-CONJURE-macos-x64-${release_version}.dmg
           - Windows x64：iLab-GPT-CONJURE-windows-x64_${release_version}.zip
 
-          新用户建议优先下载标准包。v0.5.4 及更早 portable 用户首次升级到 0.5.5 时，建议手动下载完整标准包或完整 portable 包；旧更新器不保证能安装新的小兔子启动器、标准 .app / .exe 入口和迁移助手。
+          新用户建议优先下载标准包。v0.5.4 及更早 portable 用户首次升级到当前版本时，建议手动下载完整标准包或完整 portable 包；旧更新器不保证能安装新的小兔子启动器、标准 .app / .exe 入口和迁移助手。
 
           ## 免安装一键包
 
