@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import re
 import subprocess
 import sys
@@ -23,6 +24,22 @@ PINNED_ACTIONS = {
 
 
 class ReleaseContractTests(unittest.TestCase):
+    def test_public_repository_tracks_design_and_rejects_local_agent_rules(self) -> None:
+        manifest = json.loads(
+            (ROOT / ".public-export-manifest.json").read_text(encoding="utf-8")
+        )
+        self.assertIn("DESIGN.md", manifest["allowlist"])
+        self.assertNotIn("DESIGN.md", manifest["excluded_private_paths"])
+        self.assertIn("AGENT.md", manifest["excluded_private_paths"])
+        self.assertIn("AGENTS.md", manifest["excluded_private_paths"])
+
+        workflow = (ROOT / ".github" / "workflows" / "ci.yml").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("test ! -e AGENT.md", workflow)
+        self.assertIn("test ! -e AGENTS.md", workflow)
+        self.assertIn("test -f DESIGN.md", workflow)
+
     def test_runtime_version_is_the_single_release_version_source(self) -> None:
         version_source = (ROOT / "codex_image" / "version.py").read_text(encoding="utf-8")
         self.assertEqual(

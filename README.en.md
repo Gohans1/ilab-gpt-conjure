@@ -193,15 +193,15 @@ http://127.0.0.1:8787/
 ## App packages
 
 Download the current packages from [Downloads / Releases](RELEASES.md), or open
-[GitHub Release v0.8.0](https://github.com/kadevin/ilab-conjure/releases/tag/v0.8.0)
+[GitHub Release v0.8.1](https://github.com/kadevin/ilab-conjure/releases/tag/v0.8.1)
 directly.
 
 New users should choose the standard packages:
 
-1. macOS: download `iLab-GPT-CONJURE-macos-arm64-0.8.0.dmg`
-   for Apple Silicon or `iLab-GPT-CONJURE-macos-x64-0.8.0.dmg`
+1. macOS: download `iLab-GPT-CONJURE-macos-arm64-0.8.1.dmg`
+   for Apple Silicon or `iLab-GPT-CONJURE-macos-x64-0.8.1.dmg`
    for Intel, then drag `iLab GPT CONJURE.app` to Applications.
-2. Windows: download `iLab-GPT-CONJURE-windows-x64_0.8.0.zip`,
+2. Windows: download `iLab-GPT-CONJURE-windows-x64_0.8.1.zip`,
    extract it into a normal user directory, and run `iLab GPT CONJURE.exe`.
 
 Standard packages store user data in `~/Library/Application Support/iLab GPT

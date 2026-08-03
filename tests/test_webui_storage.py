@@ -265,6 +265,18 @@ class WebUIStorageTests(unittest.TestCase):
             self.assertEqual(target.read_text(encoding="utf-8"), '{"status":"queued"}')
             self.assertEqual(list(target.parent.glob(f".{target.name}.*.tmp")), [])
 
+    def test_atomic_write_with_mode_succeeds_without_fchmod(self) -> None:
+        from codex_image.webui import atomic_files
+
+        with tempfile.TemporaryDirectory() as tmp:
+            target = Path(tmp) / "settings.json"
+
+            with patch.object(atomic_files.os, "fchmod", None, create=True):
+                atomic_files.atomic_write_text(target, '{"theme":"dark"}', mode=0o600)
+
+            self.assertEqual(target.read_text(encoding="utf-8"), '{"theme":"dark"}')
+            self.assertEqual(list(target.parent.glob(f".{target.name}.*.tmp")), [])
+
     def test_legacy_terminal_task_uses_created_at_when_first_maintenance_write_sets_terminal_at(self) -> None:
         from codex_image.webui.storage import TaskStorage
 

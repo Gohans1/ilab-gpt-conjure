@@ -88,6 +88,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             host=args.host,
             port=args.port,
             access_log=args.access_log,
+            proxy_headers=False,
             timeout_graceful_shutdown=args.timeout_graceful_shutdown,
         )
         server = WebUIServer(

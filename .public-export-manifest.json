@@ -5,6 +5,7 @@
     ".gitignore",
     ".github/workflows/ci.yml",
     ".github/workflows/release-portable.yml",
+    "DESIGN.md",
     "Start WebUI.command",
     "Start WebUI Debug.command",
     "Start WebUI.bat",
@@ -35,7 +36,6 @@
   "excluded_private_paths": [
     "AGENT.md",
     "AGENTS.md",
-    "DESIGN.md",
     "docs/superpowers/",
     "input/",
     "inputs/",

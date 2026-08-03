@@ -42,8 +42,9 @@ def atomic_write_bytes(
     temporary_path = Path(temporary_name)
     descriptor_open = True
     try:
-        if mode is not None:
-            os.fchmod(descriptor, mode)
+        fchmod = getattr(os, "fchmod", None)
+        if mode is not None and callable(fchmod):
+            fchmod(descriptor, mode)
         with os.fdopen(descriptor, "wb") as handle:
             descriptor_open = False
             handle.write(data)

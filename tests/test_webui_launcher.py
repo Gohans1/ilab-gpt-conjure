@@ -115,6 +115,57 @@ class WebUILauncherTests(unittest.TestCase):
             text,
         )
 
+    def test_server_ignores_proxy_headers_for_local_same_origin_writes(self) -> None:
+        from unittest.mock import patch
+
+        from fastapi import FastAPI
+        from fastapi.testclient import TestClient
+
+        from codex_image.webui.security import LocalWebUISecurityMiddleware
+        from codex_image.webui.server import WebUIServer, main
+        from codex_image.webui.shutdown_control import ShutdownCoordinator
+
+        app = FastAPI()
+        app.state.webui_shutdown_coordinator = ShutdownCoordinator()
+        app.add_middleware(LocalWebUISecurityMiddleware)
+
+        @app.patch("/write")
+        async def write() -> dict[str, bool]:
+            return {"ok": True}
+
+        loaded_app = None
+
+        def load_without_serving(server: WebUIServer) -> None:
+            nonlocal loaded_app
+            server.config.load()
+            loaded_app = server.config.loaded_app
+            server.started = True
+
+        with (
+            patch(
+                "codex_image.webui.server.import_from_string",
+                return_value=app,
+            ),
+            patch.object(WebUIServer, "run", load_without_serving),
+        ):
+            self.assertEqual(main(["test_app:app"]), 0)
+
+        self.assertIsNotNone(loaded_app)
+        client = TestClient(
+            loaded_app,
+            base_url="http://127.0.0.1:8787",
+            client=("127.0.0.1", 54321),
+        )
+        response = client.patch(
+            "/write",
+            headers={
+                "Origin": "http://127.0.0.1:8787",
+                "X-Forwarded-Proto": "https",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200, response.text)
+
     def test_packaged_launchers_bound_graceful_shutdown_and_do_not_orphan_uvicorn(self) -> None:
         mac_portable = Path("packaging/macos/Start WebUI Portable.command").read_text(
             encoding="utf-8"
