@@ -2811,6 +2811,74 @@ button, input, select, textarea {
   display: block;
 }
 
+.codex-quota {
+  order: 1;
+  flex: 0 0 140px;
+  min-width: 140px;
+  height: var(--top-nav-control-height);
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 10px;
+  border: 1px solid color-mix(in srgb, var(--line) 76%, transparent);
+  border-radius: var(--top-nav-control-radius);
+  background: color-mix(in srgb, var(--surface-soft) 72%, transparent);
+  color: var(--text-secondary);
+}
+
+.codex-quota-track {
+  flex: 1 1 auto;
+  min-width: 70px;
+  height: 6px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--line);
+}
+
+.codex-quota[data-state="loading"] .codex-quota-track::before {
+  content: "";
+  display: block;
+  width: 28%;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--primary);
+  opacity: 0.72;
+}
+
+.codex-quota[data-state="loading"] .codex-quota-fill {
+  visibility: hidden;
+}
+
+.codex-quota-fill {
+  display: block;
+  width: 0;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--primary);
+  transition: width var(--motion-base), background var(--motion-base);
+}
+
+.codex-quota-value {
+  flex: 0 0 32px;
+  color: var(--text);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  text-align: right;
+}
+
+.codex-quota[data-state="loading"] {
+  opacity: 0.72;
+}
+
+.codex-quota[data-state="unavailable"] {
+  color: var(--text-muted);
+}
+
+.codex-quota[data-state="unavailable"] .codex-quota-track {
+  opacity: 0.45;
+}
+
 .auth-source-switcher {
   order: 1;
   flex: 0 1 auto;

@@ -5,6 +5,7 @@ from fastapi import FastAPI
 from codex_image.webui.context import WebUIContext
 
 from .gallery import register_gallery_routes
+from .codex_quota import register_codex_quota_routes
 from .network_egress import register_network_egress_routes
 from .generation_catalog import register_generation_catalog_routes
 from .generation import register_generation_routes
@@ -19,6 +20,7 @@ from .tasks import register_task_routes
 
 def register_webui_routes(app: FastAPI, ctx: WebUIContext) -> None:
     register_settings_routes(app, ctx)
+    register_codex_quota_routes(app, ctx)
     register_network_egress_routes(app, ctx)
     register_media_routes(app, ctx)
     register_task_routes(app, ctx)

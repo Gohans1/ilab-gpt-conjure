@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import shutil
 import subprocess
@@ -100,7 +101,10 @@ class WebUIStaticBuildTests(WebUIStaticTestCase):
                 self.assertNotEqual("", source_content)
                 continue
             source_path = (source_root / source).resolve()
-            self.assertEqual(source_path.read_text(encoding="utf-8"), source_content)
+            self.assertEqual(
+                source_path.read_text(encoding="utf-8").replace("\r\n", "\n"),
+                source_content.replace("\r\n", "\n"),
+            )
 
     def test_css_bundle_matches_manifest_sources(self) -> None:
         manifest_path = Path("codex_image/webui/static/styles/manifest.json")
@@ -123,7 +127,7 @@ class WebUIStaticBuildTests(WebUIStaticTestCase):
         self.assertEqual(expected, actual)
 
     def test_generated_frontend_bundle_matches_typescript_entrypoint(self) -> None:
-        esbuild = Path("node_modules/.bin/esbuild")
+        esbuild = Path("node_modules/.bin/esbuild.cmd" if os.name == "nt" else "node_modules/.bin/esbuild")
         if not esbuild.exists():
             self.skipTest("npm install is required for frontend bundle parity checks")
 

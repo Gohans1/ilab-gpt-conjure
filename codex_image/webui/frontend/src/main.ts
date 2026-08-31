@@ -52,6 +52,7 @@ import { initModelParametersFeature } from "./model-parameters";
 import { initTaskParameterInspectorFeature } from "./task-parameter-inspector";
 import { initModelSelectionFeature } from "./model-selection";
 import { initProviderSelectionFeature } from "./provider-selection";
+import { initCodexQuotaFeature } from "./codex-quota";
 import { initThemedSelectFeature } from "./themed-select";
 
 initReferenceFileInputsFeature();
@@ -99,6 +100,7 @@ initShellUiFeature();
 initI18nFeature();
 initThemedSelectFeature();
 initProviderSelectionFeature();
+initCodexQuotaFeature();
 initModelSelectionFeature();
 initModelCatalogFeature();
 initModelParametersFeature();

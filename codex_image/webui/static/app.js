@@ -55030,6 +55030,84 @@ ${galleryText}`;
     });
   }
 
+  // codex_image/webui/frontend/src/codex-quota.ts
+  var QUOTA_REFRESH_INTERVAL_MS = 6e4;
+  function normalizeRemainingPercent(value) {
+    if (value == null) return null;
+    if (typeof value !== "number" || !Number.isFinite(value)) return null;
+    return Math.round(Math.max(0, Math.min(100, value)));
+  }
+  function payloadRecord(payload2) {
+    if (typeof payload2 !== "object" || payload2 === null) return null;
+    return payload2;
+  }
+  function windowSummary(windows) {
+    if (!Array.isArray(windows)) return "";
+    return windows.map((item) => {
+      const label = typeof item?.label === "string" ? item.label : "";
+      const percent = normalizeRemainingPercent(item?.remaining_percent);
+      return label && percent !== null ? `${label}: ${percent}%` : "";
+    }).filter(Boolean).join(" \xB7 ");
+  }
+  function renderUnavailable(root, fill, value) {
+    root.dataset.state = "unavailable";
+    root.dataset.available = "false";
+    root.setAttribute("aria-busy", "false");
+    root.setAttribute("aria-label", "Codex quota unavailable");
+    root.title = "Codex quota unavailable";
+    fill.style.width = "0%";
+    value.textContent = "\u2014";
+  }
+  function renderCodexQuota(payload2) {
+    const root = document.getElementById("codexQuota");
+    const fill = document.getElementById("codexQuotaFill");
+    const value = document.getElementById("codexQuotaValue");
+    if (!root || !fill || !value) return;
+    const record5 = payloadRecord(payload2);
+    const percent = record5?.available === true ? normalizeRemainingPercent(record5.remaining_percent) : null;
+    if (percent === null) {
+      renderUnavailable(root, fill, value);
+      return;
+    }
+    const details = windowSummary(record5?.windows);
+    root.dataset.state = "available";
+    root.dataset.available = "true";
+    root.setAttribute("aria-busy", "false");
+    root.setAttribute(
+      "aria-label",
+      details ? `Codex quota: ${percent}% remaining. ${details}` : `Codex quota: ${percent}% remaining`
+    );
+    root.title = root.getAttribute("aria-label") || "Codex quota";
+    fill.style.width = `${percent}%`;
+    value.textContent = `${percent}%`;
+  }
+  async function refreshCodexQuota(root) {
+    if (root.dataset.loading === "true") return;
+    root.dataset.loading = "true";
+    root.dataset.state = "loading";
+    root.setAttribute("aria-busy", "true");
+    try {
+      const response = await fetch("/api/codex/quota", {
+        headers: { Accept: "application/json" }
+      });
+      const payload2 = await response.json();
+      if (!response.ok) throw new Error("Quota request failed");
+      renderCodexQuota(payload2);
+    } catch {
+      renderCodexQuota({ available: false });
+    } finally {
+      root.dataset.loading = "false";
+    }
+  }
+  function initCodexQuotaFeature() {
+    const root = document.getElementById("codexQuota");
+    if (!root) return;
+    void refreshCodexQuota(root);
+    window.setInterval(() => {
+      void refreshCodexQuota(root);
+    }, QUOTA_REFRESH_INTERVAL_MS);
+  }
+
   // codex_image/webui/frontend/src/main.ts
   initReferenceFileInputsFeature();
   initInputSourcesFeature();
@@ -55076,6 +55154,7 @@ ${galleryText}`;
   initI18nFeature();
   initThemedSelectFeature();
   initProviderSelectionFeature();
+  initCodexQuotaFeature();
   initModelSelectionFeature();
   initModelCatalogFeature();
   initModelParametersFeature();
