@@ -1697,7 +1697,39 @@
     "modelParameters.invalidJson": "Invalid JSON",
     "modelParameters.migrated": "Adjusted {count} legacy parameter(s) for the current model",
     "modelParameters.historyConfiguration": "Historical configuration",
-    "modelParameters.legacyTask": "Legacy task"
+    "modelParameters.legacyTask": "Legacy task",
+    "codexQuota.label": "Codex quota",
+    "codexQuota.details": "Codex quota details",
+    "codexQuota.currentAccount": "Current account",
+    "codexQuota.close": "Close Codex quota details",
+    "codexQuota.loading": "Loading quota",
+    "codexQuota.unavailable": "Quota unavailable",
+    "codexQuota.unavailableLabel": "Codex quota unavailable",
+    "codexQuota.summary": "Codex quota: {percent}% remaining",
+    "codexQuota.summaryWithDetails": "Codex quota: {percent}% remaining. {details}",
+    "codexQuota.remaining": "{percent}% left",
+    "codexQuota.session": "Session \xB7 5h",
+    "codexQuota.weekly": "Weekly",
+    "codexQuota.quota": "Quota",
+    "codexQuota.day": "Day",
+    "codexQuota.pacing5h": "5h pacing",
+    "codexQuota.pacing": "Pacing",
+    "codexQuota.now": "now",
+    "codexQuota.nowAt": "Now {percent}% \xB7 {time}",
+    "codexQuota.checkpoint": "{percent}% \xB7 {time}",
+    "codexQuota.checkpointAria": "{text} checkpoint",
+    "codexQuota.reset": "reset {value}",
+    "codexQuota.resetBank": "Reset bank:",
+    "codexQuota.resetBankUnavailable": "Reset bank unavailable",
+    "codexQuota.noBankedReset": "No banked reset",
+    "codexQuota.resetDetailsUnavailable": "Reset details unavailable",
+    "codexQuota.bankedReset": "Banked reset",
+    "codexQuota.dates": "{granted} \u2192 {expires}",
+    "codexQuota.duration.lessThanMinute": "<1m",
+    "codexQuota.duration.daysHours": "{days}d {hours}h",
+    "codexQuota.duration.hoursMinutes": "{hours}h {minutes}m",
+    "codexQuota.duration.minutes": "{minutes}m",
+    "codexQuota.in": "in {duration}"
   };
 
   // codex_image/webui/frontend/src/i18n/de.ts
@@ -2883,7 +2915,39 @@
     "modelParameters.invalidJson": "Ung\xFCltiges JSON",
     "modelParameters.migrated": "{count} \xE4ltere Parameter wurden an das aktuelle Modell angepasst",
     "modelParameters.historyConfiguration": "Historische Konfiguration",
-    "modelParameters.legacyTask": "Alte Aufgabe"
+    "modelParameters.legacyTask": "Alte Aufgabe",
+    "codexQuota.label": "Codex-Kontingent",
+    "codexQuota.details": "Details zum Codex-Kontingent",
+    "codexQuota.currentAccount": "Aktuelles Konto",
+    "codexQuota.close": "Details zum Codex-Kontingent schlie\xDFen",
+    "codexQuota.loading": "Kontingent wird geladen",
+    "codexQuota.unavailable": "Kontingent nicht verf\xFCgbar",
+    "codexQuota.unavailableLabel": "Codex-Kontingent nicht verf\xFCgbar",
+    "codexQuota.summary": "Codex-Kontingent: {percent}% \xFCbrig",
+    "codexQuota.summaryWithDetails": "Codex-Kontingent: {percent}% \xFCbrig. {details}",
+    "codexQuota.remaining": "{percent}% \xFCbrig",
+    "codexQuota.session": "Sitzung \xB7 5 Std.",
+    "codexQuota.weekly": "W\xF6chentlich",
+    "codexQuota.quota": "Kontingent",
+    "codexQuota.day": "Tag",
+    "codexQuota.pacing5h": "5-Std.-Verlauf",
+    "codexQuota.pacing": "Verlauf",
+    "codexQuota.now": "jetzt",
+    "codexQuota.nowAt": "Jetzt {percent}% \xB7 {time}",
+    "codexQuota.checkpoint": "{percent}% \xB7 {time}",
+    "codexQuota.checkpointAria": "Pr\xFCfpunkt: {text}",
+    "codexQuota.reset": "Zur\xFCcksetzung {value}",
+    "codexQuota.resetBank": "Zur\xFCcksetzungsspeicher:",
+    "codexQuota.resetBankUnavailable": "Zur\xFCcksetzungsspeicher nicht verf\xFCgbar",
+    "codexQuota.noBankedReset": "Keine gespeicherte Zur\xFCcksetzung",
+    "codexQuota.resetDetailsUnavailable": "Details zur Zur\xFCcksetzung nicht verf\xFCgbar",
+    "codexQuota.bankedReset": "Gespeicherte Zur\xFCcksetzung",
+    "codexQuota.dates": "{granted} \u2192 {expires}",
+    "codexQuota.duration.lessThanMinute": "<1 Min.",
+    "codexQuota.duration.daysHours": "{days} T. {hours} Std.",
+    "codexQuota.duration.hoursMinutes": "{hours} Std. {minutes} Min.",
+    "codexQuota.duration.minutes": "{minutes} Min.",
+    "codexQuota.in": "in {duration}"
   };
 
   // codex_image/webui/frontend/src/i18n/es.ts
@@ -4069,7 +4133,39 @@
     "modelParameters.invalidJson": "JSON no v\xE1lido",
     "modelParameters.migrated": "Se ajustaron {count} par\xE1metros anteriores al modelo actual",
     "modelParameters.historyConfiguration": "Configuraci\xF3n hist\xF3rica",
-    "modelParameters.legacyTask": "Tarea antigua"
+    "modelParameters.legacyTask": "Tarea antigua",
+    "codexQuota.label": "Cuota de Codex",
+    "codexQuota.details": "Detalles de la cuota de Codex",
+    "codexQuota.currentAccount": "Cuenta actual",
+    "codexQuota.close": "Cerrar detalles de la cuota de Codex",
+    "codexQuota.loading": "Cargando cuota",
+    "codexQuota.unavailable": "Cuota no disponible",
+    "codexQuota.unavailableLabel": "Cuota de Codex no disponible",
+    "codexQuota.summary": "Cuota de Codex: queda {percent}%",
+    "codexQuota.summaryWithDetails": "Cuota de Codex: queda {percent}%. {details}",
+    "codexQuota.remaining": "Queda {percent}%",
+    "codexQuota.session": "Sesi\xF3n \xB7 5 h",
+    "codexQuota.weekly": "Semanal",
+    "codexQuota.quota": "Cuota",
+    "codexQuota.day": "D\xEDa",
+    "codexQuota.pacing5h": "Ritmo de 5 h",
+    "codexQuota.pacing": "Ritmo",
+    "codexQuota.now": "ahora",
+    "codexQuota.nowAt": "Ahora {percent}% \xB7 {time}",
+    "codexQuota.checkpoint": "{percent}% \xB7 {time}",
+    "codexQuota.checkpointAria": "Punto de control: {text}",
+    "codexQuota.reset": "restablecimiento {value}",
+    "codexQuota.resetBank": "Banco de restablecimientos:",
+    "codexQuota.resetBankUnavailable": "Banco de restablecimientos no disponible",
+    "codexQuota.noBankedReset": "No hay restablecimientos guardados",
+    "codexQuota.resetDetailsUnavailable": "Detalles de restablecimiento no disponibles",
+    "codexQuota.bankedReset": "Restablecimiento guardado",
+    "codexQuota.dates": "{granted} \u2192 {expires}",
+    "codexQuota.duration.lessThanMinute": "<1 min",
+    "codexQuota.duration.daysHours": "{days} d {hours} h",
+    "codexQuota.duration.hoursMinutes": "{hours} h {minutes} min",
+    "codexQuota.duration.minutes": "{minutes} min",
+    "codexQuota.in": "en {duration}"
   };
 
   // codex_image/webui/frontend/src/i18n/fr.ts
@@ -5255,7 +5351,39 @@
     "modelParameters.invalidJson": "JSON invalide",
     "modelParameters.migrated": "{count} anciens param\xE8tres ont \xE9t\xE9 adapt\xE9s au mod\xE8le actuel",
     "modelParameters.historyConfiguration": "Configuration historique",
-    "modelParameters.legacyTask": "Ancienne t\xE2che"
+    "modelParameters.legacyTask": "Ancienne t\xE2che",
+    "codexQuota.label": "Quota Codex",
+    "codexQuota.details": "D\xE9tails du quota Codex",
+    "codexQuota.currentAccount": "Compte actuel",
+    "codexQuota.close": "Fermer les d\xE9tails du quota Codex",
+    "codexQuota.loading": "Chargement du quota",
+    "codexQuota.unavailable": "Quota indisponible",
+    "codexQuota.unavailableLabel": "Quota Codex indisponible",
+    "codexQuota.summary": "Quota Codex : {percent} % restant",
+    "codexQuota.summaryWithDetails": "Quota Codex : {percent} % restant. {details}",
+    "codexQuota.remaining": "{percent} % restant",
+    "codexQuota.session": "Session \xB7 5 h",
+    "codexQuota.weekly": "Hebdomadaire",
+    "codexQuota.quota": "Quota",
+    "codexQuota.day": "Jour",
+    "codexQuota.pacing5h": "Rythme sur 5 h",
+    "codexQuota.pacing": "Rythme",
+    "codexQuota.now": "maintenant",
+    "codexQuota.nowAt": "Maintenant {percent} % \xB7 {time}",
+    "codexQuota.checkpoint": "{percent} % \xB7 {time}",
+    "codexQuota.checkpointAria": "Point de contr\xF4le : {text}",
+    "codexQuota.reset": "r\xE9initialisation {value}",
+    "codexQuota.resetBank": "R\xE9serve de r\xE9initialisations :",
+    "codexQuota.resetBankUnavailable": "R\xE9serve de r\xE9initialisations indisponible",
+    "codexQuota.noBankedReset": "Aucune r\xE9initialisation enregistr\xE9e",
+    "codexQuota.resetDetailsUnavailable": "D\xE9tails de r\xE9initialisation indisponibles",
+    "codexQuota.bankedReset": "R\xE9initialisation enregistr\xE9e",
+    "codexQuota.dates": "{granted} \u2192 {expires}",
+    "codexQuota.duration.lessThanMinute": "<1 min",
+    "codexQuota.duration.daysHours": "{days} j {hours} h",
+    "codexQuota.duration.hoursMinutes": "{hours} h {minutes} min",
+    "codexQuota.duration.minutes": "{minutes} min",
+    "codexQuota.in": "dans {duration}"
   };
 
   // codex_image/webui/frontend/src/i18n/ja.ts
@@ -6441,7 +6569,39 @@
     "modelParameters.invalidJson": "JSON \u304C\u7121\u52B9\u3067\u3059",
     "modelParameters.migrated": "\u73FE\u5728\u306E\u30E2\u30C7\u30EB\u306B\u5408\u308F\u305B\u3066\u65E7\u30D1\u30E9\u30E1\u30FC\u30BF\u3092 {count} \u4EF6\u8ABF\u6574\u3057\u307E\u3057\u305F",
     "modelParameters.historyConfiguration": "\u5C65\u6B74\u8A2D\u5B9A",
-    "modelParameters.legacyTask": "\u65E7\u5F62\u5F0F\u30BF\u30B9\u30AF"
+    "modelParameters.legacyTask": "\u65E7\u5F62\u5F0F\u30BF\u30B9\u30AF",
+    "codexQuota.label": "Codex \u30AF\u30A9\u30FC\u30BF",
+    "codexQuota.details": "Codex \u30AF\u30A9\u30FC\u30BF\u306E\u8A73\u7D30",
+    "codexQuota.currentAccount": "\u73FE\u5728\u306E\u30A2\u30AB\u30A6\u30F3\u30C8",
+    "codexQuota.close": "Codex \u30AF\u30A9\u30FC\u30BF\u306E\u8A73\u7D30\u3092\u9589\u3058\u308B",
+    "codexQuota.loading": "\u30AF\u30A9\u30FC\u30BF\u3092\u8AAD\u307F\u8FBC\u307F\u4E2D",
+    "codexQuota.unavailable": "\u30AF\u30A9\u30FC\u30BF\u3092\u5229\u7528\u3067\u304D\u307E\u305B\u3093",
+    "codexQuota.unavailableLabel": "Codex \u30AF\u30A9\u30FC\u30BF\u3092\u5229\u7528\u3067\u304D\u307E\u305B\u3093",
+    "codexQuota.summary": "Codex \u30AF\u30A9\u30FC\u30BF: \u6B8B\u308A {percent}%",
+    "codexQuota.summaryWithDetails": "Codex \u30AF\u30A9\u30FC\u30BF: \u6B8B\u308A {percent}%\u3002{details}",
+    "codexQuota.remaining": "\u6B8B\u308A {percent}%",
+    "codexQuota.session": "\u30BB\u30C3\u30B7\u30E7\u30F3 \xB7 5\u6642\u9593",
+    "codexQuota.weekly": "\u9031\u9593",
+    "codexQuota.quota": "\u30AF\u30A9\u30FC\u30BF",
+    "codexQuota.day": "\u65E5",
+    "codexQuota.pacing5h": "5\u6642\u9593\u306E\u30DA\u30FC\u30B9",
+    "codexQuota.pacing": "\u30DA\u30FC\u30B9",
+    "codexQuota.now": "\u73FE\u5728",
+    "codexQuota.nowAt": "\u73FE\u5728 {percent}% \xB7 {time}",
+    "codexQuota.checkpoint": "{percent}% \xB7 {time}",
+    "codexQuota.checkpointAria": "{text} \u30C1\u30A7\u30C3\u30AF\u30DD\u30A4\u30F3\u30C8",
+    "codexQuota.reset": "\u30EA\u30BB\u30C3\u30C8 {value}",
+    "codexQuota.resetBank": "\u30EA\u30BB\u30C3\u30C8\u30D0\u30F3\u30AF:",
+    "codexQuota.resetBankUnavailable": "\u30EA\u30BB\u30C3\u30C8\u30D0\u30F3\u30AF\u3092\u5229\u7528\u3067\u304D\u307E\u305B\u3093",
+    "codexQuota.noBankedReset": "\u4FDD\u5B58\u3055\u308C\u305F\u30EA\u30BB\u30C3\u30C8\u306A\u3057",
+    "codexQuota.resetDetailsUnavailable": "\u30EA\u30BB\u30C3\u30C8\u8A73\u7D30\u3092\u5229\u7528\u3067\u304D\u307E\u305B\u3093",
+    "codexQuota.bankedReset": "\u4FDD\u5B58\u6E08\u307F\u30EA\u30BB\u30C3\u30C8",
+    "codexQuota.dates": "{granted} \u2192 {expires}",
+    "codexQuota.duration.lessThanMinute": "1\u5206\u672A\u6E80",
+    "codexQuota.duration.daysHours": "{days}\u65E5 {hours}\u6642\u9593",
+    "codexQuota.duration.hoursMinutes": "{hours}\u6642\u9593 {minutes}\u5206",
+    "codexQuota.duration.minutes": "{minutes}\u5206",
+    "codexQuota.in": "{duration}\u5F8C"
   };
 
   // codex_image/webui/frontend/src/i18n/ko.ts
@@ -7627,7 +7787,39 @@
     "modelParameters.invalidJson": "\uC798\uBABB\uB41C JSON\uC785\uB2C8\uB2E4",
     "modelParameters.migrated": "\uD604\uC7AC \uBAA8\uB378\uC5D0 \uB9DE\uAC8C \uAE30\uC874 \uB9E4\uAC1C\uBCC0\uC218 {count}\uAC1C\uB97C \uC870\uC815\uD588\uC2B5\uB2C8\uB2E4",
     "modelParameters.historyConfiguration": "\uAE30\uB85D \uC124\uC815",
-    "modelParameters.legacyTask": "\uB808\uAC70\uC2DC \uC791\uC5C5"
+    "modelParameters.legacyTask": "\uB808\uAC70\uC2DC \uC791\uC5C5",
+    "codexQuota.label": "Codex \uD560\uB2F9\uB7C9",
+    "codexQuota.details": "Codex \uD560\uB2F9\uB7C9 \uC138\uBD80 \uC815\uBCF4",
+    "codexQuota.currentAccount": "\uD604\uC7AC \uACC4\uC815",
+    "codexQuota.close": "Codex \uD560\uB2F9\uB7C9 \uC138\uBD80 \uC815\uBCF4 \uB2EB\uAE30",
+    "codexQuota.loading": "\uD560\uB2F9\uB7C9\uC744 \uBD88\uB7EC\uC624\uB294 \uC911",
+    "codexQuota.unavailable": "\uD560\uB2F9\uB7C9\uC744 \uC0AC\uC6A9\uD560 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4",
+    "codexQuota.unavailableLabel": "Codex \uD560\uB2F9\uB7C9\uC744 \uC0AC\uC6A9\uD560 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4",
+    "codexQuota.summary": "Codex \uD560\uB2F9\uB7C9: {percent}% \uB0A8\uC74C",
+    "codexQuota.summaryWithDetails": "Codex \uD560\uB2F9\uB7C9: {percent}% \uB0A8\uC74C. {details}",
+    "codexQuota.remaining": "{percent}% \uB0A8\uC74C",
+    "codexQuota.session": "\uC138\uC158 \xB7 5\uC2DC\uAC04",
+    "codexQuota.weekly": "\uC8FC\uAC04",
+    "codexQuota.quota": "\uD560\uB2F9\uB7C9",
+    "codexQuota.day": "\uC77C",
+    "codexQuota.pacing5h": "5\uC2DC\uAC04 \uC9C4\uD589",
+    "codexQuota.pacing": "\uC9C4\uD589",
+    "codexQuota.now": "\uD604\uC7AC",
+    "codexQuota.nowAt": "\uD604\uC7AC {percent}% \xB7 {time}",
+    "codexQuota.checkpoint": "{percent}% \xB7 {time}",
+    "codexQuota.checkpointAria": "{text} \uCCB4\uD06C\uD3EC\uC778\uD2B8",
+    "codexQuota.reset": "\uC7AC\uC124\uC815 {value}",
+    "codexQuota.resetBank": "\uC7AC\uC124\uC815 \uC800\uC7A5\uC18C:",
+    "codexQuota.resetBankUnavailable": "\uC7AC\uC124\uC815 \uC800\uC7A5\uC18C\uB97C \uC0AC\uC6A9\uD560 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4",
+    "codexQuota.noBankedReset": "\uC800\uC7A5\uB41C \uC7AC\uC124\uC815 \uC5C6\uC74C",
+    "codexQuota.resetDetailsUnavailable": "\uC7AC\uC124\uC815 \uC138\uBD80 \uC815\uBCF4\uB97C \uC0AC\uC6A9\uD560 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4",
+    "codexQuota.bankedReset": "\uC800\uC7A5\uB41C \uC7AC\uC124\uC815",
+    "codexQuota.dates": "{granted} \u2192 {expires}",
+    "codexQuota.duration.lessThanMinute": "1\uBD84 \uBBF8\uB9CC",
+    "codexQuota.duration.daysHours": "{days}\uC77C {hours}\uC2DC\uAC04",
+    "codexQuota.duration.hoursMinutes": "{hours}\uC2DC\uAC04 {minutes}\uBD84",
+    "codexQuota.duration.minutes": "{minutes}\uBD84",
+    "codexQuota.in": "{duration} \uD6C4"
   };
 
   // codex_image/webui/frontend/src/i18n/pt.ts
@@ -8813,7 +9005,39 @@
     "modelParameters.invalidJson": "JSON inv\xE1lido",
     "modelParameters.migrated": "Foram ajustados {count} par\xE2metros antigos ao modelo atual",
     "modelParameters.historyConfiguration": "Configura\xE7\xE3o hist\xF3rica",
-    "modelParameters.legacyTask": "Tarefa antiga"
+    "modelParameters.legacyTask": "Tarefa antiga",
+    "codexQuota.label": "Cota do Codex",
+    "codexQuota.details": "Detalhes da cota do Codex",
+    "codexQuota.currentAccount": "Conta atual",
+    "codexQuota.close": "Fechar detalhes da cota do Codex",
+    "codexQuota.loading": "Carregando cota",
+    "codexQuota.unavailable": "Cota indispon\xEDvel",
+    "codexQuota.unavailableLabel": "Cota do Codex indispon\xEDvel",
+    "codexQuota.summary": "Cota do Codex: {percent}% restante",
+    "codexQuota.summaryWithDetails": "Cota do Codex: {percent}% restante. {details}",
+    "codexQuota.remaining": "{percent}% restante",
+    "codexQuota.session": "Sess\xE3o \xB7 5 h",
+    "codexQuota.weekly": "Semanal",
+    "codexQuota.quota": "Cota",
+    "codexQuota.day": "Dia",
+    "codexQuota.pacing5h": "Ritmo de 5 h",
+    "codexQuota.pacing": "Ritmo",
+    "codexQuota.now": "agora",
+    "codexQuota.nowAt": "Agora {percent}% \xB7 {time}",
+    "codexQuota.checkpoint": "{percent}% \xB7 {time}",
+    "codexQuota.checkpointAria": "Ponto de controle: {text}",
+    "codexQuota.reset": "redefini\xE7\xE3o {value}",
+    "codexQuota.resetBank": "Banco de redefini\xE7\xF5es:",
+    "codexQuota.resetBankUnavailable": "Banco de redefini\xE7\xF5es indispon\xEDvel",
+    "codexQuota.noBankedReset": "Nenhuma redefini\xE7\xE3o armazenada",
+    "codexQuota.resetDetailsUnavailable": "Detalhes da redefini\xE7\xE3o indispon\xEDveis",
+    "codexQuota.bankedReset": "Redefini\xE7\xE3o armazenada",
+    "codexQuota.dates": "{granted} \u2192 {expires}",
+    "codexQuota.duration.lessThanMinute": "<1 min",
+    "codexQuota.duration.daysHours": "{days} d {hours} h",
+    "codexQuota.duration.hoursMinutes": "{hours} h {minutes} min",
+    "codexQuota.duration.minutes": "{minutes} min",
+    "codexQuota.in": "em {duration}"
   };
 
   // codex_image/webui/frontend/src/i18n/ru.ts
@@ -9999,7 +10223,39 @@
     "modelParameters.invalidJson": "\u041D\u0435\u043A\u043E\u0440\u0440\u0435\u043A\u0442\u043D\u044B\u0439 JSON",
     "modelParameters.migrated": "\u0421\u043A\u043E\u0440\u0440\u0435\u043A\u0442\u0438\u0440\u043E\u0432\u0430\u043D\u043E \u0443\u0441\u0442\u0430\u0440\u0435\u0432\u0448\u0438\u0445 \u043F\u0430\u0440\u0430\u043C\u0435\u0442\u0440\u043E\u0432 \u0434\u043B\u044F \u0442\u0435\u043A\u0443\u0449\u0435\u0439 \u043C\u043E\u0434\u0435\u043B\u0438: {count}",
     "modelParameters.historyConfiguration": "\u0418\u0441\u0442\u043E\u0440\u0438\u0447\u0435\u0441\u043A\u0430\u044F \u043A\u043E\u043D\u0444\u0438\u0433\u0443\u0440\u0430\u0446\u0438\u044F",
-    "modelParameters.legacyTask": "\u0421\u0442\u0430\u0440\u0430\u044F \u0437\u0430\u0434\u0430\u0447\u0430"
+    "modelParameters.legacyTask": "\u0421\u0442\u0430\u0440\u0430\u044F \u0437\u0430\u0434\u0430\u0447\u0430",
+    "codexQuota.label": "\u041B\u0438\u043C\u0438\u0442 Codex",
+    "codexQuota.details": "\u041F\u043E\u0434\u0440\u043E\u0431\u043D\u043E\u0441\u0442\u0438 \u043B\u0438\u043C\u0438\u0442\u0430 Codex",
+    "codexQuota.currentAccount": "\u0422\u0435\u043A\u0443\u0449\u0438\u0439 \u0430\u043A\u043A\u0430\u0443\u043D\u0442",
+    "codexQuota.close": "\u0417\u0430\u043A\u0440\u044B\u0442\u044C \u043F\u043E\u0434\u0440\u043E\u0431\u043D\u043E\u0441\u0442\u0438 \u043B\u0438\u043C\u0438\u0442\u0430 Codex",
+    "codexQuota.loading": "\u0417\u0430\u0433\u0440\u0443\u0437\u043A\u0430 \u043B\u0438\u043C\u0438\u0442\u0430",
+    "codexQuota.unavailable": "\u041B\u0438\u043C\u0438\u0442 \u043D\u0435\u0434\u043E\u0441\u0442\u0443\u043F\u0435\u043D",
+    "codexQuota.unavailableLabel": "\u041B\u0438\u043C\u0438\u0442 Codex \u043D\u0435\u0434\u043E\u0441\u0442\u0443\u043F\u0435\u043D",
+    "codexQuota.summary": "\u041B\u0438\u043C\u0438\u0442 Codex: \u043E\u0441\u0442\u0430\u043B\u043E\u0441\u044C {percent}%",
+    "codexQuota.summaryWithDetails": "\u041B\u0438\u043C\u0438\u0442 Codex: \u043E\u0441\u0442\u0430\u043B\u043E\u0441\u044C {percent}%. {details}",
+    "codexQuota.remaining": "\u041E\u0441\u0442\u0430\u043B\u043E\u0441\u044C {percent}%",
+    "codexQuota.session": "\u0421\u0435\u0441\u0441\u0438\u044F \xB7 5 \u0447",
+    "codexQuota.weekly": "\u0417\u0430 \u043D\u0435\u0434\u0435\u043B\u044E",
+    "codexQuota.quota": "\u041B\u0438\u043C\u0438\u0442",
+    "codexQuota.day": "\u0414\u0435\u043D\u044C",
+    "codexQuota.pacing5h": "\u0420\u0438\u0442\u043C \u0437\u0430 5 \u0447",
+    "codexQuota.pacing": "\u0420\u0438\u0442\u043C",
+    "codexQuota.now": "\u0441\u0435\u0439\u0447\u0430\u0441",
+    "codexQuota.nowAt": "\u0421\u0435\u0439\u0447\u0430\u0441 {percent}% \xB7 {time}",
+    "codexQuota.checkpoint": "{percent}% \xB7 {time}",
+    "codexQuota.checkpointAria": "\u041A\u043E\u043D\u0442\u0440\u043E\u043B\u044C\u043D\u0430\u044F \u0442\u043E\u0447\u043A\u0430: {text}",
+    "codexQuota.reset": "\u0441\u0431\u0440\u043E\u0441 {value}",
+    "codexQuota.resetBank": "\u0420\u0435\u0437\u0435\u0440\u0432 \u0441\u0431\u0440\u043E\u0441\u043E\u0432:",
+    "codexQuota.resetBankUnavailable": "\u0420\u0435\u0437\u0435\u0440\u0432 \u0441\u0431\u0440\u043E\u0441\u043E\u0432 \u043D\u0435\u0434\u043E\u0441\u0442\u0443\u043F\u0435\u043D",
+    "codexQuota.noBankedReset": "\u041D\u0435\u0442 \u0441\u043E\u0445\u0440\u0430\u043D\u0451\u043D\u043D\u044B\u0445 \u0441\u0431\u0440\u043E\u0441\u043E\u0432",
+    "codexQuota.resetDetailsUnavailable": "\u041F\u043E\u0434\u0440\u043E\u0431\u043D\u043E\u0441\u0442\u0438 \u0441\u0431\u0440\u043E\u0441\u0430 \u043D\u0435\u0434\u043E\u0441\u0442\u0443\u043F\u043D\u044B",
+    "codexQuota.bankedReset": "\u0421\u043E\u0445\u0440\u0430\u043D\u0451\u043D\u043D\u044B\u0439 \u0441\u0431\u0440\u043E\u0441",
+    "codexQuota.dates": "{granted} \u2192 {expires}",
+    "codexQuota.duration.lessThanMinute": "<1 \u043C\u0438\u043D",
+    "codexQuota.duration.daysHours": "{days} \u0434 {hours} \u0447",
+    "codexQuota.duration.hoursMinutes": "{hours} \u0447 {minutes} \u043C\u0438\u043D",
+    "codexQuota.duration.minutes": "{minutes} \u043C\u0438\u043D",
+    "codexQuota.in": "\u0447\u0435\u0440\u0435\u0437 {duration}"
   };
 
   // codex_image/webui/frontend/src/i18n/it.ts
@@ -11185,7 +11441,39 @@
     "modelParameters.invalidJson": "JSON non valido",
     "modelParameters.migrated": "Adattati {count} parametri precedenti al modello attuale",
     "modelParameters.historyConfiguration": "Configurazione storica",
-    "modelParameters.legacyTask": "Attivit\xE0 precedente"
+    "modelParameters.legacyTask": "Attivit\xE0 precedente",
+    "codexQuota.label": "Quota Codex",
+    "codexQuota.details": "Dettagli quota Codex",
+    "codexQuota.currentAccount": "Account corrente",
+    "codexQuota.close": "Chiudi dettagli quota Codex",
+    "codexQuota.loading": "Caricamento quota",
+    "codexQuota.unavailable": "Quota non disponibile",
+    "codexQuota.unavailableLabel": "Quota Codex non disponibile",
+    "codexQuota.summary": "Quota Codex: {percent}% rimanente",
+    "codexQuota.summaryWithDetails": "Quota Codex: {percent}% rimanente. {details}",
+    "codexQuota.remaining": "{percent}% rimanente",
+    "codexQuota.session": "Sessione \xB7 5 h",
+    "codexQuota.weekly": "Settimanale",
+    "codexQuota.quota": "Quota",
+    "codexQuota.day": "Giorno",
+    "codexQuota.pacing5h": "Andamento di 5 h",
+    "codexQuota.pacing": "Andamento",
+    "codexQuota.now": "ora",
+    "codexQuota.nowAt": "Ora {percent}% \xB7 {time}",
+    "codexQuota.checkpoint": "{percent}% \xB7 {time}",
+    "codexQuota.checkpointAria": "Punto di controllo: {text}",
+    "codexQuota.reset": "reimpostazione {value}",
+    "codexQuota.resetBank": "Riserva di reimpostazioni:",
+    "codexQuota.resetBankUnavailable": "Riserva di reimpostazioni non disponibile",
+    "codexQuota.noBankedReset": "Nessuna reimpostazione salvata",
+    "codexQuota.resetDetailsUnavailable": "Dettagli reimpostazione non disponibili",
+    "codexQuota.bankedReset": "Reimpostazione salvata",
+    "codexQuota.dates": "{granted} \u2192 {expires}",
+    "codexQuota.duration.lessThanMinute": "<1 min",
+    "codexQuota.duration.daysHours": "{days} g {hours} h",
+    "codexQuota.duration.hoursMinutes": "{hours} h {minutes} min",
+    "codexQuota.duration.minutes": "{minutes} min",
+    "codexQuota.in": "tra {duration}"
   };
 
   // codex_image/webui/frontend/src/i18n/hi.ts
@@ -12371,7 +12659,39 @@
     "modelParameters.invalidJson": "\u0905\u092E\u093E\u0928\u094D\u092F JSON",
     "modelParameters.migrated": "\u092E\u094C\u091C\u0942\u0926\u093E \u092E\u0949\u0921\u0932 \u0915\u0947 \u0932\u093F\u090F {count} \u092A\u0941\u0930\u093E\u0928\u0947 \u092A\u0948\u0930\u093E\u092E\u0940\u091F\u0930 \u0938\u092E\u093E\u092F\u094B\u091C\u093F\u0924 \u0915\u093F\u090F \u0917\u090F",
     "modelParameters.historyConfiguration": "\u0910\u0924\u093F\u0939\u093E\u0938\u093F\u0915 \u0915\u0949\u0928\u094D\u092B\u093C\u093F\u0917\u0930\u0947\u0936\u0928",
-    "modelParameters.legacyTask": "\u092A\u0941\u0930\u093E\u0928\u093E \u0915\u093E\u0930\u094D\u092F"
+    "modelParameters.legacyTask": "\u092A\u0941\u0930\u093E\u0928\u093E \u0915\u093E\u0930\u094D\u092F",
+    "codexQuota.label": "Codex \u0915\u094B\u091F\u093E",
+    "codexQuota.details": "Codex \u0915\u094B\u091F\u093E \u0935\u093F\u0935\u0930\u0923",
+    "codexQuota.currentAccount": "\u0935\u0930\u094D\u0924\u092E\u093E\u0928 \u0916\u093E\u0924\u093E",
+    "codexQuota.close": "Codex \u0915\u094B\u091F\u093E \u0935\u093F\u0935\u0930\u0923 \u092C\u0902\u0926 \u0915\u0930\u0947\u0902",
+    "codexQuota.loading": "\u0915\u094B\u091F\u093E \u0932\u094B\u0921 \u0939\u094B \u0930\u0939\u093E \u0939\u0948",
+    "codexQuota.unavailable": "\u0915\u094B\u091F\u093E \u0909\u092A\u0932\u092C\u094D\u0927 \u0928\u0939\u0940\u0902 \u0939\u0948",
+    "codexQuota.unavailableLabel": "Codex \u0915\u094B\u091F\u093E \u0909\u092A\u0932\u092C\u094D\u0927 \u0928\u0939\u0940\u0902 \u0939\u0948",
+    "codexQuota.summary": "Codex \u0915\u094B\u091F\u093E: {percent}% \u0936\u0947\u0937",
+    "codexQuota.summaryWithDetails": "Codex \u0915\u094B\u091F\u093E: {percent}% \u0936\u0947\u0937\u0964 {details}",
+    "codexQuota.remaining": "{percent}% \u0936\u0947\u0937",
+    "codexQuota.session": "\u0938\u0924\u094D\u0930 \xB7 5 \u0918\u0902\u091F\u0947",
+    "codexQuota.weekly": "\u0938\u093E\u092A\u094D\u0924\u093E\u0939\u093F\u0915",
+    "codexQuota.quota": "\u0915\u094B\u091F\u093E",
+    "codexQuota.day": "\u0926\u093F\u0928",
+    "codexQuota.pacing5h": "5 \u0918\u0902\u091F\u0947 \u0915\u0940 \u0917\u0924\u093F",
+    "codexQuota.pacing": "\u0917\u0924\u093F",
+    "codexQuota.now": "\u0905\u092D\u0940",
+    "codexQuota.nowAt": "\u0905\u092D\u0940 {percent}% \xB7 {time}",
+    "codexQuota.checkpoint": "{percent}% \xB7 {time}",
+    "codexQuota.checkpointAria": "\u091C\u093E\u0901\u091A \u092C\u093F\u0902\u0926\u0941: {text}",
+    "codexQuota.reset": "\u0930\u0940\u0938\u0947\u091F {value}",
+    "codexQuota.resetBank": "\u0930\u0940\u0938\u0947\u091F \u0938\u0902\u0917\u094D\u0930\u0939:",
+    "codexQuota.resetBankUnavailable": "\u0930\u0940\u0938\u0947\u091F \u0938\u0902\u0917\u094D\u0930\u0939 \u0909\u092A\u0932\u092C\u094D\u0927 \u0928\u0939\u0940\u0902 \u0939\u0948",
+    "codexQuota.noBankedReset": "\u0915\u094B\u0908 \u0938\u0902\u0917\u094D\u0930\u0939\u093F\u0924 \u0930\u0940\u0938\u0947\u091F \u0928\u0939\u0940\u0902",
+    "codexQuota.resetDetailsUnavailable": "\u0930\u0940\u0938\u0947\u091F \u0935\u093F\u0935\u0930\u0923 \u0909\u092A\u0932\u092C\u094D\u0927 \u0928\u0939\u0940\u0902 \u0939\u0948\u0902",
+    "codexQuota.bankedReset": "\u0938\u0902\u0917\u094D\u0930\u0939\u093F\u0924 \u0930\u0940\u0938\u0947\u091F",
+    "codexQuota.dates": "{granted} \u2192 {expires}",
+    "codexQuota.duration.lessThanMinute": "<1 \u092E\u093F\u0928\u091F",
+    "codexQuota.duration.daysHours": "{days} \u0926\u093F\u0928 {hours} \u0918\u0902\u091F\u0947",
+    "codexQuota.duration.hoursMinutes": "{hours} \u0918\u0902\u091F\u0947 {minutes} \u092E\u093F\u0928\u091F",
+    "codexQuota.duration.minutes": "{minutes} \u092E\u093F\u0928\u091F",
+    "codexQuota.in": "{duration} \u092E\u0947\u0902"
   };
 
   // codex_image/webui/frontend/src/i18n/vi.ts
@@ -13567,7 +13887,39 @@
     "modelParameters.invalidJson": "\u0110\u1ECBnh d\u1EA1ng JSON kh\xF4ng h\u1EE3p l\u1EC7",
     "modelParameters.migrated": "\u0110\xE3 \u0111i\u1EC1u ch\u1EC9nh {count} tham s\u1ED1 c\u0169 cho ph\xF9 h\u1EE3p v\u1EDBi m\xF4 h\xECnh hi\u1EC7n t\u1EA1i",
     "modelParameters.historyConfiguration": "C\u1EA5u h\xECnh l\u1ECBch s\u1EED",
-    "modelParameters.legacyTask": "T\xE1c v\u1EE5 phi\xEAn b\u1EA3n c\u0169"
+    "modelParameters.legacyTask": "T\xE1c v\u1EE5 phi\xEAn b\u1EA3n c\u0169",
+    "codexQuota.label": "H\u1EA1n m\u1EE9c Codex",
+    "codexQuota.details": "Chi ti\u1EBFt h\u1EA1n m\u1EE9c Codex",
+    "codexQuota.currentAccount": "T\xE0i kho\u1EA3n hi\u1EC7n t\u1EA1i",
+    "codexQuota.close": "\u0110\xF3ng chi ti\u1EBFt h\u1EA1n m\u1EE9c Codex",
+    "codexQuota.loading": "\u0110ang t\u1EA3i h\u1EA1n m\u1EE9c",
+    "codexQuota.unavailable": "H\u1EA1n m\u1EE9c kh\xF4ng kh\u1EA3 d\u1EE5ng",
+    "codexQuota.unavailableLabel": "H\u1EA1n m\u1EE9c Codex kh\xF4ng kh\u1EA3 d\u1EE5ng",
+    "codexQuota.summary": "H\u1EA1n m\u1EE9c Codex: c\xF2n {percent}%",
+    "codexQuota.summaryWithDetails": "H\u1EA1n m\u1EE9c Codex: c\xF2n {percent}%. {details}",
+    "codexQuota.remaining": "C\xF2n {percent}%",
+    "codexQuota.session": "Phi\xEAn \xB7 5 gi\u1EDD",
+    "codexQuota.weekly": "H\xE0ng tu\u1EA7n",
+    "codexQuota.quota": "H\u1EA1n m\u1EE9c",
+    "codexQuota.day": "Ng\xE0y",
+    "codexQuota.pacing5h": "Nh\u1ECBp 5 gi\u1EDD",
+    "codexQuota.pacing": "Nh\u1ECBp h\u1EA1n m\u1EE9c",
+    "codexQuota.now": "b\xE2y gi\u1EDD",
+    "codexQuota.nowAt": "B\xE2y gi\u1EDD {percent}% \xB7 {time}",
+    "codexQuota.checkpoint": "{percent}% \xB7 {time}",
+    "codexQuota.checkpointAria": "M\u1ED1c {text}",
+    "codexQuota.reset": "\u0111\u1EB7t l\u1EA1i {value}",
+    "codexQuota.resetBank": "Kho reset:",
+    "codexQuota.resetBankUnavailable": "Kho reset kh\xF4ng kh\u1EA3 d\u1EE5ng",
+    "codexQuota.noBankedReset": "Kh\xF4ng c\xF3 l\u01B0\u1EE3t reset \u0111\xE3 l\u01B0u",
+    "codexQuota.resetDetailsUnavailable": "Chi ti\u1EBFt reset kh\xF4ng kh\u1EA3 d\u1EE5ng",
+    "codexQuota.bankedReset": "L\u01B0\u1EE3t reset \u0111\xE3 l\u01B0u",
+    "codexQuota.dates": "{granted} \u2192 {expires}",
+    "codexQuota.duration.lessThanMinute": "<1 ph\xFAt",
+    "codexQuota.duration.daysHours": "{days} ng\xE0y {hours} gi\u1EDD",
+    "codexQuota.duration.hoursMinutes": "{hours} gi\u1EDD {minutes} ph\xFAt",
+    "codexQuota.duration.minutes": "{minutes} ph\xFAt",
+    "codexQuota.in": "sau {duration}"
   };
 
   // codex_image/webui/frontend/src/i18n/zh-cn.ts
@@ -14763,7 +15115,39 @@
     "modelParameters.invalidJson": "JSON \u683C\u5F0F\u65E0\u6548",
     "modelParameters.migrated": "\u5DF2\u6309\u5F53\u524D\u6A21\u578B\u517C\u5BB9 {count} \u4E2A\u65E7\u53C2\u6570",
     "modelParameters.historyConfiguration": "\u5386\u53F2\u914D\u7F6E",
-    "modelParameters.legacyTask": "\u65E7\u7248\u4EFB\u52A1"
+    "modelParameters.legacyTask": "\u65E7\u7248\u4EFB\u52A1",
+    "codexQuota.label": "Codex \u914D\u989D",
+    "codexQuota.details": "Codex \u914D\u989D\u8BE6\u60C5",
+    "codexQuota.currentAccount": "\u5F53\u524D\u8D26\u53F7",
+    "codexQuota.close": "\u5173\u95ED Codex \u914D\u989D\u8BE6\u60C5",
+    "codexQuota.loading": "\u6B63\u5728\u52A0\u8F7D\u914D\u989D",
+    "codexQuota.unavailable": "\u914D\u989D\u4E0D\u53EF\u7528",
+    "codexQuota.unavailableLabel": "Codex \u914D\u989D\u4E0D\u53EF\u7528",
+    "codexQuota.summary": "Codex \u914D\u989D\uFF1A\u5269\u4F59 {percent}%",
+    "codexQuota.summaryWithDetails": "Codex \u914D\u989D\uFF1A\u5269\u4F59 {percent}%\u3002{details}",
+    "codexQuota.remaining": "\u5269\u4F59 {percent}%",
+    "codexQuota.session": "\u4F1A\u8BDD \xB7 5 \u5C0F\u65F6",
+    "codexQuota.weekly": "\u6BCF\u5468",
+    "codexQuota.quota": "\u914D\u989D",
+    "codexQuota.day": "\u5929",
+    "codexQuota.pacing5h": "5 \u5C0F\u65F6\u8282\u594F",
+    "codexQuota.pacing": "\u8282\u594F",
+    "codexQuota.now": "\u73B0\u5728",
+    "codexQuota.nowAt": "\u73B0\u5728 {percent}% \xB7 {time}",
+    "codexQuota.checkpoint": "{percent}% \xB7 {time}",
+    "codexQuota.checkpointAria": "{text} \u68C0\u67E5\u70B9",
+    "codexQuota.reset": "\u91CD\u7F6E {value}",
+    "codexQuota.resetBank": "\u91CD\u7F6E\u989D\u5EA6\uFF1A",
+    "codexQuota.resetBankUnavailable": "\u91CD\u7F6E\u989D\u5EA6\u4E0D\u53EF\u7528",
+    "codexQuota.noBankedReset": "\u6CA1\u6709\u53EF\u7528\u91CD\u7F6E\u989D\u5EA6",
+    "codexQuota.resetDetailsUnavailable": "\u91CD\u7F6E\u989D\u5EA6\u8BE6\u60C5\u4E0D\u53EF\u7528",
+    "codexQuota.bankedReset": "\u5DF2\u5B58\u91CD\u7F6E\u989D\u5EA6",
+    "codexQuota.dates": "{granted} \u2192 {expires}",
+    "codexQuota.duration.lessThanMinute": "\u5C11\u4E8E 1 \u5206\u949F",
+    "codexQuota.duration.daysHours": "{days} \u5929 {hours} \u5C0F\u65F6",
+    "codexQuota.duration.hoursMinutes": "{hours} \u5C0F\u65F6 {minutes} \u5206\u949F",
+    "codexQuota.duration.minutes": "{minutes} \u5206\u949F",
+    "codexQuota.in": "{duration} \u540E"
   };
 
   // codex_image/webui/frontend/src/i18n/zh-hk.ts
@@ -15959,7 +16343,39 @@
     "modelParameters.invalidJson": "JSON \u683C\u5F0F\u7121\u6548",
     "modelParameters.migrated": "\u5DF2\u6309\u76EE\u524D\u6A21\u578B\u517C\u5BB9\u8655\u7406 {count} \u500B\u820A\u53C3\u6578",
     "modelParameters.historyConfiguration": "\u6B77\u53F2\u8A2D\u5B9A",
-    "modelParameters.legacyTask": "\u820A\u7248\u4EFB\u52D9"
+    "modelParameters.legacyTask": "\u820A\u7248\u4EFB\u52D9",
+    "codexQuota.label": "Codex \u914D\u984D",
+    "codexQuota.details": "Codex \u914D\u984D\u8A73\u60C5",
+    "codexQuota.currentAccount": "\u76EE\u524D\u5E33\u6236",
+    "codexQuota.close": "\u95DC\u9589 Codex \u914D\u984D\u8A73\u60C5",
+    "codexQuota.loading": "\u6B63\u5728\u8F09\u5165\u914D\u984D",
+    "codexQuota.unavailable": "\u914D\u984D\u7121\u6CD5\u4F7F\u7528",
+    "codexQuota.unavailableLabel": "Codex \u914D\u984D\u7121\u6CD5\u4F7F\u7528",
+    "codexQuota.summary": "Codex \u914D\u984D\uFF1A\u5269\u9918 {percent}%",
+    "codexQuota.summaryWithDetails": "Codex \u914D\u984D\uFF1A\u5269\u9918 {percent}%\u3002{details}",
+    "codexQuota.remaining": "\u5269\u9918 {percent}%",
+    "codexQuota.session": "\u5DE5\u4F5C\u968E\u6BB5 \xB7 5 \u5C0F\u6642",
+    "codexQuota.weekly": "\u6BCF\u9031",
+    "codexQuota.quota": "\u914D\u984D",
+    "codexQuota.day": "\u5929",
+    "codexQuota.pacing5h": "5 \u5C0F\u6642\u7BC0\u594F",
+    "codexQuota.pacing": "\u7BC0\u594F",
+    "codexQuota.now": "\u73FE\u5728",
+    "codexQuota.nowAt": "\u73FE\u5728 {percent}% \xB7 {time}",
+    "codexQuota.checkpoint": "{percent}% \xB7 {time}",
+    "codexQuota.checkpointAria": "{text} \u6AA2\u67E5\u9EDE",
+    "codexQuota.reset": "\u91CD\u8A2D {value}",
+    "codexQuota.resetBank": "\u91CD\u8A2D\u984D\u5EA6\uFF1A",
+    "codexQuota.resetBankUnavailable": "\u91CD\u8A2D\u984D\u5EA6\u7121\u6CD5\u4F7F\u7528",
+    "codexQuota.noBankedReset": "\u6C92\u6709\u53EF\u7528\u91CD\u8A2D\u984D\u5EA6",
+    "codexQuota.resetDetailsUnavailable": "\u91CD\u8A2D\u984D\u5EA6\u8A73\u60C5\u7121\u6CD5\u4F7F\u7528",
+    "codexQuota.bankedReset": "\u5DF2\u5132\u5B58\u91CD\u8A2D\u984D\u5EA6",
+    "codexQuota.dates": "{granted} \u2192 {expires}",
+    "codexQuota.duration.lessThanMinute": "\u5C11\u65BC 1 \u5206\u9418",
+    "codexQuota.duration.daysHours": "{days} \u5929 {hours} \u5C0F\u6642",
+    "codexQuota.duration.hoursMinutes": "{hours} \u5C0F\u6642 {minutes} \u5206\u9418",
+    "codexQuota.duration.minutes": "{minutes} \u5206\u9418",
+    "codexQuota.in": "{duration} \u5F8C"
   };
 
   // codex_image/webui/frontend/src/i18n/zh-tw.ts
@@ -17155,7 +17571,39 @@
     "modelParameters.invalidJson": "JSON \u683C\u5F0F\u7121\u6548",
     "modelParameters.migrated": "\u5DF2\u4F9D\u76EE\u524D\u6A21\u578B\u76F8\u5BB9\u8655\u7406 {count} \u500B\u820A\u53C3\u6578",
     "modelParameters.historyConfiguration": "\u6B77\u53F2\u8A2D\u5B9A",
-    "modelParameters.legacyTask": "\u820A\u7248\u4EFB\u52D9"
+    "modelParameters.legacyTask": "\u820A\u7248\u4EFB\u52D9",
+    "codexQuota.label": "Codex \u914D\u984D",
+    "codexQuota.details": "Codex \u914D\u984D\u8A73\u60C5",
+    "codexQuota.currentAccount": "\u76EE\u524D\u5E33\u865F",
+    "codexQuota.close": "\u95DC\u9589 Codex \u914D\u984D\u8A73\u60C5",
+    "codexQuota.loading": "\u6B63\u5728\u8F09\u5165\u914D\u984D",
+    "codexQuota.unavailable": "\u914D\u984D\u7121\u6CD5\u4F7F\u7528",
+    "codexQuota.unavailableLabel": "Codex \u914D\u984D\u7121\u6CD5\u4F7F\u7528",
+    "codexQuota.summary": "Codex \u914D\u984D\uFF1A\u5269\u9918 {percent}%",
+    "codexQuota.summaryWithDetails": "Codex \u914D\u984D\uFF1A\u5269\u9918 {percent}%\u3002{details}",
+    "codexQuota.remaining": "\u5269\u9918 {percent}%",
+    "codexQuota.session": "\u5DE5\u4F5C\u968E\u6BB5 \xB7 5 \u5C0F\u6642",
+    "codexQuota.weekly": "\u6BCF\u9031",
+    "codexQuota.quota": "\u914D\u984D",
+    "codexQuota.day": "\u5929",
+    "codexQuota.pacing5h": "5 \u5C0F\u6642\u7BC0\u594F",
+    "codexQuota.pacing": "\u7BC0\u594F",
+    "codexQuota.now": "\u73FE\u5728",
+    "codexQuota.nowAt": "\u73FE\u5728 {percent}% \xB7 {time}",
+    "codexQuota.checkpoint": "{percent}% \xB7 {time}",
+    "codexQuota.checkpointAria": "{text} \u6AA2\u67E5\u9EDE",
+    "codexQuota.reset": "\u91CD\u8A2D {value}",
+    "codexQuota.resetBank": "\u91CD\u8A2D\u984D\u5EA6\uFF1A",
+    "codexQuota.resetBankUnavailable": "\u91CD\u8A2D\u984D\u5EA6\u7121\u6CD5\u4F7F\u7528",
+    "codexQuota.noBankedReset": "\u6C92\u6709\u53EF\u7528\u91CD\u8A2D\u984D\u5EA6",
+    "codexQuota.resetDetailsUnavailable": "\u91CD\u8A2D\u984D\u5EA6\u8A73\u60C5\u7121\u6CD5\u4F7F\u7528",
+    "codexQuota.bankedReset": "\u5DF2\u5132\u5B58\u91CD\u8A2D\u984D\u5EA6",
+    "codexQuota.dates": "{granted} \u2192 {expires}",
+    "codexQuota.duration.lessThanMinute": "\u5C11\u65BC 1 \u5206\u9418",
+    "codexQuota.duration.daysHours": "{days} \u5929 {hours} \u5C0F\u6642",
+    "codexQuota.duration.hoursMinutes": "{hours} \u5C0F\u6642 {minutes} \u5206\u9418",
+    "codexQuota.duration.minutes": "{minutes} \u5206\u9418",
+    "codexQuota.in": "{duration} \u5F8C"
   };
 
   // codex_image/webui/frontend/src/i18n/dictionaries.ts
@@ -55038,6 +55486,9 @@ ${galleryText}`;
   var latestPayload = null;
   var quotaPanelOpen = false;
   var quotaPanelTimer = null;
+  function quotaText(key, values = {}) {
+    return formatTranslation(`codexQuota.${key}`, values);
+  }
   function positionQuotaPanel(root, panel) {
     const anchorRect = root.getBoundingClientRect();
     positionPromptPopoverAtAnchor(
@@ -55103,6 +55554,7 @@ ${galleryText}`;
   function windowSeconds(window2) {
     const value = window2.window_seconds;
     if (typeof value !== "number" || !Number.isFinite(value) || value <= 0) return null;
+    if (value !== 5 * 60 * 60 && value !== 7 * 24 * 60 * 60) return null;
     return value;
   }
   function buildQuotaPacing(window2, nowMilliseconds = Date.now()) {
@@ -55144,33 +55596,41 @@ ${galleryText}`;
   }
   function formatDuration3(milliseconds) {
     const totalMinutes = Math.max(0, Math.floor(milliseconds / 6e4));
-    if (totalMinutes < 1) return "<1m";
+    if (totalMinutes < 1) return quotaText("duration.lessThanMinute");
     const days = Math.floor(totalMinutes / 1440);
     const hours = Math.floor(totalMinutes % 1440 / 60);
     const minutes = totalMinutes % 60;
-    if (days) return `${days}d ${hours}h`;
-    if (hours) return `${hours}h ${minutes}m`;
-    return `${minutes}m`;
+    if (days) return quotaText("duration.daysHours", { days, hours });
+    if (hours) return quotaText("duration.hoursMinutes", { hours, minutes });
+    return quotaText("duration.minutes", { minutes });
   }
   function formatLocalTimestamp2(value) {
     const timestamp = timestampMilliseconds(value);
     if (timestamp === null) return "\u2014";
     const date = new Date(timestamp);
     if (!Number.isFinite(date.getTime())) return "\u2014";
-    const pad = (number) => String(number).padStart(2, "0");
-    return `${pad(date.getMonth() + 1)}/${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+    return new Intl.DateTimeFormat(currentLocaleCode(), {
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false
+    }).format(date);
   }
   function formatLocalDate(value) {
     const timestamp = timestampMilliseconds(value);
     if (timestamp === null) return "\u2014";
     const date = new Date(timestamp);
     if (!Number.isFinite(date.getTime())) return "\u2014";
-    return `${date.getDate()}/${date.getMonth() + 1}`;
+    return new Intl.DateTimeFormat(currentLocaleCode(), {
+      month: "numeric",
+      day: "numeric"
+    }).format(date);
   }
   function formatQuotaReset(value, nowMilliseconds = Date.now()) {
     const timestamp = timestampMilliseconds(value);
     if (timestamp === null) return "\u2014";
-    const relative = timestamp <= nowMilliseconds ? "now" : `in ${formatDuration3(timestamp - nowMilliseconds)}`;
+    const relative = timestamp <= nowMilliseconds ? quotaText("now") : quotaText("in", { duration: formatDuration3(timestamp - nowMilliseconds) });
     return `${relative} (${formatLocalTimestamp2(value)})`;
   }
   function safeText(value) {
@@ -55193,31 +55653,14 @@ ${galleryText}`;
     return element2;
   }
   function displayQuotaWindowLabel(window2) {
-    const label = safeText(window2.label) || "Quota";
-    return label === "Session" && windowSeconds(window2) === 5 * 60 * 60 ? "Session \xB7 5h" : label;
+    const label = safeText(window2.label);
+    if (label === "Session" && windowSeconds(window2) === 5 * 60 * 60) {
+      return quotaText("session");
+    }
+    if (label === "Weekly") return quotaText("weekly");
+    return label || quotaText("quota");
   }
-  function renderQuotaWindow(window2, nowMilliseconds) {
-    const card = document.createElement("section");
-    card.className = "codex-quota-window";
-    const header = document.createElement("div");
-    header.className = "codex-quota-window-header";
-    const label = safeText(window2.label) || "Quota";
-    appendText(header, "strong", "codex-quota-window-label", displayQuotaWindowLabel(window2));
-    const remaining = normalizeRemainingPercent(window2.remaining_percent);
-    appendText(header, "strong", "codex-quota-window-percent", remaining === null ? "\u2014" : `${remaining}% left`);
-    card.append(header);
-    const pacing = buildQuotaPacing(window2, nowMilliseconds);
-    const pacingHeader = document.createElement("div");
-    pacingHeader.className = "codex-quota-pacing-header";
-    const pacingLabel = label === "Weekly" ? "Day" : windowSeconds(window2) === 5 * 60 * 60 ? "5h pacing" : "Pacing";
-    appendText(pacingHeader, "span", "codex-quota-pacing-label", pacingLabel);
-    appendText(
-      pacingHeader,
-      "span",
-      "codex-quota-pacing-point",
-      pacing ? `${pacing.currentPoint}/${QUOTA_CHECKPOINT_COUNT}` : "\u2014"
-    );
-    card.append(pacingHeader);
+  function createQuotaPacingTrack(remaining) {
     const track = document.createElement("div");
     track.className = "codex-quota-pacing-track";
     const bar = document.createElement("div");
@@ -55227,49 +55670,90 @@ ${galleryText}`;
     fill.style.width = remaining === null ? "0%" : `${remaining}%`;
     bar.append(fill);
     track.append(bar);
-    const detail = document.createElement("div");
-    detail.className = "codex-quota-pacing-detail";
-    detail.hidden = true;
-    const markerButtons = [];
-    const selectMarker = (button, text) => {
-      markerButtons.forEach((item) => {
-        item.classList.toggle("is-selected", item === button);
-        item.setAttribute("aria-pressed", String(item === button));
-      });
-      detail.textContent = text;
-      detail.hidden = false;
-    };
-    if (pacing) {
+    return track;
+  }
+  function renderQuotaWindow(window2, nowMilliseconds) {
+    const card = document.createElement("section");
+    card.className = "codex-quota-window";
+    const header = document.createElement("div");
+    header.className = "codex-quota-window-header";
+    const label = safeText(window2.label) || quotaText("quota");
+    appendText(header, "strong", "codex-quota-window-label", displayQuotaWindowLabel(window2));
+    const remaining = normalizeRemainingPercent(window2.remaining_percent);
+    appendText(
+      header,
+      "strong",
+      "codex-quota-window-percent",
+      remaining === null ? "\u2014" : quotaText("remaining", { percent: remaining })
+    );
+    card.append(header);
+    const pacing = buildQuotaPacing(window2, nowMilliseconds);
+    if (!pacing) {
+      card.append(createQuotaPacingTrack(remaining));
+    } else {
+      const pacingHeader = document.createElement("div");
+      pacingHeader.className = "codex-quota-pacing-header";
+      const pacingLabel = label === "Weekly" ? quotaText("day") : windowSeconds(window2) === 5 * 60 * 60 ? quotaText("pacing5h") : quotaText("pacing");
+      appendText(pacingHeader, "span", "codex-quota-pacing-label", pacingLabel);
+      appendText(
+        pacingHeader,
+        "span",
+        "codex-quota-pacing-point",
+        `${pacing.currentPoint}/${QUOTA_CHECKPOINT_COUNT}`
+      );
+      card.append(pacingHeader);
+      const track = createQuotaPacingTrack(remaining);
+      const detail = document.createElement("div");
+      detail.className = "codex-quota-pacing-detail";
+      detail.setAttribute("role", "status");
+      detail.setAttribute("aria-live", "polite");
+      detail.hidden = true;
+      const markerButtons = [];
+      const selectMarker = (button, text) => {
+        markerButtons.forEach((item) => {
+          item.classList.toggle("is-selected", item === button);
+          item.setAttribute("aria-pressed", String(item === button));
+        });
+        detail.textContent = text;
+        detail.hidden = false;
+      };
       const nowMarker = document.createElement("button");
       nowMarker.type = "button";
       nowMarker.className = "codex-quota-pacing-now";
+      nowMarker.dataset.quotaMarker = "now";
       nowMarker.style.left = `${pacing.remainingPercent}%`;
-      const nowText = `Now ${formatPacingPercent(pacing.remainingPercent)}% \xB7 ${formatLocalTimestamp2(nowMilliseconds)}`;
+      const nowText = quotaText("nowAt", {
+        percent: formatPacingPercent(pacing.remainingPercent),
+        time: formatLocalTimestamp2(nowMilliseconds)
+      });
       nowMarker.title = nowText;
       nowMarker.setAttribute("aria-label", nowText);
       nowMarker.setAttribute("aria-pressed", "false");
       markerButtons.push(nowMarker);
       nowMarker.addEventListener("click", () => selectMarker(nowMarker, nowText));
       track.append(nowMarker);
+      pacing.checkpoints.forEach((checkpoint, index) => {
+        const markerPoint = QUOTA_MARKER_COUNT - index;
+        const marker = document.createElement("button");
+        marker.type = "button";
+        marker.className = "codex-quota-pacing-marker";
+        marker.dataset.quotaMarker = `checkpoint-${index}`;
+        if (markerPoint === pacing.currentPoint) marker.classList.add("is-current");
+        marker.style.left = `${checkpoint}%`;
+        const checkpointMilliseconds = pacing.startMilliseconds + (markerPoint - 1) * pacing.intervalMilliseconds;
+        const checkpointText = quotaText("checkpoint", {
+          percent: formatPacingPercent(checkpoint),
+          time: formatLocalTimestamp2(checkpointMilliseconds)
+        });
+        marker.title = checkpointText;
+        marker.setAttribute("aria-label", quotaText("checkpointAria", { text: checkpointText }));
+        marker.setAttribute("aria-pressed", "false");
+        markerButtons.push(marker);
+        marker.addEventListener("click", () => selectMarker(marker, checkpointText));
+        track.append(marker);
+      });
+      card.append(track, detail);
     }
-    const checkpoints = pacing?.checkpoints || quotaCheckpointValues();
-    checkpoints.forEach((checkpoint, index) => {
-      const markerPoint = QUOTA_MARKER_COUNT - index;
-      const marker = document.createElement("button");
-      marker.type = "button";
-      marker.className = "codex-quota-pacing-marker";
-      if (pacing && markerPoint === pacing.currentPoint) marker.classList.add("is-current");
-      marker.style.left = `${checkpoint}%`;
-      const checkpointMilliseconds = pacing ? pacing.startMilliseconds + (markerPoint - 1) * pacing.intervalMilliseconds : null;
-      const checkpointText = `${formatPacingPercent(checkpoint)}% \xB7 ${checkpointMilliseconds === null ? "\u2014" : formatLocalTimestamp2(checkpointMilliseconds)}`;
-      marker.title = checkpointText;
-      marker.setAttribute("aria-label", `${checkpointText} checkpoint`);
-      marker.setAttribute("aria-pressed", "false");
-      markerButtons.push(marker);
-      marker.addEventListener("click", () => selectMarker(marker, checkpointText));
-      track.append(marker);
-    });
-    card.append(track, detail);
     const resetRow = document.createElement("div");
     resetRow.className = "codex-quota-window-reset";
     const resetText = formatQuotaReset(window2.reset_at, nowMilliseconds);
@@ -55277,7 +55761,7 @@ ${galleryText}`;
       resetRow,
       "span",
       "codex-quota-window-reset-value",
-      resetText === "\u2014" ? "\u2014" : `reset ${resetText}`
+      resetText === "\u2014" ? "\u2014" : quotaText("reset", { value: resetText })
     );
     card.append(resetRow);
     return card;
@@ -55296,19 +55780,27 @@ ${galleryText}`;
         listElement,
         "span",
         "codex-quota-reset-bank-empty",
-        normalizedCount === null ? "Reset bank unavailable" : normalizedCount === 0 ? "No banked reset" : "Reset details unavailable"
+        normalizedCount === null ? quotaText("resetBankUnavailable") : normalizedCount === 0 ? quotaText("noBankedReset") : quotaText("resetDetailsUnavailable")
       );
       return;
     }
     credits.forEach((credit) => {
       const row = document.createElement("div");
       row.className = "codex-quota-reset-credit";
-      appendText(row, "strong", "codex-quota-reset-credit-title", safeText(credit.title) || "Banked reset");
+      appendText(
+        row,
+        "strong",
+        "codex-quota-reset-credit-title",
+        safeText(credit.title) || quotaText("bankedReset")
+      );
       appendText(
         row,
         "span",
         "codex-quota-reset-credit-dates",
-        `${formatLocalDate(credit.granted_at)} \u2192 ${formatLocalDate(credit.expires_at)}`
+        quotaText("dates", {
+          granted: formatLocalDate(credit.granted_at),
+          expires: formatLocalDate(credit.expires_at)
+        })
       );
       listElement.append(row);
     });
@@ -55318,19 +55810,31 @@ ${galleryText}`;
     const windowsElement = document.getElementById("codexQuotaWindows");
     if (!statusElement || !windowsElement) return;
     const nowMilliseconds = Date.now();
+    const activeElement = document.activeElement;
+    const activeMarker = activeElement instanceof HTMLElement && windowsElement.contains(activeElement) ? activeElement.dataset.quotaMarker : null;
     const windows = payload2?.available === true ? quotaWindows(payload2) : [];
     statusElement.hidden = windows.length > 0;
-    statusElement.textContent = windows.length ? "" : "Quota unavailable";
+    statusElement.textContent = windows.length ? "" : quotaText("unavailable");
     windowsElement.replaceChildren();
     windows.forEach((window2) => windowsElement.append(renderQuotaWindow(window2, nowMilliseconds)));
+    if (activeMarker) {
+      const replacement = Array.from(windowsElement.querySelectorAll("button")).find((button) => button.dataset.quotaMarker === activeMarker);
+      replacement?.focus();
+    }
     renderQuotaResetBank(payload2);
+    const panel = document.getElementById("codexQuotaPanel");
+    if (quotaPanelOpen && panel) {
+      const root = document.getElementById("codexQuota");
+      if (root) positionQuotaPanel(root, panel);
+    }
   }
   function renderUnavailable(root, fill, value) {
     root.dataset.state = "unavailable";
     root.dataset.available = "false";
     root.setAttribute("aria-busy", "false");
-    root.setAttribute("aria-label", "Codex quota unavailable");
-    root.title = "Codex quota unavailable";
+    const unavailableLabel = quotaText("unavailableLabel");
+    root.setAttribute("aria-label", unavailableLabel);
+    root.title = unavailableLabel;
     fill.style.width = "0%";
     value.textContent = "\u2014";
   }
@@ -55351,11 +55855,12 @@ ${galleryText}`;
     root.dataset.state = "available";
     root.dataset.available = "true";
     root.setAttribute("aria-busy", "false");
+    const summary = details ? quotaText("summaryWithDetails", { percent, details }) : quotaText("summary", { percent });
     root.setAttribute(
       "aria-label",
-      details ? `Codex quota: ${percent}% remaining. ${details}` : `Codex quota: ${percent}% remaining`
+      summary
     );
-    root.title = root.getAttribute("aria-label") || "Codex quota";
+    root.title = root.getAttribute("aria-label") || quotaText("label");
     fill.style.width = `${percent}%`;
     value.textContent = `${percent}%`;
     renderCodexQuotaPanel(record5);
@@ -55371,7 +55876,7 @@ ${galleryText}`;
     root.setAttribute("aria-expanded", String(open));
     if (open) {
       renderCodexQuotaPanel(latestPayload);
-      positionQuotaPanel(root, panel);
+      document.getElementById("codexQuotaPanelClose")?.focus();
       if (quotaPanelTimer === null) {
         quotaPanelTimer = window.setInterval(() => renderCodexQuotaPanel(latestPayload), QUOTA_PANEL_TIME_REFRESH_INTERVAL_MS);
       }
@@ -55411,6 +55916,9 @@ ${galleryText}`;
     closeButton?.addEventListener("click", () => {
       setQuotaPanelOpen(false);
       root.focus();
+    });
+    document.addEventListener(LOCALE_CHANGE_EVENT, () => {
+      renderCodexQuota(latestPayload);
     });
     document.addEventListener("click", (event) => {
       const target = event.target;

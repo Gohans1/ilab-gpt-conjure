@@ -14,6 +14,7 @@ class WebUIStaticCodexQuotaTests(unittest.TestCase):
         self.assertIn('class="codex-quota"', html)
         self.assertIn('id="codexQuotaFill"', html)
         self.assertIn('id="codexQuotaValue"', html)
+        self.assertIn('data-i18n-attr="aria-label:codexQuota.label;title:codexQuota.label"', html)
 
     def test_quota_mount_opens_a_single_account_detail_panel(self) -> None:
         html = Path("codex_image/webui/static/index.html").read_text(encoding="utf-8")
@@ -24,6 +25,8 @@ class WebUIStaticCodexQuotaTests(unittest.TestCase):
         self.assertIn('id="codexQuotaWindows"', html)
         self.assertIn('id="codexQuotaResetBank"', html)
         self.assertIn('id="codexQuotaPanelClose"', html)
+        self.assertIn('data-i18n="codexQuota.label"', html)
+        self.assertIn('data-i18n="codexQuota.currentAccount"', html)
         self.assertNotIn("Add account", html)
 
     def test_main_initializes_quota_feature(self) -> None:
@@ -49,6 +52,9 @@ class WebUIStaticCodexQuotaTests(unittest.TestCase):
         self.assertIn("banked_reset_credits", source)
         self.assertIn("codexQuotaPanelClose", source)
         self.assertIn("/api/codex/quota", source)
+        self.assertIn("formatTranslation", source)
+        self.assertIn("LOCALE_CHANGE_EVENT", source)
+        self.assertIn("document.addEventListener(LOCALE_CHANGE_EVENT", source)
 
     def test_quota_pacing_matches_plugin_direction_and_click_detail(self) -> None:
         source = Path("codex_image/webui/frontend/src/codex-quota.ts").read_text(encoding="utf-8")
@@ -59,8 +65,49 @@ class WebUIStaticCodexQuotaTests(unittest.TestCase):
         self.assertIn("codex-quota-pacing-fill", source)
         self.assertIn('marker.addEventListener("click"', source)
         self.assertIn('const nowMarker = document.createElement("button");', source)
-        self.assertIn("if (pacing) {", source)
+        self.assertIn("if (!pacing)", source)
+        self.assertIn("value !== 5 * 60 * 60", source)
+        self.assertIn("value !== 7 * 24 * 60 * 60", source)
         self.assertNotIn("if (pacing && remaining !== null)", source)
+
+    def test_quota_refresh_preserves_focus_inside_the_panel(self) -> None:
+        source = Path("codex_image/webui/frontend/src/codex-quota.ts").read_text(encoding="utf-8")
+
+        self.assertIn("activeMarker", source)
+        self.assertIn("dataset.quotaMarker", source)
+        self.assertIn("replacement?.focus()", source)
+
+    def test_quota_panel_exposes_accessible_marker_feedback(self) -> None:
+        html = Path("codex_image/webui/static/index.html").read_text(encoding="utf-8")
+        source = Path("codex_image/webui/frontend/src/codex-quota.ts").read_text(encoding="utf-8")
+
+        self.assertIn('aria-modal="false"', html)
+        self.assertIn('detail.setAttribute("role", "status")', source)
+        self.assertIn('detail.setAttribute("aria-live", "polite")', source)
+        self.assertIn('document.getElementById("codexQuotaPanelClose")?.focus()', source)
+
+    def test_quota_translations_cover_all_locales(self) -> None:
+        locale_files = (
+            "zh-cn.ts",
+            "zh-tw.ts",
+            "zh-hk.ts",
+            "ja.ts",
+            "ko.ts",
+            "en.ts",
+            "vi.ts",
+            "es.ts",
+            "pt.ts",
+            "fr.ts",
+            "de.ts",
+            "ru.ts",
+            "it.ts",
+            "hi.ts",
+        )
+        for filename in locale_files:
+            source = Path(
+                "codex_image/webui/frontend/src/i18n"
+            ).joinpath(filename).read_text(encoding="utf-8")
+            self.assertIn('"codexQuota.label":', source, filename)
 
     def test_quota_panel_is_anchored_to_the_clicked_control(self) -> None:
         source = Path("codex_image/webui/frontend/src/codex-quota.ts").read_text(encoding="utf-8")
@@ -74,6 +121,16 @@ class WebUIStaticCodexQuotaTests(unittest.TestCase):
         self.assertIn("position: fixed", styles[styles.index(".codex-quota-panel"):])
         self.assertIn("transform-origin: var(--codex-quota-panel-origin-x", styles)
         self.assertIn("@keyframes codex-quota-panel-open", styles)
+        self.assertIn(
+            "scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track)",
+            styles,
+        )
+        self.assertIn(".codex-quota-panel::-webkit-scrollbar", styles)
+
+        panel_source = source[
+            source.index("function renderCodexQuotaPanel") : source.index("function renderUnavailable")
+        ]
+        self.assertIn("if (quotaPanelOpen && panel)", panel_source)
 
     def test_quota_styles_keep_the_mount_in_the_provider_row(self) -> None:
         styles = Path(
@@ -91,11 +148,11 @@ class WebUIStaticCodexQuotaTests(unittest.TestCase):
             "codex_image/webui/static/styles/30-layout-top-nav-panels.css"
         ).read_text(encoding="utf-8")
 
-        self.assertIn("styles.css?v=runtime-782", index)
-        self.assertIn("app.js?v=runtime-782", index)
-        self.assertIn("styles.css?v=runtime-782", history)
-        self.assertIn("styles.css?v=runtime-782", service_worker)
-        self.assertIn("app.js?v=runtime-782", service_worker)
+        self.assertIn("styles.css?v=runtime-783", index)
+        self.assertIn("app.js?v=runtime-783", index)
+        self.assertIn("styles.css?v=runtime-783", history)
+        self.assertIn("styles.css?v=runtime-783", service_worker)
+        self.assertIn("app.js?v=runtime-783", service_worker)
         self.assertIn(".codex-quota[data-state=\"loading\"] .codex-quota-track::before", styles)
         self.assertIn("flex: 0 0 140px", styles)
 

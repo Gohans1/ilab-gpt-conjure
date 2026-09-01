@@ -400,8 +400,28 @@
   background: var(--surface);
   box-shadow: var(--shadow-popover);
   color: var(--text);
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
   transform-origin: var(--codex-quota-panel-origin-x, 50%) var(--codex-quota-panel-origin-y, 0);
   animation: codex-quota-panel-open var(--motion-fast);
+}
+
+.codex-quota-panel::-webkit-scrollbar {
+  width: 8px;
+}
+
+.codex-quota-panel::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+
+.codex-quota-panel::-webkit-scrollbar-thumb {
+  border: 2px solid var(--scrollbar-track);
+  border-radius: var(--radius-pill);
+  background: var(--scrollbar-thumb);
+}
+
+.codex-quota-panel::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
 }
 
 @keyframes codex-quota-panel-open {

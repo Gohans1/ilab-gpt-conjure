@@ -18,9 +18,9 @@ class CodexQuotaFetcherTests(unittest.TestCase):
         self.auth_path = Path(self.tmpdir.name) / "auth.json"
         write_auth_file(
             self.auth_path,
-            access_token="access-token-for-test",
-            refresh_token="refresh-token-for-test",
-            account_id="acct-test",
+            access_token="[REDACTED]",
+            refresh_token="[REDACTED]",
+            account_id="[REDACTED]",
         )
 
     def test_fetches_session_and_weekly_remaining_quota_without_returning_credentials(self) -> None:
@@ -38,6 +38,7 @@ class CodexQuotaFetcherTests(unittest.TestCase):
                     "limit_window_seconds": 604800,
                 },
             },
+            "rate_limit_reset_credits": {"available_count": 0},
         }
         transport = FakeTransport(
             [FakeResponse(status=200, body=json.dumps(payload).encode("utf-8"))]
@@ -53,12 +54,12 @@ class CodexQuotaFetcherTests(unittest.TestCase):
             [(item["label"], item["remaining_percent"]) for item in result["windows"]],
             [("Session", 82), ("Weekly", 27)],
         )
-        self.assertEqual(transport.requests[0]["headers"]["ChatGPT-Account-Id"], "acct-test")
+        self.assertEqual(transport.requests[0]["headers"]["ChatGPT-Account-Id"], "[REDACTED]")
         self.assertNotIn("access_token", result)
         self.assertNotIn("refresh_token", result)
         rendered = json.dumps(result)
-        self.assertNotIn("access-token-for-test", rendered)
-        self.assertNotIn("refresh-token-for-test", rendered)
+        self.assertNotIn("[REDACTED]", rendered)
+        self.assertNotIn("[REDACTED]", rendered)
 
     def test_missing_usage_values_remain_unknown_instead_of_zero(self) -> None:
         transport = FakeTransport(
@@ -79,6 +80,72 @@ class CodexQuotaFetcherTests(unittest.TestCase):
         self.assertEqual(result["status"], "unavailable")
         self.assertNotEqual(result["remaining_percent"], 0)
 
+    def test_missing_weekly_window_is_returned_as_unknown(self) -> None:
+        payload = {
+            "rate_limit": {
+                "primary_window": {"used_percent": 10},
+            },
+            "rate_limit_reset_credits": {"available_count": 0},
+        }
+        transport = FakeTransport(
+            [FakeResponse(status=200, body=json.dumps(payload).encode("utf-8"))]
+        )
+
+        from codex_image.codex_quota import fetch_codex_quota
+
+        result = fetch_codex_quota(auth_path=self.auth_path, transport=transport)
+
+        self.assertTrue(result["available"])
+        self.assertEqual(
+            [item["label"] for item in result["windows"]],
+            ["Session", "Weekly"],
+        )
+        self.assertIsNone(result["windows"][1]["remaining_percent"])
+        self.assertEqual(result["remaining_percent"], 90)
+
+    def test_out_of_range_usage_percentages_remain_unknown(self) -> None:
+        payload = {
+            "rate_limit": {
+                "primary_window": {"used_percent": 150},
+                "secondary_window": {"used_percent": 25},
+            },
+            "rate_limit_reset_credits": {"available_count": 0},
+        }
+        transport = FakeTransport(
+            [FakeResponse(status=200, body=json.dumps(payload).encode("utf-8"))]
+        )
+
+        from codex_image.codex_quota import fetch_codex_quota
+
+        result = fetch_codex_quota(auth_path=self.auth_path, transport=transport)
+
+        self.assertTrue(result["available"])
+        self.assertIsNone(result["windows"][0]["remaining_percent"])
+        self.assertEqual(result["windows"][1]["remaining_percent"], 75)
+        self.assertEqual(result["remaining_percent"], 75)
+
+    def test_fractional_window_duration_uses_the_known_window_definition(self) -> None:
+        payload = {
+            "rate_limit": {
+                "primary_window": {
+                    "used_percent": 10,
+                    "limit_window_seconds": 18_000.5,
+                },
+                "secondary_window": {"used_percent": 20},
+            },
+            "rate_limit_reset_credits": {"available_count": 0},
+        }
+        transport = FakeTransport([
+            FakeResponse(status=200, body=json.dumps(payload).encode("utf-8"))
+        ])
+
+        from codex_image.codex_quota import fetch_codex_quota
+
+        result = fetch_codex_quota(auth_path=self.auth_path, transport=transport)
+
+        self.assertIsNone(result["windows"][0]["remaining_percent"])
+        self.assertEqual(result["windows"][1]["remaining_percent"], 80)
+
     def test_fetches_banked_reset_count_and_safe_credit_dates(self) -> None:
         payload = {
             "rate_limit": {
@@ -90,7 +157,7 @@ class CodexQuotaFetcherTests(unittest.TestCase):
             "available_count": 2,
             "credits": [
                 {
-                    "credit_id": "private-credit-id",
+                    "credit_id": "[REDACTED]",
                     "status": "available",
                     "granted_at": "2026-06-17T00:00:00Z",
                     "expires_at": "2026-07-17T00:00:00Z",
@@ -129,9 +196,9 @@ class CodexQuotaFetcherTests(unittest.TestCase):
             "https://chatgpt.com/backend-api/wham/rate-limit-reset-credits",
         )
         rendered = json.dumps(result)
-        self.assertNotIn("private-credit-id", rendered)
-        self.assertNotIn("access-token-for-test", rendered)
-        self.assertNotIn("refresh-token-for-test", rendered)
+        self.assertNotIn("[REDACTED]", rendered)
+        self.assertNotIn("[REDACTED]", rendered)
+        self.assertNotIn("[REDACTED]", rendered)
 
     def test_reset_credit_failure_keeps_quota_and_inline_count(self) -> None:
         payload = {
@@ -197,6 +264,108 @@ class CodexQuotaFetcherTests(unittest.TestCase):
 
         self.assertTrue(result["available"])
         self.assertIsNone(result["banked_resets"])
+        self.assertEqual(result["banked_reset_credits"], [])
+
+    def test_missing_inline_reset_object_uses_reset_credit_endpoint(self) -> None:
+        payload = {
+            "rate_limit": {"primary_window": {"used_percent": 10}},
+        }
+        reset_payload = {"available_count": 2, "credits": []}
+        transport = FakeTransport(
+            [
+                FakeResponse(status=200, body=json.dumps(payload).encode("utf-8")),
+                FakeResponse(status=200, body=json.dumps(reset_payload).encode("utf-8")),
+            ]
+        )
+
+        from codex_image.codex_quota import fetch_codex_quota
+
+        result = fetch_codex_quota(auth_path=self.auth_path, transport=transport)
+
+        self.assertTrue(result["available"])
+        self.assertEqual(result["banked_resets"], 2)
+        self.assertEqual(len(transport.requests), 2)
+
+    def test_malformed_inline_reset_object_uses_reset_credit_endpoint(self) -> None:
+        payload = {
+            "rate_limit": {
+                "primary_window": {"used_percent": 10},
+            },
+            "rate_limit_reset_credits": [],
+        }
+        reset_payload = {"available_count": 3}
+        transport = FakeTransport(
+            [
+                FakeResponse(status=200, body=json.dumps(payload).encode("utf-8")),
+                FakeResponse(status=200, body=json.dumps(reset_payload).encode("utf-8")),
+            ]
+        )
+
+        from codex_image.codex_quota import fetch_codex_quota
+
+        result = fetch_codex_quota(auth_path=self.auth_path, transport=transport)
+
+        self.assertEqual(result["banked_resets"], 3)
+        self.assertEqual(len(transport.requests), 2)
+
+    def test_malformed_reset_count_remains_unknown(self) -> None:
+        payload = {
+            "rate_limit": {"primary_window": {"used_percent": 10}},
+            "rate_limit_reset_credits": {"available_count": 2.5},
+        }
+        transport = FakeTransport(
+            [
+                FakeResponse(status=200, body=json.dumps(payload).encode("utf-8")),
+                FakeResponse(status=500, body=b"unavailable"),
+            ]
+        )
+
+        from codex_image.codex_quota import fetch_codex_quota
+
+        result = fetch_codex_quota(auth_path=self.auth_path, transport=transport)
+
+        self.assertTrue(result["available"])
+        self.assertIsNone(result["banked_resets"])
+
+    def test_overflowing_reset_count_remains_unknown(self) -> None:
+        payload = {
+            "rate_limit": {
+                "primary_window": {"used_percent": 10},
+            },
+            "rate_limit_reset_credits": {"available_count": 10**30},
+        }
+        reset_payload = {"available_count": 10**30}
+        transport = FakeTransport(
+            [
+                FakeResponse(status=200, body=json.dumps(payload).encode("utf-8")),
+                FakeResponse(status=200, body=json.dumps(reset_payload).encode("utf-8")),
+            ]
+        )
+
+        from codex_image.codex_quota import fetch_codex_quota
+
+        result = fetch_codex_quota(auth_path=self.auth_path, transport=transport)
+
+        self.assertIsNone(result["banked_resets"])
+
+    def test_reset_credit_without_available_status_is_not_rendered(self) -> None:
+        payload = {
+            "rate_limit": {"primary_window": {"used_percent": 10}},
+            "rate_limit_reset_credits": {"available_count": 1},
+        }
+        reset_payload = {"available_count": 1, "credits": [{}]}
+        transport = FakeTransport(
+            [
+                FakeResponse(status=200, body=json.dumps(payload).encode("utf-8")),
+                FakeResponse(status=200, body=json.dumps(reset_payload).encode("utf-8")),
+            ]
+        )
+
+        from codex_image.codex_quota import fetch_codex_quota
+
+        result = fetch_codex_quota(auth_path=self.auth_path, transport=transport)
+
+        self.assertTrue(result["available"])
         self.assertEqual(result["banked_reset_credits"], [])
 
     def test_overflowing_usage_values_remain_unknown_instead_of_raising(self) -> None:
@@ -276,7 +445,8 @@ class CodexQuotaFetcherTests(unittest.TestCase):
         payload = {
             "rate_limit": {
                 "primary_window": {"used_percent": 10},
-            }
+            },
+            "rate_limit_reset_credits": {"available_count": 0},
         }
         transport = FakeTransport(
             [
@@ -285,8 +455,8 @@ class CodexQuotaFetcherTests(unittest.TestCase):
                     status=200,
                     body=json.dumps(
                         {
-                            "access_token": "quota-test-token",
-                            "refresh_token": "quota-refresh-token",
+                            "access_token": "[REDACTED]",
+                            "refresh_token": "[REDACTED]",
                         }
                     ).encode("utf-8"),
                 ),
@@ -303,8 +473,33 @@ class CodexQuotaFetcherTests(unittest.TestCase):
         self.assertEqual([item["method"] for item in transport.requests], ["GET", "POST", "GET"])
         self.assertEqual(
             transport.requests[2]["headers"]["Authorization"],
-            "Bearer quota-test-token",
+            "Bearer [REDACTED]",
         )
+
+    def test_quota_cache_does_not_cross_auth_identity(self) -> None:
+        import codex_image.codex_quota as quota
+
+        results = [
+            {"available": True, "remaining_percent": 90},
+            {"available": True, "remaining_percent": 70},
+        ]
+        with (
+            patch.object(quota, "_cached_result", None),
+            patch.object(quota, "_cached_at", 0.0),
+            patch.object(quota, "_cached_key", None),
+            patch.object(
+                quota,
+                "_auth_cache_key",
+                side_effect=["account-a", "account-a", "account-b", "account-b"],
+            ),
+            patch.object(quota, "fetch_codex_quota", side_effect=results) as fetch,
+        ):
+            first = quota.get_codex_quota()
+            second = quota.get_codex_quota()
+
+        self.assertEqual(first["remaining_percent"], 90)
+        self.assertEqual(second["remaining_percent"], 70)
+        self.assertEqual(fetch.call_count, 2)
 
 
 class CodexQuotaRouteTests(unittest.TestCase):

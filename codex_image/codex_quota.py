@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import math
 import threading
@@ -24,6 +25,7 @@ _WINDOW_DEFINITIONS = (
 _cache_lock = threading.Lock()
 _cached_result: dict[str, Any] | None = None
 _cached_at = 0.0
+_cached_key: str | None = None
 
 
 def _unavailable(reason: str) -> dict[str, Any]:
@@ -71,11 +73,13 @@ def _window_payload(raw: Any, label: str, default_seconds: int) -> dict[str, Any
     if not isinstance(raw, dict):
         return None
     used = _finite_number(raw.get("used_percent"))
-    if used is None:
+    if used is None or used < 0 or used > 100:
         return None
-    used = max(0.0, min(100.0, used))
-    window_seconds = _finite_number(raw.get("limit_window_seconds"))
-    if window_seconds is None or window_seconds <= 0:
+    if "limit_window_seconds" in raw:
+        window_seconds = _finite_number(raw.get("limit_window_seconds"))
+        if window_seconds is None or window_seconds <= 0 or not window_seconds.is_integer():
+            return None
+    else:
         window_seconds = default_seconds
     return {
         "label": label,
@@ -86,9 +90,24 @@ def _window_payload(raw: Any, label: str, default_seconds: int) -> dict[str, Any
     }
 
 
+def _unknown_window(label: str, window_seconds: int) -> dict[str, Any]:
+    return {
+        "label": label,
+        "used_percent": None,
+        "remaining_percent": None,
+        "reset_at": None,
+        "window_seconds": window_seconds,
+    }
+
+
 def _nonnegative_integer(value: Any) -> int | None:
     number = _finite_number(value)
-    if number is None or number < 0:
+    if (
+        number is None
+        or number < 0
+        or number > 9_007_199_254_740_991
+        or not number.is_integer()
+    ):
         return None
     return int(number)
 
@@ -115,7 +134,7 @@ def _reset_credit_rows(payload: Any) -> list[dict[str, Any]]:
             continue
         status = _safe_text(raw_credit.get("status"))
         status = status.lower() if status else None
-        if status not in (None, "available"):
+        if status != "available":
             continue
         credits.append(
             {
@@ -131,6 +150,24 @@ def _reset_credit_rows(payload: Any) -> list[dict[str, Any]]:
             }
         )
     return credits
+
+
+def _auth_cache_key(auth_path: str | Path | None = None) -> str | None:
+    try:
+        state = load_auth_state(auth_path)
+        if not state.access_token:
+            return None
+        identity = "\0".join(
+            (
+                str(state.path.resolve()),
+                state.account_id,
+                hashlib.sha256(state.access_token.encode("utf-8")).hexdigest(),
+                hashlib.sha256(state.refresh_token.encode("utf-8")).hexdigest(),
+            )
+        )
+    except (AttributeError, OSError, TypeError, ValueError):
+        return None
+    return hashlib.sha256(identity.encode("utf-8")).hexdigest()
 
 
 def _authenticated_request(state: Any, transport: Transport, url: str):
@@ -200,11 +237,15 @@ def fetch_codex_quota(
         return _unavailable("quota-data-unavailable")
 
     windows = []
+    valid_windows = []
     for key, label, default_seconds in _WINDOW_DEFINITIONS:
         window = _window_payload(rate_limit.get(key), label, default_seconds)
-        if window is not None:
+        if window is None:
+            windows.append(_unknown_window(label, default_seconds))
+        else:
             windows.append(window)
-    if not windows:
+            valid_windows.append(window)
+    if not valid_windows:
         return _unavailable("quota-data-unavailable")
 
     reset_details = payload.get("rate_limit_reset_credits")
@@ -212,7 +253,10 @@ def fetch_codex_quota(
     if isinstance(reset_details, dict):
         banked_resets = _nonnegative_integer(reset_details.get("available_count"))
     banked_reset_credits = []
-    if isinstance(reset_details, dict) and (banked_resets is None or banked_resets > 0):
+    should_fetch_reset_credits = not isinstance(reset_details, dict) or (
+        banked_resets is None or banked_resets > 0
+    )
+    if should_fetch_reset_credits:
         try:
             reset_response = _reset_credits_request(state, client)
             if 200 <= reset_response.status < 300:
@@ -231,7 +275,7 @@ def fetch_codex_quota(
         "available": True,
         "status": "available",
         "reason": None,
-        "remaining_percent": min(window["remaining_percent"] for window in windows),
+        "remaining_percent": min(window["remaining_percent"] for window in valid_windows),
         "windows": windows,
         "banked_resets": banked_resets,
         "banked_reset_credits": banked_reset_credits,
@@ -240,19 +284,30 @@ def fetch_codex_quota(
 
 
 def get_codex_quota() -> dict[str, Any]:
-    global _cached_result, _cached_at
+    global _cached_key, _cached_result, _cached_at
 
+    cache_key = _auth_cache_key()
     now = time.monotonic()
     with _cache_lock:
         if (
-            _cached_result is not None
+            cache_key is not None
+            and _cached_result is not None
+            and _cached_key == cache_key
             and now - _cached_at < CODEX_QUOTA_CACHE_TTL_SECONDS
         ):
             return dict(_cached_result)
 
     result = fetch_codex_quota()
     if result["available"]:
+        result_key = _auth_cache_key()
         with _cache_lock:
-            _cached_result = dict(result)
-            _cached_at = time.monotonic()
+            if result_key is not None:
+                _cached_key = result_key
+                _cached_result = dict(result)
+                _cached_at = time.monotonic()
+    else:
+        with _cache_lock:
+            _cached_key = None
+            _cached_result = None
+            _cached_at = 0.0
     return result
