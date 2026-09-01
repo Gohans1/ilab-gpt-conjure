@@ -3040,7 +3040,8 @@ button, input, select, textarea {
   .queue-button,
   .theme-option,
   .auth-source-button,
-  .auth-source-settings-button {
+  .auth-source-settings-button,
+  .codex-quota-fill {
     transition: none;
   }
 }

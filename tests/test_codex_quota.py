@@ -79,6 +79,36 @@ class CodexQuotaFetcherTests(unittest.TestCase):
         self.assertEqual(result["status"], "unavailable")
         self.assertNotEqual(result["remaining_percent"], 0)
 
+    def test_overflowing_usage_values_remain_unknown_instead_of_raising(self) -> None:
+        transport = FakeTransport(
+            [
+                FakeResponse(
+                    status=200,
+                    body=json.dumps(
+                        {"rate_limit": {"primary_window": {"used_percent": 10**1000}}}
+                    ).encode("utf-8"),
+                )
+            ]
+        )
+
+        from codex_image.codex_quota import fetch_codex_quota
+
+        result = fetch_codex_quota(auth_path=self.auth_path, transport=transport)
+
+        self.assertFalse(result["available"])
+        self.assertIsNone(result["remaining_percent"])
+        self.assertEqual(result["reason"], "quota-data-unavailable")
+
+    def test_malformed_auth_file_remains_unavailable_instead_of_raising(self) -> None:
+        self.auth_path.write_text("[]", encoding="utf-8")
+
+        from codex_image.codex_quota import fetch_codex_quota
+
+        result = fetch_codex_quota(auth_path=self.auth_path, transport=FakeTransport([]))
+
+        self.assertFalse(result["available"])
+        self.assertEqual(result["reason"], "auth-file-invalid")
+
     def test_rate_limit_response_remains_unavailable(self) -> None:
         transport = FakeTransport(
             [FakeResponse(status=429, body=b"rate limited")]
@@ -91,6 +121,36 @@ class CodexQuotaFetcherTests(unittest.TestCase):
         self.assertFalse(result["available"])
         self.assertIsNone(result["remaining_percent"])
         self.assertEqual(result["reason"], "rate-limited")
+
+    def test_malformed_auth_refresh_response_remains_unavailable(self) -> None:
+        transport = FakeTransport(
+            [
+                FakeResponse(status=401, body=b"unauthorized"),
+                FakeResponse(status=200, body=b"not-json"),
+            ]
+        )
+
+        from codex_image.codex_quota import fetch_codex_quota
+
+        result = fetch_codex_quota(auth_path=self.auth_path, transport=transport)
+
+        self.assertFalse(result["available"])
+        self.assertEqual(result["reason"], "auth-refresh-failed")
+
+    def test_non_object_auth_refresh_response_remains_unavailable(self) -> None:
+        transport = FakeTransport(
+            [
+                FakeResponse(status=401, body=b"unauthorized"),
+                FakeResponse(status=200, body=b"[]"),
+            ]
+        )
+
+        from codex_image.codex_quota import fetch_codex_quota
+
+        result = fetch_codex_quota(auth_path=self.auth_path, transport=transport)
+
+        self.assertFalse(result["available"])
+        self.assertEqual(result["reason"], "auth-refresh-failed")
 
     def test_expired_access_token_refreshes_once_and_retries_usage(self) -> None:
         payload = {

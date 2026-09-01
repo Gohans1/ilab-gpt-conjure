@@ -53,6 +53,16 @@ class WebUIStaticCodexQuotaTests(unittest.TestCase):
         self.assertIn(".codex-quota[data-state=\"loading\"] .codex-quota-track::before", styles)
         self.assertIn("flex: 0 0 140px", styles)
 
+    def test_quota_fill_respects_reduced_motion(self) -> None:
+        styles = Path(
+            "codex_image/webui/static/styles/30-layout-top-nav-panels.css"
+        ).read_text(encoding="utf-8")
+
+        self.assertRegex(
+            styles,
+            r"@media \(prefers-reduced-motion: reduce\)[\s\S]*\.codex-quota-fill[\s\S]*transition:\s*none",
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

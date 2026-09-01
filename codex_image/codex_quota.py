@@ -39,7 +39,10 @@ def _unavailable(reason: str) -> dict[str, Any]:
 def _finite_number(value: Any) -> float | None:
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         return None
-    number = float(value)
+    try:
+        number = float(value)
+    except (OverflowError, ValueError):
+        return None
     return number if math.isfinite(number) else None
 
 
@@ -105,7 +108,7 @@ def fetch_codex_quota(
         state = load_auth_state(auth_path)
     except FileNotFoundError:
         return _unavailable("auth-file-missing")
-    except (OSError, TypeError, ValueError):
+    except (AttributeError, OSError, TypeError, ValueError):
         return _unavailable("auth-file-invalid")
 
     if not state.access_token:
@@ -117,7 +120,7 @@ def fetch_codex_quota(
         if response.status == 401 and state.refresh_token:
             state = refresh_auth_state(state, transport=client)
             response = _usage_request(state, client)
-    except (OSError, RuntimeError, TimeoutError):
+    except (AttributeError, OSError, OverflowError, RuntimeError, TimeoutError, TypeError, ValueError):
         return _unavailable("auth-refresh-failed")
 
     if response.status == 401:
