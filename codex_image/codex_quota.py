@@ -12,6 +12,7 @@ from .auth import load_auth_state, refresh_auth_state
 from .http import Transport, UrllibTransport
 
 CODEX_USAGE_URL = "https://chatgpt.com/backend-api/wham/usage"
+CODEX_RESET_CREDITS_URL = "https://chatgpt.com/backend-api/wham/rate-limit-reset-credits"
 CODEX_USAGE_TIMEOUT_SECONDS = 15.0
 CODEX_QUOTA_CACHE_TTL_SECONDS = 30.0
 
@@ -32,6 +33,8 @@ def _unavailable(reason: str) -> dict[str, Any]:
         "reason": reason,
         "remaining_percent": None,
         "windows": [],
+        "banked_resets": None,
+        "banked_reset_credits": [],
         "fetched_at": None,
     }
 
@@ -83,7 +86,54 @@ def _window_payload(raw: Any, label: str, default_seconds: int) -> dict[str, Any
     }
 
 
-def _usage_request(state: Any, transport: Transport):
+def _nonnegative_integer(value: Any) -> int | None:
+    number = _finite_number(value)
+    if number is None or number < 0:
+        return None
+    return int(number)
+
+
+def _safe_text(value: Any) -> str | None:
+    if not isinstance(value, str):
+        return None
+    text = value.strip()
+    return text[:160] if text else None
+
+
+def _reset_credit_rows(payload: Any) -> list[dict[str, Any]]:
+    if not isinstance(payload, dict):
+        return []
+    rows = payload.get("credits")
+    if not isinstance(rows, list):
+        rows = payload.get("data")
+    if not isinstance(rows, list):
+        return []
+
+    credits = []
+    for raw_credit in rows:
+        if not isinstance(raw_credit, dict):
+            continue
+        status = _safe_text(raw_credit.get("status"))
+        status = status.lower() if status else None
+        if status not in (None, "available"):
+            continue
+        credits.append(
+            {
+                "granted_at": _iso_timestamp(
+                    raw_credit.get("granted_at") or raw_credit.get("grantedAt")
+                ),
+                "expires_at": _iso_timestamp(
+                    raw_credit.get("expires_at") or raw_credit.get("expiresAt")
+                ),
+                "status": status,
+                "title": _safe_text(raw_credit.get("title")),
+                "description": _safe_text(raw_credit.get("description")),
+            }
+        )
+    return credits
+
+
+def _authenticated_request(state: Any, transport: Transport, url: str):
     headers = {
         "Authorization": f"Bearer {state.access_token}",
         "Accept": "application/json",
@@ -93,10 +143,18 @@ def _usage_request(state: Any, transport: Transport):
         headers["ChatGPT-Account-Id"] = state.account_id
     return transport.request(
         method="GET",
-        url=CODEX_USAGE_URL,
+        url=url,
         headers=headers,
         body=b"",
     )
+
+
+def _usage_request(state: Any, transport: Transport):
+    return _authenticated_request(state, transport, CODEX_USAGE_URL)
+
+
+def _reset_credits_request(state: Any, transport: Transport):
+    return _authenticated_request(state, transport, CODEX_RESET_CREDITS_URL)
 
 
 def fetch_codex_quota(
@@ -149,12 +207,34 @@ def fetch_codex_quota(
     if not windows:
         return _unavailable("quota-data-unavailable")
 
+    reset_details = payload.get("rate_limit_reset_credits")
+    banked_resets = None
+    if isinstance(reset_details, dict):
+        banked_resets = _nonnegative_integer(reset_details.get("available_count"))
+    banked_reset_credits = []
+    if isinstance(reset_details, dict) and (banked_resets is None or banked_resets > 0):
+        try:
+            reset_response = _reset_credits_request(state, client)
+            if 200 <= reset_response.status < 300:
+                reset_payload = json.loads(reset_response.body.decode("utf-8"))
+                if isinstance(reset_payload, dict):
+                    reset_count = _nonnegative_integer(reset_payload.get("available_count"))
+                    banked_reset_credits = _reset_credit_rows(reset_payload)
+                    if reset_count is not None:
+                        banked_resets = reset_count
+                    elif banked_resets is None and banked_reset_credits:
+                        banked_resets = len(banked_reset_credits)
+        except (AttributeError, OSError, OverflowError, RuntimeError, TimeoutError, TypeError, UnicodeError, ValueError):
+            pass
+
     return {
         "available": True,
         "status": "available",
         "reason": None,
         "remaining_percent": min(window["remaining_percent"] for window in windows),
         "windows": windows,
+        "banked_resets": banked_resets,
+        "banked_reset_credits": banked_reset_credits,
         "fetched_at": datetime.now(UTC).isoformat(),
     }
 

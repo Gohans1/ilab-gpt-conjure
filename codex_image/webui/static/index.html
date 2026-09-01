@@ -121,7 +121,7 @@
         });
       })();
     </script>
-    <link rel="stylesheet" href="/static/styles.css?v=runtime-777" />
+    <link rel="stylesheet" href="/static/styles.css?v=runtime-782" />
   </head>
   <body>
     <div class="layout-container">
@@ -372,9 +372,31 @@
                 <path fill="currentColor" d="M12 .5a12 12 0 0 0-3.8 23.4c.6.1.8-.3.8-.6v-2.1c-3.4.7-4.1-1.5-4.1-1.5-.5-1.4-1.3-1.8-1.3-1.8-1.1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1.1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.8-1.6-2.7-.3-5.5-1.3-5.5-5.9 0-1.3.5-2.4 1.2-3.2-.1-.3-.5-1.6.1-3.2 0 0 1-.3 3.3 1.2a11.3 11.3 0 0 1 6 0C16.8 4.7 17.8 5 17.8 5c.6 1.6.2 2.9.1 3.2.8.8 1.2 1.9 1.2 3.2 0 4.6-2.8 5.6-5.5 5.9.4.4.8 1.1.8 2.2v3.8c0 .3.2.7.8.6A12 12 0 0 0 12 .5Z"/>
               </svg>
             </a>
-            <div id="codexQuota" class="codex-quota" data-state="loading" data-loading="false" role="status" aria-live="polite" aria-busy="true" aria-label="Codex quota" title="Codex quota">
+            <button id="codexQuota" class="codex-quota" type="button" data-state="loading" data-loading="false" aria-live="polite" aria-busy="true" aria-expanded="false" aria-controls="codexQuotaPanel" aria-label="Codex quota" title="Codex quota">
               <span class="codex-quota-track" aria-hidden="true"><span id="codexQuotaFill" class="codex-quota-fill"></span></span>
               <span id="codexQuotaValue" class="codex-quota-value">…</span>
+            </button>
+            <div id="codexQuotaPanel" class="codex-quota-panel hidden" role="dialog" aria-hidden="true" aria-label="Codex quota details" hidden>
+              <div class="codex-quota-panel-header">
+                <div class="codex-quota-panel-title">
+                  <strong>Codex quota</strong>
+                  <span>Current account</span>
+                </div>
+                <button id="codexQuotaPanelClose" class="ghost-button drawer-close-button" type="button" aria-label="Close Codex quota details" title="Close">
+                  <svg class="drawer-close-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M7 7L17 17M17 7L7 17" />
+                  </svg>
+                </button>
+              </div>
+              <p id="codexQuotaPanelStatus" class="codex-quota-panel-status" aria-live="polite">Loading quota</p>
+              <div id="codexQuotaWindows" class="codex-quota-windows"></div>
+              <section id="codexQuotaResetBank" class="codex-quota-reset-bank" aria-label="Banked resets">
+                <div class="codex-quota-reset-bank-header">
+                  <strong>Reset bank:</strong>
+                  <span id="codexQuotaResetBankCount">—</span>
+                </div>
+                <div id="codexQuotaResetBankList" class="codex-quota-reset-bank-list"></div>
+              </section>
             </div>
             <div class="generation-provider-control">
               <div class="generation-provider-select-shell">
@@ -1522,7 +1544,7 @@
     </div>
 
     <div id="taskNotificationToastRegion" class="task-notification-toast-region" aria-live="polite"></div>
-  <script src="/static/app.js?v=runtime-777"></script>
+  <script src="/static/app.js?v=runtime-782"></script>
     <script>
       (() => {
         document.querySelectorAll(".radio-group").forEach((group) => {

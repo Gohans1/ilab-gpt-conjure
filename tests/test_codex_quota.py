@@ -79,6 +79,126 @@ class CodexQuotaFetcherTests(unittest.TestCase):
         self.assertEqual(result["status"], "unavailable")
         self.assertNotEqual(result["remaining_percent"], 0)
 
+    def test_fetches_banked_reset_count_and_safe_credit_dates(self) -> None:
+        payload = {
+            "rate_limit": {
+                "primary_window": {"used_percent": 10},
+            },
+            "rate_limit_reset_credits": {"available_count": 2},
+        }
+        reset_payload = {
+            "available_count": 2,
+            "credits": [
+                {
+                    "credit_id": "private-credit-id",
+                    "status": "available",
+                    "granted_at": "2026-06-17T00:00:00Z",
+                    "expires_at": "2026-07-17T00:00:00Z",
+                    "title": "Full reset",
+                },
+                {"status": "redeemed", "expires_at": "2099-01-01T00:00:00Z"},
+            ],
+        }
+        transport = FakeTransport(
+            [
+                FakeResponse(status=200, body=json.dumps(payload).encode("utf-8")),
+                FakeResponse(status=200, body=json.dumps(reset_payload).encode("utf-8")),
+            ]
+        )
+
+        from codex_image.codex_quota import fetch_codex_quota
+
+        result = fetch_codex_quota(auth_path=self.auth_path, transport=transport)
+
+        self.assertTrue(result["available"])
+        self.assertEqual(result["banked_resets"], 2)
+        self.assertEqual(
+            result["banked_reset_credits"],
+            [
+                {
+                    "granted_at": "2026-06-17T00:00:00+00:00",
+                    "expires_at": "2026-07-17T00:00:00+00:00",
+                    "status": "available",
+                    "title": "Full reset",
+                    "description": None,
+                }
+            ],
+        )
+        self.assertEqual(
+            transport.requests[1]["url"],
+            "https://chatgpt.com/backend-api/wham/rate-limit-reset-credits",
+        )
+        rendered = json.dumps(result)
+        self.assertNotIn("private-credit-id", rendered)
+        self.assertNotIn("access-token-for-test", rendered)
+        self.assertNotIn("refresh-token-for-test", rendered)
+
+    def test_reset_credit_failure_keeps_quota_and_inline_count(self) -> None:
+        payload = {
+            "rate_limit": {
+                "primary_window": {"used_percent": 10},
+            },
+            "rate_limit_reset_credits": {"available_count": 1},
+        }
+        transport = FakeTransport(
+            [
+                FakeResponse(status=200, body=json.dumps(payload).encode("utf-8")),
+                FakeResponse(status=429, body=b"rate limited"),
+            ]
+        )
+
+        from codex_image.codex_quota import fetch_codex_quota
+
+        result = fetch_codex_quota(auth_path=self.auth_path, transport=transport)
+
+        self.assertTrue(result["available"])
+        self.assertEqual(result["remaining_percent"], 90)
+        self.assertEqual(result["banked_resets"], 1)
+        self.assertEqual(result["banked_reset_credits"], [])
+
+    def test_reset_credit_transport_failure_keeps_quota_and_inline_count(self) -> None:
+        payload = {
+            "rate_limit": {
+                "primary_window": {"used_percent": 10},
+            },
+            "rate_limit_reset_credits": {"available_count": 1},
+        }
+        transport = FakeTransport(
+            [FakeResponse(status=200, body=json.dumps(payload).encode("utf-8"))]
+        )
+
+        from codex_image.codex_quota import fetch_codex_quota
+
+        with patch(
+            "codex_image.codex_quota._reset_credits_request",
+            side_effect=RuntimeError("reset request failed"),
+        ):
+            result = fetch_codex_quota(auth_path=self.auth_path, transport=transport)
+
+        self.assertTrue(result["available"])
+        self.assertEqual(result["banked_resets"], 1)
+        self.assertEqual(result["banked_reset_credits"], [])
+
+    def test_missing_banked_reset_data_remains_unknown(self) -> None:
+        payload = {
+            "rate_limit": {"primary_window": {"used_percent": 10}},
+            "rate_limit_reset_credits": {},
+        }
+        transport = FakeTransport(
+            [
+                FakeResponse(status=200, body=json.dumps(payload).encode("utf-8")),
+                FakeResponse(status=500, body=b"unavailable"),
+            ]
+        )
+
+        from codex_image.codex_quota import fetch_codex_quota
+
+        result = fetch_codex_quota(auth_path=self.auth_path, transport=transport)
+
+        self.assertTrue(result["available"])
+        self.assertIsNone(result["banked_resets"])
+        self.assertEqual(result["banked_reset_credits"], [])
+
     def test_overflowing_usage_values_remain_unknown_instead_of_raising(self) -> None:
         transport = FakeTransport(
             [

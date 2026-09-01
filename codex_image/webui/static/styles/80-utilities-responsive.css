@@ -939,6 +939,11 @@ button:disabled {
     overflow: visible;
   }
 
+  .codex-quota-panel {
+    width: min(430px, calc(100vw - 28px));
+    max-height: calc(100dvh - var(--header-height) - 24px);
+  }
+
   .nav-actions {
     min-width: 0;
     justify-content: flex-start;

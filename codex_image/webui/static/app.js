@@ -55032,6 +55032,44 @@ ${galleryText}`;
 
   // codex_image/webui/frontend/src/codex-quota.ts
   var QUOTA_REFRESH_INTERVAL_MS = 6e4;
+  var QUOTA_PANEL_TIME_REFRESH_INTERVAL_MS = 3e4;
+  var QUOTA_CHECKPOINT_COUNT = 7;
+  var QUOTA_MARKER_COUNT = QUOTA_CHECKPOINT_COUNT + 1;
+  var latestPayload = null;
+  var quotaPanelOpen = false;
+  var quotaPanelTimer = null;
+  function positionQuotaPanel(root, panel) {
+    const anchorRect = root.getBoundingClientRect();
+    positionPromptPopoverAtAnchor(
+      panel,
+      document.documentElement,
+      anchorRect,
+      {
+        left: "left",
+        top: "top",
+        width: "width",
+        maxHeight: "max-height"
+      },
+      {
+        minWidth: 320,
+        maxWidth: 430,
+        maxHeight: 660,
+        minVisibleHeight: 120
+      }
+    );
+    const panelRect = panel.getBoundingClientRect();
+    if (!panelRect.width || !panelRect.height) return;
+    const originX = Math.min(
+      Math.max(anchorRect.left + anchorRect.width / 2 - panelRect.left, 12),
+      Math.max(12, panelRect.width - 12)
+    );
+    const opensAbove = panelRect.bottom <= anchorRect.top;
+    panel.style.setProperty("--codex-quota-panel-origin-x", `${originX}px`);
+    panel.style.setProperty(
+      "--codex-quota-panel-origin-y",
+      `${opensAbove ? panelRect.height : 0}px`
+    );
+  }
   function normalizeRemainingPercent(value) {
     if (value == null) return null;
     if (typeof value !== "number" || !Number.isFinite(value)) return null;
@@ -55041,13 +55079,251 @@ ${galleryText}`;
     if (typeof payload2 !== "object" || payload2 === null) return null;
     return payload2;
   }
+  function objectRecord(value) {
+    if (typeof value !== "object" || value === null) return null;
+    return value;
+  }
+  function quotaWindows(payload2) {
+    if (!Array.isArray(payload2?.windows)) return [];
+    return payload2.windows.map((item) => objectRecord(item)).filter((item) => item !== null);
+  }
+  function quotaCredits(payload2) {
+    if (!Array.isArray(payload2?.banked_reset_credits)) return [];
+    return payload2.banked_reset_credits.map((item) => objectRecord(item)).filter((item) => item !== null);
+  }
+  function timestampMilliseconds(value) {
+    if (typeof value === "number" && Number.isFinite(value)) {
+      const milliseconds = value > 1e12 ? value : value * 1e3;
+      return Number.isFinite(milliseconds) && Math.abs(milliseconds) <= 864e13 ? milliseconds : null;
+    }
+    if (typeof value !== "string" || !value.trim()) return null;
+    const timestamp = Date.parse(value);
+    return Number.isFinite(timestamp) ? timestamp : null;
+  }
+  function windowSeconds(window2) {
+    const value = window2.window_seconds;
+    if (typeof value !== "number" || !Number.isFinite(value) || value <= 0) return null;
+    return value;
+  }
+  function buildQuotaPacing(window2, nowMilliseconds = Date.now()) {
+    const resetMilliseconds = timestampMilliseconds(window2.reset_at);
+    const seconds = windowSeconds(window2);
+    if (resetMilliseconds === null || seconds === null) return null;
+    const windowMilliseconds = seconds * 1e3;
+    if (!Number.isFinite(windowMilliseconds) || windowMilliseconds <= 0) return null;
+    const startMilliseconds = resetMilliseconds - windowMilliseconds;
+    const elapsedMilliseconds = Math.max(
+      0,
+      Math.min(windowMilliseconds, nowMilliseconds - startMilliseconds)
+    );
+    const intervalMilliseconds = windowMilliseconds / QUOTA_CHECKPOINT_COUNT;
+    const currentPoint = Math.min(
+      QUOTA_CHECKPOINT_COUNT,
+      Math.floor(elapsedMilliseconds / intervalMilliseconds) + 1
+    );
+    const remainingPercent = Math.round(
+      Math.max(0, Math.min(100, (resetMilliseconds - nowMilliseconds) / windowMilliseconds * 100))
+    );
+    const checkpoints = quotaCheckpointValues();
+    return {
+      currentPoint,
+      remainingPercent,
+      checkpoints,
+      startMilliseconds,
+      intervalMilliseconds
+    };
+  }
+  function quotaCheckpointValues() {
+    return Array.from(
+      { length: QUOTA_MARKER_COUNT },
+      (_, index) => Number((index * 100 / QUOTA_CHECKPOINT_COUNT).toFixed(1))
+    );
+  }
+  function formatPacingPercent(value) {
+    return Number.isInteger(value) ? String(value) : value.toFixed(1);
+  }
+  function formatDuration3(milliseconds) {
+    const totalMinutes = Math.max(0, Math.floor(milliseconds / 6e4));
+    if (totalMinutes < 1) return "<1m";
+    const days = Math.floor(totalMinutes / 1440);
+    const hours = Math.floor(totalMinutes % 1440 / 60);
+    const minutes = totalMinutes % 60;
+    if (days) return `${days}d ${hours}h`;
+    if (hours) return `${hours}h ${minutes}m`;
+    return `${minutes}m`;
+  }
+  function formatLocalTimestamp2(value) {
+    const timestamp = timestampMilliseconds(value);
+    if (timestamp === null) return "\u2014";
+    const date = new Date(timestamp);
+    if (!Number.isFinite(date.getTime())) return "\u2014";
+    const pad = (number) => String(number).padStart(2, "0");
+    return `${pad(date.getMonth() + 1)}/${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+  }
+  function formatLocalDate(value) {
+    const timestamp = timestampMilliseconds(value);
+    if (timestamp === null) return "\u2014";
+    const date = new Date(timestamp);
+    if (!Number.isFinite(date.getTime())) return "\u2014";
+    return `${date.getDate()}/${date.getMonth() + 1}`;
+  }
+  function formatQuotaReset(value, nowMilliseconds = Date.now()) {
+    const timestamp = timestampMilliseconds(value);
+    if (timestamp === null) return "\u2014";
+    const relative = timestamp <= nowMilliseconds ? "now" : `in ${formatDuration3(timestamp - nowMilliseconds)}`;
+    return `${relative} (${formatLocalTimestamp2(value)})`;
+  }
+  function safeText(value) {
+    return typeof value === "string" && value.trim() ? value.trim() : null;
+  }
   function windowSummary(windows) {
     if (!Array.isArray(windows)) return "";
     return windows.map((item) => {
-      const label = typeof item?.label === "string" ? item.label : "";
-      const percent = normalizeRemainingPercent(item?.remaining_percent);
+      const record5 = objectRecord(item);
+      const label = safeText(record5?.label);
+      const percent = normalizeRemainingPercent(record5?.remaining_percent);
       return label && percent !== null ? `${label}: ${percent}%` : "";
     }).filter(Boolean).join(" \xB7 ");
+  }
+  function appendText(parent, tagName, className, text) {
+    const element2 = document.createElement(tagName);
+    element2.className = className;
+    element2.textContent = text;
+    parent.append(element2);
+    return element2;
+  }
+  function displayQuotaWindowLabel(window2) {
+    const label = safeText(window2.label) || "Quota";
+    return label === "Session" && windowSeconds(window2) === 5 * 60 * 60 ? "Session \xB7 5h" : label;
+  }
+  function renderQuotaWindow(window2, nowMilliseconds) {
+    const card = document.createElement("section");
+    card.className = "codex-quota-window";
+    const header = document.createElement("div");
+    header.className = "codex-quota-window-header";
+    const label = safeText(window2.label) || "Quota";
+    appendText(header, "strong", "codex-quota-window-label", displayQuotaWindowLabel(window2));
+    const remaining = normalizeRemainingPercent(window2.remaining_percent);
+    appendText(header, "strong", "codex-quota-window-percent", remaining === null ? "\u2014" : `${remaining}% left`);
+    card.append(header);
+    const pacing = buildQuotaPacing(window2, nowMilliseconds);
+    const pacingHeader = document.createElement("div");
+    pacingHeader.className = "codex-quota-pacing-header";
+    const pacingLabel = label === "Weekly" ? "Day" : windowSeconds(window2) === 5 * 60 * 60 ? "5h pacing" : "Pacing";
+    appendText(pacingHeader, "span", "codex-quota-pacing-label", pacingLabel);
+    appendText(
+      pacingHeader,
+      "span",
+      "codex-quota-pacing-point",
+      pacing ? `${pacing.currentPoint}/${QUOTA_CHECKPOINT_COUNT}` : "\u2014"
+    );
+    card.append(pacingHeader);
+    const track = document.createElement("div");
+    track.className = "codex-quota-pacing-track";
+    const bar = document.createElement("div");
+    bar.className = "codex-quota-pacing-bar";
+    const fill = document.createElement("span");
+    fill.className = "codex-quota-pacing-fill";
+    fill.style.width = remaining === null ? "0%" : `${remaining}%`;
+    bar.append(fill);
+    track.append(bar);
+    const detail = document.createElement("div");
+    detail.className = "codex-quota-pacing-detail";
+    detail.hidden = true;
+    const markerButtons = [];
+    const selectMarker = (button, text) => {
+      markerButtons.forEach((item) => {
+        item.classList.toggle("is-selected", item === button);
+        item.setAttribute("aria-pressed", String(item === button));
+      });
+      detail.textContent = text;
+      detail.hidden = false;
+    };
+    if (pacing) {
+      const nowMarker = document.createElement("button");
+      nowMarker.type = "button";
+      nowMarker.className = "codex-quota-pacing-now";
+      nowMarker.style.left = `${pacing.remainingPercent}%`;
+      const nowText = `Now ${formatPacingPercent(pacing.remainingPercent)}% \xB7 ${formatLocalTimestamp2(nowMilliseconds)}`;
+      nowMarker.title = nowText;
+      nowMarker.setAttribute("aria-label", nowText);
+      nowMarker.setAttribute("aria-pressed", "false");
+      markerButtons.push(nowMarker);
+      nowMarker.addEventListener("click", () => selectMarker(nowMarker, nowText));
+      track.append(nowMarker);
+    }
+    const checkpoints = pacing?.checkpoints || quotaCheckpointValues();
+    checkpoints.forEach((checkpoint, index) => {
+      const markerPoint = QUOTA_MARKER_COUNT - index;
+      const marker = document.createElement("button");
+      marker.type = "button";
+      marker.className = "codex-quota-pacing-marker";
+      if (pacing && markerPoint === pacing.currentPoint) marker.classList.add("is-current");
+      marker.style.left = `${checkpoint}%`;
+      const checkpointMilliseconds = pacing ? pacing.startMilliseconds + (markerPoint - 1) * pacing.intervalMilliseconds : null;
+      const checkpointText = `${formatPacingPercent(checkpoint)}% \xB7 ${checkpointMilliseconds === null ? "\u2014" : formatLocalTimestamp2(checkpointMilliseconds)}`;
+      marker.title = checkpointText;
+      marker.setAttribute("aria-label", `${checkpointText} checkpoint`);
+      marker.setAttribute("aria-pressed", "false");
+      markerButtons.push(marker);
+      marker.addEventListener("click", () => selectMarker(marker, checkpointText));
+      track.append(marker);
+    });
+    card.append(track, detail);
+    const resetRow = document.createElement("div");
+    resetRow.className = "codex-quota-window-reset";
+    const resetText = formatQuotaReset(window2.reset_at, nowMilliseconds);
+    appendText(
+      resetRow,
+      "span",
+      "codex-quota-window-reset-value",
+      resetText === "\u2014" ? "\u2014" : `reset ${resetText}`
+    );
+    card.append(resetRow);
+    return card;
+  }
+  function renderQuotaResetBank(payload2) {
+    const countElement = document.getElementById("codexQuotaResetBankCount");
+    const listElement = document.getElementById("codexQuotaResetBankList");
+    if (!countElement || !listElement) return;
+    const count = payload2?.banked_resets;
+    const normalizedCount = typeof count === "number" && Number.isSafeInteger(count) && count >= 0 ? count : null;
+    countElement.textContent = normalizedCount === null ? "\u2014" : String(normalizedCount);
+    listElement.replaceChildren();
+    const credits = quotaCredits(payload2);
+    if (!credits.length) {
+      appendText(
+        listElement,
+        "span",
+        "codex-quota-reset-bank-empty",
+        normalizedCount === null ? "Reset bank unavailable" : normalizedCount === 0 ? "No banked reset" : "Reset details unavailable"
+      );
+      return;
+    }
+    credits.forEach((credit) => {
+      const row = document.createElement("div");
+      row.className = "codex-quota-reset-credit";
+      appendText(row, "strong", "codex-quota-reset-credit-title", safeText(credit.title) || "Banked reset");
+      appendText(
+        row,
+        "span",
+        "codex-quota-reset-credit-dates",
+        `${formatLocalDate(credit.granted_at)} \u2192 ${formatLocalDate(credit.expires_at)}`
+      );
+      listElement.append(row);
+    });
+  }
+  function renderCodexQuotaPanel(payload2) {
+    const statusElement = document.getElementById("codexQuotaPanelStatus");
+    const windowsElement = document.getElementById("codexQuotaWindows");
+    if (!statusElement || !windowsElement) return;
+    const nowMilliseconds = Date.now();
+    const windows = payload2?.available === true ? quotaWindows(payload2) : [];
+    statusElement.hidden = windows.length > 0;
+    statusElement.textContent = windows.length ? "" : "Quota unavailable";
+    windowsElement.replaceChildren();
+    windows.forEach((window2) => windowsElement.append(renderQuotaWindow(window2, nowMilliseconds)));
+    renderQuotaResetBank(payload2);
   }
   function renderUnavailable(root, fill, value) {
     root.dataset.state = "unavailable";
@@ -55064,9 +55340,11 @@ ${galleryText}`;
     const value = document.getElementById("codexQuotaValue");
     if (!root || !fill || !value) return;
     const record5 = payloadRecord(payload2);
+    latestPayload = record5;
     const percent = record5?.available === true ? normalizeRemainingPercent(record5.remaining_percent) : null;
     if (percent === null) {
       renderUnavailable(root, fill, value);
+      renderCodexQuotaPanel(record5);
       return;
     }
     const details = windowSummary(record5?.windows);
@@ -55080,6 +55358,27 @@ ${galleryText}`;
     root.title = root.getAttribute("aria-label") || "Codex quota";
     fill.style.width = `${percent}%`;
     value.textContent = `${percent}%`;
+    renderCodexQuotaPanel(record5);
+  }
+  function setQuotaPanelOpen(open) {
+    const root = document.getElementById("codexQuota");
+    const panel = document.getElementById("codexQuotaPanel");
+    if (!root || !panel) return;
+    quotaPanelOpen = open;
+    panel.hidden = !open;
+    panel.classList.toggle("hidden", !open);
+    panel.setAttribute("aria-hidden", String(!open));
+    root.setAttribute("aria-expanded", String(open));
+    if (open) {
+      renderCodexQuotaPanel(latestPayload);
+      positionQuotaPanel(root, panel);
+      if (quotaPanelTimer === null) {
+        quotaPanelTimer = window.setInterval(() => renderCodexQuotaPanel(latestPayload), QUOTA_PANEL_TIME_REFRESH_INTERVAL_MS);
+      }
+    } else if (quotaPanelTimer !== null) {
+      window.clearInterval(quotaPanelTimer);
+      quotaPanelTimer = null;
+    }
   }
   async function refreshCodexQuota(root) {
     if (root.dataset.loading === "true") return;
@@ -55101,7 +55400,31 @@ ${galleryText}`;
   }
   function initCodexQuotaFeature() {
     const root = document.getElementById("codexQuota");
-    if (!root) return;
+    if (!root || root.dataset.initialized === "true") return;
+    root.dataset.initialized = "true";
+    const panel = document.getElementById("codexQuotaPanel");
+    const closeButton = document.getElementById("codexQuotaPanelClose");
+    const repositionPanel = () => {
+      if (quotaPanelOpen && panel) positionQuotaPanel(root, panel);
+    };
+    root.addEventListener("click", () => setQuotaPanelOpen(!quotaPanelOpen));
+    closeButton?.addEventListener("click", () => {
+      setQuotaPanelOpen(false);
+      root.focus();
+    });
+    document.addEventListener("click", (event) => {
+      const target = event.target;
+      if (!(target instanceof Node) || !quotaPanelOpen || !panel) return;
+      if (!root.contains(target) && !panel.contains(target)) setQuotaPanelOpen(false);
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && quotaPanelOpen) {
+        setQuotaPanelOpen(false);
+        root.focus();
+      }
+    });
+    window.addEventListener("resize", repositionPanel);
+    window.addEventListener("scroll", repositionPanel, true);
     void refreshCodexQuota(root);
     window.setInterval(() => {
       void refreshCodexQuota(root);
