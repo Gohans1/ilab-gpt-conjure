@@ -1,0 +1,23 @@
+{
+  "name": "chatgpt-image-cli",
+  "version": "1.0.0",
+  "description": "Standalone CLI to generate and download images from ChatGPT Web",
+  "type": "module",
+  "bin": {
+    "chatgpt-image": "./src/cli.ts"
+  },
+  "scripts": {
+    "server": "bun run src/server.ts",
+    "generate": "bun run src/cli.ts",
+    "login": "bun run src/cli.ts --login",
+    "test:connection": "bun run src/test-connection.ts"
+  },
+  "dependencies": {
+    "playwright-core": "^1.50.0"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.4.0",
+    "@types/node": "^22.0.0",
+    "typescript": "^5.7.0"
+  }
+}

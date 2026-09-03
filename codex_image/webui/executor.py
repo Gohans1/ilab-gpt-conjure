@@ -597,6 +597,41 @@ async def _execute_stored_task(
                 output_records=output_records,
             )
 
+    # Thu nạp toàn bộ ảnh còn lại trong mẻ nếu nhà cung cấp trả về nhiều ảnh hơn số slot đã lặp
+    while hasattr(client, "_pending_results") and client._pending_results:
+        extra_result = client._pending_results.popleft()
+        results.append(extra_result)
+        extra_output_number = len(output_records) + 1
+        output_path = storage.write_output(
+            task_id,
+            extra_result.image_bytes,
+            extra_result.output_format or str(params.get("output_format") or "png"),
+            index=extra_output_number,
+        )
+        output_paths.append(output_path)
+        extra_now = utc_now()
+        output_record = {
+            "index": extra_output_number,
+            "status": "completed",
+            "file": storage.output_file(output_path),
+            "url": _output_url(storage, output_path),
+            "size": extra_result.size,
+            "format": extra_result.output_format,
+            "quality": extra_result.quality,
+            "background": extra_result.background,
+            "revised_prompt": extra_result.revised_prompt,
+            "usage": extra_result.usage,
+            "started_at": extra_now,
+            "updated_at": extra_now,
+            "completed_at": extra_now,
+            "elapsed_seconds": 0.0,
+        }
+        if extra_result.tool_usage:
+            output_record["tool_usage"] = extra_result.tool_usage
+        output_record.update(_output_thumbnail_fields(storage, task_id, extra_output_number, output_path))
+        _append_output_record_state(output_records, output_record)
+        completed_output_numbers.add(extra_output_number)
+
     if not results and any(record.get("status") == "failed" for record in output_records):
         failure_messages = [str(record.get("error") or "") for record in output_records if record.get("status") == "failed"]
         raise RuntimeError("; ".join(message for message in failure_messages if message) or "All outputs failed")

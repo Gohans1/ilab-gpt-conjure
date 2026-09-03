@@ -120,10 +120,18 @@ class ExecutionPlanImageClient:
         if operation != self._plan.command.operation:
             raise RuntimeError("Execution operation differs from the frozen generation plan.")
         if self._uses_legacy_client_adapter:
+            with self._condition:
+                if self._pending_results:
+                    return self._pending_results.popleft()
             result = self._service.execute_plan_once(self._plan)
             if not result.assets:
                 raise RuntimeError("The provider returned no image asset.")
-            return self._image_result(result, result.assets[0], kwargs)
+            converted = [
+                self._image_result(result, asset, kwargs) for asset in result.assets
+            ]
+            with self._condition:
+                self._pending_results.extend(converted[1:])
+                return converted[0]
         # The executor kwargs are legacy compatibility plumbing. The restored
         # snapshot plan is authoritative for all request choices and inputs.
         while True:
