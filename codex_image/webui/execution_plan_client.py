@@ -37,6 +37,7 @@ class _LegacyClientAdapter:
             common["web_search"] = bool(params.get("gpt.web_search"))
             ephemeral_reference_files = list(command.reference_files)
             common["reference_files"] = ephemeral_reference_files
+        single_common = {k: v for k, v in common.items() if k != "n"}
         try:
             if command.operation == "edit":
                 if hasattr(self.client, "edit_images"):
@@ -49,7 +50,7 @@ class _LegacyClientAdapter:
                 else:
                     results = [
                         self.client.edit_image(
-                            **common,
+                            **single_common,
                             images=[image.data_url for image in command.image_inputs],
                             mask_image=command.mask_image,
                             input_fidelity=params.get("gpt.input_fidelity"),
@@ -64,16 +65,21 @@ class _LegacyClientAdapter:
                 else:
                     results = [
                         self.client.generate_image(
-                            **common,
+                            **single_common,
                             reference_images=[image.data_url for image in command.image_inputs],
                         )
                     ]
         finally:
             ephemeral_reference_files.clear()
+
+        def _mime_type_for_format(fmt: str | None) -> str:
+            raw = str(fmt or "png").lower().strip().lstrip(".")
+            return "image/jpeg" if raw in {"jpg", "jpeg"} else f"image/{raw}"
+
         assets = tuple(
             GeneratedAsset(
                 image_bytes=result.image_bytes,
-                mime_type=f"image/{result.output_format or 'png'}",
+                mime_type=_mime_type_for_format(result.output_format),
                 revised_prompt=result.revised_prompt,
                 metadata={
                     "size": result.size,
@@ -150,16 +156,19 @@ class ExecutionPlanImageClient:
             with self._condition:
                 if self._pending_results:
                     return self._pending_results.popleft()
-                if self._failure is not None and self._failure_remaining > 0:
-                    failure = self._failure
-                    self._failure_remaining -= 1
-                    if self._failure_remaining == 0:
+                if self._failure is not None:
+                    if self._failure_remaining > 0:
+                        failure = self._failure
+                        self._failure_remaining -= 1
+                        if self._failure_remaining == 0:
+                            self._failure = None
+                        raise failure
+                    else:
                         self._failure = None
-                    raise failure
                 if not self._request_in_flight:
                     self._request_in_flight = True
                     break
-                self._condition.wait()
+                self._condition.wait(timeout=1.0)
 
         try:
             result = self._service.execute_plan_once(self._plan)
@@ -168,10 +177,10 @@ class ExecutionPlanImageClient:
             converted = [
                 self._image_result(result, asset, kwargs) for asset in result.assets
             ]
-        except Exception as exc:
+        except BaseException as exc:
             with self._condition:
                 self._request_in_flight = False
-                self._failure = exc
+                self._failure = exc if isinstance(exc, Exception) else RuntimeError(str(exc))
                 self._failure_remaining = max(0, self._expected_outputs - 1)
                 self._condition.notify_all()
             raise

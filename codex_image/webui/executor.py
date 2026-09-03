@@ -598,8 +598,17 @@ async def _execute_stored_task(
             )
 
     # Thu nạp toàn bộ ảnh còn lại trong mẻ nếu nhà cung cấp trả về nhiều ảnh hơn số slot đã lặp
-    while hasattr(client, "_pending_results") and client._pending_results:
-        extra_result = client._pending_results.popleft()
+    while hasattr(client, "_pending_results"):
+        condition = getattr(client, "_condition", None)
+        if condition is not None:
+            with condition:
+                if not client._pending_results:
+                    break
+                extra_result = client._pending_results.popleft()
+        else:
+            if not client._pending_results:
+                break
+            extra_result = client._pending_results.popleft()
         results.append(extra_result)
         extra_output_number = len(output_records) + 1
         output_path = storage.write_output(

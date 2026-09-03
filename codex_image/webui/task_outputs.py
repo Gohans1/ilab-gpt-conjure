@@ -1046,7 +1046,7 @@ def _finalize_generated_task(
     failed_records = [record for record in output_records if record.get("status") == "failed"]
     first_result = results[0]
     first_output_path = output_paths[0]
-    total_count = int(params.get("n") or len(output_records) or len(results) or 1)
+    total_count = max(int(params.get("n") or 1), len(output_records), len(results))
     metadata = storage.read_metadata(task_id)
     file_references = _reference_files_for_metadata(reference_files, metadata)
     metadata.update(

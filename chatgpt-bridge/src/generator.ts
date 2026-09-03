@@ -79,7 +79,7 @@ export async function generateImage(prompt: string, options: GenerateOptions = {
       const currentImages = await page.evaluate((selector) => {
         return Array.from(document.querySelectorAll<HTMLImageElement>(selector))
           .map((img) => img.src || img.getAttribute("src") || "")
-          .filter((src) => src.startsWith("http"));
+          .filter((src) => src.startsWith("http") || src.startsWith("blob:") || src.startsWith("data:"));
       }, SELECTORS.generatedImage);
 
       const hasNewImages = currentImages.some((src) => !knownSet.has(src));
@@ -92,20 +92,23 @@ export async function generateImage(prompt: string, options: GenerateOptions = {
         break;
       }
 
-      // Fail-fast: Nếu nút Stop đã tắt (sinh xong) và đã qua 4s mà không có ảnh mới:
-      // Kiểm tra xem ChatGPT có trả lời bằng văn bản chữ không
-      if (!isGenerating && Date.now() - startTime > 4000) {
-        const assistantText = await page.evaluate(() => {
+      // Fail-fast: Chỉ kiểm tra khi nút Stop đã tắt (sinh xong), đã qua ít nhất 8s, và không có image widget nào đang tải
+      if (!isGenerating && Date.now() - startTime > 8000) {
+        const textAnalysis = await page.evaluate(() => {
+          const hasImageWidget = document.querySelector('div[data-testid*="image"], div[class*="image-generation"], img[src*="estuary"]') !== null;
+          if (hasImageWidget) return null;
+
           const nodes = Array.from(
             document.querySelectorAll('[data-message-author-role="assistant"], .markdown')
           );
           if (nodes.length === 0) return null;
           const last = nodes[nodes.length - 1];
-          return (last.textContent || "").trim();
+          const text = (last.textContent || "").trim();
+          return { text };
         });
 
-        if (assistantText && assistantText.length > 0 && !hasNewImages) {
-          const preview = assistantText.length > 120 ? assistantText.slice(0, 120) + "..." : assistantText;
+        if (textAnalysis && textAnalysis.text && !hasNewImages) {
+          const preview = textAnalysis.text.length > 120 ? textAnalysis.text.slice(0, 120) + "..." : textAnalysis.text;
           throw new Error(`ChatGPT không tạo ảnh mà trả lời bằng văn bản: "${preview}"`);
         }
       }

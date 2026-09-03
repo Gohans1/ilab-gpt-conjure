@@ -54,12 +54,7 @@ export async function extractAndSaveImages(
     }
 
     if (fileMap.size === 0) {
-      if (validImages.length > 0) {
-        const lastSrc = validImages[validImages.length - 1].src;
-        fileMap.set("last", lastSrc);
-      } else {
-        return [];
-      }
+      return [];
     }
 
     const results: Array<{ base64?: string; error?: string; url: string }> = [];
