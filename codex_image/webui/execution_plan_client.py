@@ -18,6 +18,7 @@ class _LegacyClientAdapter:
     def execute(self, plan: ExecutionPlan) -> GenerationResult:
         command = plan.command
         params = {**command.parameters, **command.legacy_compat_parameters}
+        count = max(1, int(params.get("output.count") or 1))
         common: dict[str, Any] = {
             "prompt": command.prompt,
             "main_model": command.main_model,
@@ -28,6 +29,7 @@ class _LegacyClientAdapter:
             "output_format": params.get("output.format", "png"),
             "moderation": params.get("gpt.moderation"),
             "output_compression": params.get("gpt.output_compression"),
+            "n": count,
         }
         ephemeral_reference_files: list[Any] = []
         if plan.binding.protocol_profile.endswith("responses"):
@@ -37,21 +39,39 @@ class _LegacyClientAdapter:
             common["reference_files"] = ephemeral_reference_files
         try:
             if command.operation == "edit":
-                result = self.client.edit_image(
-                    **common,
-                    images=[image.data_url for image in command.image_inputs],
-                    mask_image=command.mask_image,
-                    input_fidelity=params.get("gpt.input_fidelity"),
-                )
+                if hasattr(self.client, "edit_images"):
+                    results = self.client.edit_images(
+                        **common,
+                        images=[image.data_url for image in command.image_inputs],
+                        mask_image=command.mask_image,
+                        input_fidelity=params.get("gpt.input_fidelity"),
+                    )
+                else:
+                    results = [
+                        self.client.edit_image(
+                            **common,
+                            images=[image.data_url for image in command.image_inputs],
+                            mask_image=command.mask_image,
+                            input_fidelity=params.get("gpt.input_fidelity"),
+                        )
+                    ]
             else:
-                result = self.client.generate_image(
-                    **common,
-                    reference_images=[image.data_url for image in command.image_inputs],
-                )
+                if hasattr(self.client, "generate_images"):
+                    results = self.client.generate_images(
+                        **common,
+                        reference_images=[image.data_url for image in command.image_inputs],
+                    )
+                else:
+                    results = [
+                        self.client.generate_image(
+                            **common,
+                            reference_images=[image.data_url for image in command.image_inputs],
+                        )
+                    ]
         finally:
             ephemeral_reference_files.clear()
-        return GenerationResult(
-            assets=(GeneratedAsset(
+        assets = tuple(
+            GeneratedAsset(
                 image_bytes=result.image_bytes,
                 mime_type=f"image/{result.output_format or 'png'}",
                 revised_prompt=result.revised_prompt,
@@ -61,8 +81,13 @@ class _LegacyClientAdapter:
                     "quality": result.quality,
                     "tool_usage": result.tool_usage,
                 },
-            ),),
-            usage=dict(result.usage),
+            )
+            for result in results
+        )
+        usage = dict(results[0].usage) if results else {}
+        return GenerationResult(
+            assets=assets,
+            usage=usage,
         )
 
 
@@ -119,19 +144,6 @@ class ExecutionPlanImageClient:
     def _execute(self, operation: str, kwargs: dict[str, Any]) -> ImageResult:
         if operation != self._plan.command.operation:
             raise RuntimeError("Execution operation differs from the frozen generation plan.")
-        if self._uses_legacy_client_adapter:
-            with self._condition:
-                if self._pending_results:
-                    return self._pending_results.popleft()
-            result = self._service.execute_plan_once(self._plan)
-            if not result.assets:
-                raise RuntimeError("The provider returned no image asset.")
-            converted = [
-                self._image_result(result, asset, kwargs) for asset in result.assets
-            ]
-            with self._condition:
-                self._pending_results.extend(converted[1:])
-                return converted[0]
         # The executor kwargs are legacy compatibility plumbing. The restored
         # snapshot plan is authoritative for all request choices and inputs.
         while True:
