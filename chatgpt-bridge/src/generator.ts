@@ -92,6 +92,24 @@ export async function generateImage(prompt: string, options: GenerateOptions = {
         break;
       }
 
+      // Fail-fast: Nếu nút Stop đã tắt (sinh xong) và đã qua 4s mà không có ảnh mới:
+      // Kiểm tra xem ChatGPT có trả lời bằng văn bản chữ không
+      if (!isGenerating && Date.now() - startTime > 4000) {
+        const assistantText = await page.evaluate(() => {
+          const nodes = Array.from(
+            document.querySelectorAll('[data-message-author-role="assistant"], .markdown')
+          );
+          if (nodes.length === 0) return null;
+          const last = nodes[nodes.length - 1];
+          return (last.textContent || "").trim();
+        });
+
+        if (assistantText && assistantText.length > 0 && !hasNewImages) {
+          const preview = assistantText.length > 120 ? assistantText.slice(0, 120) + "..." : assistantText;
+          throw new Error(`ChatGPT không tạo ảnh mà trả lời bằng văn bản: "${preview}"`);
+        }
+      }
+
       await page.waitForTimeout(400);
     }
 

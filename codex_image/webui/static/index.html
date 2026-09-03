@@ -679,7 +679,7 @@
                         </div>
                       </div>
 
-                      <div id="webSearchField" class="field web-search-field">
+                      <div id="webSearchField" class="field web-search-field" style="display: none;">
                         <span data-i18n="output.webSearch">联网搜索</span>
                         <label class="web-search-toggle" title="先联网搜索并用于本次生成" data-i18n-attr="title:output.webSearchTitle">
                           <input id="webSearch" type="checkbox" />
@@ -710,13 +710,13 @@
                         </button>
                       </div>
                       <div class="radio-group" id="promptFidelityGroup" role="group" aria-label="提示词处理模式" data-i18n-attr="aria-label:output.promptMode">
-                        <button class="radio-btn" data-val="original" type="button" data-i18n="output.modeOriginal">原文</button>
-                        <button class="radio-btn active" data-val="strict" type="button" data-i18n="output.modeStrict">保真</button>
+                        <button class="radio-btn active" data-val="original" type="button" data-i18n="output.modeOriginal">原文</button>
+                        <button class="radio-btn" data-val="strict" type="button" data-i18n="output.modeStrict">保真</button>
                         <button class="radio-btn" data-val="off" type="button" data-i18n="output.modeCreative">自动</button>
                       </div>
                       <select id="promptFidelity" class="hidden">
-                        <option value="original" data-i18n="output.modeOriginal">原文</option>
-                        <option value="strict" selected data-i18n="output.modeStrict">保真</option>
+                        <option value="original" selected data-i18n="output.modeOriginal">原文</option>
+                        <option value="strict" data-i18n="output.modeStrict">保真</option>
                         <option value="off" data-i18n="output.modeCreative">自动</option>
                       </select>
                     </div>
@@ -763,7 +763,7 @@
                   </select>
                 </div>
 
-                <div class="field resolution-field">
+                <div class="field resolution-field" style="display: none;">
                   <span data-i18n="output.resolution">分辨率</span>
                   <div class="radio-group" id="resolutionGroup" role="group" aria-label="分辨率" data-i18n-attr="aria-label:output.resolution">
                     <button class="radio-btn active" data-val="standard" type="button">1K</button>
@@ -868,7 +868,7 @@
                 </div>
 
                 <div class="field-pair full-width quantity-quality-row">
-                  <div class="field quality-field">
+                  <div class="field quality-field" style="display: none;">
                     <span data-i18n="output.quality">质量</span>
                     <div class="radio-group" id="qualityGroup" role="group" aria-label="质量" data-i18n-attr="aria-label:output.quality">
                       <button class="radio-btn active" data-val="auto" type="button" data-i18n="output.qualityAuto">自动</button>
@@ -884,7 +884,7 @@
                     </select>
                   </div>
 
-                  <div class="field quantity-field">
+                  <div class="field quantity-field" style="width: 100%;">
                     <span data-i18n="output.quantity">数量</span>
                     <div class="radio-group quantity-group" id="quantityGroup" role="group" aria-label="数量" data-i18n-attr="aria-label:output.quantity">
                       <button class="radio-btn active" data-val="1" type="button">1</button>
@@ -901,13 +901,13 @@
                   </div>
                 </div>
 
-                <div id="pixelPreview" class="full-width" style="text-align: center; font-size: 13px; color: var(--primary-strong); padding: 8px; background: var(--primary-light); border-radius: 6px;">
+                <div id="pixelPreview" class="full-width" style="display: none; text-align: center; font-size: 13px; color: var(--primary-strong); padding: 8px; background: var(--primary-light); border-radius: 6px;">
                   <span data-i18n="output.pixelPreview">输出像素: 1024 x 1024 px</span>
                 </div>
 
                 <input type="text" id="size" class="hidden" value="1024x1024" />
 
-                <div id="outputFormatField" class="field output-format-field">
+                <div id="outputFormatField" class="field output-format-field" style="display: none;">
                   <span data-i18n="output.format">输出格式</span>
                   <div id="outputFormatGroup" class="radio-group" role="group" aria-label="输出格式" data-i18n-attr="aria-label:output.format">
                     <button class="radio-btn active" data-val="png" type="button">png</button>
@@ -930,7 +930,7 @@
                   </div>
                 </div>
 
-                <div class="field moderation-field">
+                <div class="field moderation-field" style="display: none;">
                   <span data-i18n="output.moderation">审核</span>
                   <div class="radio-group" id="moderationGroup" role="group" aria-label="审核" data-i18n-attr="aria-label:output.moderation">
                     <button class="radio-btn active" data-val="auto" type="button">auto</button>

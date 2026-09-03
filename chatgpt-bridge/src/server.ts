@@ -95,9 +95,30 @@ const server = Bun.serve({
         );
       }
 
-      let generationPrompt = prompt;
-      if (n > 1 && !new RegExp(`\\b${n}\\s*(ảnh|images?|pictures?|photos?)\\b`, "i").test(prompt)) {
-        generationPrompt = `${prompt} (Tạo chính xác ${n} bức ảnh / Generate exactly ${n} images)`;
+      // 2.1 Bóc tách prompt sạch (loại bỏ rác Prompt fidelity guidance nếu có)
+      let cleanPrompt = prompt.trim();
+      const marker = "Original user prompt:";
+      if (cleanPrompt.includes(marker)) {
+        const afterMarker = cleanPrompt.slice(cleanPrompt.indexOf(marker) + marker.length).trim();
+        if (afterMarker) {
+          cleanPrompt = afterMarker;
+        }
+      }
+
+      // Giữ lại câu aspect ratio nếu có
+      let ratioInstruction = "";
+      const ratioMatch = cleanPrompt.match(/(?:Set the aspect ratio to|Đặt tỷ lệ khung hình thành)\s+[0-9]+:[0-9]+\.?/i);
+      if (ratioMatch) {
+        ratioInstruction = ` ${ratioMatch[0]}`;
+        cleanPrompt = cleanPrompt.replace(ratioMatch[0], "").trim();
+      }
+
+      // 2.2 Bọc mệnh lệnh vẽ và số lượng n
+      let generationPrompt: string;
+      if (n > 1) {
+        generationPrompt = `Generate exactly ${n} distinct images of: ${cleanPrompt}.${ratioInstruction}`;
+      } else {
+        generationPrompt = `Generate an image of: ${cleanPrompt}.${ratioInstruction}`;
       }
 
       console.log(`\n📥 [Bridge] Nhận request tạo ảnh từ iLab CONJURE (Số lượng yêu cầu: ${n})!`);
