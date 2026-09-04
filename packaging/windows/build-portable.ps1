@@ -117,6 +117,47 @@ Copy-Item -Path (Join-Path $ScriptDir "THIRD_PARTY_NOTICES.md") -Destination (Jo
 if (Test-Path (Join-Path $AppDir "LICENSE")) {
   Copy-Item -Path (Join-Path $AppDir "LICENSE") -Destination (Join-Path $BundleRoot "LICENSE") -Force
 }
+Copy-Item -Path (Join-Path $RepoRoot "Start-All.bat") -Destination (Join-Path $BundleRoot "Start-All.bat") -Force
+
+# Bundle standalone bun binary into bin\bun.exe
+$BinDir = Join-Path $BundleRoot "bin"
+New-Item -ItemType Directory -Force -Path $BinDir | Out-Null
+$BunExe = Join-Path $BinDir "bun.exe"
+$SystemBun = (Get-Command bun -ErrorAction SilentlyContinue)
+if ($null -ne $SystemBun) {
+  Copy-Item -Path $SystemBun.Source -Destination $BunExe -Force
+} else {
+  $BunZip = Join-Path $CacheDir "bun-windows-x64.zip"
+  if (-not (Test-Path $BunZip)) {
+    Write-Host "Downloading Bun runtime..."
+    Invoke-WebRequest -Uri "https://github.com/oven-sh/bun/releases/latest/download/bun-windows-x64.zip" -OutFile $BunZip
+  }
+  Expand-Archive -Path $BunZip -DestinationPath $CacheDir -Force
+  Copy-Item -Path (Join-Path $CacheDir "bun-windows-x64\bun.exe") -Destination $BunExe -Force
+}
+
+# Bundle chatgpt-bridge and its dependencies
+$BridgeTarget = Join-Path $BundleRoot "chatgpt-bridge"
+New-Item -ItemType Directory -Force -Path $BridgeTarget | Out-Null
+$BridgeSrc = Join-Path $RepoRoot "chatgpt-bridge"
+if (-not (Test-Path (Join-Path $BridgeSrc "node_modules"))) {
+  Write-Host "Installing chatgpt-bridge dependencies..."
+  Push-Location $BridgeSrc
+  try {
+    & $BunExe install --production
+  } finally {
+    Pop-Location
+  }
+}
+Copy-Item -Path (Join-Path $BridgeSrc "*") -Destination $BridgeTarget -Recurse -Force
+Remove-LocalArtifacts -Root $BridgeTarget
+
+# Seed default webui-api-settings.json
+$SeededSettings = Join-Path $RepoRoot "data\webui-api-settings.json"
+if (Test-Path $SeededSettings) {
+  Copy-Item -Path $SeededSettings -Destination (Join-Path $DataDir "webui-api-settings.json") -Force
+}
+
 Set-Content -Path (Join-Path $BundleRoot "portable-version.txt") -Value $Version -Encoding ASCII
 Remove-LocalArtifacts -Root $AppDir
 

@@ -200,8 +200,8 @@ class ProviderSettings:
     @staticmethod
     def default_settings() -> dict[str, Any]:
         return {
-            "base_url": DEFAULT_OPENAI_API_BASE_URL,
-            "api_key": "",
+            "base_url": "http://127.0.0.1:3000/v1",
+            "api_key": "sk-local",
             "image_model": DEFAULT_IMAGE_MODEL,
             "api_mode": "images",
             "images_concurrency": 4,
@@ -209,7 +209,7 @@ class ProviderSettings:
 
     @classmethod
     def default_provider(cls) -> dict[str, Any]:
-        return migrate_legacy_provider({"id": "default", "name": "Default", **cls.default_settings()})
+        return migrate_legacy_provider({"id": "default", "name": "ChatGPT Web Free", **cls.default_settings()})
 
     @classmethod
     def _default_settings(cls) -> dict[str, Any]:

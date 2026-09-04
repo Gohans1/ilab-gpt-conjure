@@ -1,0 +1,38 @@
+{
+  "schema_version": 2,
+  "codex_mode": "images",
+  "active_provider_id": "default",
+  "default_provider_by_model": {
+    "gpt-image-2": "default"
+  },
+  "providers": [
+    {
+      "id": "default",
+      "name": "ChatGPT Web Free",
+      "base_url": "http://127.0.0.1:3000/v1",
+      "api_key": "sk-local",
+      "concurrency": 4,
+      "bindings": [
+        {
+          "id": "default-gpt-image-2",
+          "canonical_model_id": "gpt-image-2",
+          "remote_model_id": "gpt-image-2",
+          "protocol_profile": "openai_images",
+          "parameter_codec": "gpt_openai_images",
+          "operations": [
+            "generate",
+            "edit"
+          ]
+        }
+      ],
+      "image_model": "gpt-image-2",
+      "api_mode": "images",
+      "images_concurrency": 4
+    }
+  ],
+  "base_url": "http://127.0.0.1:3000/v1",
+  "api_key": "sk-local",
+  "image_model": "gpt-image-2",
+  "api_mode": "images",
+  "images_concurrency": 4
+}

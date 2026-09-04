@@ -21,4 +21,8 @@ input/
 inputs/
 output/
 outputs/
+data/chatgpt-profile/
+data/logs/
+data/webui-outputs/
+data/webui-inputs/
 .codegraph/

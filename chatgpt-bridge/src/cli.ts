@@ -25,6 +25,9 @@ Ví dụ:
 `);
 }
 
+import { writeFileSync } from "node:fs";
+import { join } from "node:path";
+
 async function handleLogin(): Promise<void> {
   console.log("🔑 [Login Mode] Đang mở Chrome để bạn đăng nhập ChatGPT...");
   const session = await getBrowserSession({ headless: false });
@@ -36,6 +39,9 @@ async function handleLogin(): Promise<void> {
     console.log("⏳ Đang chờ bạn đăng nhập xong...");
 
     await page.locator(SELECTORS.composer).first().waitFor({ state: "visible", timeout: 300_000 });
+    try {
+      writeFileSync(join(USER_DATA_DIR, ".session-verified"), new Date().toISOString(), "utf-8");
+    } catch {}
     console.log("\n🎉 Đăng nhập thành công! Phiên đăng nhập đã được lưu lại vĩnh viễn.");
     console.log("Bạn có thể tắt trình duyệt và bắt đầu dùng lệnh tạo ảnh bình thường.");
   } finally {

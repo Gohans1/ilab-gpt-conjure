@@ -10,6 +10,7 @@
     "server": "bun run src/server.ts",
     "generate": "bun run src/cli.ts",
     "login": "bun run src/cli.ts --login",
+    "check:session": "bun run src/check-session.ts",
     "test:connection": "bun run src/test-connection.ts"
   },
   "dependencies": {
