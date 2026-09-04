@@ -1,4 +1,6 @@
 import { generateImage } from "./generator.js";
+import { handleLogin } from "./cli.js";
+import { isSessionCached } from "./check-session.js";
 
 const PORT = Number(process.env.PORT || 3000);
 const HOSTNAME = "127.0.0.1";
@@ -23,6 +25,7 @@ function formatOpenAIError(message: string, type: string = "invalid_request_erro
 
 // Hàng đợi tuần tự (FIFO Queue) để chống xung đột SingletonLock của Chromium
 let taskQueue: Promise<unknown> = Promise.resolve();
+let isLoggingIn = false;
 
 function enqueueTask<T>(task: () => Promise<T>): Promise<T> {
   return new Promise<T>((resolve, reject) => {
@@ -49,6 +52,43 @@ const server = Bun.serve({
       );
     }
 
+    // Auth status endpoint
+    if (pathname === "/auth/status" || pathname === "/api/auth/status") {
+      const loggedIn = isSessionCached();
+      return Response.json(
+        { status: "ok", logged_in: loggedIn, is_logging_in: isLoggingIn },
+        { headers: corsHeaders }
+      );
+    }
+
+    // Trigger login endpoint
+    if (pathname === "/auth/login" || pathname === "/api/auth/login") {
+      if (req.method !== "POST") {
+        return Response.json({ error: "Method not allowed" }, { status: 405, headers: corsHeaders });
+      }
+      if (isLoggingIn) {
+        return Response.json(
+          { ok: false, message: "Trình duyệt đăng nhập đang được mở sẵn." },
+          { headers: corsHeaders }
+        );
+      }
+      isLoggingIn = true;
+      try {
+        console.log("🔑 [Bridge] Nhận yêu cầu mở trình duyệt đăng nhập từ WebUI...");
+        await enqueueTask(() => handleLogin());
+        return Response.json({ ok: true, message: "Đăng nhập thành công!" }, { headers: corsHeaders });
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        console.error("❌ [Bridge] Lỗi khi đăng nhập:", msg);
+        return Response.json(
+          { ok: false, error: msg },
+          { status: 500, headers: corsHeaders }
+        );
+      } finally {
+        isLoggingIn = false;
+      }
+    }
+
     // OpenAI Models list
     if (pathname === "/v1/models" || pathname === "/models") {
       return Response.json(
@@ -68,6 +108,16 @@ const server = Bun.serve({
       (pathname === "/v1/images/generations" || pathname === "/images/generations") &&
       req.method === "POST"
     ) {
+      if (isLoggingIn) {
+        return Response.json(
+          formatOpenAIError(
+            "ChatGPT Bridge is currently in login mode. Please complete the login process in the browser first.",
+            "server_error",
+            "bridge_logging_in"
+          ),
+          { status: 423, headers: corsHeaders }
+        );
+      }
       // 1. Kiểm tra xác thực Bearer Token
       const authHeader = req.headers.get("Authorization") || "";
       const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7).trim() : "";

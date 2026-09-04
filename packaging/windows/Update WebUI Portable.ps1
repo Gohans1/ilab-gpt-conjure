@@ -5,8 +5,8 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-$RepoSlug = "kadevin/ilab-conjure"
-$LatestUpdateManifestUrl = "https://github.com/kadevin/ilab-conjure/releases/latest/download/latest.json"
+$RepoSlug = "Gohans1/ilab-gpt-conjure"
+$LatestUpdateManifestUrl = "https://github.com/Gohans1/ilab-gpt-conjure/releases/latest/download/latest.json"
 $PlatformKey = "windows-x86_64"
 $AssetPattern = "^ilab-gpt-conjure_windows_portable_x64_.+\.zip$"
 $BundleDir = Split-Path -Parent $MyInvocation.MyCommand.Path
@@ -33,6 +33,9 @@ $ReplaceItems = @(
   "python",
   "Start iLab GPT CONJURE.exe",
   "Start WebUI Portable.bat",
+  "Start-All.bat",
+  "chatgpt-bridge",
+  "bin",
   "Update WebUI Portable.bat",
   "Update WebUI Portable.ps1",
   "README-portable.md",
@@ -136,7 +139,7 @@ function Write-PostUpdateOnboardingNotice {
       return
     }
     $NormalizedFrom = ConvertTo-VersionString -Value $FromVersion
-    $ReleaseUrl = "https://github.com/kadevin/ilab-conjure/releases/tag/v$NormalizedTo"
+    $ReleaseUrl = "https://github.com/$RepoSlug/releases/tag/v$NormalizedTo"
     $Payload = [ordered]@{
       kind = "portable_standard_app_transition"
       to_version = $NormalizedTo

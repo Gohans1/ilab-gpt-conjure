@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 from typing import Any
 
+import httpx
 from fastapi import Body, FastAPI, File, HTTPException, UploadFile
 from fastapi.responses import Response
 
@@ -306,3 +307,36 @@ def register_settings_routes(app: FastAPI, ctx: WebUIContext) -> None:
             ctx.queue_manager.max_attempts = h["queue_max_attempts_for_channels"](channels)
             h["wake_queue_worker"]()
         return {"settings": ctx.api_settings.public_settings()}
+
+    @app.get("/api/bridge/status")
+    async def get_bridge_status() -> dict[str, Any]:
+        bridge_url = "http://127.0.0.1:3000/auth/status"
+        try:
+            async with httpx.AsyncClient(timeout=1.5) as client:
+                resp = await client.get(bridge_url)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    return {
+                        "running": True,
+                        "logged_in": bool(data.get("logged_in")),
+                        "is_logging_in": bool(data.get("is_logging_in")),
+                    }
+        except Exception:
+            pass
+        return {"running": False, "logged_in": False, "is_logging_in": False}
+
+    @app.post("/api/bridge/login")
+    async def trigger_bridge_login() -> dict[str, Any]:
+        bridge_url = "http://127.0.0.1:3000/auth/login"
+        try:
+            async with httpx.AsyncClient(timeout=300.0) as client:
+                resp = await client.post(bridge_url)
+                return resp.json()
+        except httpx.ConnectError:
+            raise HTTPException(
+                status_code=502,
+                detail="ChatGPT Bridge chưa chạy tại cổng 3000.",
+            )
+        except Exception as exc:
+            raise HTTPException(status_code=500, detail=str(exc))
+

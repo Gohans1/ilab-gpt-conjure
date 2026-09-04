@@ -11,27 +11,34 @@ set "WAIT_ATTEMPTS=30"
 set "VENV_DIR=%PROJECT_DIR%.venv"
 set "PYTHON_BIN=%VENV_DIR%\Scripts\python.exe"
 
-where py >nul 2>nul
-if %ERRORLEVEL% EQU 0 (
+if exist "%PYTHON_BIN%" goto :python_ready
+
+set "SYSTEM_PYTHON="
+py -3 --version >nul 2>nul
+if not errorlevel 1 (
   set "SYSTEM_PYTHON=py -3"
 ) else (
   where python >nul 2>nul
-  if %ERRORLEVEL% NEQ 0 (
-    echo Python 3 was not found. Install Python 3 first.
-    pause
-    exit /b 1
-  )
-  set "SYSTEM_PYTHON=python"
+  if not errorlevel 1 set "SYSTEM_PYTHON=python"
+)
+
+if not defined SYSTEM_PYTHON (
+  echo Python 3 was not found. Install Python 3 first.
+  pause
+  exit /b 1
 )
 
 if not exist "%PYTHON_BIN%" (
   echo Creating local virtual environment...
   %SYSTEM_PYTHON% -m venv "%VENV_DIR%"
-  if %ERRORLEVEL% NEQ 0 (
+  if not exist "%PYTHON_BIN%" (
+    echo Failed to create virtual environment.
     pause
     exit /b 1
   )
 )
+
+:python_ready
 
 "%PYTHON_BIN%" -m codex_image.dependency_check --requirements "%PROJECT_DIR%requirements-webui.txt" >nul 2>nul
 if %ERRORLEVEL% NEQ 0 (

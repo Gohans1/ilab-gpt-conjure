@@ -3,7 +3,9 @@
   "codex_mode": "images",
   "active_provider_id": "default",
   "default_provider_by_model": {
-    "gpt-image-2": "default"
+    "gpt-image-2": "default",
+    "nano-banana-pro": "gemini-official",
+    "nano-banana-2": "gemini-official"
   },
   "providers": [
     {
@@ -15,6 +17,63 @@
       "bindings": [
         {
           "id": "default-gpt-image-2",
+          "canonical_model_id": "gpt-image-2",
+          "remote_model_id": "gpt-image-2",
+          "protocol_profile": "openai_images",
+          "parameter_codec": "gpt_openai_images",
+          "operations": [
+            "generate",
+            "edit"
+          ]
+        }
+      ],
+      "image_model": "gpt-image-2",
+      "api_mode": "images",
+      "images_concurrency": 4
+    },
+    {
+      "id": "gemini-official",
+      "name": "Google Gemini Image",
+      "base_url": "https://generativelanguage.googleapis.com/v1beta",
+      "api_key": "",
+      "concurrency": 4,
+      "bindings": [
+        {
+          "id": "gemini-nano-banana-pro",
+          "canonical_model_id": "nano-banana-pro",
+          "remote_model_id": "gemini-2.0-flash-exp",
+          "protocol_profile": "gemini_generate_content",
+          "parameter_codec": "gemini_generate_content_image",
+          "operations": [
+            "generate",
+            "edit"
+          ]
+        },
+        {
+          "id": "gemini-nano-banana-2",
+          "canonical_model_id": "nano-banana-2",
+          "remote_model_id": "imagen-3.0-generate-002",
+          "protocol_profile": "gemini_generate_content",
+          "parameter_codec": "gemini_generate_content_image",
+          "operations": [
+            "generate",
+            "edit"
+          ]
+        }
+      ],
+      "image_model": "nano-banana-pro",
+      "api_mode": "images",
+      "images_concurrency": 4
+    },
+    {
+      "id": "openai-official",
+      "name": "OpenAI Official (API Key)",
+      "base_url": "https://api.openai.com/v1",
+      "api_key": "",
+      "concurrency": 4,
+      "bindings": [
+        {
+          "id": "openai-gpt-image-2",
           "canonical_model_id": "gpt-image-2",
           "remote_model_id": "gpt-image-2",
           "protocol_profile": "openai_images",

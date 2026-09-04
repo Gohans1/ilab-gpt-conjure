@@ -7,12 +7,13 @@ WebUI without installing Python separately.
 
 1. Extract the zip package into a normal user directory, for example
    `D:\Apps\ilab-gpt-conjure`.
-2. Double-click `Start iLab GPT CONJURE.exe` for the system tray launcher, or
-   `Start WebUI Portable.bat` for the legacy terminal launcher.
+2. Double-click `Start-All.bat` to launch both ChatGPT Image Bridge and WebUI
+   automatically (recommended), or `Start iLab GPT CONJURE.exe` for the system
+   tray launcher without local bridge, or `Start WebUI Portable.bat` for terminal mode.
 3. Open `http://127.0.0.1:8787/` if the browser does not open automatically.
-4. Choose `Codex` if this machine has a local Codex / ChatGPT OAuth session, or
-   configure an OpenAI-compatible API provider in the WebUI for the recommended
-   stable integration path.
+4. If using `ChatGPT Web Free` (default), click the `🔑 Đăng nhập ChatGPT` button
+   on the WebUI if you have not logged in yet. Alternatively, choose `Codex` or
+   select `Google Gemini Image` / `OpenAI Official` in the WebUI provider settings.
 
 The Rust system tray launcher starts the local WebUI server without a separate
 terminal window, opens the browser, and keeps a rabbit icon in the Windows
@@ -26,6 +27,7 @@ launcher and run `Update WebUI Portable.bat` manually.
 
 ## Directory layout
 
+- `Start-All.bat`: recommended 1-click launcher starting both Bridge and WebUI.
 - `Start iLab GPT CONJURE.exe`: system tray launcher with the rabbit icon.
 - `Start WebUI Portable.bat`: legacy one-click terminal launcher.
 - `Update WebUI Portable.bat`: one-click updater for the latest GitHub Release

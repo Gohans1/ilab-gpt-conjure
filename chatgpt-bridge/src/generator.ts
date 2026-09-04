@@ -1,4 +1,6 @@
-import { CHATGPT_URL, SELECTORS } from "./config.js";
+import { rmSync } from "node:fs";
+import { join } from "node:path";
+import { CHATGPT_URL, SELECTORS, USER_DATA_DIR } from "./config.js";
 import { getBrowserSession, type BrowserOptions, type BrowserSession } from "./browser.js";
 import { extractAndSaveImages, type DownloadResult } from "./downloader.js";
 
@@ -26,9 +28,12 @@ export async function generateImage(prompt: string, options: GenerateOptions = {
       .catch(() => false);
 
     if (isLoginVisible) {
+      try {
+        rmSync(join(USER_DATA_DIR, ".session-verified"), { force: true });
+      } catch {}
       if (options.headless) {
         throw new Error(
-          "Phiên đăng nhập ChatGPT chưa có hoặc đã hết hạn. Vui lòng chạy 'Run-Login.bat' hoặc 'bun run login' trước!"
+          "Phiên đăng nhập ChatGPT chưa có hoặc đã hết hạn. Vui lòng bấm [🔑 Đăng nhập ChatGPT] trên WebUI!"
         );
       }
       console.warn("\n⚠️ [CHÚ Ý] Bạn chưa đăng nhập ChatGPT!");

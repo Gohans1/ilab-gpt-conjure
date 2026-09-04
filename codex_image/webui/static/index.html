@@ -423,6 +423,42 @@
           </div>
         </header>
 
+        <!-- ChatGPT Bridge Status & Login Banner -->
+        <style>
+          .bridge-auth-banner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(239, 68, 68, 0.12);
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            border-radius: 8px;
+            padding: 10px 18px;
+            margin: 12px 24px 0 24px;
+            color: #f87171;
+            font-size: 13.5px;
+            transition: all 0.3s ease;
+          }
+          .bridge-auth-banner.success {
+            background: rgba(34, 197, 94, 0.12);
+            border-color: rgba(34, 197, 94, 0.4);
+            color: #4ade80;
+          }
+          .bridge-auth-banner-content {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+          }
+        </style>
+        <div id="chatgptBridgeBanner" class="bridge-auth-banner" style="display:none;" role="alert">
+          <div class="bridge-auth-banner-content">
+            <span style="font-size: 18px;">⚠️</span>
+            <span id="chatgptBridgeBannerText"><strong>ChatGPT Web Free:</strong> Chưa phát hiện phiên đăng nhập. Bạn cần đăng nhập 1 lần để sử dụng.</span>
+          </div>
+          <button id="chatgptBridgeLoginButton" class="primary-button text-sm" type="button" style="margin-left: 12px; cursor: pointer; padding: 6px 14px; font-weight: bold; border-radius: 6px;">
+            🔑 Đăng nhập ChatGPT
+          </button>
+        </div>
+
         <!-- Dashboard Workspace -->
         <main class="dashboard">
           <h1 class="sr-only">iLab CONJURE</h1>
@@ -1572,6 +1608,95 @@
           syncButtons();
         });
 
+      })();
+    </script>
+    <script>
+      (() => {
+        const banner = document.getElementById("chatgptBridgeBanner");
+        const bannerText = document.getElementById("chatgptBridgeBannerText");
+        const loginBtn = document.getElementById("chatgptBridgeLoginButton");
+        const providerSelect = document.getElementById("generationProviderSelect");
+
+        let isChecking = false;
+
+        async function checkBridgeStatus() {
+          if (isChecking || !banner || !bannerText || !loginBtn) return;
+          isChecking = true;
+          try {
+            const [settingsRes, bridgeRes] = await Promise.all([
+              fetch("/api/api-settings").then((r) => (r.ok ? r.json() : null)).catch(() => null),
+              fetch("/api/bridge/status").then((r) => (r.ok ? r.json() : null)).catch(() => null),
+            ]);
+
+            const activeProviderId = settingsRes?.settings?.active_provider_id || "default";
+            if (activeProviderId !== "default") {
+              banner.style.display = "none";
+              return;
+            }
+
+            if (!bridgeRes) {
+              banner.style.display = "none";
+              return;
+            }
+
+            const data = bridgeRes;
+            if (!data.running) {
+              banner.style.display = "flex";
+              banner.className = "bridge-auth-banner";
+              bannerText.innerHTML = "<strong>ChatGPT Bridge:</strong> Chưa kết nối được cổng 3000. Hãy khởi động bằng Start-All.bat.";
+              loginBtn.style.display = "none";
+            } else if (!data.logged_in) {
+              banner.style.display = "flex";
+              banner.className = "bridge-auth-banner";
+              loginBtn.style.display = "inline-block";
+              if (data.is_logging_in) {
+                bannerText.innerHTML = "<strong>ChatGPT Web:</strong> Trình duyệt Chrome/Edge đang mở. Vui lòng đăng nhập trên cửa sổ đó. Khi xong cửa sổ sẽ tự đóng lại.";
+                loginBtn.disabled = true;
+                loginBtn.textContent = "⏳ Đang chờ đăng nhập trên trình duyệt...";
+              } else {
+                bannerText.innerHTML = "<strong>ChatGPT Web Free:</strong> Chưa phát hiện phiên đăng nhập. Bạn cần đăng nhập 1 lần để sử dụng.";
+                loginBtn.disabled = false;
+                loginBtn.textContent = "🔑 Đăng nhập ChatGPT";
+              }
+            } else {
+              banner.style.display = "none";
+            }
+          } catch {
+            banner.style.display = "none";
+          } finally {
+            isChecking = false;
+          }
+        }
+
+        if (loginBtn) {
+          loginBtn.addEventListener("click", async () => {
+            loginBtn.disabled = true;
+            loginBtn.textContent = "⏳ Đang mở trình duyệt...";
+            bannerText.innerHTML = "<strong>ChatGPT Web:</strong> Trình duyệt Chrome/Edge đang mở. Vui lòng đăng nhập trên cửa sổ đó. Khi xong cửa sổ sẽ tự đóng lại.";
+            try {
+              const res = await fetch("/api/bridge/login", { method: "POST" });
+              const result = await res.json();
+              if (result.ok) {
+                banner.className = "bridge-auth-banner success";
+                bannerText.innerHTML = "<strong>ChatGPT Web:</strong> 🎉 Đăng nhập thành công! Phiên đã được lưu.";
+                loginBtn.style.display = "none";
+                setTimeout(() => { banner.style.display = "none"; }, 4000);
+              } else {
+                alert("Lỗi khi đăng nhập: " + (result.detail || result.error || result.message || "Không rõ"));
+                loginBtn.disabled = false;
+                loginBtn.textContent = "🔑 Đăng nhập ChatGPT";
+              }
+            } catch (err) {
+              alert("Không thể kết nối tới server bridge: " + err);
+              loginBtn.disabled = false;
+              loginBtn.textContent = "🔑 Đăng nhập ChatGPT";
+            }
+          });
+        }
+
+        // Check on startup and periodic poll
+        setTimeout(checkBridgeStatus, 1200);
+        setInterval(checkBridgeStatus, 5000);
       })();
     </script>
   </body>

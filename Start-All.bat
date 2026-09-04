@@ -17,7 +17,7 @@ if exist "%PROJECT_DIR%bin\bun.exe" (
   where bun >nul 2>nul
   if %ERRORLEVEL% NEQ 0 (
     echo [ERROR] Khong tim thay Bun runtime tren may nay!
-    echo [ERROR] Vui long cai dat Bun (https://bun.sh) hoac dat bun.exe vao thu muc bin\.
+    echo [ERROR] Vui long cai dat Bun tai https://bun.sh hoac dat bun.exe vao thu muc bin\.
     pause
     exit /b 1
   )
@@ -28,20 +28,17 @@ if not exist "%PROJECT_DIR%data" mkdir "%PROJECT_DIR%data"
 set "CHATGPT_PROFILE_DIR=%PROJECT_DIR%data\chatgpt-profile"
 
 "%BUN_CMD%" run "%PROJECT_DIR%chatgpt-bridge\src\check-session.ts" >nul 2>nul
-if %ERRORLEVEL% NEQ 0 (
-  echo [!] Phat hien chua co phien dang nhap ChatGPT tren may nay.
-  echo [!] Dang mo trinh duyet de ban dang nhap ChatGPT...
-  echo [!] LUU Y: Sau khi dang nhap xong tren web, trinh duyet se tu dong dong lai de tiep tuc!
-  echo.
-  call "%BUN_CMD%" run "%PROJECT_DIR%chatgpt-bridge\src\cli.ts" --login
-  echo.
+if %ERRORLEVEL% EQU 0 (
+  echo [INFO] Da phat hien phien dang nhap ChatGPT Web san sang.
+) else (
+  echo [INFO] Chua co session ChatGPT Web. Ban co the dang nhap tren WebUI qua nut [Dang nhap ChatGPT].
 )
 
 powershell -NoProfile -Command "try { $r = Invoke-WebRequest -UseBasicParsing -Uri 'http://127.0.0.1:3000/health' -TimeoutSec 1; if ($r.StatusCode -eq 200) { exit 0 }; exit 1 } catch { exit 1 }" >nul 2>nul
 if %ERRORLEVEL% EQU 0 goto :bridge_ready
 
 echo [1/2] Dang khoi dong ChatGPT Image Bridge Server Port 3000...
-start "ChatGPT Image Bridge" /d "%PROJECT_DIR%chatgpt-bridge" cmd /k ""%BUN_CMD%" run src/server.ts"
+start "ChatGPT Image Bridge" /d "%PROJECT_DIR%chatgpt-bridge" /min cmd /c ""%BUN_CMD%" run src/server.ts"
 
 echo Dang doi Bridge Server san sang...
 set /a ATTEMPTS=0
@@ -67,3 +64,9 @@ if exist "%PROJECT_DIR%Start WebUI Portable.bat" (
 ) else (
   call "%PROJECT_DIR%Start WebUI.bat"
 )
+
+:shutdown
+echo.
+echo Dang don dep tien trinh Bridge Server...
+powershell -NoProfile -Command "Get-Process bun -ErrorAction SilentlyContinue | Where-Object { $_.Path -like '*ilab-gpt-conjure*' -or $_.CommandLine -like '*src/server.ts*' } | Stop-Process -Force -ErrorAction SilentlyContinue" >nul 2>nul
+echo Hoan tat!

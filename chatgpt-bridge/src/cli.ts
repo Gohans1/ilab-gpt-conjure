@@ -3,7 +3,7 @@ import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { generateImage } from "./generator.js";
 import { getBrowserSession } from "./browser.js";
-import { CHATGPT_URL, SELECTORS } from "./config.js";
+import { CHATGPT_URL, SELECTORS, USER_DATA_DIR } from "./config.js";
 
 function printHelp(): void {
   console.log(`
@@ -28,7 +28,7 @@ Ví dụ:
 import { writeFileSync } from "node:fs";
 import { join } from "node:path";
 
-async function handleLogin(): Promise<void> {
+export async function handleLogin(): Promise<void> {
   console.log("🔑 [Login Mode] Đang mở Chrome để bạn đăng nhập ChatGPT...");
   const session = await getBrowserSession({ headless: false });
   try {
@@ -116,4 +116,6 @@ async function main(): Promise<void> {
   }
 }
 
-void main();
+if (import.meta.main) {
+  void main();
+}
