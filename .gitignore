@@ -26,3 +26,5 @@ data/logs/
 data/webui-outputs/
 data/webui-inputs/
 .codegraph/
+.uv/
+bin/
