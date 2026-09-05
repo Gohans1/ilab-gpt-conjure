@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { deleteChatGPTConversation, resolveTimeoutOptions } from "./generator.js";
+import { deleteChatGPTConversation, resolveTimeoutOptions, sizeToAspectRatio } from "./generator.js";
 
 describe("resolveTimeoutOptions", () => {
   it("dùng giá trị mặc định khi không truyền options (idle: 60s, max: 600s)", () => {
@@ -90,5 +90,40 @@ describe("deleteChatGPTConversation", () => {
     const result = await deleteChatGPTConversation(mockPage, "test-conv", null);
     expect(result.success).toBe(false);
     expect(result.error).toContain("Page context destroyed");
+  });
+});
+
+describe("sizeToAspectRatio", () => {
+  it("giữ nguyên khi đầu vào đã là dạng tỷ lệ chuẩn X:Y", () => {
+    expect(sizeToAspectRatio("16:9")).toBe("16:9");
+    expect(sizeToAspectRatio("1:1")).toBe("1:1");
+    expect(sizeToAspectRatio("9:16")).toBe("9:16");
+    expect(sizeToAspectRatio("4:3")).toBe("4:3");
+    expect(sizeToAspectRatio("3:4")).toBe("3:4");
+    expect(sizeToAspectRatio("21:9")).toBe("21:9");
+  });
+
+  it("chuyển đổi kích thước pixel OpenAI/DALL-E sang dạng tỷ lệ chuẩn gọn gàng", () => {
+    // 1:1 Square
+    expect(sizeToAspectRatio("1024x1024")).toBe("1:1");
+    expect(sizeToAspectRatio("512x512")).toBe("1:1");
+
+    // 16:9 Landscape
+    expect(sizeToAspectRatio("1792x1024")).toBe("16:9");
+
+    // 9:16 Portrait
+    expect(sizeToAspectRatio("1024x1792")).toBe("9:16");
+
+    // 4:3 và 3:2
+    expect(sizeToAspectRatio("1200x900")).toBe("4:3");
+    expect(sizeToAspectRatio("1536x1024")).toBe("3:2");
+  });
+
+  it("trả về null khi đầu vào rỗng hoặc không hợp lệ", () => {
+    expect(sizeToAspectRatio(null)).toBeNull();
+    expect(sizeToAspectRatio(undefined)).toBeNull();
+    expect(sizeToAspectRatio("")).toBeNull();
+    expect(sizeToAspectRatio("invalid")).toBeNull();
+    expect(sizeToAspectRatio("0x0")).toBeNull();
   });
 });

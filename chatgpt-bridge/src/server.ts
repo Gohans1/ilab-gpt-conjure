@@ -1,4 +1,4 @@
-import { generateImage } from "./generator.js";
+import { generateImage, sizeToAspectRatio } from "./generator.js";
 import { handleLogin } from "./cli.js";
 import { isSessionCached } from "./check-session.js";
 
@@ -155,20 +155,26 @@ const server = Bun.serve({
         }
       }
 
-      // Giữ lại câu aspect ratio nếu có
+      // Giữ lại câu aspect ratio nếu có trong prompt hoặc trích xuất từ body.aspect_ratio / body.size
       let ratioInstruction = "";
       const ratioMatch = cleanPrompt.match(/(?:Set the aspect ratio to|Đặt tỷ lệ khung hình thành)\s+[0-9]+:[0-9]+\.?/i);
       if (ratioMatch) {
-        ratioInstruction = ` ${ratioMatch[0]}`;
+        ratioInstruction = ` ${ratioMatch[0].trim()}`;
         cleanPrompt = cleanPrompt.replace(ratioMatch[0], "").trim();
+      } else {
+        const detectedRatio = sizeToAspectRatio(body.aspect_ratio || body.ratio || body.size);
+        if (detectedRatio) {
+          ratioInstruction = ` Set the aspect ratio to ${detectedRatio}.`;
+        }
       }
 
       // 2.2 Bọc mệnh lệnh vẽ và số lượng n
       let generationPrompt: string;
+      const separator = cleanPrompt.endsWith(".") ? "" : ".";
       if (n > 1) {
-        generationPrompt = `Generate exactly ${n} distinct images of: ${cleanPrompt}.${ratioInstruction}`;
+        generationPrompt = `Generate exactly ${n} distinct images of: ${cleanPrompt}${separator}${ratioInstruction}`;
       } else {
-        generationPrompt = `Generate an image of: ${cleanPrompt}.${ratioInstruction}`;
+        generationPrompt = `Generate an image of: ${cleanPrompt}${separator}${ratioInstruction}`;
       }
 
       console.log(`\n📥 [Bridge] Nhận request tạo ảnh từ iLab CONJURE (Số lượng yêu cầu: ${n})!`);

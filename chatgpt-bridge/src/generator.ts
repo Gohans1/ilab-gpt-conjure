@@ -31,6 +31,40 @@ export function resolveTimeoutOptions(options: GenerateOptions = {}): {
   };
 }
 
+export function sizeToAspectRatio(sizeOrRatio?: string | null): string | null {
+  if (!sizeOrRatio || typeof sizeOrRatio !== "string") return null;
+  const s = sizeOrRatio.trim().toLowerCase();
+
+  // Đã là dạng tỷ lệ X:Y (ví dụ "16:9", "1:1", "9:16", "4:3", "3:4", "3:2", "2:3", "21:9")
+  if (/^[0-9]+:[0-9]+$/.test(s)) {
+    return s;
+  }
+
+  // Dạng kích thước pixel WxH (ví dụ "1792x1024", "1024x1024", "1024x1792")
+  const match = s.match(/^([0-9]+)\s*[xX×]\s*([0-9]+)$/);
+  if (match) {
+    const w = Number(match[1]);
+    const h = Number(match[2]);
+    if (w <= 0 || h <= 0) return null;
+
+    const ratio = w / h;
+    if (Math.abs(ratio - 1) < 0.05) return "1:1";
+    if (Math.abs(ratio - 16 / 9) < 0.08) return "16:9";
+    if (Math.abs(ratio - 9 / 16) < 0.08) return "9:16";
+    if (Math.abs(ratio - 4 / 3) < 0.06) return "4:3";
+    if (Math.abs(ratio - 3 / 4) < 0.06) return "3:4";
+    if (Math.abs(ratio - 3 / 2) < 0.06) return "3:2";
+    if (Math.abs(ratio - 2 / 3) < 0.06) return "2:3";
+    if (Math.abs(ratio - 21 / 9) < 0.1) return "21:9";
+
+    const gcd = (a: number, b: number): number => (b === 0 ? a : gcd(b, a % b));
+    const d = gcd(w, h);
+    return `${w / d}:${h / d}`;
+  }
+
+  return null;
+}
+
 export async function generateImage(prompt: string, options: GenerateOptions = {}): Promise<DownloadResult[]> {
   const session: BrowserSession = await getBrowserSession({
     headless: options.headless,
