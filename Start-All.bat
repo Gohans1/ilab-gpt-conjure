@@ -138,7 +138,7 @@ if %ERRORLEVEL% NEQ 0 (
 )
 
 :: Double-check QuickEdit disable via python ctypes
-"%PYTHON_BIN%" -c "import ctypes; h=ctypes.windll.kernel32.GetStdHandle(-10); m=ctypes.c_uint(); ctypes.windll.kernel32.GetConsoleMode(h, ctypes.byref(m)); ctypes.windll.kernel32.SetConsoleMode(h, m.value & ~0x0040)" >nul 2>nul
+"%PYTHON_BIN%" -c "import ctypes; k=ctypes.windll.kernel32; m=ctypes.c_uint32(); h=k.CreateFileW('CONIN$', 0xC0000000, 3, None, 3, 0, None); (k.GetConsoleMode(h, ctypes.byref(m)) and k.SetConsoleMode(h, (m.value & ~0x0040) | 0x0080))" >nul 2>nul
 
 echo [2/4] Python environment va WebUI dependencies: SAN SANG.
 
