@@ -29,7 +29,6 @@ class _LegacyClientAdapter:
             "output_format": params.get("output.format", "png"),
             "moderation": params.get("gpt.moderation"),
             "output_compression": params.get("gpt.output_compression"),
-            "n": count,
         }
         ephemeral_reference_files: list[Any] = []
         if plan.binding.protocol_profile.endswith("responses"):
@@ -37,12 +36,23 @@ class _LegacyClientAdapter:
             common["web_search"] = bool(params.get("gpt.web_search"))
             ephemeral_reference_files = list(command.reference_files)
             common["reference_files"] = ephemeral_reference_files
-        single_common = {k: v for k, v in common.items() if k != "n"}
+        # Determine if this client is a batch-capable bridge (e.g. ChatGPT Web bridge)
+        # Standard OpenAI API clients generate images per-slot to preserve concurrency and per-image progress.
+        base_url = str(getattr(self.client, "base_url", "")).lower()
+        is_batch_bridge = (
+            getattr(self.client, "supports_batch_generation", False)
+            or ":3000" in base_url
+            or "127.0.0.1:3000" in base_url
+            or "localhost:3000" in base_url
+            or "bridge" in base_url
+        )
+
         try:
             if command.operation == "edit":
-                if hasattr(self.client, "edit_images"):
+                if is_batch_bridge and count > 1 and hasattr(self.client, "edit_images"):
                     results = self.client.edit_images(
                         **common,
+                        n=count,
                         images=[image.data_url for image in command.image_inputs],
                         mask_image=command.mask_image,
                         input_fidelity=params.get("gpt.input_fidelity"),
@@ -50,22 +60,23 @@ class _LegacyClientAdapter:
                 else:
                     results = [
                         self.client.edit_image(
-                            **single_common,
+                            **common,
                             images=[image.data_url for image in command.image_inputs],
                             mask_image=command.mask_image,
                             input_fidelity=params.get("gpt.input_fidelity"),
                         )
                     ]
             else:
-                if hasattr(self.client, "generate_images"):
+                if is_batch_bridge and count > 1 and hasattr(self.client, "generate_images"):
                     results = self.client.generate_images(
                         **common,
+                        n=count,
                         reference_images=[image.data_url for image in command.image_inputs],
                     )
                 else:
                     results = [
                         self.client.generate_image(
-                            **single_common,
+                            **common,
                             reference_images=[image.data_url for image in command.image_inputs],
                         )
                     ]
@@ -150,6 +161,19 @@ class ExecutionPlanImageClient:
     def _execute(self, operation: str, kwargs: dict[str, Any]) -> ImageResult:
         if operation != self._plan.command.operation:
             raise RuntimeError("Execution operation differs from the frozen generation plan.")
+        if self._uses_legacy_client_adapter:
+            with self._condition:
+                if self._pending_results:
+                    return self._pending_results.popleft()
+            result = self._service.execute_plan_once(self._plan)
+            if not result.assets:
+                raise RuntimeError("The provider returned no image asset.")
+            converted = [
+                self._image_result(result, asset, kwargs) for asset in result.assets
+            ]
+            with self._condition:
+                self._pending_results.extend(converted[1:])
+                return converted[0]
         # The executor kwargs are legacy compatibility plumbing. The restored
         # snapshot plan is authoritative for all request choices and inputs.
         while True:
