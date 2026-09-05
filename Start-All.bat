@@ -5,8 +5,10 @@ title iLab CONJURE Controller
 set "PROJECT_DIR=%~dp0"
 cd /d "%PROJECT_DIR%"
 
-:: 0. Chống đơ console (Disable QuickEdit Mode)
-reg add HKCU\Console /v QuickEdit /t REG_DWORD /d 0 /f >nul 2>nul
+:: 0. Chống đơ console (Disable QuickEdit Mode an toàn qua Win32 API, không đụng Registry)
+if exist "%PROJECT_DIR%scripts\disable-quickedit.ps1" (
+  powershell -NoProfile -ExecutionPolicy Bypass -File "%PROJECT_DIR%scripts\disable-quickedit.ps1" >nul 2>nul
+)
 
 echo ============================================================
 echo   iLab CONJURE + ChatGPT Web Image Bridge (Controller)
@@ -63,9 +65,7 @@ set "UV_NO_CONFIG=1"
 set "VENV_DIR=%PROJECT_DIR%.venv"
 set "PYTHON_BIN=%VENV_DIR%\Scripts\python.exe"
 
-if exist "%PYTHON_BIN%" goto :python_ready
-
-:: Find or download uv
+:: Luon luon do tim uv truoc (tranh loi logic khi .venv da co san)
 set "UV_CMD="
 if exist "%PROJECT_DIR%bin\uv.exe" (
   set "UV_CMD=%PROJECT_DIR%bin\uv.exe"
@@ -73,6 +73,8 @@ if exist "%PROJECT_DIR%bin\uv.exe" (
   where uv >nul 2>nul
   if %ERRORLEVEL% EQU 0 set "UV_CMD=uv"
 )
+
+if exist "%PYTHON_BIN%" goto :python_ready
 
 if not defined UV_CMD (
   echo [INFO] Dang tu dong tai uv package manager ve bin\uv.exe...
@@ -135,7 +137,7 @@ if %ERRORLEVEL% NEQ 0 (
   )
 )
 
-:: Disable QuickEdit mode for active console session via python ctypes
+:: Double-check QuickEdit disable via python ctypes
 "%PYTHON_BIN%" -c "import ctypes; h=ctypes.windll.kernel32.GetStdHandle(-10); m=ctypes.c_uint(); ctypes.windll.kernel32.GetConsoleMode(h, ctypes.byref(m)); ctypes.windll.kernel32.SetConsoleMode(h, m.value & ~0x0040)" >nul 2>nul
 
 echo [2/4] Python environment va WebUI dependencies: SAN SANG.
@@ -153,7 +155,7 @@ if %ERRORLEVEL% EQU 0 (
 )
 
 :: 7. Start ChatGPT Bridge (Port 3000)
-powershell -NoProfile -Command "$conn = Get-NetTCPConnection -LocalPort 3000 -ErrorAction SilentlyContinue; if ($conn) { try { $r = Invoke-WebRequest -UseBasicParsing -Uri 'http://127.0.0.1:3000/health' -TimeoutSec 1; if ($r.StatusCode -ne 200) { Stop-Process -Id $conn.OwningProcess -Force } } catch { Stop-Process -Id $conn.OwningProcess -Force } }" >nul 2>nul
+powershell -NoProfile -Command "$conns = Get-NetTCPConnection -LocalPort 3000 -ErrorAction SilentlyContinue; if ($conns) { try { $r = Invoke-WebRequest -UseBasicParsing -Uri 'http://127.0.0.1:3000/health' -TimeoutSec 1; if ($r.StatusCode -ne 200) { $conns | ForEach-Object { $p = Get-Process -Id $_.OwningProcess -ErrorAction SilentlyContinue; if ($p -and $p.ProcessName -match 'bun|node') { Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue } } } } catch { $conns | ForEach-Object { $p = Get-Process -Id $_.OwningProcess -ErrorAction SilentlyContinue; if ($p -and $p.ProcessName -match 'bun|node') { Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue } } } }" >nul 2>nul
 powershell -NoProfile -Command "try { $r = Invoke-WebRequest -UseBasicParsing -Uri 'http://127.0.0.1:3000/health' -TimeoutSec 1; if ($r.StatusCode -eq 200) { exit 0 }; exit 1 } catch { exit 1 }" >nul 2>nul
 if %ERRORLEVEL% EQU 0 (
   echo [4/4] Bridge Server da chay san tai http://127.0.0.1:3000.
@@ -180,7 +182,7 @@ goto :start_webui
 echo       ChatGPT Image Bridge da san sang tai http://127.0.0.1:3000.
 
 :start_webui
-powershell -NoProfile -Command "$conn = Get-NetTCPConnection -LocalPort 8787 -ErrorAction SilentlyContinue; if ($conn) { try { $r = Invoke-WebRequest -UseBasicParsing -Uri 'http://127.0.0.1:8787/api/health' -TimeoutSec 1; if ($r.StatusCode -ne 200) { Stop-Process -Id $conn.OwningProcess -Force } } catch { Stop-Process -Id $conn.OwningProcess -Force } }" >nul 2>nul
+powershell -NoProfile -Command "$conns = Get-NetTCPConnection -LocalPort 8787 -ErrorAction SilentlyContinue; if ($conns) { try { $r = Invoke-WebRequest -UseBasicParsing -Uri 'http://127.0.0.1:8787/api/health' -TimeoutSec 1; if ($r.StatusCode -ne 200) { $conns | ForEach-Object { $p = Get-Process -Id $_.OwningProcess -ErrorAction SilentlyContinue; if ($p -and $p.ProcessName -match 'python') { Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue } } } } catch { $conns | ForEach-Object { $p = Get-Process -Id $_.OwningProcess -ErrorAction SilentlyContinue; if ($p -and $p.ProcessName -match 'python') { Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue } } } }" >nul 2>nul
 powershell -NoProfile -Command "try { $r = Invoke-WebRequest -UseBasicParsing -Uri 'http://127.0.0.1:8787/api/health' -TimeoutSec 1; if ($r.StatusCode -eq 200) { exit 0 }; exit 1 } catch { exit 1 }" >nul 2>nul
 if %ERRORLEVEL% EQU 0 (
   echo       iLab CONJURE WebUI da chay san tai http://127.0.0.1:8787.
@@ -231,7 +233,7 @@ pause >nul
 :shutdown
 echo.
 echo Dang tat tat ca server va tien trinh lien quan...
-powershell -NoProfile -Command "Get-NetTCPConnection -LocalPort 3000, 8787 -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess -Unique | ForEach-Object { Stop-Process -Id $_ -Force -ErrorAction SilentlyContinue }" >nul 2>nul
+powershell -NoProfile -Command "Get-NetTCPConnection -LocalPort 3000, 8787 -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess -Unique | ForEach-Object { $p = Get-Process -Id $_ -ErrorAction SilentlyContinue; if ($p -and $p.ProcessName -match 'bun|node|python|cmd') { Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue } }" >nul 2>nul
 powershell -NoProfile -Command "Get-Process bun, python -ErrorAction SilentlyContinue | Where-Object { $_.Path -like '*ilab-conjure*' } | Stop-Process -Force -ErrorAction SilentlyContinue" >nul 2>nul
 powershell -NoProfile -Command "Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -like '*chatgpt-profile*' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }" >nul 2>nul
 echo Da tat toan bo tien trinh an toan. Tam biet!
