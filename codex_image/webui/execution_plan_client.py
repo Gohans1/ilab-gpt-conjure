@@ -38,13 +38,9 @@ class _LegacyClientAdapter:
             common["reference_files"] = ephemeral_reference_files
         # Determine if this client is a batch-capable bridge (e.g. ChatGPT Web bridge)
         # Standard OpenAI API clients generate images per-slot to preserve concurrency and per-image progress.
-        base_url = str(getattr(self.client, "base_url", "")).lower()
-        is_batch_bridge = (
+        is_batch_bridge = bool(
             getattr(self.client, "supports_batch_generation", False)
-            or ":3000" in base_url
-            or "127.0.0.1:3000" in base_url
-            or "localhost:3000" in base_url
-            or "bridge" in base_url
+            or ":3000" in str(getattr(self.client, "base_url", "")).lower()
         )
 
         try:
@@ -151,6 +147,14 @@ class ExecutionPlanImageClient:
             plan.provider.id != "codex"
             or plan.binding.protocol_profile.endswith("images")
         )
+        self._is_batch_execution = (
+            self._expected_outputs > 1
+            and (
+                not self._uses_legacy_client_adapter
+                or getattr(client, "supports_batch_generation", False)
+                or ":3000" in str(getattr(client, "base_url", "")).lower()
+            )
+        )
 
     def generate_image(self, **kwargs: Any) -> ImageResult:
         return self._execute("generate", kwargs)
@@ -161,21 +165,15 @@ class ExecutionPlanImageClient:
     def _execute(self, operation: str, kwargs: dict[str, Any]) -> ImageResult:
         if operation != self._plan.command.operation:
             raise RuntimeError("Execution operation differs from the frozen generation plan.")
-        if self._uses_legacy_client_adapter:
-            with self._condition:
-                if self._pending_results:
-                    return self._pending_results.popleft()
+
+        # Independent single-slot execution: direct, isolated, no queueing, no cross-slot failure pollution
+        if not self._is_batch_execution:
             result = self._service.execute_plan_once(self._plan)
             if not result.assets:
                 raise RuntimeError("The provider returned no image asset.")
-            converted = [
-                self._image_result(result, asset, kwargs) for asset in result.assets
-            ]
-            with self._condition:
-                self._pending_results.extend(converted[1:])
-                return converted[0]
-        # The executor kwargs are legacy compatibility plumbing. The restored
-        # snapshot plan is authoritative for all request choices and inputs.
+            return self._image_result(result, result.assets[0], kwargs)
+
+        # Batch execution (batch bridge or multi-asset providers): synchronized in-flight request, queueing remaining assets
         while True:
             with self._condition:
                 if self._pending_results:
