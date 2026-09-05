@@ -9,8 +9,26 @@ import type { Page } from "playwright-core";
 export interface GenerateOptions extends BrowserOptions {
   outputPath?: string;
   timeoutMs?: number;
+  idleTimeoutMs?: number;
+  maxTimeoutMs?: number;
   skipDiskWrite?: boolean;
   deleteChatAfterGen?: boolean;
+}
+
+export function resolveTimeoutOptions(options: GenerateOptions = {}): {
+  idleTimeoutMs: number;
+  maxTimeoutMs: number;
+} {
+  const envIdle = process.env.CHATGPT_BRIDGE_IDLE_TIMEOUT_MS;
+  const envMax = process.env.CHATGPT_BRIDGE_MAX_TIMEOUT_MS;
+
+  const idleTimeoutMs = options.idleTimeoutMs ?? (envIdle ? Number(envIdle) : 60_000);
+  const maxTimeoutMs = options.maxTimeoutMs ?? options.timeoutMs ?? (envMax ? Number(envMax) : 600_000);
+
+  return {
+    idleTimeoutMs: Number.isFinite(idleTimeoutMs) && idleTimeoutMs > 0 ? idleTimeoutMs : 60_000,
+    maxTimeoutMs: Number.isFinite(maxTimeoutMs) && maxTimeoutMs > 0 ? maxTimeoutMs : 600_000,
+  };
 }
 
 export async function generateImage(prompt: string, options: GenerateOptions = {}): Promise<DownloadResult[]> {
@@ -93,18 +111,22 @@ export async function generateImage(prompt: string, options: GenerateOptions = {
       await composer.press("Enter");
     }
 
-    console.log("[4/5] Prompt đã gửi! Đang chờ ChatGPT Images sinh ảnh (khoảng 15-45s)...");
+    console.log("[4/5] Prompt đã gửi! Đang chờ ChatGPT Images sinh ảnh (theo dõi trạng thái hoạt động)...");
 
     // Chờ nút Stop button xuất hiện
     await page.locator(SELECTORS.stopButton).first().waitFor({ state: "visible", timeout: 15_000 }).catch(() => {});
 
-    // Vòng lặp chờ ảnh mới xuất hiện và nút Stop biến mất
+    // Vòng lặp chờ ảnh mới xuất hiện theo trạng thái hoạt động (Inactivity Timeout)
     const startTime = Date.now();
-    const timeoutMs = options.timeoutMs ?? 120_000;
+    let lastActivityTime = Date.now();
+    let lastLoggedTime = Date.now();
+    const { idleTimeoutMs, maxTimeoutMs } = resolveTimeoutOptions(options);
+    let previousImageCount = initialUrls.length;
+    let previousTextLength = 0;
     let success = false;
     const knownSet = new Set(initialUrls);
 
-    while (Date.now() - startTime < timeoutMs) {
+    while (Date.now() - startTime < maxTimeoutMs) {
       const currentImages = await page.evaluate((selector) => {
         return Array.from(document.querySelectorAll<HTMLImageElement>(selector))
           .map((img) => img.src || img.getAttribute("src") || "")
@@ -114,6 +136,29 @@ export async function generateImage(prompt: string, options: GenerateOptions = {
       const hasNewImages = currentImages.some((src) => !knownSet.has(src));
       const isGenerating = await page.locator(SELECTORS.stopButton).first().isVisible().catch(() => false);
 
+      const pageState = await page.evaluate(() => {
+        const hasWidget =
+          document.querySelector('div[data-testid*="image"], div[class*="image-generation"], img[src*="estuary"]') !== null;
+        const nodes = Array.from(
+          document.querySelectorAll('[data-message-author-role="assistant"], .markdown')
+        );
+        const last = nodes.length > 0 ? nodes[nodes.length - 1] : null;
+        const text = (last?.textContent || "").trim();
+        return { hasWidget, text };
+      });
+
+      // Reset Inactivity Timer khi có bất kỳ tín hiệu đang tạo ảnh nào từ ChatGPT
+      if (isGenerating || currentImages.length > previousImageCount || pageState.text.length > previousTextLength) {
+        lastActivityTime = Date.now();
+      }
+      if (currentImages.length > previousImageCount) {
+        previousImageCount = currentImages.length;
+      }
+      if (pageState.text.length > previousTextLength) {
+        previousTextLength = pageState.text.length;
+      }
+
+      // Điều kiện hoàn tất: Có ảnh mới và ChatGPT đã dừng sinh
       if (hasNewImages && !isGenerating) {
         success = true;
         // Đợi 500ms cho các thẻ DOM render hoàn tất
@@ -123,30 +168,35 @@ export async function generateImage(prompt: string, options: GenerateOptions = {
 
       // Fail-fast: Chỉ kiểm tra khi nút Stop đã tắt (sinh xong), đã qua ít nhất 8s, và không có image widget nào đang tải
       if (!isGenerating && Date.now() - startTime > 8000) {
-        const textAnalysis = await page.evaluate(() => {
-          const hasImageWidget = document.querySelector('div[data-testid*="image"], div[class*="image-generation"], img[src*="estuary"]') !== null;
-          if (hasImageWidget) return null;
-
-          const nodes = Array.from(
-            document.querySelectorAll('[data-message-author-role="assistant"], .markdown')
-          );
-          if (nodes.length === 0) return null;
-          const last = nodes[nodes.length - 1];
-          const text = (last.textContent || "").trim();
-          return { text };
-        });
-
-        if (textAnalysis && textAnalysis.text && !hasNewImages) {
-          const preview = textAnalysis.text.length > 120 ? textAnalysis.text.slice(0, 120) + "..." : textAnalysis.text;
+        if (!pageState.hasWidget && pageState.text && !hasNewImages) {
+          const preview = pageState.text.length > 120 ? pageState.text.slice(0, 120) + "..." : pageState.text;
           throw new Error(`ChatGPT không tạo ảnh mà trả lời bằng văn bản: "${preview}"`);
         }
+      }
+
+      // In nhật ký nhịp tim (Heartbeat log) mỗi 15s nếu tác vụ đang chạy lâu
+      if (Date.now() - lastLoggedTime >= 15_000) {
+        lastLoggedTime = Date.now();
+        const elapsedSec = Math.round((Date.now() - startTime) / 1000);
+        const idleSec = Math.round((Date.now() - lastActivityTime) / 1000);
+        const newCount = currentImages.filter((src) => !knownSet.has(src)).length;
+        console.log(
+          `⏳ [Bridge] Đang sinh ảnh... (Đã chạy: ${elapsedSec}s | Hoạt động gần nhất: ${idleSec}s trước | Đã tìm thấy: ${newCount} ảnh mới)`
+        );
+      }
+
+      // Kiểm tra Inactivity Timeout (ChatGPT đơ/bất động không có hoạt động mới)
+      if (Date.now() - lastActivityTime > idleTimeoutMs) {
+        throw new Error(
+          `Quá thời gian chờ bất động (${idleTimeoutMs / 1000}s) do không phát hiện hoạt động mới từ ChatGPT. (Tổng thời gian đã chờ: ${Math.round((Date.now() - startTime) / 1000)}s)`
+        );
       }
 
       await page.waitForTimeout(400);
     }
 
     if (!success) {
-      throw new Error(`Quá thời gian chờ (${timeoutMs / 1000}s) nhưng không thấy ảnh mới được sinh ra.`);
+      throw new Error(`Quá thời gian chờ tối đa (${maxTimeoutMs / 1000}s) nhưng không thấy ảnh mới được sinh ra.`);
     }
 
     // Tải và lưu toàn bộ ảnh về đĩa

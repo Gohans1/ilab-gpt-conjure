@@ -177,7 +177,30 @@ const server = Bun.serve({
       try {
         // 3. Xếp hàng tạo ảnh tuần tự để tránh xung đột SingletonLock của Chrome
         const headless = process.env.HEADLESS === "true";
-        const results = await enqueueTask(() => generateImage(generationPrompt, { headless }));
+        const customTimeout =
+          typeof body.max_timeout === "number"
+            ? body.max_timeout * 1000
+            : typeof body.max_timeout_ms === "number"
+            ? body.max_timeout_ms
+            : typeof body.timeout === "number"
+            ? body.timeout * 1000
+            : typeof body.timeout_ms === "number"
+            ? body.timeout_ms
+            : undefined;
+        const idleTimeout =
+          typeof body.idle_timeout === "number"
+            ? body.idle_timeout * 1000
+            : typeof body.idle_timeout_ms === "number"
+            ? body.idle_timeout_ms
+            : undefined;
+
+        const results = await enqueueTask(() =>
+          generateImage(generationPrompt, {
+            headless,
+            timeoutMs: customTimeout,
+            idleTimeoutMs: idleTimeout,
+          })
+        );
 
         console.log(`✅ [Bridge] Đã tạo thành công ${results.length} ảnh. Trả dữ liệu Base64 về cho client...`);
 

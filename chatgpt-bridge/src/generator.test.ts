@@ -1,5 +1,57 @@
 import { describe, expect, it } from "bun:test";
-import { deleteChatGPTConversation } from "./generator.js";
+import { deleteChatGPTConversation, resolveTimeoutOptions } from "./generator.js";
+
+describe("resolveTimeoutOptions", () => {
+  it("dùng giá trị mặc định khi không truyền options (idle: 60s, max: 600s)", () => {
+    const config = resolveTimeoutOptions();
+    expect(config.idleTimeoutMs).toBe(60_000);
+    expect(config.maxTimeoutMs).toBe(600_000);
+  });
+
+  it("ưu tiên giá trị truyền trực tiếp qua options", () => {
+    const config = resolveTimeoutOptions({
+      idleTimeoutMs: 45_000,
+      maxTimeoutMs: 300_000,
+    });
+    expect(config.idleTimeoutMs).toBe(45_000);
+    expect(config.maxTimeoutMs).toBe(300_000);
+  });
+
+  it("tương thích ngược với timeoutMs cũ thành maxTimeoutMs", () => {
+    const config = resolveTimeoutOptions({
+      timeoutMs: 180_000,
+    });
+    expect(config.idleTimeoutMs).toBe(60_000);
+    expect(config.maxTimeoutMs).toBe(180_000);
+  });
+
+  it("nhận cấu hình qua biến môi trường khi không có options", () => {
+    const prevIdle = process.env.CHATGPT_BRIDGE_IDLE_TIMEOUT_MS;
+    const prevMax = process.env.CHATGPT_BRIDGE_MAX_TIMEOUT_MS;
+    try {
+      process.env.CHATGPT_BRIDGE_IDLE_TIMEOUT_MS = "90000";
+      process.env.CHATGPT_BRIDGE_MAX_TIMEOUT_MS = "900000";
+      const config = resolveTimeoutOptions();
+      expect(config.idleTimeoutMs).toBe(90_000);
+      expect(config.maxTimeoutMs).toBe(900_000);
+    } finally {
+      if (prevIdle !== undefined) process.env.CHATGPT_BRIDGE_IDLE_TIMEOUT_MS = prevIdle;
+      else delete process.env.CHATGPT_BRIDGE_IDLE_TIMEOUT_MS;
+
+      if (prevMax !== undefined) process.env.CHATGPT_BRIDGE_MAX_TIMEOUT_MS = prevMax;
+      else delete process.env.CHATGPT_BRIDGE_MAX_TIMEOUT_MS;
+    }
+  });
+
+  it("bỏ qua giá trị âm hoặc không hợp lệ và fallback về mặc định", () => {
+    const config = resolveTimeoutOptions({
+      idleTimeoutMs: -100,
+      maxTimeoutMs: 0,
+    });
+    expect(config.idleTimeoutMs).toBe(60_000);
+    expect(config.maxTimeoutMs).toBe(600_000);
+  });
+});
 
 describe("deleteChatGPTConversation", () => {
   it("xóa chat thành công khi có authHeader", async () => {
