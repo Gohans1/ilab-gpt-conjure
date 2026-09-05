@@ -144,8 +144,49 @@ export async function generateImage(prompt: string, options: GenerateOptions = {
         );
         const last = nodes.length > 0 ? nodes[nodes.length - 1] : null;
         const text = (last?.textContent || "").trim();
-        return { hasWidget, text };
+
+        // 1. Kiểm tra trạng thái mạng của trình duyệt
+        const isOnline = typeof navigator !== "undefined" ? navigator.onLine : true;
+
+        // 2. Tìm banner / thông báo lỗi đỏ từ ChatGPT
+        const errorNodes = Array.from(
+          document.querySelectorAll('[role="alert"], [class*="error"], [class*="danger"], .text-red-500')
+        );
+        let errorMessage: string | null = null;
+        for (const el of errorNodes) {
+          const t = (el.textContent || "").trim();
+          if (
+            t.includes("Something went wrong") ||
+            t.includes("Network error") ||
+            t.includes("error generating") ||
+            t.includes("There was an error") ||
+            t.includes("Unable to load") ||
+            t.includes("Failed to load") ||
+            t.includes("Rate limit")
+          ) {
+            errorMessage = t;
+            break;
+          }
+        }
+
+        // 3. Kiểm tra nút Regenerate xuất hiện
+        const hasRegenerateBtn =
+          document.querySelector('button[data-testid*="regenerate"], button:has([data-testid*="refresh"])') !== null ||
+          Array.from(document.querySelectorAll("button")).some((b) => (b.textContent || "").trim() === "Regenerate");
+
+        return { hasWidget, text, isOnline, errorMessage, hasRegenerateBtn };
       });
+
+      // Fail-fast mạng: Trình duyệt mất kết nối Internet
+      if (!pageState.isOnline) {
+        throw new Error("Trình duyệt mất kết nối Internet (navigator.onLine = false).");
+      }
+
+      // Fail-fast lỗi giao diện: ChatGPT hiển thị banner / thông báo lỗi
+      if (pageState.errorMessage && !hasNewImages) {
+        const cleanErr = pageState.errorMessage.length > 150 ? pageState.errorMessage.slice(0, 150) + "..." : pageState.errorMessage;
+        throw new Error(`ChatGPT báo lỗi: "${cleanErr}"`);
+      }
 
       // Reset Inactivity Timer khi có bất kỳ tín hiệu đang tạo ảnh nào từ ChatGPT
       if (isGenerating || currentImages.length > previousImageCount || pageState.text.length > previousTextLength) {
@@ -164,6 +205,11 @@ export async function generateImage(prompt: string, options: GenerateOptions = {
         // Đợi 500ms cho các thẻ DOM render hoàn tất
         await page.waitForTimeout(500);
         break;
+      }
+
+      // Fail-fast: Nút Stop đã tắt, đã qua ít nhất 5s, có nút Regenerate nhưng không có ảnh mới
+      if (!isGenerating && pageState.hasRegenerateBtn && !hasNewImages && Date.now() - startTime > 5000) {
+        throw new Error("ChatGPT đã dừng quá trình tạo và hiển thị nút Regenerate nhưng không sinh ra ảnh mới nào.");
       }
 
       // Fail-fast: Chỉ kiểm tra khi nút Stop đã tắt (sinh xong), đã qua ít nhất 8s, và không có image widget nào đang tải
