@@ -117,6 +117,16 @@ describe("sizeToAspectRatio", () => {
     // 4:3 và 3:2
     expect(sizeToAspectRatio("1200x900")).toBe("4:3");
     expect(sizeToAspectRatio("1536x1024")).toBe("3:2");
+
+    // 2:3 Portrait
+    expect(sizeToAspectRatio("1024x1536")).toBe("2:3");
+
+    // Hỗ trợ ký tự Unicode nhân và khoảng trắng
+    expect(sizeToAspectRatio("1024×1024")).toBe("1:1");
+    expect(sizeToAspectRatio("1792 x 1024")).toBe("16:9");
+
+    // Rút gọn GCD cho tỷ lệ tùy chỉnh
+    expect(sizeToAspectRatio("800x480")).toBe("5:3");
   });
 
   it("trả về null khi đầu vào rỗng hoặc không hợp lệ", () => {
@@ -125,5 +135,8 @@ describe("sizeToAspectRatio", () => {
     expect(sizeToAspectRatio("")).toBeNull();
     expect(sizeToAspectRatio("invalid")).toBeNull();
     expect(sizeToAspectRatio("0x0")).toBeNull();
+    expect(sizeToAspectRatio("0:0")).toBeNull();
+    expect(sizeToAspectRatio("1:0")).toBeNull();
+    expect(sizeToAspectRatio("0:1")).toBeNull();
   });
 });

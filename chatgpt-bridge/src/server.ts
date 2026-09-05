@@ -170,7 +170,7 @@ const server = Bun.serve({
 
       // 2.2 Bọc mệnh lệnh vẽ và số lượng n
       let generationPrompt: string;
-      const separator = cleanPrompt.endsWith(".") ? "" : ".";
+      const separator = /[.!?]$/.test(cleanPrompt) ? "" : ".";
       if (n > 1) {
         generationPrompt = `Generate exactly ${n} distinct images of: ${cleanPrompt}${separator}${ratioInstruction}`;
       } else {

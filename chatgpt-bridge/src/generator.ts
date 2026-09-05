@@ -35,8 +35,8 @@ export function sizeToAspectRatio(sizeOrRatio?: string | null): string | null {
   if (!sizeOrRatio || typeof sizeOrRatio !== "string") return null;
   const s = sizeOrRatio.trim().toLowerCase();
 
-  // Đã là dạng tỷ lệ X:Y (ví dụ "16:9", "1:1", "9:16", "4:3", "3:4", "3:2", "2:3", "21:9")
-  if (/^[0-9]+:[0-9]+$/.test(s)) {
+  // Đã là dạng tỷ lệ X:Y nguyên dương (ví dụ "16:9", "1:1", "9:16", "4:3", "3:4", "3:2", "2:3", "21:9")
+  if (/^[1-9][0-9]*:[1-9][0-9]*$/.test(s)) {
     return s;
   }
 
@@ -50,7 +50,7 @@ export function sizeToAspectRatio(sizeOrRatio?: string | null): string | null {
     const ratio = w / h;
     if (Math.abs(ratio - 1) < 0.05) return "1:1";
     if (Math.abs(ratio - 16 / 9) < 0.08) return "16:9";
-    if (Math.abs(ratio - 9 / 16) < 0.08) return "9:16";
+    if (Math.abs(ratio - 9 / 16) < 0.03) return "9:16";
     if (Math.abs(ratio - 4 / 3) < 0.06) return "4:3";
     if (Math.abs(ratio - 3 / 4) < 0.06) return "3:4";
     if (Math.abs(ratio - 3 / 2) < 0.06) return "3:2";
