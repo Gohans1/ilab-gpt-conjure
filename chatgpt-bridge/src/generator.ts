@@ -4,10 +4,13 @@ import { CHATGPT_URL, SELECTORS, USER_DATA_DIR } from "./config.js";
 import { getBrowserSession, type BrowserOptions, type BrowserSession } from "./browser.js";
 import { extractAndSaveImages, type DownloadResult } from "./downloader.js";
 
+import type { Page } from "playwright-core";
+
 export interface GenerateOptions extends BrowserOptions {
   outputPath?: string;
   timeoutMs?: number;
   skipDiskWrite?: boolean;
+  deleteChatAfterGen?: boolean;
 }
 
 export async function generateImage(prompt: string, options: GenerateOptions = {}): Promise<DownloadResult[]> {
@@ -17,6 +20,27 @@ export async function generateImage(prompt: string, options: GenerateOptions = {
 
   try {
     const page = session.page;
+    let capturedAuthHeader: string | null = null;
+    let detectedConversationId: string | null = null;
+
+    const requestListener = (req: any) => {
+      try {
+        const url = req.url();
+        if (url.includes("/backend-api/")) {
+          const auth = req.headers()["authorization"];
+          if (auth && !capturedAuthHeader) {
+            capturedAuthHeader = auth;
+          }
+          const match = url.match(/\/backend-api\/conversation\/([0-9a-fA-F-]{36})/);
+          if (match && !detectedConversationId) {
+            detectedConversationId = match[1];
+          }
+        }
+      } catch {}
+    };
+
+    page.on("request", requestListener);
+
     console.log(`[1/5] Đang mở ChatGPT Web (${CHATGPT_URL})...`);
     await page.goto(CHATGPT_URL, { waitUntil: "domcontentloaded", timeout: 60_000 });
 
@@ -134,8 +158,83 @@ export async function generateImage(prompt: string, options: GenerateOptions = {
       knownUrls: initialUrls,
       skipDiskWrite: options.skipDiskWrite,
     });
+
+    // Tự động dọn dẹp (xóa) phiên chat vừa tạo trên ChatGPT nếu được bật (mặc định bật)
+    const shouldDeleteChat =
+      options.deleteChatAfterGen ?? (process.env.CHATGPT_DELETE_CHAT !== "false");
+
+    if (shouldDeleteChat) {
+      try {
+        const urlMatch = page.url().match(/\/c\/([0-9a-fA-F-]{36})/);
+        const targetConvId = urlMatch?.[1] || detectedConversationId;
+
+        if (targetConvId) {
+          console.log(`🧹 Đang dọn dẹp (xóa) phiên chat vừa tạo trên ChatGPT (ID: ${targetConvId})...`);
+          const deleteResult = await deleteChatGPTConversation(page, targetConvId, capturedAuthHeader);
+          if (deleteResult.success) {
+            console.log(`✅ Đã xóa chat ${targetConvId} thành công khỏi ChatGPT!`);
+          } else {
+            console.warn(
+              `⚠️ Không thể xóa chat ${targetConvId} (HTTP ${deleteResult.status ?? "unknown"}${
+                deleteResult.error ? `: ${deleteResult.error}` : ""
+              })`
+            );
+          }
+        } else {
+          console.log("ℹ️ Không tìm thấy ID đoạn chat trên URL để xóa.");
+        }
+      } catch (delErr) {
+        console.warn("⚠️ Gặp lỗi khi dọn dẹp chat:", delErr instanceof Error ? delErr.message : delErr);
+      }
+    }
+
     return results;
   } finally {
     await session.close();
+  }
+}
+
+export async function deleteChatGPTConversation(
+  page: Page,
+  conversationId: string,
+  authHeader?: string | null
+): Promise<{ success: boolean; status?: number; error?: string }> {
+  try {
+    const result = await page.evaluate(
+      async ({ id, auth }: { id: string; auth: string | null }) => {
+        try {
+          const headers: Record<string, string> = {
+            "Content-Type": "application/json",
+          };
+          if (auth) {
+            headers["Authorization"] = auth;
+          } else {
+            try {
+              const sessionRes = await fetch("/api/auth/session");
+              if (sessionRes.ok) {
+                const sessionData = (await sessionRes.json()) as { accessToken?: string };
+                if (sessionData?.accessToken) {
+                  headers["Authorization"] = `Bearer ${sessionData.accessToken}`;
+                }
+              }
+            } catch {}
+          }
+
+          const res = await fetch(`/backend-api/conversation/${id}`, {
+            method: "PATCH",
+            headers,
+            body: JSON.stringify({ is_visible: false }),
+          });
+
+          return { success: res.ok, status: res.status };
+        } catch (err) {
+          return { success: false, error: String(err) };
+        }
+      },
+      { id: conversationId, auth: authHeader || null }
+    );
+    return result;
+  } catch (err) {
+    return { success: false, error: err instanceof Error ? err.message : String(err) };
   }
 }

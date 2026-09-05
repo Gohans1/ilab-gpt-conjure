@@ -17,6 +17,7 @@ Options:
   -o, --out <path>     Đường dẫn file ảnh đầu ra (Mặc định: ./output/image_<timestamp>.png)
   --headless           Chạy trình duyệt ẩn (không mở cửa sổ giao diện)
   --headed             Ép mở cửa sổ trình duyệt (mặc định)
+  --keep-chat          Giữ lại đoạn chat trên ChatGPT (mặc định sẽ tự động xóa)
   --login              Mở trình duyệt để bạn đăng nhập tài khoản ChatGPT
   -h, --help           Hiện trợ giúp này
 
@@ -65,6 +66,7 @@ async function main(): Promise<void> {
   let prompt = "";
   let outputPath = "";
   let headless = false;
+  let keepChat = false;
 
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
@@ -74,6 +76,8 @@ async function main(): Promise<void> {
       headless = true;
     } else if (arg === "--headed") {
       headless = false;
+    } else if (arg === "--keep-chat" || arg === "--no-delete") {
+      keepChat = true;
     } else if (!arg.startsWith("-") && !prompt) {
       prompt = arg;
     }
@@ -98,6 +102,7 @@ async function main(): Promise<void> {
     const results = await generateImage(prompt, {
       outputPath: resolvedOut,
       headless,
+      deleteChatAfterGen: !keepChat,
     });
     const durationSec = ((Date.now() - startTime) / 1000).toFixed(1);
 
