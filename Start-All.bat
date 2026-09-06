@@ -5,9 +5,25 @@ title iLab CONJURE Controller
 set "PROJECT_DIR=%~dp0"
 cd /d "%PROJECT_DIR%"
 
-:: 0. Chống đơ console (Disable QuickEdit Mode an toàn qua Win32 API, không đụng Registry)
-if exist "%PROJECT_DIR%scripts\disable-quickedit.ps1" (
-  powershell -NoProfile -ExecutionPolicy Bypass -File "%PROJECT_DIR%scripts\disable-quickedit.ps1" >nul 2>nul
+:: 0. Chống đơ console (Disable QuickEdit Mode tức thì < 3ms qua Win32 API)
+if not exist "%PROJECT_DIR%bin" mkdir "%PROJECT_DIR%bin"
+if not exist "%PROJECT_DIR%bin\disable-quickedit.exe" (
+  if exist "%PROJECT_DIR%scripts\disable-quickedit.cs" (
+    if exist "%SystemRoot%\Microsoft.NET\Framework64\v4.0.30319\csc.exe" (
+      "%SystemRoot%\Microsoft.NET\Framework64\v4.0.30319\csc.exe" /nologo /optimize /target:winexe /out:"%PROJECT_DIR%bin\disable-quickedit.exe" "%PROJECT_DIR%scripts\disable-quickedit.cs" >nul 2>nul
+    ) else if exist "%SystemRoot%\Microsoft.NET\Framework\v4.0.30319\csc.exe" (
+      "%SystemRoot%\Microsoft.NET\Framework\v4.0.30319\csc.exe" /nologo /optimize /target:winexe /out:"%PROJECT_DIR%bin\disable-quickedit.exe" "%PROJECT_DIR%scripts\disable-quickedit.cs" >nul 2>nul
+    )
+  ) else if exist "%PROJECT_DIR%app\scripts\disable-quickedit.cs" (
+    if exist "%SystemRoot%\Microsoft.NET\Framework64\v4.0.30319\csc.exe" (
+      "%SystemRoot%\Microsoft.NET\Framework64\v4.0.30319\csc.exe" /nologo /optimize /target:winexe /out:"%PROJECT_DIR%bin\disable-quickedit.exe" "%PROJECT_DIR%app\scripts\disable-quickedit.cs" >nul 2>nul
+    ) else if exist "%SystemRoot%\Microsoft.NET\Framework\v4.0.30319\csc.exe" (
+      "%SystemRoot%\Microsoft.NET\Framework\v4.0.30319\csc.exe" /nologo /optimize /target:winexe /out:"%PROJECT_DIR%bin\disable-quickedit.exe" "%PROJECT_DIR%app\scripts\disable-quickedit.cs" >nul 2>nul
+    )
+  )
+)
+if exist "%PROJECT_DIR%bin\disable-quickedit.exe" (
+  "%PROJECT_DIR%bin\disable-quickedit.exe"
 )
 
 echo ============================================================

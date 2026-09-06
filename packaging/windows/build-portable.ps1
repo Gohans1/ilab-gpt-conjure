@@ -52,6 +52,7 @@ $AppItems = @(
   "package-lock.json",
   "tsconfig.webui.json",
   "scripts/build-webui-css.mjs",
+  "scripts/disable-quickedit.cs",
   "pyproject.toml",
   "README.md",
   "README.zh-CN.md",
@@ -119,9 +120,18 @@ if (Test-Path (Join-Path $AppDir "LICENSE")) {
 }
 Copy-Item -Path (Join-Path $RepoRoot "Start-All.bat") -Destination (Join-Path $BundleRoot "Start-All.bat") -Force
 
-# Bundle standalone bun binary into bin\bun.exe
+# Bundle standalone bun binary and disable-quickedit into bin\
 $BinDir = Join-Path $BundleRoot "bin"
 New-Item -ItemType Directory -Force -Path $BinDir | Out-Null
+$DisableQuickEditExe = Join-Path $BinDir "disable-quickedit.exe"
+if (Test-Path (Join-Path $RepoRoot "bin\disable-quickedit.exe")) {
+  Copy-Item -Path (Join-Path $RepoRoot "bin\disable-quickedit.exe") -Destination $DisableQuickEditExe -Force
+} else {
+  $CscExe = "$env:SystemRoot\Microsoft.NET\Framework64\v4.0.30319\csc.exe"
+  if (Test-Path $CscExe) {
+    & $CscExe /nologo /optimize /target:winexe /out:$DisableQuickEditExe (Join-Path $RepoRoot "scripts\disable-quickedit.cs")
+  }
+}
 $BunExe = Join-Path $BinDir "bun.exe"
 $SystemBun = (Get-Command bun -ErrorAction SilentlyContinue)
 if ($null -ne $SystemBun) {

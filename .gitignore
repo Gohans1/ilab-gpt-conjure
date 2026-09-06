@@ -27,4 +27,5 @@ data/webui-outputs/
 data/webui-inputs/
 .codegraph/
 .uv/
-bin/
+bin/*
+!bin/disable-quickedit.exe
