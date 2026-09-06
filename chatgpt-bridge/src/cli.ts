@@ -15,6 +15,7 @@ Cách sử dụng:
 
 Options:
   -o, --out <path>     Đường dẫn file ảnh đầu ra (Mặc định: ./output/image_<timestamp>.png)
+  -i, --image <path>   Đường dẫn file ảnh tham chiếu (có thể truyền nhiều lần)
   --headless           Chạy trình duyệt ẩn (không mở cửa sổ giao diện)
   --headed             Ép mở cửa sổ trình duyệt (mặc định)
   --keep-chat          Giữ lại đoạn chat trên ChatGPT (mặc định sẽ tự động xóa)
@@ -67,11 +68,15 @@ async function main(): Promise<void> {
   let outputPath = "";
   let headless = false;
   let keepChat = false;
+  const inputImages: string[] = [];
 
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
     if (arg === "-o" || arg === "--out") {
       outputPath = args[++i] || "";
+    } else if (arg === "-i" || arg === "--image" || arg === "--images") {
+      const imgPath = args[++i] || "";
+      if (imgPath) inputImages.push(resolve(process.cwd(), imgPath));
     } else if (arg === "--headless") {
       headless = true;
     } else if (arg === "--headed") {
@@ -94,6 +99,9 @@ async function main(): Promise<void> {
   console.log("=================================================");
   console.log("🚀 Bắt đầu tạo ảnh với ChatGPT Web Images...");
   console.log(`📝 Prompt: "${prompt}"`);
+  if (inputImages.length > 0) {
+    console.log(`🖼️ Ảnh tham chiếu (${inputImages.length}): ${inputImages.join(", ")}`);
+  }
   if (resolvedOut) console.log(`💾 File đích: ${resolvedOut}`);
   console.log("=================================================\n");
 
@@ -103,6 +111,7 @@ async function main(): Promise<void> {
       outputPath: resolvedOut,
       headless,
       deleteChatAfterGen: !keepChat,
+      inputImages,
     });
     const durationSec = ((Date.now() - startTime) / 1000).toFixed(1);
 

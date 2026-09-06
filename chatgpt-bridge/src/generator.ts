@@ -13,6 +13,7 @@ export interface GenerateOptions extends BrowserOptions {
   maxTimeoutMs?: number;
   skipDiskWrite?: boolean;
   deleteChatAfterGen?: boolean;
+  inputImages?: string[];
 }
 
 export function resolveTimeoutOptions(options: GenerateOptions = {}): {
@@ -34,6 +35,56 @@ export function resolveTimeoutOptions(options: GenerateOptions = {}): {
 export function resolveDeleteChatOption(deleteChatAfterGen?: boolean): boolean {
   return deleteChatAfterGen ?? (process.env.CHATGPT_DELETE_CHAT !== "false");
 }
+
+export function resolveInputImages(input?: unknown): string[] {
+  if (!input) return [];
+  if (typeof input === "string") {
+    const trimmed = input.trim();
+    return trimmed ? [trimmed] : [];
+  }
+  if (Array.isArray(input)) {
+    return input
+      .filter((item): item is string => typeof item === "string" && item.trim().length > 0)
+      .map((item) => item.trim());
+  }
+  return [];
+}
+
+export async function attachImagesToChatGPT(
+  page: any,
+  imagePaths: string[],
+  options: { timeoutMs?: number; settleMs?: number } = {}
+): Promise<void> {
+  const paths = resolveInputImages(imagePaths);
+  if (paths.length === 0) return;
+
+  const timeout = options.timeoutMs ?? 15_000;
+  const settleMs = options.settleMs ?? 1_500;
+
+  // 1. Thử tìm thẻ input[type="file"] có sẵn trong DOM
+  const fileInput = page.locator(SELECTORS.fileInput).first();
+  const inputCount = await fileInput.count().catch(() => 0);
+
+  if (inputCount > 0) {
+    await fileInput.setInputFiles(paths, { timeout });
+  } else {
+    // 2. Fallback nếu thẻ input được sinh động khi bấm nút Attach
+    const attachBtn = page.locator(SELECTORS.attachButton).first();
+    const [fileChooser] = await Promise.all([
+      page.waitForEvent("filechooser", { timeout }),
+      attachBtn.click({ timeout: 5000 }).catch(() => {}),
+    ]);
+    if (fileChooser) {
+      await fileChooser.setFiles(paths);
+    }
+  }
+
+  // 3. Đợi ảnh nạp xong vào giao diện ChatGPT (thumbnail xuất hiện hoặc settle)
+  await page.waitForTimeout(settleMs);
+  const thumbnail = page.locator(SELECTORS.attachmentThumbnail).first();
+  await thumbnail.waitFor({ state: "attached", timeout: 10_000 }).catch(() => {});
+}
+
 
 export function sizeToAspectRatio(sizeOrRatio?: string | null): string | null {
   if (!sizeOrRatio || typeof sizeOrRatio !== "string") return null;
@@ -236,14 +287,21 @@ export async function generateImage(prompt: string, options: GenerateOptions = {
         .filter((src) => src.length > 0);
     }, SELECTORS.generatedImage);
 
+    const inputImages = resolveInputImages(options.inputImages);
+    if (inputImages.length > 0) {
+      console.log(`[2.5/5] Đang nạp ${inputImages.length} ảnh tham chiếu vào DOM...`);
+      await attachImagesToChatGPT(page, inputImages);
+    }
+
     console.log(`[3/5] Đang nhập prompt: "${prompt}"...`);
     await composer.click();
     await composer.fill(prompt);
 
     // Gửi prompt
-    await page.waitForTimeout(400);
+    await page.waitForTimeout(600);
     const sendBtn = page.locator(SELECTORS.sendButton).first();
-    const canClickSend = await sendBtn.isEnabled({ timeout: 2000 }).catch(() => false);
+    await sendBtn.waitFor({ state: "visible", timeout: 15_000 }).catch(() => {});
+    const canClickSend = await sendBtn.isEnabled({ timeout: 5000 }).catch(() => false);
     if (canClickSend) {
       await sendBtn.click();
     } else {

@@ -1,5 +1,13 @@
 import { describe, expect, it } from "bun:test";
-import { deleteChatGPTConversation, inspectChatGPTPageState, resolveDeleteChatOption, resolveTimeoutOptions, sizeToAspectRatio } from "./generator.js";
+import {
+  attachImagesToChatGPT,
+  deleteChatGPTConversation,
+  inspectChatGPTPageState,
+  resolveDeleteChatOption,
+  resolveInputImages,
+  resolveTimeoutOptions,
+  sizeToAspectRatio,
+} from "./generator.js";
 
 describe("resolveDeleteChatOption", () => {
   it("mặc định là true khi không truyền options", () => {
@@ -414,4 +422,61 @@ describe("inspectChatGPTPageState", () => {
     expect(state.hasImageWidget).toBe(true);
   });
 });
+
+describe("resolveInputImages", () => {
+  it("trả về mảng rỗng khi input rỗng hoặc undefined", () => {
+    expect(resolveInputImages()).toEqual([]);
+    expect(resolveInputImages(null)).toEqual([]);
+    expect(resolveInputImages("")).toEqual([]);
+    expect(resolveInputImages([])).toEqual([]);
+  });
+
+  it("chuyển đổi chuỗi đơn thành mảng 1 phần tử", () => {
+    expect(resolveInputImages("C:/images/cat.png")).toEqual(["C:/images/cat.png"]);
+  });
+
+  it("lọc bỏ các phần tử rỗng hoặc không hợp lệ trong mảng", () => {
+    const input = ["C:/images/cat.png", "  ", null as any, "C:/images/dog.jpg"];
+    expect(resolveInputImages(input)).toEqual(["C:/images/cat.png", "C:/images/dog.jpg"]);
+  });
+});
+
+describe("attachImagesToChatGPT", () => {
+  it("bỏ qua ngay khi danh sách ảnh rỗng", async () => {
+    let called = false;
+    const mockPage = {
+      locator: () => {
+        called = true;
+        return { first: () => ({}) };
+      },
+    };
+    await attachImagesToChatGPT(mockPage, []);
+    expect(called).toBe(false);
+  });
+
+  it("gọi setInputFiles khi tìm thấy thẻ input file trong DOM", async () => {
+    let capturedFiles: any = null;
+    let timeoutUsed = 0;
+    const mockLocator = {
+      count: async () => 1,
+      setInputFiles: async (files: any, opts: any) => {
+        capturedFiles = files;
+        timeoutUsed = opts?.timeout;
+      },
+      waitFor: async () => {},
+    };
+
+    const mockPage = {
+      locator: (selector: string) => ({
+        first: () => mockLocator,
+      }),
+      waitForTimeout: async () => {},
+    };
+
+    await attachImagesToChatGPT(mockPage, ["C:/test.png"]);
+    expect(capturedFiles).toEqual(["C:/test.png"]);
+    expect(timeoutUsed).toBe(15_000);
+  });
+});
+
 
