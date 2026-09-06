@@ -127,6 +127,7 @@ class OpenAIImagesImageClient:
         base_url: str = DEFAULT_OPENAI_API_BASE_URL,
         image_model: str = DEFAULT_IMAGE_MODEL,
         transport: Transport | None = None,
+        supports_batch_generation: bool | None = None,
     ) -> None:
         clean_key = str(api_key or "").strip()
         if not clean_key:
@@ -137,6 +138,11 @@ class OpenAIImagesImageClient:
         self.transport = transport or UrllibTransport()
         self.generations_url = f"{self.base_url}/images/generations"
         self.edits_url = f"{self.base_url}/images/edits"
+        self.supports_batch_generation = (
+            supports_batch_generation
+            if supports_batch_generation is not None
+            else bool(":3000" in self.base_url or "bridge" in self.base_url or "chatgpt" in self.base_url)
+        )
 
     def generate_image(
         self,

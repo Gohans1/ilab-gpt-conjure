@@ -341,7 +341,7 @@ export function buildGenerationPrompt(options: {
   n: number;
 }): string {
   const cleanPrompt = cleanAndUnwrapPrompt(options.prompt);
-  const separator = /[.!?\u3002\u0964\uFF01\uFF1F]$/.test(cleanPrompt) ? "" : ".";
+  const separator = cleanPrompt ? (/[.!?\u3002\u0964\uFF01\uFF1F]$/.test(cleanPrompt) ? "" : ".") : "";
 
   if (options.hasInputImages) {
     if (options.n > 1) {
@@ -365,15 +365,22 @@ export function buildGenerationPrompt(options: {
 
   let ratioInstruction = "";
   if (!isExplicitNoneRatio) {
-    const ratioMatch = options.prompt.match(ratioRegex);
-    if (ratioMatch) {
-      ratioInstruction = ` ${ratioMatch[0].trim()}`;
+    const detectedRatio = sizeToAspectRatio(rawAspect);
+    if (detectedRatio) {
+      ratioInstruction = ` Set the aspect ratio to ${detectedRatio}.`;
     } else {
-      const detectedRatio = sizeToAspectRatio(rawAspect);
-      if (detectedRatio) {
-        ratioInstruction = ` Set the aspect ratio to ${detectedRatio}.`;
+      const ratioMatch = options.prompt.match(ratioRegex);
+      if (ratioMatch) {
+        ratioInstruction = ` ${ratioMatch[0].trim()}`;
       }
     }
+  }
+
+  if (!cleanPrompt) {
+    if (options.n > 1) {
+      return `Generate exactly ${options.n} distinct creative images.${ratioInstruction}`;
+    }
+    return `Generate a creative image.${ratioInstruction}`;
   }
 
   if (options.n > 1) {

@@ -36,6 +36,10 @@ class _LegacyClientAdapter:
             "moderation": params.get("gpt.moderation"),
             "output_compression": params.get("gpt.output_compression"),
         }
+        if not plan.binding.protocol_profile.endswith("responses"):
+            aspect_ratio = params.get("canvas.aspect_ratio") or params.get("aspect_ratio") or params.get("ratio")
+            if aspect_ratio is not None:
+                common["aspect_ratio"] = aspect_ratio
         ephemeral_reference_files: list[Any] = []
         if plan.binding.protocol_profile.endswith("responses"):
             common["instructions"] = command.instructions

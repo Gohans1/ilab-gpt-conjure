@@ -29,7 +29,7 @@ export async function extractAndSaveImages(
       .filter((img) => !img.closest('[data-message-author-role="user"]') && !img.closest("form"))
       .filter((img) => {
         const src = img.src || img.getAttribute("src") || "";
-        return src.startsWith("http://") || src.startsWith("https://") || src.startsWith("data:");
+        return src.startsWith("http://") || src.startsWith("https://") || src.startsWith("data:") || src.startsWith("blob:");
       });
 
     const knownSet = new Set(existingUrls);

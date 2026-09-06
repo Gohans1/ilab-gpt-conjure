@@ -406,7 +406,7 @@ export async function generateImage(prompt: string, options: GenerateOptions = {
 
       // Điều kiện hoàn tất: Đã đủ số lượng ảnh mong đợi HOẶC ChatGPT đã thực sự dừng sinh hoàn toàn
       const isCompleteBatch = newImages.length >= expectedCount;
-      const isAssistantTurnFinished = !isGenerating && !pageState.isActivelyLoading && (pageState.hasRegenerateBtn || hasNewImages);
+      const isAssistantTurnFinished = !isGenerating && !pageState.isActivelyLoading && pageState.hasRegenerateBtn;
 
       if (hasNewImages && (isCompleteBatch || isAssistantTurnFinished)) {
         success = true;
