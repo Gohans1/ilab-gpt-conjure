@@ -36766,7 +36766,11 @@ ${hint}` : hint;
       return;
     }
     const values = canonicalControlValues(methods.currentTaskParams(), selectedProviderBinding()?.protocol_profile || "");
-    const allowed = new Set(model.parameters.map((parameter) => parameter.id));
+    const allowed = /* @__PURE__ */ new Set([
+      ...model.parameters.map((parameter) => parameter.id),
+      "canvas.aspect_ratio",
+      "canvas.resolution"
+    ]);
     state33.parameterDraftsByModel[model.id] = {
       ...state33.parameterDraftsByModel[model.id] || {},
       ...Object.fromEntries(Object.entries(values).filter(([id]) => allowed.has(id)))
@@ -36791,7 +36795,9 @@ ${hint}` : hint;
     if ((draft["canvas.resolution"] || draft["canvas.aspect_ratio"]) && typeof methods.updateSizeFromPreset === "function") {
       methods.updateSizeFromPreset();
     }
-    if (typeof draft["canvas.size"] === "string") methods.syncSizeControlsFromSize?.(draft["canvas.size"]);
+    if (typeof draft["canvas.size"] === "string" && draft["canvas.aspect_ratio"] !== "None") {
+      methods.syncSizeControlsFromSize?.(draft["canvas.size"]);
+    }
     if (typeof draft["gpt.quality"] === "string" && els44.quality) els44.quality.value = draft["gpt.quality"];
     if (typeof draft["output.format"] === "string" && els44.outputFormat) els44.outputFormat.value = draft["output.format"];
     if (typeof draft["gpt.moderation"] === "string" && els44.moderation) els44.moderation.value = draft["gpt.moderation"];
@@ -44282,7 +44288,12 @@ ${galleryText}`;
     if (!els26.resolution || !els26.ratio || !els26.orientation) return;
     if (els26.ratio.value === "None") {
       if (changedControl === "orientation") {
-        syncRatioFromOrientation();
+        const orientation = els26.orientation.value;
+        if (orientation === "square") {
+          setSizeControlValue(els26.ratio, DEFAULT_RATIO);
+        } else {
+          setSizeControlValue(els26.ratio, ORIENTATION_DEFAULT_RATIOS[orientation] || DEFAULT_RATIO);
+        }
       }
       return;
     }
@@ -44351,7 +44362,7 @@ ${galleryText}`;
     if (!size || size === "auto") {
       if (els26.customSizeToggle) els26.customSizeToggle.checked = false;
       if (els26.resolution) els26.resolution.value = DEFAULT_RESOLUTION;
-      if (els26.ratio) els26.ratio.value = DEFAULT_RATIO;
+      if (els26.ratio && els26.ratio.value !== "None") els26.ratio.value = DEFAULT_RATIO;
       if (els26.orientation) els26.orientation.value = DEFAULT_ORIENTATION;
       updateSizeFromPreset();
       syncRadioButtons(els26.resolution, els26.ratio, els26.orientation);

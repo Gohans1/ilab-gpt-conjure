@@ -20182,7 +20182,11 @@
       return;
     }
     const values = canonicalControlValues(methods.currentTaskParams(), selectedProviderBinding()?.protocol_profile || "");
-    const allowed = new Set(model.parameters.map((parameter) => parameter.id));
+    const allowed = /* @__PURE__ */ new Set([
+      ...model.parameters.map((parameter) => parameter.id),
+      "canvas.aspect_ratio",
+      "canvas.resolution"
+    ]);
     state5.parameterDraftsByModel[model.id] = {
       ...state5.parameterDraftsByModel[model.id] || {},
       ...Object.fromEntries(Object.entries(values).filter(([id]) => allowed.has(id)))
@@ -20207,7 +20211,9 @@
     if ((draft["canvas.resolution"] || draft["canvas.aspect_ratio"]) && typeof methods.updateSizeFromPreset === "function") {
       methods.updateSizeFromPreset();
     }
-    if (typeof draft["canvas.size"] === "string") methods.syncSizeControlsFromSize?.(draft["canvas.size"]);
+    if (typeof draft["canvas.size"] === "string" && draft["canvas.aspect_ratio"] !== "None") {
+      methods.syncSizeControlsFromSize?.(draft["canvas.size"]);
+    }
     if (typeof draft["gpt.quality"] === "string" && els9.quality) els9.quality.value = draft["gpt.quality"];
     if (typeof draft["output.format"] === "string" && els9.outputFormat) els9.outputFormat.value = draft["output.format"];
     if (typeof draft["gpt.moderation"] === "string" && els9.moderation) els9.moderation.value = draft["gpt.moderation"];

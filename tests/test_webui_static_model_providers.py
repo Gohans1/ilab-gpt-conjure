@@ -13,7 +13,7 @@ class WebUIStaticModelProviderTests(WebUIStaticTestCase):
         brand = html[html.index('<div class="brand"'):html.index('id="modelFamilyOptions"')]
         family_selector = html[html.index('id="modelFamilyOptions"'):html.index('<div class="sidebar-search">')]
         nav = html[html.index('<div class="nav-actions">'):html.index('<div id="taskNotificationCenter"')]
-        output = html[html.index('<div id="settingsGrid"'):html.index('<div class="field-group full-width custom-size-control">')]
+        output = html[html.index('<div id="settingsGrid"'):html.index('<div class="field-group full-width custom-size-control')]
         self.assertIn("iLab", brand)
         self.assertIn("CONJURE", brand)
         self.assertNotIn('modelFamilyButton', brand)

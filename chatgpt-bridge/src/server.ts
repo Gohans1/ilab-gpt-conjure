@@ -328,6 +328,30 @@ export function buildGenerationPrompt(options: {
   if (options.hasInputImages) {
     // Khi có ảnh reference: giữ prompt FRESH nguyên bản 100%, bóc sạch bất kỳ câu ratio tự động nào
     cleanPrompt = cleanPrompt.replace(ratioRegex, "").replace(/\s{2,}/g, " ").trim();
+    if (options.n > 1) {
+      const isDefaultVariation =
+        !cleanPrompt ||
+        /^generate a creative variation of the attached image[.\u3002\u0964]?$/i.test(cleanPrompt);
+
+      if (isDefaultVariation) {
+        return `Generate exactly ${options.n} distinct creative variations of the attached image.`;
+      }
+
+      // Tránh double-wrapping hoặc giữ count cũ nếu prompt đã từng bị wrap
+      const wrappedMatch = cleanPrompt.match(
+        /^generate exactly \d+ distinct (?:creative )?variations of the attached image(?::\s*(.*)|[.\u3002\u0964]?)$/i
+      );
+      if (wrappedMatch) {
+        const inner = (wrappedMatch[1] || "").trim();
+        if (!inner) {
+          return `Generate exactly ${options.n} distinct creative variations of the attached image.`;
+        }
+        cleanPrompt = inner;
+      }
+
+      const separator = /[.!?\u3002\u0964\uFF01\uFF1F]$/.test(cleanPrompt) ? "" : ".";
+      return `Generate exactly ${options.n} distinct variations of the attached image: ${cleanPrompt}${separator}`;
+    }
     if (!cleanPrompt) {
       cleanPrompt = "Generate a creative variation of the attached image.";
     }

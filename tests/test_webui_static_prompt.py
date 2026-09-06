@@ -59,10 +59,10 @@ class WebUIStaticPromptTests(WebUIStaticTestCase):
         self.assertIn('id="promptFidelity"', html)
         self.assertRegex(
             html,
-            r'data-val="original" type="button"[^>]*>原文</button>\s*<button class="radio-btn active" data-val="strict" type="button"[^>]*>保真</button>',
+            r'<button class="radio-btn active" data-val="original" type="button"[^>]*>原文</button>\s*<button class="radio-btn" data-val="strict" type="button"[^>]*>保真</button>',
         )
-        self.assertIn('value="strict" selected', html)
-        self.assertIn('value="original"', html)
+        self.assertIn('value="original" selected', html)
+        self.assertIn('value="strict"', html)
         self.assertIn('data-val="original"', html)
         self.assertRegex(html, r'data-val="off" type="button"[^>]*>自动</button>')
         self.assertRegex(html, r'<option value="off"[^>]*>自动</option>')

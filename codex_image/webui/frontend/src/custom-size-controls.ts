@@ -305,7 +305,12 @@ export function syncRatioAndOrientation(changedControl: any): void {
 
   if (els.ratio.value === "None") {
     if (changedControl === "orientation") {
-      syncRatioFromOrientation();
+      const orientation = els.orientation.value;
+      if (orientation === "square") {
+        setSizeControlValue(els.ratio, DEFAULT_RATIO);
+      } else {
+        setSizeControlValue(els.ratio, ORIENTATION_DEFAULT_RATIOS[orientation] || DEFAULT_RATIO);
+      }
     }
     return;
   }
@@ -383,7 +388,7 @@ export function syncSizeControlsFromSize(size: any): void {
   if (!size || size === "auto") {
     if (els.customSizeToggle) els.customSizeToggle.checked = false;
     if (els.resolution) els.resolution.value = DEFAULT_RESOLUTION;
-    if (els.ratio) els.ratio.value = DEFAULT_RATIO;
+    if (els.ratio && els.ratio.value !== "None") els.ratio.value = DEFAULT_RATIO;
     if (els.orientation) els.orientation.value = DEFAULT_ORIENTATION;
     updateSizeFromPreset();
     syncRadioButtons(els.resolution, els.ratio, els.orientation);

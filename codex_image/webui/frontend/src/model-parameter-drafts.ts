@@ -111,7 +111,11 @@ export function saveCurrentModelParameterDraft(): void {
     return;
   }
   const values = canonicalControlValues(methods.currentTaskParams(), selectedProviderBinding()?.protocol_profile || "");
-  const allowed = new Set(model.parameters.map((parameter) => parameter.id));
+  const allowed = new Set([
+    ...model.parameters.map((parameter) => parameter.id),
+    "canvas.aspect_ratio",
+    "canvas.resolution",
+  ]);
   state.parameterDraftsByModel[model.id] = {
     ...(state.parameterDraftsByModel[model.id] || {}),
     ...Object.fromEntries(Object.entries(values).filter(([id]) => allowed.has(id))),
@@ -137,7 +141,9 @@ export function restoreCurrentModelParameterDraft(): void {
   if ((draft["canvas.resolution"] || draft["canvas.aspect_ratio"]) && typeof methods.updateSizeFromPreset === "function") {
     methods.updateSizeFromPreset();
   }
-  if (typeof draft["canvas.size"] === "string") methods.syncSizeControlsFromSize?.(draft["canvas.size"]);
+  if (typeof draft["canvas.size"] === "string" && draft["canvas.aspect_ratio"] !== "None") {
+    methods.syncSizeControlsFromSize?.(draft["canvas.size"]);
+  }
   if (typeof draft["gpt.quality"] === "string" && els.quality) els.quality.value = draft["gpt.quality"];
   if (typeof draft["output.format"] === "string" && els.outputFormat) els.outputFormat.value = draft["output.format"];
   if (typeof draft["gpt.moderation"] === "string" && els.moderation) els.moderation.value = draft["gpt.moderation"];

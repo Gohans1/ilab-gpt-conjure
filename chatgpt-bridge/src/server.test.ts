@@ -287,6 +287,75 @@ describe("buildGenerationPrompt", () => {
     });
     expect(prompt).toBe("Generate a creative variation of the attached image.");
   });
+
+  it("bọc Generate exactly N distinct variations khi có ảnh reference và n > 1", () => {
+    const prompt = buildGenerationPrompt({
+      prompt: "Make the hair bright green",
+      aspectRatioOrSize: "16:9",
+      hasInputImages: true,
+      n: 4,
+    });
+    expect(prompt).toBe("Generate exactly 4 distinct variations of the attached image: Make the hair bright green.");
+  });
+
+  it("bọc Generate exactly N distinct creative variations khi có ảnh reference và không có prompt (hoặc prompt rỗng)", () => {
+    const prompt = buildGenerationPrompt({
+      prompt: "",
+      aspectRatioOrSize: "None",
+      hasInputImages: true,
+      n: 4,
+    });
+    expect(prompt).toBe("Generate exactly 4 distinct creative variations of the attached image.");
+  });
+
+  it("không xóa mất prompt của user khi prompt bắt đầu bằng 'Generate a creative variation with...'", () => {
+    const prompt = buildGenerationPrompt({
+      prompt: "Generate a creative variation with steampunk aesthetics and golden goggles",
+      aspectRatioOrSize: "None",
+      hasInputImages: true,
+      n: 4,
+    });
+    expect(prompt).toBe(
+      "Generate exactly 4 distinct variations of the attached image: Generate a creative variation with steampunk aesthetics and golden goggles."
+    );
+  });
+
+  it("không bị dính lỗi prompt hijack khi user gõ 'Generate exactly what is shown...'", () => {
+    const prompt = buildGenerationPrompt({
+      prompt: "Generate exactly what is shown in the image but with dark green hair",
+      aspectRatioOrSize: "None",
+      hasInputImages: true,
+      n: 4,
+    });
+    expect(prompt).toBe(
+      "Generate exactly 4 distinct variations of the attached image: Generate exactly what is shown in the image but with dark green hair."
+    );
+  });
+
+  it("tự unwrap và cập nhật số lượng n khi prompt đã bị bọc trước đó", () => {
+    const prompt = buildGenerationPrompt({
+      prompt: "Generate exactly 2 distinct variations of the attached image: Add red glasses.",
+      aspectRatioOrSize: "None",
+      hasInputImages: true,
+      n: 4,
+    });
+    expect(prompt).toBe(
+      "Generate exactly 4 distinct variations of the attached image: Add red glasses."
+    );
+  });
+
+  it("xử lý đúng dấu câu tiếng Nhật/Trung mà không bị nhân đôi dấu chấm", () => {
+    const prompt = buildGenerationPrompt({
+      prompt: "背景を青空に変えてください。",
+      aspectRatioOrSize: "None",
+      hasInputImages: true,
+      n: 4,
+    });
+    expect(prompt).toBe(
+      "Generate exactly 4 distinct variations of the attached image: 背景を青空に変えてください。"
+    );
+  });
 });
+
 
 
