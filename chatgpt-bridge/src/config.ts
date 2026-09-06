@@ -46,7 +46,7 @@ export const SELECTORS = {
   composer: '#prompt-textarea, div[contenteditable="true"], [data-testid="prompt-textarea"]',
   sendButton: '[data-testid="send-button"]',
   stopButton: '[data-testid="stop-button"]',
-  generatedImage: 'img[src*="backend-api/estuary"], img[src*="files.oaiusercontent.com"], img[alt*="Generated image"], img[src*="oaidalleapiprodscus"]',
+  generatedImage: '[data-message-author-role="assistant"] img[src*="backend-api/estuary"], [data-message-author-role="assistant"] img[src*="files.oaiusercontent.com"], [data-message-author-role="assistant"] img[alt*="Generated image"], [data-message-author-role="assistant"] img[src*="oaidalleapiprodscus"], [data-testid*="conversation-turn"] [data-message-author-role="assistant"] img, img[src*="backend-api/estuary"]',
   loginButton: 'button[data-testid="login-button"], a[href*="/auth/login"]',
   fileInput: 'input#upload-files[type="file"], input[type="file"]',
   attachButton: 'button[data-testid*="attach"], button[aria-label*="Attach" i], button[aria-label*="Add files" i]',

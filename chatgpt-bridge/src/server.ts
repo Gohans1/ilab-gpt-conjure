@@ -1,6 +1,6 @@
 import { existsSync, mkdtempSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 import { generateImage, sizeToAspectRatio } from "./generator.js";
 import { handleLogin } from "./cli.js";
 import { isSessionCached } from "./check-session.js";
@@ -28,10 +28,20 @@ const VALID_IMAGE_EXTENSIONS = new Set([".png", ".jpg", ".jpeg", ".webp", ".gif"
 
 function isValidLocalImage(filePath: string): boolean {
   try {
-    if (!existsSync(filePath)) return false;
-    const stat = statSync(filePath);
+    if (!filePath || typeof filePath !== "string") return false;
+    // Chặn tuyệt đối UNC paths và network protocols để chống leak NetNTLM hash và SSRF (SEC-02)
+    if (filePath.startsWith("\\\\") || filePath.startsWith("//") || filePath.includes("://")) {
+      return false;
+    }
+    // Giới hạn trong thư mục làm việc hiện tại để chống đọc trộm file nhạy cảm hệ điều hành
+    const resolved = resolve(filePath);
+    const cwd = resolve(process.cwd());
+    if (!resolved.startsWith(cwd)) return false;
+
+    if (!existsSync(resolved)) return false;
+    const stat = statSync(resolved);
     if (!stat.isFile()) return false;
-    const lower = filePath.toLowerCase();
+    const lower = resolved.toLowerCase();
     const dotIdx = lower.lastIndexOf(".");
     if (dotIdx === -1) return false;
     return VALID_IMAGE_EXTENSIONS.has(lower.slice(dotIdx));
@@ -81,133 +91,157 @@ export async function parseImageRequest(req: Request): Promise<ParsedImageReques
     return tempDir;
   };
 
-  if (contentType.includes("multipart/form-data")) {
-    const formData = await req.formData();
-    prompt = String(formData.get("prompt") || "");
-    const nRaw = formData.get("n");
-    if (nRaw) n = Number(nRaw) || 1;
+  try {
+    if (contentType.includes("multipart/form-data")) {
+      const formData = await req.formData();
+      prompt = String(formData.get("prompt") || "");
+      const nRaw = formData.get("n");
+      if (nRaw) n = Number(nRaw) || 1;
 
-    aspectRatioOrSize = (formData.get("aspect_ratio") || formData.get("ratio") || formData.get("size")) as string | undefined;
-    deleteChatRaw = formData.get("delete_chat_after_gen") ?? formData.get("deleteChatAfterGen");
+      aspectRatioOrSize = (formData.get("aspect_ratio") || formData.get("ratio") || formData.get("size")) as string | undefined;
+      deleteChatRaw = formData.get("delete_chat_after_gen") ?? formData.get("deleteChatAfterGen");
 
-    const fileEntries: File[] = [];
-    for (const field of ["image", "images", "file"]) {
-      const entries = formData.getAll(field);
-      for (const entry of entries) {
-        if (entry instanceof File && entry.size > 0) {
-          fileEntries.push(entry);
-        }
-      }
-    }
-
-    if (fileEntries.length > 0) {
-      let fileIdx = 0;
-      for (const file of fileEntries) {
-        fileIdx++;
-        const ext = file.name?.includes(".") ? file.name.slice(file.name.lastIndexOf(".")) : ".png";
-        const tempPath = join(getTempDir(), `input-${fileIdx}${ext}`);
-        const arrayBuffer = await file.arrayBuffer();
-        writeFileSync(tempPath, Buffer.from(arrayBuffer));
-        tempFilesToClean.push(tempPath);
-        inputImages.push(tempPath);
-      }
-    }
-  } else {
-    const body = (await req.json().catch(() => ({}))) as Record<string, any>;
-    prompt = String(body.prompt || "");
-    if (typeof body.n === "number" && body.n > 1) n = body.n;
-    aspectRatioOrSize = body.aspect_ratio || body.ratio || body.size;
-    deleteChatRaw = body.delete_chat_after_gen ?? body.deleteChatAfterGen;
-
-    customTimeout =
-      typeof body.max_timeout === "number"
-        ? body.max_timeout * 1000
-        : typeof body.max_timeout_ms === "number"
-        ? body.max_timeout_ms
-        : typeof body.timeout === "number"
-        ? body.timeout * 1000
-        : typeof body.timeout_ms === "number"
-        ? body.timeout_ms
-        : undefined;
-    idleTimeout =
-      typeof body.idle_timeout === "number"
-        ? body.idle_timeout * 1000
-        : typeof body.idle_timeout_ms === "number"
-        ? body.idle_timeout_ms
-        : undefined;
-
-    const rawImages: any[] = [];
-    if (body.image) rawImages.push(body.image);
-    if (Array.isArray(body.images)) rawImages.push(...body.images);
-    if (Array.isArray(body.input_images)) rawImages.push(...body.input_images);
-    if (Array.isArray(body.reference_images)) rawImages.push(...body.reference_images);
-
-    if (rawImages.length > 0) {
-      let fileIdx = 0;
-      for (const item of rawImages) {
-        fileIdx++;
-        let strVal: string | null = null;
-        if (typeof item === "string") {
-          strVal = item.trim();
-        } else if (typeof item === "object" && item !== null) {
-          const candidate =
-            item.b64_json ||
-            item.url ||
-            (typeof item.image_url === "string" ? item.image_url : item.image_url?.url);
-          if (typeof candidate === "string") {
-            strVal = candidate.trim();
+      const fileEntries: File[] = [];
+      for (const field of ["image", "images", "file"]) {
+        const entries = formData.getAll(field);
+        for (const entry of entries) {
+          if (entry instanceof File && entry.size > 0) {
+            fileEntries.push(entry);
           }
         }
+      }
 
-        if (!strVal) continue;
-
-        const match = strVal.match(/^data:image\/([a-zA-Z0-9+.-]+);base64,(.+)$/s);
-        if (match) {
-          const ext = `.${match[1] === "jpeg" ? "jpg" : match[1]}`;
+      if (fileEntries.length > 0) {
+        // Giới hạn tối đa 5 file ảnh đính kèm
+        const filesToProcess = fileEntries.slice(0, 5);
+        let fileIdx = 0;
+        for (const file of filesToProcess) {
+          fileIdx++;
+          const arrayBuffer = await file.arrayBuffer();
+          const buf = Buffer.from(arrayBuffer);
+          // SEC-01 Fix: Dùng magic bytes để phát hiện extension thực sự, TUYỆT ĐỐI KHÔNG dùng file.name
+          const ext = detectImageExtension(buf);
           const tempPath = join(getTempDir(), `input-${fileIdx}${ext}`);
-          writeFileSync(tempPath, Buffer.from(match[2], "base64"));
+          writeFileSync(tempPath, buf);
           tempFilesToClean.push(tempPath);
           inputImages.push(tempPath);
-        } else if (isValidLocalImage(strVal)) {
-          inputImages.push(strVal);
-        } else {
-          // Thử giải mã raw base64 (ví dụ b64_json không có data:image prefix)
-          try {
-            const cleanB64 = strVal.replace(/\s+/g, "");
-            if (cleanB64.length >= 16 && /^[A-Za-z0-9+/=]+$/.test(cleanB64)) {
-              const buf = Buffer.from(cleanB64, "base64");
-              if (buf.length > 0) {
-                const ext = detectImageExtension(buf);
-                const tempPath = join(getTempDir(), `input-${fileIdx}${ext}`);
-                writeFileSync(tempPath, buf);
-                tempFilesToClean.push(tempPath);
-                inputImages.push(tempPath);
-              }
+        }
+      }
+    } else {
+      const body = (await req.json().catch(() => ({}))) as Record<string, any>;
+      prompt = String(body.prompt || "");
+      if (typeof body.n === "number" && body.n > 1) n = body.n;
+      aspectRatioOrSize = body.aspect_ratio || body.ratio || body.size;
+      deleteChatRaw = body.delete_chat_after_gen ?? body.deleteChatAfterGen;
+
+      customTimeout =
+        typeof body.max_timeout === "number"
+          ? body.max_timeout * 1000
+          : typeof body.max_timeout_ms === "number"
+          ? body.max_timeout_ms
+          : typeof body.timeout === "number"
+          ? body.timeout * 1000
+          : typeof body.timeout_ms === "number"
+          ? body.timeout_ms
+          : undefined;
+      idleTimeout =
+        typeof body.idle_timeout === "number"
+          ? body.idle_timeout * 1000
+          : typeof body.idle_timeout_ms === "number"
+          ? body.idle_timeout_ms
+          : undefined;
+
+      const rawImages: any[] = [];
+      if (Array.isArray(body.image)) rawImages.push(...body.image);
+      else if (body.image) rawImages.push(body.image);
+      if (Array.isArray(body.images)) rawImages.push(...body.images);
+      if (Array.isArray(body.input_images)) rawImages.push(...body.input_images);
+      if (Array.isArray(body.reference_images)) rawImages.push(...body.reference_images);
+
+      if (rawImages.length > 0) {
+        const imagesToProcess = rawImages.slice(0, 5);
+        let fileIdx = 0;
+        for (const item of imagesToProcess) {
+          fileIdx++;
+          let strVal: string | null = null;
+          if (typeof item === "string") {
+            strVal = item.trim();
+          } else if (typeof item === "object" && item !== null) {
+            const candidate =
+              item.b64_json ||
+              item.url ||
+              (typeof item.image_url === "string" ? item.image_url : item.image_url?.url);
+            if (typeof candidate === "string") {
+              strVal = candidate.trim();
             }
-          } catch {}
+          }
+
+          if (!strVal) continue;
+
+          if (strVal.startsWith("http://") || strVal.startsWith("https://")) {
+            throw new Error("Remote HTTP(S) image URLs are not supported. Please provide Base64 data URLs, raw Base64, or multipart file uploads.");
+          }
+
+          const match = strVal.match(/^data:image\/([a-zA-Z0-9+.-]+);base64,(.+)$/s);
+          if (match) {
+            const ext = `.${match[1] === "jpeg" ? "jpg" : match[1]}`;
+            const tempPath = join(getTempDir(), `input-${fileIdx}${ext}`);
+            writeFileSync(tempPath, Buffer.from(match[2], "base64"));
+            tempFilesToClean.push(tempPath);
+            inputImages.push(tempPath);
+          } else if (isValidLocalImage(strVal)) {
+            inputImages.push(resolve(strVal));
+          } else {
+            // Thử giải mã raw base64 an toàn không dùng regex ReDoS (RES-02)
+            try {
+              const trimmed = strVal.trim();
+              if (trimmed.length >= 20 && trimmed.length <= 50 * 1024 * 1024) {
+                const buf = Buffer.from(trimmed, "base64");
+                if (buf.length >= 4) {
+                  const ext = detectImageExtension(buf);
+                  const isMagicImage =
+                    (ext === ".png" && buf[0] === 0x89) ||
+                    (ext === ".jpg" && buf[0] === 0xff) ||
+                    (ext === ".gif" && buf[0] === 0x47) ||
+                    (ext === ".webp" && buf.toString("ascii", 0, 4) === "RIFF");
+                  if (isMagicImage) {
+                    const tempPath = join(getTempDir(), `input-${fileIdx}${ext}`);
+                    writeFileSync(tempPath, buf);
+                    tempFilesToClean.push(tempPath);
+                    inputImages.push(tempPath);
+                  }
+                }
+              }
+            } catch {}
+          }
         }
       }
     }
+
+    const deleteChatAfterGen =
+      typeof deleteChatRaw === "boolean"
+        ? deleteChatRaw
+        : typeof deleteChatRaw === "string"
+        ? !["false", "0", "no", "off"].includes(deleteChatRaw.trim().toLowerCase())
+        : undefined;
+
+    return {
+      prompt,
+      n,
+      aspectRatioOrSize,
+      deleteChatAfterGen,
+      customTimeout,
+      idleTimeout,
+      tempFilesToClean,
+      inputImages,
+    };
+  } catch (err) {
+    // RES-01: Dọn dẹp sạch sẽ temp folder và files nếu quá trình parse bị throw
+    cleanupTempFiles(tempFilesToClean);
+    throw err;
   }
-
-  const deleteChatAfterGen =
-    typeof deleteChatRaw === "boolean"
-      ? deleteChatRaw
-      : typeof deleteChatRaw === "string"
-      ? !["false", "0", "no", "off"].includes(deleteChatRaw.trim().toLowerCase())
-      : undefined;
-
-  return {
-    prompt,
-    n,
-    aspectRatioOrSize,
-    deleteChatAfterGen,
-    customTimeout,
-    idleTimeout,
-    tempFilesToClean,
-    inputImages,
-  };
 }
+
 
 const PORT = Number(process.env.PORT || 3000);
 const HOSTNAME = "127.0.0.1";
@@ -404,8 +438,16 @@ export async function handleRequest(req: Request): Promise<Response> {
     const hasInputImages = parsed.inputImages.length > 0;
     const prefix = hasInputImages ? "Based on the attached reference image(s), " : "";
 
+    const lower = cleanPrompt.toLowerCase();
+    const alreadyHasCommand =
+      lower.startsWith("generate an image") ||
+      lower.startsWith("generate a creative variation") ||
+      lower.startsWith("generate exactly");
+
     if (parsed.n > 1) {
       generationPrompt = `${prefix}Generate exactly ${parsed.n} distinct images of: ${cleanPrompt}${separator}${ratioInstruction}`;
+    } else if (alreadyHasCommand) {
+      generationPrompt = `${prefix}${cleanPrompt}${separator}${ratioInstruction}`;
     } else {
       generationPrompt = `${prefix}Generate an image of: ${cleanPrompt}${separator}${ratioInstruction}`;
     }
@@ -426,6 +468,7 @@ export async function handleRequest(req: Request): Promise<Response> {
           idleTimeoutMs: parsed.idleTimeout,
           deleteChatAfterGen: parsed.deleteChatAfterGen,
           inputImages: parsed.inputImages,
+          skipDiskWrite: true,
         })
       );
 

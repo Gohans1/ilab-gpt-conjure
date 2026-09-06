@@ -92,9 +92,16 @@ export async function attachImagesToChatGPT(
     } catch {}
   }
 
+  if (!uploaded) {
+    throw new Error("Không thể nạp ảnh tham chiếu vào giao diện ChatGPT (không tìm thấy input file hoặc nút đính kèm).");
+  }
+
   // 3. Đợi thumbnail xuất hiện
   const thumbnail = page.locator(SELECTORS.attachmentThumbnail).first();
-  await thumbnail.waitFor({ state: "attached", timeout: 10_000 }).catch(() => {});
+  const hasThumb = await thumbnail.waitFor({ state: "attached", timeout: 10_000 }).then(() => true).catch(() => false);
+  if (!hasThumb) {
+    throw new Error("Giao diện ChatGPT không hiển thị thumbnail ảnh đính kèm sau khi nạp file.");
+  }
 
   // 4. Chờ indicator uploading biến mất (nếu đang tải ảnh lên)
   const uploading = page.locator(SELECTORS.attachmentUploading).first();
@@ -305,18 +312,19 @@ export async function generateImage(prompt: string, options: GenerateOptions = {
     const composer = page.locator(SELECTORS.composer).first();
     await composer.waitFor({ state: "visible", timeout: 30_000 });
 
-    // Lưu danh sách URL ảnh cũ trước khi gửi prompt
-    const initialUrls = await page.evaluate((selector) => {
-      return Array.from(document.querySelectorAll<HTMLImageElement>(selector))
-        .map((img) => img.src || img.getAttribute("src") || "")
-        .filter((src) => src.length > 0);
-    }, SELECTORS.generatedImage);
-
     const inputImages = resolveInputImages(options.inputImages);
     if (inputImages.length > 0) {
       console.log(`[2.5/5] Đang nạp ${inputImages.length} ảnh tham chiếu vào DOM...`);
       await attachImagesToChatGPT(page, inputImages);
     }
+
+    // Lưu danh sách URL ảnh cũ trước khi gửi prompt (loại trừ user message và form để không dính ảnh tham chiếu)
+    const initialUrls = await page.evaluate((selector) => {
+      return Array.from(document.querySelectorAll<HTMLImageElement>(selector))
+        .filter((img) => !img.closest('[data-message-author-role="user"]') && !img.closest("form"))
+        .map((img) => img.src || img.getAttribute("src") || "")
+        .filter((src) => src.length > 0);
+    }, SELECTORS.generatedImage);
 
     console.log(`[3/5] Đang nhập prompt: "${prompt}"...`);
     await composer.click();
@@ -349,6 +357,7 @@ export async function generateImage(prompt: string, options: GenerateOptions = {
     while (Date.now() - startTime < maxTimeoutMs) {
       const currentImages = await page.evaluate((selector) => {
         return Array.from(document.querySelectorAll<HTMLImageElement>(selector))
+          .filter((img) => !img.closest('[data-message-author-role="user"]') && !img.closest("form"))
           .map((img) => img.src || img.getAttribute("src") || "")
           .filter((src) => src.startsWith("http") || src.startsWith("blob:") || src.startsWith("data:"));
       }, SELECTORS.generatedImage);

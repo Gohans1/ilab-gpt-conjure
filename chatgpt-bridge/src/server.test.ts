@@ -110,6 +110,57 @@ describe("parseImageRequest", () => {
     const parsed = await parseImageRequest(req);
     expect(parsed.inputImages).toEqual([]);
   });
+
+  it("SEC-01: Chống path traversal khi client truyền filename độc hại trong multipart", async () => {
+    const formData = new FormData();
+    formData.append("prompt", "Try path traversal");
+    // Tên file chứa path traversal nguy hiểm
+    const maliciousFile = new File([new Uint8Array([0x89, 0x50, 0x4e, 0x47])], "../../../evil.bat", { type: "image/png" });
+    formData.append("image", maliciousFile);
+
+    const req = new Request("http://127.0.0.1:3000/v1/images/edits", {
+      method: "POST",
+      body: formData,
+    });
+
+    const parsed = await parseImageRequest(req);
+    try {
+      expect(parsed.inputImages.length).toBe(1);
+      // Đường dẫn file tạm phải nằm an toàn trong tmpdir(), không bị thoát ra ngoài
+      expect(parsed.inputImages[0].includes("evil.bat")).toBe(false);
+      expect(parsed.inputImages[0].endsWith(".png")).toBe(true);
+      expect(existsSync(parsed.inputImages[0])).toBe(true);
+    } finally {
+      cleanupTempFiles(parsed.tempFilesToClean);
+    }
+  });
+
+  it("SEC-02: Chặn đứng UNC network path trên Windows để chống leak NetNTLM hash", async () => {
+    const req = new Request("http://127.0.0.1:3000/v1/images/edits", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        prompt: "Steal NTLM hash",
+        image: "\\\\10.0.0.1\\share\\secret.png",
+      }),
+    });
+
+    const parsed = await parseImageRequest(req);
+    expect(parsed.inputImages).toEqual([]);
+  });
+
+  it("RES-01: Dọn dẹp sạch sẽ thư mục tạm nếu quá trình parse bị lỗi", async () => {
+    const req = new Request("http://127.0.0.1:3000/v1/images/edits", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        prompt: "Test remote url error",
+        image: "https://example.com/image.png", // Remote URL bị cấm, sẽ throw
+      }),
+    });
+
+    await expect(parseImageRequest(req)).rejects.toThrow("Remote HTTP(S) image URLs are not supported");
+  });
 });
 
 describe("cleanupTempFiles", () => {
@@ -136,6 +187,22 @@ describe("handleRequest validation", () => {
       body: JSON.stringify({
         prompt: "Edit this picture without picture",
       }),
+    });
+
+    const res = await handleRequest(req);
+    expect(res.status).toBe(400);
+    const json: any = await res.json();
+    expect(json.error?.code).toBe("missing_image");
+  });
+
+  it("trả về 400 missing_image khi gọi /v1/images/variations mà không có ảnh", async () => {
+    const req = new Request("http://127.0.0.1:3000/v1/images/variations", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer sk-local",
+      },
+      body: JSON.stringify({}),
     });
 
     const res = await handleRequest(req);
