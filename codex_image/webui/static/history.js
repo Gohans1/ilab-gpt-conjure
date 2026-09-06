@@ -19312,6 +19312,14 @@
     return slots;
   }
   function aspectRatioRect(value) {
+    if (value === "None" || value === "none" || value === "auto") {
+      return {
+        x: 5,
+        y: 5,
+        width: 10,
+        height: 10
+      };
+    }
     const ratio = parsedRatio(value);
     if (!ratio) return null;
     const maximum = 16;
@@ -19346,6 +19354,9 @@
     rect.setAttribute("stroke", "currentColor");
     rect.setAttribute("stroke-width", "1.35");
     rect.setAttribute("vector-effect", "non-scaling-stroke");
+    if (value === "None" || value === "none") {
+      rect.setAttribute("stroke-dasharray", "2 2");
+    }
     svg.append(rect);
     return svg;
   }

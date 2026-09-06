@@ -554,6 +554,15 @@ select.themed-select-native {
   padding: var(--segmented-control-padding);
 }
 
+.chatgpt-delete-chat-field {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 0;
+  padding: 4px 0 6px;
+}
+
 .ratio-group {
   --segmented-control-padding: 2px;
   display: grid;

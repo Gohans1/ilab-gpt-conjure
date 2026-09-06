@@ -820,12 +820,20 @@
   min-width: 0;
 }
 
-.web-search-field,
-.chatgpt-delete-chat-field {
+.web-search-field {
   grid-column: 2 / 3;
   grid-row: 1 / 2;
   align-self: end;
   min-width: 0;
+}
+
+.chatgpt-delete-chat-field {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 0;
+  padding: 4px 0 6px;
 }
 
 .web-search-field > span,
