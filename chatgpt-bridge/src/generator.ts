@@ -98,7 +98,7 @@ export async function attachImagesToChatGPT(
 
   // 3. Đợi thumbnail xuất hiện
   const thumbnail = page.locator(SELECTORS.attachmentThumbnail).first();
-  const hasThumb = await thumbnail.waitFor({ state: "attached", timeout: 10_000 }).then(() => true).catch(() => false);
+  const hasThumb = await thumbnail.waitFor({ state: "attached", timeout: 20_000 }).then(() => true).catch(() => false);
   if (!hasThumb) {
     throw new Error("Giao diện ChatGPT không hiển thị thumbnail ảnh đính kèm sau khi nạp file.");
   }
@@ -314,6 +314,8 @@ export async function generateImage(prompt: string, options: GenerateOptions = {
 
     const inputImages = resolveInputImages(options.inputImages);
     if (inputImages.length > 0) {
+      // Đợi 2s cho React hydrate xong và cắm event listener vào thẻ input file
+      await page.waitForTimeout(2_000);
       console.log(`[2.5/5] Đang nạp ${inputImages.length} ảnh tham chiếu vào DOM...`);
       await attachImagesToChatGPT(page, inputImages);
     }

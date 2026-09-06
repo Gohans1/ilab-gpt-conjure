@@ -48,8 +48,8 @@ export const SELECTORS = {
   stopButton: '[data-testid="stop-button"]',
   generatedImage: '[data-message-author-role="assistant"] img[src*="backend-api/estuary"], [data-message-author-role="assistant"] img[src*="files.oaiusercontent.com"], [data-message-author-role="assistant"] img[alt*="Generated image"], [data-message-author-role="assistant"] img[src*="oaidalleapiprodscus"], [data-testid*="conversation-turn"] [data-message-author-role="assistant"] img, img[src*="backend-api/estuary"]',
   loginButton: 'button[data-testid="login-button"], a[href*="/auth/login"]',
-  fileInput: 'input#upload-files[type="file"], input[type="file"]',
-  attachButton: 'button[data-testid*="attach"], button[aria-label*="Attach" i], button[aria-label*="Add files" i]',
-  attachmentThumbnail: '[data-testid*="attachment"], [data-testid*="file-pill"], [class*="attachment"], [class*="file-item"], button[aria-label*="Remove" i]',
+  fileInput: 'input#upload-photos[type="file"], input#upload-files[type="file"], input[type="file"]',
+  attachButton: 'button[data-testid*="plus"], button[data-testid*="attach"], button[aria-label*="Add files" i], button[aria-label*="Attach" i]',
+  attachmentThumbnail: 'form img[src^="blob:"], form button[aria-label*="Remove file" i], button[aria-label*="Remove file" i], form button[aria-label*="Remove" i], [data-testid*="attachment"], [data-testid*="file-pill"], [class*="attachment"], [class*="file-item"], button[aria-label*="Remove" i]',
   attachmentUploading: 'form [data-testid*="upload-progress"], form [aria-label*="Uploading" i], [data-testid*="attachment"] .animate-spin, form .animate-spin',
 };
