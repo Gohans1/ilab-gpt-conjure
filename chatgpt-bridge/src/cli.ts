@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
-import { existsSync } from "node:fs";
-import { resolve } from "node:path";
+import { existsSync, writeFileSync } from "node:fs";
+import { join, resolve } from "node:path";
 import { generateImage } from "./generator.js";
 import { getBrowserSession } from "./browser.js";
 import { CHATGPT_URL, SELECTORS, USER_DATA_DIR } from "./config.js";
@@ -26,9 +26,6 @@ Ví dụ:
   bun run src/cli.ts "Vẽ một chú mèo phi hành gia phong cách cyberpunk, tỉ lệ 16:9" -o ./cat.png
 `);
 }
-
-import { writeFileSync } from "node:fs";
-import { join } from "node:path";
 
 export async function handleLogin(): Promise<void> {
   console.log("🔑 [Login Mode] Đang mở Chrome để bạn đăng nhập ChatGPT...");
@@ -76,7 +73,14 @@ async function main(): Promise<void> {
       outputPath = args[++i] || "";
     } else if (arg === "-i" || arg === "--image" || arg === "--images") {
       const imgPath = args[++i] || "";
-      if (imgPath) inputImages.push(resolve(process.cwd(), imgPath));
+      if (imgPath) {
+        const resolved = resolve(process.cwd(), imgPath);
+        if (!existsSync(resolved)) {
+          console.error(`❌ Lỗi: Không tìm thấy file ảnh tham chiếu: ${imgPath}`);
+          process.exit(1);
+        }
+        inputImages.push(resolved);
+      }
     } else if (arg === "--headless") {
       headless = true;
     } else if (arg === "--headed") {

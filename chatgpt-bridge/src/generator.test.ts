@@ -450,7 +450,7 @@ describe("attachImagesToChatGPT", () => {
         return { first: () => ({}) };
       },
     };
-    await attachImagesToChatGPT(mockPage, []);
+    await attachImagesToChatGPT(mockPage as any, []);
     expect(called).toBe(false);
   });
 
@@ -459,6 +459,7 @@ describe("attachImagesToChatGPT", () => {
     let timeoutUsed = 0;
     const mockLocator = {
       count: async () => 1,
+      getAttribute: async (attr: string) => (attr === "multiple" ? "multiple" : null),
       setInputFiles: async (files: any, opts: any) => {
         capturedFiles = files;
         timeoutUsed = opts?.timeout;
@@ -473,10 +474,33 @@ describe("attachImagesToChatGPT", () => {
       waitForTimeout: async () => {},
     };
 
-    await attachImagesToChatGPT(mockPage, ["C:/test.png"]);
+    await attachImagesToChatGPT(mockPage as any, ["C:/test.png"]);
     expect(capturedFiles).toEqual(["C:/test.png"]);
     expect(timeoutUsed).toBe(15_000);
   });
+
+  it("chỉ upload 1 file nếu thẻ input không hỗ trợ multiple", async () => {
+    let capturedFiles: any = null;
+    const mockLocator = {
+      count: async () => 1,
+      getAttribute: async () => null, // Không có multiple
+      setInputFiles: async (files: any) => {
+        capturedFiles = files;
+      },
+      waitFor: async () => {},
+    };
+
+    const mockPage = {
+      locator: () => ({
+        first: () => mockLocator,
+      }),
+      waitForTimeout: async () => {},
+    };
+
+    await attachImagesToChatGPT(mockPage as any, ["C:/img1.png", "C:/img2.png"]);
+    expect(capturedFiles).toEqual(["C:/img1.png"]);
+  });
 });
+
 
 

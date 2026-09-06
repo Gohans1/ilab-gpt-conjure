@@ -1,4 +1,4 @@
-import { rmSync } from "node:fs";
+import { existsSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { CHATGPT_URL, SELECTORS, USER_DATA_DIR } from "./config.js";
 import { getBrowserSession, type BrowserOptions, type BrowserSession } from "./browser.js";
@@ -61,28 +61,46 @@ export async function attachImagesToChatGPT(
   const timeout = options.timeoutMs ?? 15_000;
   const settleMs = options.settleMs ?? 1_500;
 
-  // 1. Thử tìm thẻ input[type="file"] có sẵn trong DOM
-  const fileInput = page.locator(SELECTORS.fileInput).first();
-  const inputCount = await fileInput.count().catch(() => 0);
+  let uploaded = false;
 
-  if (inputCount > 0) {
-    await fileInput.setInputFiles(paths, { timeout });
-  } else {
-    // 2. Fallback nếu thẻ input được sinh động khi bấm nút Attach
-    const attachBtn = page.locator(SELECTORS.attachButton).first();
-    const [fileChooser] = await Promise.all([
-      page.waitForEvent("filechooser", { timeout }),
-      attachBtn.click({ timeout: 5000 }).catch(() => {}),
-    ]);
-    if (fileChooser) {
-      await fileChooser.setFiles(paths);
+  // 1. Thử tìm thẻ input[type="file"] có sẵn trong DOM
+  try {
+    const fileInput = page.locator(SELECTORS.fileInput).first();
+    const inputCount = await fileInput.count().catch(() => 0);
+
+    if (inputCount > 0) {
+      const isMultiple = typeof fileInput.getAttribute === "function"
+        ? await fileInput.getAttribute("multiple").then((val: any) => val !== null).catch(() => false)
+        : false;
+      const filesToUpload = isMultiple || paths.length === 1 ? paths : paths.slice(0, 1);
+      await fileInput.setInputFiles(filesToUpload, { timeout });
+      uploaded = true;
     }
+  } catch {}
+
+  // 2. Fallback nếu thẻ input chưa có trong DOM hoặc setInputFiles gặp lỗi
+  if (!uploaded) {
+    try {
+      const attachBtn = page.locator(SELECTORS.attachButton).first();
+      const fileChooserPromise = page.waitForEvent("filechooser", { timeout: 8_000 }).catch(() => null);
+      const clickPromise = attachBtn.click({ timeout: 5000 }).catch(() => {});
+      const [fileChooser] = await Promise.all([fileChooserPromise, clickPromise]);
+      if (fileChooser) {
+        await fileChooser.setFiles(paths);
+        uploaded = true;
+      }
+    } catch {}
   }
 
-  // 3. Đợi ảnh nạp xong vào giao diện ChatGPT (thumbnail xuất hiện hoặc settle)
-  await page.waitForTimeout(settleMs);
+  // 3. Đợi thumbnail xuất hiện
   const thumbnail = page.locator(SELECTORS.attachmentThumbnail).first();
   await thumbnail.waitFor({ state: "attached", timeout: 10_000 }).catch(() => {});
+
+  // 4. Chờ indicator uploading biến mất (nếu đang tải ảnh lên)
+  const uploading = page.locator(SELECTORS.attachmentUploading).first();
+  await uploading.waitFor({ state: "detached", timeout: 30_000 }).catch(() => {});
+
+  await page.waitForTimeout(settleMs);
 }
 
 
@@ -222,6 +240,13 @@ export function inspectChatGPTPageState(
 }
 
 export async function generateImage(prompt: string, options: GenerateOptions = {}): Promise<DownloadResult[]> {
+  const inputImages = resolveInputImages(options.inputImages);
+  for (const imgPath of inputImages) {
+    if (!existsSync(imgPath)) {
+      throw new Error(`Không tìm thấy file ảnh tham chiếu: ${imgPath}`);
+    }
+  }
+
   const session: BrowserSession = await getBrowserSession({
     headless: options.headless,
   });
@@ -297,14 +322,12 @@ export async function generateImage(prompt: string, options: GenerateOptions = {
     await composer.click();
     await composer.fill(prompt);
 
-    // Gửi prompt
-    await page.waitForTimeout(600);
+    // Gửi prompt: Playwright click tự động chờ nút enabled (actionability wait)
+    await page.waitForTimeout(400);
     const sendBtn = page.locator(SELECTORS.sendButton).first();
-    await sendBtn.waitFor({ state: "visible", timeout: 15_000 }).catch(() => {});
-    const canClickSend = await sendBtn.isEnabled({ timeout: 5000 }).catch(() => false);
-    if (canClickSend) {
-      await sendBtn.click();
-    } else {
+    try {
+      await sendBtn.click({ timeout: 20_000 });
+    } catch {
       await composer.press("Enter");
     }
 

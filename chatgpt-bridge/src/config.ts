@@ -51,5 +51,5 @@ export const SELECTORS = {
   fileInput: 'input#upload-files[type="file"], input[type="file"]',
   attachButton: 'button[data-testid*="attach"], button[aria-label*="Attach" i], button[aria-label*="Add files" i]',
   attachmentThumbnail: '[data-testid*="attachment"], [data-testid*="file-pill"], [class*="attachment"], [class*="file-item"], button[aria-label*="Remove" i]',
-  attachmentUploading: '[data-testid*="upload-progress"], [aria-label*="Uploading" i], .animate-spin',
+  attachmentUploading: 'form [data-testid*="upload-progress"], form [aria-label*="Uploading" i], [data-testid*="attachment"] .animate-spin, form .animate-spin',
 };

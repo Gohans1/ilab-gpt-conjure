@@ -1,4 +1,4 @@
-import { existsSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { generateImage, sizeToAspectRatio } from "./generator.js";
@@ -19,9 +19,45 @@ export interface ParsedImageRequest {
 export function cleanupTempFiles(files: string[]): void {
   for (const file of files) {
     try {
-      rmSync(file, { force: true });
+      rmSync(file, { recursive: true, force: true });
     } catch {}
   }
+}
+
+const VALID_IMAGE_EXTENSIONS = new Set([".png", ".jpg", ".jpeg", ".webp", ".gif"]);
+
+function isValidLocalImage(filePath: string): boolean {
+  try {
+    if (!existsSync(filePath)) return false;
+    const stat = statSync(filePath);
+    if (!stat.isFile()) return false;
+    const lower = filePath.toLowerCase();
+    const dotIdx = lower.lastIndexOf(".");
+    if (dotIdx === -1) return false;
+    return VALID_IMAGE_EXTENSIONS.has(lower.slice(dotIdx));
+  } catch {
+    return false;
+  }
+}
+
+function detectImageExtension(buf: Buffer): string {
+  if (buf.length >= 4 && buf[0] === 0x89 && buf[1] === 0x50 && buf[2] === 0x4e && buf[3] === 0x47) {
+    return ".png";
+  }
+  if (buf.length >= 3 && buf[0] === 0xff && buf[1] === 0xd8 && buf[2] === 0xff) {
+    return ".jpg";
+  }
+  if (buf.length >= 4 && buf[0] === 0x47 && buf[1] === 0x49 && buf[2] === 0x46) {
+    return ".gif";
+  }
+  if (
+    buf.length >= 12 &&
+    buf.toString("ascii", 0, 4) === "RIFF" &&
+    buf.toString("ascii", 8, 12) === "WEBP"
+  ) {
+    return ".webp";
+  }
+  return ".png";
 }
 
 export async function parseImageRequest(req: Request): Promise<ParsedImageRequest> {
@@ -35,6 +71,15 @@ export async function parseImageRequest(req: Request): Promise<ParsedImageReques
   let deleteChatRaw: any;
   let customTimeout: number | undefined;
   let idleTimeout: number | undefined;
+
+  let tempDir: string | null = null;
+  const getTempDir = (): string => {
+    if (!tempDir) {
+      tempDir = mkdtempSync(join(tmpdir(), "chatgpt-bridge-"));
+      tempFilesToClean.push(tempDir);
+    }
+    return tempDir;
+  };
 
   if (contentType.includes("multipart/form-data")) {
     const formData = await req.formData();
@@ -56,12 +101,11 @@ export async function parseImageRequest(req: Request): Promise<ParsedImageReques
     }
 
     if (fileEntries.length > 0) {
-      const tempDir = mkdtempSync(join(tmpdir(), "chatgpt-bridge-"));
       let fileIdx = 0;
       for (const file of fileEntries) {
         fileIdx++;
         const ext = file.name?.includes(".") ? file.name.slice(file.name.lastIndexOf(".")) : ".png";
-        const tempPath = join(tempDir, `input-${fileIdx}${ext}`);
+        const tempPath = join(getTempDir(), `input-${fileIdx}${ext}`);
         const arrayBuffer = await file.arrayBuffer();
         writeFileSync(tempPath, Buffer.from(arrayBuffer));
         tempFilesToClean.push(tempPath);
@@ -99,33 +143,48 @@ export async function parseImageRequest(req: Request): Promise<ParsedImageReques
     if (Array.isArray(body.reference_images)) rawImages.push(...body.reference_images);
 
     if (rawImages.length > 0) {
-      const tempDir = mkdtempSync(join(tmpdir(), "chatgpt-bridge-"));
       let fileIdx = 0;
       for (const item of rawImages) {
         fileIdx++;
+        let strVal: string | null = null;
         if (typeof item === "string") {
-          const match = item.match(/^data:image\/([a-zA-Z0-9+.-]+);base64,(.+)$/s);
-          if (match) {
-            const ext = `.${match[1] === "jpeg" ? "jpg" : match[1]}`;
-            const tempPath = join(tempDir, `input-${fileIdx}${ext}`);
-            writeFileSync(tempPath, Buffer.from(match[2], "base64"));
-            tempFilesToClean.push(tempPath);
-            inputImages.push(tempPath);
-          } else if (existsSync(item)) {
-            inputImages.push(item);
-          }
+          strVal = item.trim();
         } else if (typeof item === "object" && item !== null) {
-          const url = item.image_url || item.url || item.b64_json;
-          if (typeof url === "string") {
-            const match = url.match(/^data:image\/([a-zA-Z0-9+.-]+);base64,(.+)$/s);
-            if (match) {
-              const ext = `.${match[1] === "jpeg" ? "jpg" : match[1]}`;
-              const tempPath = join(tempDir, `input-${fileIdx}${ext}`);
-              writeFileSync(tempPath, Buffer.from(match[2], "base64"));
-              tempFilesToClean.push(tempPath);
-              inputImages.push(tempPath);
-            }
+          const candidate =
+            item.b64_json ||
+            item.url ||
+            (typeof item.image_url === "string" ? item.image_url : item.image_url?.url);
+          if (typeof candidate === "string") {
+            strVal = candidate.trim();
           }
+        }
+
+        if (!strVal) continue;
+
+        const match = strVal.match(/^data:image\/([a-zA-Z0-9+.-]+);base64,(.+)$/s);
+        if (match) {
+          const ext = `.${match[1] === "jpeg" ? "jpg" : match[1]}`;
+          const tempPath = join(getTempDir(), `input-${fileIdx}${ext}`);
+          writeFileSync(tempPath, Buffer.from(match[2], "base64"));
+          tempFilesToClean.push(tempPath);
+          inputImages.push(tempPath);
+        } else if (isValidLocalImage(strVal)) {
+          inputImages.push(strVal);
+        } else {
+          // Thử giải mã raw base64 (ví dụ b64_json không có data:image prefix)
+          try {
+            const cleanB64 = strVal.replace(/\s+/g, "");
+            if (cleanB64.length >= 16 && /^[A-Za-z0-9+/=]+$/.test(cleanB64)) {
+              const buf = Buffer.from(cleanB64, "base64");
+              if (buf.length > 0) {
+                const ext = detectImageExtension(buf);
+                const tempPath = join(getTempDir(), `input-${fileIdx}${ext}`);
+                writeFileSync(tempPath, buf);
+                tempFilesToClean.push(tempPath);
+                inputImages.push(tempPath);
+              }
+            }
+          } catch {}
         }
       }
     }
@@ -284,7 +343,25 @@ export async function handleRequest(req: Request): Promise<Response> {
     }
 
     // 2. Parse request (hỗ trợ cả application/json lẫn multipart/form-data)
-    const parsed = await parseImageRequest(req);
+    let parsed: ParsedImageRequest;
+    try {
+      parsed = await parseImageRequest(req);
+    } catch (parseErr) {
+      const msg = parseErr instanceof Error ? parseErr.message : String(parseErr);
+      return Response.json(
+        formatOpenAIError(`Failed to parse request: ${msg}`, "invalid_request_error"),
+        { status: 400, headers: corsHeaders }
+      );
+    }
+
+    if ((pathname.includes("edits") || pathname.includes("variations")) && parsed.inputImages.length === 0) {
+      cleanupTempFiles(parsed.tempFilesToClean);
+      return Response.json(
+        formatOpenAIError("image is required for image edits/variations", "invalid_request_error", "missing_image"),
+        { status: 400, headers: corsHeaders }
+      );
+    }
+
     let prompt = parsed.prompt;
     if (!prompt && pathname.includes("variations")) {
       prompt = "Generate a creative variation of the attached image";
