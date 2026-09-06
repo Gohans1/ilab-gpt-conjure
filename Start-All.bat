@@ -30,8 +30,7 @@ if exist "%PROJECT_DIR%bin\bun.exe" (
 ) else if exist "%PROJECT_DIR%chatgpt-bridge\bun.exe" (
   set "BUN_CMD=%PROJECT_DIR%chatgpt-bridge\bun.exe"
 ) else (
-  where bun >nul 2>nul
-  if %ERRORLEVEL% EQU 0 set "BUN_CMD=bun"
+  where bun >nul 2>nul && set "BUN_CMD=bun"
 )
 
 if not defined BUN_CMD (
@@ -70,8 +69,7 @@ set "UV_CMD="
 if exist "%PROJECT_DIR%bin\uv.exe" (
   set "UV_CMD=%PROJECT_DIR%bin\uv.exe"
 ) else (
-  where uv >nul 2>nul
-  if %ERRORLEVEL% EQU 0 set "UV_CMD=uv"
+  where uv >nul 2>nul && set "UV_CMD=uv"
 )
 
 if exist "%PYTHON_BIN%" goto :python_ready
@@ -101,8 +99,7 @@ py -3 --version >nul 2>nul
 if not errorlevel 1 (
   set "SYSTEM_PYTHON=py -3"
 ) else (
-  where python >nul 2>nul
-  if not errorlevel 1 set "SYSTEM_PYTHON=python"
+  where python >nul 2>nul && set "SYSTEM_PYTHON=python"
 )
 
 if not defined SYSTEM_PYTHON (
@@ -123,14 +120,14 @@ if not exist "%PYTHON_BIN%" (
 
 :: Verify runtime dependencies
 "%PYTHON_BIN%" -m codex_image.dependency_check --requirements "%PROJECT_DIR%requirements-webui.txt" >nul 2>nul
-if %ERRORLEVEL% NEQ 0 (
+if errorlevel 1 (
   echo [INFO] Dang cai dat / cap nhat WebUI dependencies...
   if defined UV_CMD (
     "%UV_CMD%" pip install -p "%PYTHON_BIN%" --require-hashes -r "%PROJECT_DIR%requirements-webui.txt"
   ) else (
     "%PYTHON_BIN%" -m pip install --require-hashes -r "%PROJECT_DIR%requirements-webui.txt"
   )
-  if %ERRORLEVEL% NEQ 0 (
+  if errorlevel 1 (
     echo [ERROR] Cai dat WebUI dependencies that bai!
     pause
     exit /b 1
@@ -234,7 +231,7 @@ pause >nul
 echo.
 echo Dang tat tat ca server va tien trinh lien quan...
 powershell -NoProfile -Command "Get-NetTCPConnection -LocalPort 3000, 8787 -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess -Unique | ForEach-Object { $p = Get-Process -Id $_ -ErrorAction SilentlyContinue; if ($p -and $p.ProcessName -match 'bun|node|python|cmd') { Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue } }" >nul 2>nul
-powershell -NoProfile -Command "Get-Process bun, python -ErrorAction SilentlyContinue | Where-Object { $_.Path -like '*ilab-conjure*' } | Stop-Process -Force -ErrorAction SilentlyContinue" >nul 2>nul
+powershell -NoProfile -Command "Get-Process bun, python -ErrorAction SilentlyContinue | Where-Object { $_.Path -like '*ilab*conjure*' } | Stop-Process -Force -ErrorAction SilentlyContinue" >nul 2>nul
 powershell -NoProfile -Command "Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -like '*chatgpt-profile*' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }" >nul 2>nul
 echo Da tat toan bo tien trinh an toan. Tam biet!
 ping 127.0.0.1 -n 3 >nul
