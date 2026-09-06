@@ -47,6 +47,8 @@ class _LegacyClientAdapter:
         is_batch_bridge = bool(
             getattr(self.client, "supports_batch_generation", False)
             or ":3000" in str(getattr(self.client, "base_url", "")).lower()
+            or "bridge" in str(getattr(self.client, "base_url", "")).lower()
+            or "chatgpt" in str(getattr(self.client, "base_url", "")).lower()
         )
         if delete_chat_after_gen is not None and (
             is_batch_bridge or hasattr(self.client, "generations_url")
@@ -163,6 +165,8 @@ class ExecutionPlanImageClient:
                 not self._uses_legacy_client_adapter
                 or getattr(client, "supports_batch_generation", False)
                 or ":3000" in str(getattr(client, "base_url", "")).lower()
+                or "bridge" in str(getattr(client, "base_url", "")).lower()
+                or "chatgpt" in str(getattr(client, "base_url", "")).lower()
             )
         )
 

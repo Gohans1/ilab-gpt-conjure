@@ -355,6 +355,36 @@ describe("buildGenerationPrompt", () => {
       "Generate exactly 4 distinct variations of the attached image: 背景を青空に変えてください。"
     );
   });
+
+  it("tự unwrap về prompt gốc khi có ảnh reference nhưng n = 1 trên prompt batch cũ", () => {
+    const prompt = buildGenerationPrompt({
+      prompt: "Generate exactly 4 distinct variations of the attached image: Add red glasses.",
+      aspectRatioOrSize: "None",
+      hasInputImages: true,
+      n: 1,
+    });
+    expect(prompt).toBe("Add red glasses.");
+  });
+
+  it("không bị double-wrapping ở chế độ text-to-image khi prompt đã có lệnh vẽ", () => {
+    const prompt = buildGenerationPrompt({
+      prompt: "Generate an image of: A cute cat.",
+      aspectRatioOrSize: "None",
+      hasInputImages: false,
+      n: 4,
+    });
+    expect(prompt).toBe("Generate exactly 4 distinct images of: A cute cat.");
+  });
+
+  it("tự unwrap về prompt đơn ở chế độ text-to-image khi n = 1 trên prompt batch cũ", () => {
+    const prompt = buildGenerationPrompt({
+      prompt: "Generate exactly 4 distinct images of: A cute cat.",
+      aspectRatioOrSize: "None",
+      hasInputImages: false,
+      n: 1,
+    });
+    expect(prompt).toBe("Generate an image of: A cute cat.");
+  });
 });
 
 

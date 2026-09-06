@@ -466,6 +466,8 @@ class WebUIRefactorContractTests(unittest.TestCase):
                 ("/api/network-egress", "GET"),
                 ("/api/network-egress", "PATCH"),
                 ("/api/network-egress/test", "POST"),
+                ("/api/bridge/status", "GET"),
+                ("/api/bridge/login", "POST"),
                 ("/api/generate", "POST"),
                 ("/api/edit", "POST"),
             }

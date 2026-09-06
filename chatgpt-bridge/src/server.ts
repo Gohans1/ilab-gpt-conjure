@@ -275,23 +275,85 @@ function enqueueTask<T>(task: () => Promise<T>): Promise<T> {
   });
 }
 
+// Regex bao quát toàn bộ 14 ngôn ngữ hỗ trợ để bóc sạch câu ratio nếu có
+const ratioRegex =
+  /(?:Set the aspect ratio to|Đặt tỷ lệ khung hình thành|将宽高比设为|將寬高比設為|アスペクト比を|화면 비율을|Establece la relación de aspecto en|Defina a proporção da imagem como|Réglez le rapport largeur\/hauteur sur|Stelle das Seitenverhältnis auf|Установите соотношение сторон|Imposta le proporzioni su|पक्षानुपात को)\s*[0-9]+:[0-9]+(?:\s*に設定してください|\s*로 설정하세요|\s*ein|\s*पर सेट करें)?[.\u3002\u0964]?/gi;
+
+const ORIGINAL_PROMPT_MARKERS = [
+  "Original user prompt:",
+  "用户原始提示词：",
+  "使用者原始提示詞：",
+  "ユーザーの元のプロンプト：",
+  "사용자의 원본 프롬프트:",
+  "Prompt original del usuario:",
+  "Prompt original do usuário:",
+  "Prompt original de l’utilisateur :",
+  "Prompt original de l'utilisateur :",
+  "Ursprünglicher Benutzer-Prompt:",
+  "Исходный промпт пользователя:",
+  "Prompt originale dell'utente:",
+  "उपयोगकर्ता का मूल प्रॉम्प्ट:",
+  "Prompt gốc của người dùng:",
+];
+
+export function cleanAndUnwrapPrompt(rawPrompt: string): string {
+  let prompt = rawPrompt.trim();
+  for (const marker of ORIGINAL_PROMPT_MARKERS) {
+    if (prompt.includes(marker)) {
+      const afterMarker = prompt.slice(prompt.indexOf(marker) + marker.length).trim();
+      if (afterMarker) {
+        prompt = afterMarker;
+        break;
+      }
+    }
+  }
+
+  // Bóc sạch bất kỳ câu ratio tự động nào
+  prompt = prompt.replace(ratioRegex, "").replace(/\s{2,}/g, " ").trim();
+
+  // Bóc sạch vỏ variations wrapper nếu prompt đã từng bị wrap
+  const varMatch = prompt.match(
+    /^generate exactly \d+ distinct (?:creative )?variations of the attached image(?::\s*(.*)|[.!?\u3002\u0964\uFF01\uFF1F]?)$/i
+  );
+  if (varMatch) {
+    return (varMatch[1] || "").trim();
+  }
+
+  // Bóc sạch vỏ text-to-image wrapper nếu prompt đã từng bị wrap
+  const imgMatch = prompt.match(
+    /^generate (?:an image of|exactly \d+ distinct images of):\s*(.*)$/i
+  );
+  if (imgMatch) {
+    return (imgMatch[1] || "").trim();
+  }
+
+  if (/^generate a creative variation of the attached image[.!?\u3002\u0964\uFF01\uFF1F]?$/i.test(prompt)) {
+    return "";
+  }
+
+  return prompt;
+}
+
 export function buildGenerationPrompt(options: {
   prompt: string;
   aspectRatioOrSize?: string | null;
   hasInputImages: boolean;
   n: number;
 }): string {
-  // 2.1 Bóc tách prompt sạch (loại bỏ rác Prompt fidelity guidance nếu có)
-  let cleanPrompt = options.prompt.trim();
-  const marker = "Original user prompt:";
-  if (cleanPrompt.includes(marker)) {
-    const afterMarker = cleanPrompt.slice(cleanPrompt.indexOf(marker) + marker.length).trim();
-    if (afterMarker) {
-      cleanPrompt = afterMarker;
+  const cleanPrompt = cleanAndUnwrapPrompt(options.prompt);
+  const separator = /[.!?\u3002\u0964\uFF01\uFF1F]$/.test(cleanPrompt) ? "" : ".";
+
+  if (options.hasInputImages) {
+    if (options.n > 1) {
+      if (!cleanPrompt) {
+        return `Generate exactly ${options.n} distinct creative variations of the attached image.`;
+      }
+      return `Generate exactly ${options.n} distinct variations of the attached image: ${cleanPrompt}${separator}`;
     }
+    return cleanPrompt || "Generate a creative variation of the attached image.";
   }
 
-  // Giữ lại câu aspect ratio nếu có trong prompt hoặc trích xuất từ body
+  // Text-to-image (vẽ mới)
   const rawAspect = options.aspectRatioOrSize;
   const rawRatioStr = String(rawAspect || "").trim().toLowerCase();
   const isExplicitNoneRatio =
@@ -301,22 +363,12 @@ export function buildGenerationPrompt(options: {
     rawRatioStr === "auto" ||
     rawRatioStr === "undefined";
 
-  // Regex bao quát toàn bộ 14 ngôn ngữ hỗ trợ để bóc sạch câu ratio nếu có
-  const ratioRegex =
-    /(?:Set the aspect ratio to|Đặt tỷ lệ khung hình thành|将宽高比设为|將寬高比設為|アスペクト比を|화면 비율을|Establece la relación de aspecto en|Defina a proporção da imagem como|Réglez le rapport largeur\/hauteur sur|Stelle das Seitenverhältnis auf|Установите соотношение сторон|Imposta le proporzioni su|पक्षानुपात को)\s+[0-9]+:[0-9]+(?:\s*に設定してください|\s*로 설정하세요|\s*ein|\s*पर सेट करें)?[.\u3002\u0964]?/gi;
-
   let ratioInstruction = "";
-
-  if (isExplicitNoneRatio) {
-    // Khi chọn None / tự do, bóc sạch câu ratio khỏi prompt để ChatGPT tự do quyết định tỷ lệ
-    cleanPrompt = cleanPrompt.replace(ratioRegex, "").replace(/\s{2,}/g, " ").trim();
-  } else {
-    const ratioMatch = cleanPrompt.match(ratioRegex);
+  if (!isExplicitNoneRatio) {
+    const ratioMatch = options.prompt.match(ratioRegex);
     if (ratioMatch) {
       ratioInstruction = ` ${ratioMatch[0].trim()}`;
-      cleanPrompt = cleanPrompt.replace(ratioRegex, "").replace(/\s{2,}/g, " ").trim();
-    } else if (!options.hasInputImages) {
-      // Chỉ fallback từ size khi KHÔNG có ảnh reference (vẽ mới). Có ảnh reference phải giữ fresh tuyệt đối!
+    } else {
       const detectedRatio = sizeToAspectRatio(rawAspect);
       if (detectedRatio) {
         ratioInstruction = ` Set the aspect ratio to ${detectedRatio}.`;
@@ -324,52 +376,8 @@ export function buildGenerationPrompt(options: {
     }
   }
 
-  // 2.2 Bọc mệnh lệnh vẽ và số lượng n
-  if (options.hasInputImages) {
-    // Khi có ảnh reference: giữ prompt FRESH nguyên bản 100%, bóc sạch bất kỳ câu ratio tự động nào
-    cleanPrompt = cleanPrompt.replace(ratioRegex, "").replace(/\s{2,}/g, " ").trim();
-    if (options.n > 1) {
-      const isDefaultVariation =
-        !cleanPrompt ||
-        /^generate a creative variation of the attached image[.\u3002\u0964]?$/i.test(cleanPrompt);
-
-      if (isDefaultVariation) {
-        return `Generate exactly ${options.n} distinct creative variations of the attached image.`;
-      }
-
-      // Tránh double-wrapping hoặc giữ count cũ nếu prompt đã từng bị wrap
-      const wrappedMatch = cleanPrompt.match(
-        /^generate exactly \d+ distinct (?:creative )?variations of the attached image(?::\s*(.*)|[.\u3002\u0964]?)$/i
-      );
-      if (wrappedMatch) {
-        const inner = (wrappedMatch[1] || "").trim();
-        if (!inner) {
-          return `Generate exactly ${options.n} distinct creative variations of the attached image.`;
-        }
-        cleanPrompt = inner;
-      }
-
-      const separator = /[.!?\u3002\u0964\uFF01\uFF1F]$/.test(cleanPrompt) ? "" : ".";
-      return `Generate exactly ${options.n} distinct variations of the attached image: ${cleanPrompt}${separator}`;
-    }
-    if (!cleanPrompt) {
-      cleanPrompt = "Generate a creative variation of the attached image.";
-    }
-    return cleanPrompt;
-  }
-
-  const separator = /[.!?]$/.test(cleanPrompt) ? "" : ".";
-  const lower = cleanPrompt.toLowerCase();
-  const alreadyHasCommand =
-    lower.startsWith("generate an image") ||
-    lower.startsWith("generate a creative variation") ||
-    lower.startsWith("generate exactly");
-
   if (options.n > 1) {
     return `Generate exactly ${options.n} distinct images of: ${cleanPrompt}${separator}${ratioInstruction}`;
-  }
-  if (alreadyHasCommand) {
-    return `${cleanPrompt}${separator}${ratioInstruction}`;
   }
   return `Generate an image of: ${cleanPrompt}${separator}${ratioInstruction}`;
 }
@@ -534,6 +542,7 @@ export async function handleRequest(req: Request): Promise<Response> {
           idleTimeoutMs: parsed.idleTimeout,
           deleteChatAfterGen: parsed.deleteChatAfterGen,
           inputImages: parsed.inputImages,
+          expectedCount: parsed.n,
           skipDiskWrite: true,
         })
       );

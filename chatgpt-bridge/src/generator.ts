@@ -14,6 +14,7 @@ export interface GenerateOptions extends BrowserOptions {
   skipDiskWrite?: boolean;
   deleteChatAfterGen?: boolean;
   inputImages?: string[];
+  expectedCount?: number;
 }
 
 export function resolveTimeoutOptions(options: GenerateOptions = {}): {
@@ -356,6 +357,7 @@ export async function generateImage(prompt: string, options: GenerateOptions = {
     let lastActivityTime = Date.now();
     let lastLoggedTime = Date.now();
     const { idleTimeoutMs, maxTimeoutMs } = resolveTimeoutOptions(options);
+    const expectedCount = Math.max(1, options.expectedCount ?? 1);
     let previousImageCount = initialUrls.length;
     let previousTextLength = 0;
     let success = false;
@@ -369,7 +371,8 @@ export async function generateImage(prompt: string, options: GenerateOptions = {
           .filter((src) => src.startsWith("http") || src.startsWith("blob:") || src.startsWith("data:"));
       }, SELECTORS.generatedImage);
 
-      const hasNewImages = currentImages.some((src) => !knownSet.has(src));
+      const newImages = currentImages.filter((src) => !knownSet.has(src));
+      const hasNewImages = newImages.length > 0;
       const isGenerating = await page.locator(SELECTORS.stopButton).first().isVisible().catch(() => false);
 
       const pageState = await page.evaluate(inspectChatGPTPageState);
@@ -401,11 +404,14 @@ export async function generateImage(prompt: string, options: GenerateOptions = {
         previousTextLength = pageState.text.length;
       }
 
-      // Điều kiện hoàn tất: Có ảnh mới và ChatGPT đã dừng sinh
-      if (hasNewImages && !isGenerating) {
+      // Điều kiện hoàn tất: Đã đủ số lượng ảnh mong đợi HOẶC ChatGPT đã thực sự dừng sinh hoàn toàn
+      const isCompleteBatch = newImages.length >= expectedCount;
+      const isAssistantTurnFinished = !isGenerating && !pageState.isActivelyLoading && (pageState.hasRegenerateBtn || hasNewImages);
+
+      if (hasNewImages && (isCompleteBatch || isAssistantTurnFinished)) {
         success = true;
-        // Đợi 500ms cho các thẻ DOM render hoàn tất
-        await page.waitForTimeout(500);
+        // Đợi 1000ms cho các thẻ DOM render hoàn tất
+        await page.waitForTimeout(1000);
         break;
       }
 
