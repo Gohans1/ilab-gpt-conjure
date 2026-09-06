@@ -338,5 +338,14 @@ def register_settings_routes(app: FastAPI, ctx: WebUIContext) -> None:
                 detail="ChatGPT Bridge chưa chạy tại cổng 3000.",
             )
         except Exception as exc:
+            try:
+                async with httpx.AsyncClient(timeout=3.0) as client:
+                    status_resp = await client.get("http://127.0.0.1:3000/auth/status")
+                    if status_resp.status_code == 200:
+                        status_data = status_resp.json()
+                        if status_data.get("logged_in") and not status_data.get("is_logging_in"):
+                            return {"ok": True, "message": "Đăng nhập thành công!"}
+            except Exception:
+                pass
             raise HTTPException(status_code=500, detail=str(exc))
 

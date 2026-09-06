@@ -36,6 +36,7 @@ function enqueueTask<T>(task: () => Promise<T>): Promise<T> {
 const server = Bun.serve({
   port: PORT,
   hostname: HOSTNAME,
+  idleTimeout: 0,
   async fetch(req) {
     const url = new URL(req.url);
     const pathname = url.pathname.replace(/\/$/, "");

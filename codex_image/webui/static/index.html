@@ -443,6 +443,9 @@
             border-color: rgba(34, 197, 94, 0.4);
             color: #4ade80;
           }
+          .bridge-auth-banner.success .bridge-auth-banner-icon {
+            display: none;
+          }
           .bridge-auth-banner-content {
             display: flex;
             align-items: center;
@@ -451,7 +454,7 @@
         </style>
         <div id="chatgptBridgeBanner" class="bridge-auth-banner" style="display:none;" role="alert">
           <div class="bridge-auth-banner-content">
-            <span style="font-size: 18px;">⚠️</span>
+            <span class="bridge-auth-banner-icon" style="font-size: 18px;">⚠️</span>
             <span id="chatgptBridgeBannerText"><strong>ChatGPT Web Free:</strong> Chưa phát hiện phiên đăng nhập. Bạn cần đăng nhập 1 lần để sử dụng.</span>
           </div>
           <button id="chatgptBridgeLoginButton" class="primary-button text-sm" type="button" style="margin-left: 12px; cursor: pointer; padding: 6px 14px; font-weight: bold; border-radius: 6px;">
@@ -1621,6 +1624,7 @@
 
         async function checkBridgeStatus() {
           if (isChecking || !banner || !bannerText || !loginBtn) return;
+          if (banner.classList.contains("success")) return;
           isChecking = true;
           try {
             const [settingsRes, bridgeRes] = await Promise.all([
@@ -1668,6 +1672,16 @@
           }
         }
 
+        function showLoginSuccess() {
+          banner.className = "bridge-auth-banner success";
+          bannerText.innerHTML = "<strong>ChatGPT Web:</strong> 🎉 Đăng nhập thành công! Phiên đã được lưu.";
+          loginBtn.style.display = "none";
+          setTimeout(() => {
+            banner.className = "bridge-auth-banner";
+            banner.style.display = "none";
+          }, 4000);
+        }
+
         if (loginBtn) {
           loginBtn.addEventListener("click", async () => {
             loginBtn.disabled = true;
@@ -1677,10 +1691,7 @@
               const res = await fetch("/api/bridge/login", { method: "POST" });
               const result = await res.json();
               if (result.ok) {
-                banner.className = "bridge-auth-banner success";
-                bannerText.innerHTML = "<strong>ChatGPT Web:</strong> 🎉 Đăng nhập thành công! Phiên đã được lưu.";
-                loginBtn.style.display = "none";
-                setTimeout(() => { banner.style.display = "none"; }, 4000);
+                showLoginSuccess();
               } else {
                 alert("Lỗi khi đăng nhập: " + (result.detail || result.error || result.message || "Không rõ"));
                 loginBtn.disabled = false;

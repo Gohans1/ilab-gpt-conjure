@@ -3325,3 +3325,101 @@ class WebUISettingsTests(unittest.TestCase):
         self.assertIn("Duplicate prompt snippet tag", duplicate.json()["detail"])
         self.assertEqual(invalid.status_code, 400)
         self.assertIn("Invalid prompt snippet tag", invalid.json()["detail"])
+
+    def test_bridge_login_success(self) -> None:
+        import unittest.mock as mock
+        import httpx
+        from codex_image.webui.app import create_app
+
+        with tempfile.TemporaryDirectory() as tmp:
+            app = create_app(
+                output_root=Path(tmp) / "outputs",
+                auth_checker=lambda: True,
+                auto_start_queue=False,
+            )
+            client = TestClient(app)
+
+            mock_response = httpx.Response(200, json={"ok": True, "message": "Đăng nhập thành công!"})
+            with mock.patch("httpx.AsyncClient.post", new_callable=mock.AsyncMock, return_value=mock_response):
+                resp = client.post("/api/bridge/login")
+                self.assertEqual(resp.status_code, 200)
+                self.assertEqual(resp.json()["ok"], True)
+
+    def test_bridge_login_not_running_returns_502(self) -> None:
+        import unittest.mock as mock
+        import httpx
+        from codex_image.webui.app import create_app
+
+        with tempfile.TemporaryDirectory() as tmp:
+            app = create_app(
+                output_root=Path(tmp) / "outputs",
+                auth_checker=lambda: True,
+                auto_start_queue=False,
+            )
+            client = TestClient(app)
+
+            with mock.patch("httpx.AsyncClient.post", new_callable=mock.AsyncMock, side_effect=httpx.ConnectError("Connection refused")):
+                resp = client.post("/api/bridge/login")
+                self.assertEqual(resp.status_code, 502)
+                self.assertIn("ChatGPT Bridge chưa chạy", resp.json()["detail"])
+
+    def test_bridge_login_fallback_success_when_socket_disconnects(self) -> None:
+        import unittest.mock as mock
+        import httpx
+        from codex_image.webui.app import create_app
+
+        with tempfile.TemporaryDirectory() as tmp:
+            app = create_app(
+                output_root=Path(tmp) / "outputs",
+                auth_checker=lambda: True,
+                auto_start_queue=False,
+            )
+            client = TestClient(app)
+
+            status_response = httpx.Response(200, json={"status": "ok", "logged_in": True, "is_logging_in": False})
+            with mock.patch("httpx.AsyncClient.post", new_callable=mock.AsyncMock, side_effect=httpx.RemoteProtocolError("Server disconnected without sending a response")):
+                with mock.patch("httpx.AsyncClient.get", new_callable=mock.AsyncMock, return_value=status_response):
+                    resp = client.post("/api/bridge/login")
+                    self.assertEqual(resp.status_code, 200)
+                    self.assertEqual(resp.json()["ok"], True)
+                    self.assertIn("Đăng nhập thành công", resp.json()["message"])
+
+    def test_bridge_login_fallback_fails_when_not_logged_in(self) -> None:
+        import unittest.mock as mock
+        import httpx
+        from codex_image.webui.app import create_app
+
+        with tempfile.TemporaryDirectory() as tmp:
+            app = create_app(
+                output_root=Path(tmp) / "outputs",
+                auth_checker=lambda: True,
+                auto_start_queue=False,
+            )
+            client = TestClient(app)
+
+            status_response = httpx.Response(200, json={"status": "ok", "logged_in": False, "is_logging_in": False})
+            with mock.patch("httpx.AsyncClient.post", new_callable=mock.AsyncMock, side_effect=httpx.RemoteProtocolError("Server disconnected without sending a response")):
+                with mock.patch("httpx.AsyncClient.get", new_callable=mock.AsyncMock, return_value=status_response):
+                    resp = client.post("/api/bridge/login")
+                    self.assertEqual(resp.status_code, 500)
+                    self.assertIn("Server disconnected", resp.json()["detail"])
+
+    def test_bridge_login_fallback_fails_when_is_logging_in_true(self) -> None:
+        import unittest.mock as mock
+        import httpx
+        from codex_image.webui.app import create_app
+
+        with tempfile.TemporaryDirectory() as tmp:
+            app = create_app(
+                output_root=Path(tmp) / "outputs",
+                auth_checker=lambda: True,
+                auto_start_queue=False,
+            )
+            client = TestClient(app)
+
+            status_response = httpx.Response(200, json={"status": "ok", "logged_in": True, "is_logging_in": True})
+            with mock.patch("httpx.AsyncClient.post", new_callable=mock.AsyncMock, side_effect=httpx.RemoteProtocolError("Server disconnected without sending a response")):
+                with mock.patch("httpx.AsyncClient.get", new_callable=mock.AsyncMock, return_value=status_response):
+                    resp = client.post("/api/bridge/login")
+                    self.assertEqual(resp.status_code, 500)
+                    self.assertIn("Server disconnected", resp.json()["detail"])
