@@ -1,6 +1,6 @@
 import { existsSync, mkdtempSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join, resolve } from "node:path";
+import { join, resolve, sep } from "node:path";
 import { generateImage, sizeToAspectRatio } from "./generator.js";
 import { handleLogin } from "./cli.js";
 import { isSessionCached } from "./check-session.js";
@@ -36,7 +36,8 @@ function isValidLocalImage(filePath: string): boolean {
     // Giới hạn trong thư mục làm việc hiện tại để chống đọc trộm file nhạy cảm hệ điều hành
     const resolved = resolve(filePath);
     const cwd = resolve(process.cwd());
-    if (!resolved.startsWith(cwd)) return false;
+    const cwdWithSep = cwd.endsWith(sep) ? cwd : cwd + sep;
+    if (resolved !== cwd && !resolved.startsWith(cwdWithSep)) return false;
 
     if (!existsSync(resolved)) return false;
     const stat = statSync(resolved);
