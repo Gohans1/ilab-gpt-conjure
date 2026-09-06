@@ -1,6 +1,7 @@
 import { LOCALE_CHANGE_EVENT, translate } from "./i18n";
 import { aspectRatioSlots, createAspectRatioIcon } from "./aspect-ratio-controls";
 import { refreshSegmentedIndicators } from "./segmented-indicator";
+import { syncChatGPTDeleteChatControl } from "./provider-selection";
 import { getLegacyBridge } from "./state";
 import type {
   CatalogModel,
@@ -811,6 +812,7 @@ export function renderModelParameters(
   }
   els.settingsGrid?.classList.toggle("custom-size-mode", visibility.customSize);
   els.webSearchField?.classList.toggle("hidden", !legacyGpt);
+  syncChatGPTDeleteChatControl();
   root.classList.toggle("hidden", legacyGpt);
   if (legacyGpt) root.replaceChildren();
   else renderInteractiveParameterDefinitionsInto(

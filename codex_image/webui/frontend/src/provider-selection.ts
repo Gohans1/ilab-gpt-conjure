@@ -196,10 +196,35 @@ export function renderProviderSelection(): void {
     select.value = resolved?.selectionKey || "";
     select.disabled = !resolved;
     select.title = resolved ? optionLabel(resolved) : "";
-    select.setAttribute("aria-invalid", resolved ? "false" : "true");
     syncThemedSelect(select);
   }
+  syncChatGPTDeleteChatControl();
   if (els.runButton) els.runButton.disabled = !resolved;
+}
+
+export function isChatGPTWebProvider(): boolean {
+  const { state } = getLegacyBridge();
+  const providerId = state.selectedProviderId;
+  if (!providerId) return false;
+  if (providerId === "default") return true;
+  const provider = state.generationCatalog?.providers.find((item) => item.id === providerId);
+  if (provider?.name?.toLowerCase().includes("chatgpt web")) return true;
+  const providerSettings = state.apiSettings?.providers?.find((item: any) => item.id === providerId);
+  if (providerSettings?.name?.toLowerCase().includes("chatgpt web")) return true;
+  if (typeof providerSettings?.base_url === "string" && providerSettings.base_url.includes(":3000")) return true;
+  return false;
+}
+
+export function syncChatGPTDeleteChatControl(): void {
+  const { els } = getLegacyBridge();
+  if (!els.chatgptDeleteChatField) return;
+  const isChatGPT = isChatGPTWebProvider();
+  els.chatgptDeleteChatField.style.display = isChatGPT ? "" : "none";
+  els.chatgptDeleteChatField.classList.toggle("hidden", !isChatGPT);
+  if (els.webSearchField) {
+    els.webSearchField.style.display = isChatGPT ? "none" : "";
+    if (isChatGPT) els.webSearchField.classList.add("hidden");
+  }
 }
 
 export function selectGenerationProvider(selectionOrProviderId: string): void {
@@ -234,5 +259,7 @@ export function initProviderSelectionFeature(): void {
     selectedProviderBinding,
     selectGenerationProvider,
     syncCodexCatalogMode,
+    isChatGPTWebProvider,
+    syncChatGPTDeleteChatControl,
   });
 }

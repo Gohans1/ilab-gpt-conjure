@@ -3,6 +3,7 @@ import { currentAuthSource } from "./auth-source";
 import { currentApiImageModel, currentApiImagesConcurrency, currentApiMode, currentApiProviderId, currentCodexMode } from "./api-provider-settings";
 import { currentMainModel } from "./main-model-combobox";
 import { currentQuantity } from "./output-controls";
+import { isChatGPTWebProvider } from "./provider-selection";
 import { translate } from "./i18n";
 
 export const DEFAULT_RESOLUTION = "standard";
@@ -205,6 +206,9 @@ export function currentTaskParams(): any {
   }
   if (currentWebSearchEnabled()) {
     params.web_search = true;
+  }
+  if (isChatGPTWebProvider()) {
+    params["chatgpt.delete_chat_after_gen"] = Boolean(els.chatgptDeleteChat?.checked ?? true);
   }
   const presetMatch = findPresetForSize(params.size);
   if (presetMatch) {

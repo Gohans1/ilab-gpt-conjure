@@ -178,7 +178,15 @@ const server = Bun.serve({
         generationPrompt = `Generate an image of: ${cleanPrompt}${separator}${ratioInstruction}`;
       }
 
-      console.log(`\n📥 [Bridge] Nhận request tạo ảnh từ iLab CONJURE (Số lượng yêu cầu: ${n})!`);
+      const deleteChatRaw = body.delete_chat_after_gen ?? body.deleteChatAfterGen;
+      const deleteChatAfterGen =
+        typeof deleteChatRaw === "boolean"
+          ? deleteChatRaw
+          : typeof deleteChatRaw === "string"
+          ? !["false", "0", "no", "off"].includes(deleteChatRaw.trim().toLowerCase())
+          : undefined;
+
+      console.log(`\n📥 [Bridge] Nhận request tạo ảnh từ iLab CONJURE (Số lượng yêu cầu: ${n}, Xoá chat sau khi tạo: ${deleteChatAfterGen ?? "mặc định"})!`);
       console.log(`📝 Prompt gửi đi: "${generationPrompt}"`);
 
       try {
@@ -206,6 +214,7 @@ const server = Bun.serve({
             headless,
             timeoutMs: customTimeout,
             idleTimeoutMs: idleTimeout,
+            deleteChatAfterGen,
           })
         );
 

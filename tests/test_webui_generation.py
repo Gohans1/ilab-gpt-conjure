@@ -845,3 +845,39 @@ class WebUIGenerationTests(unittest.TestCase):
         self.assertEqual(task["input_sources"][0]["kind"], "asset")
         self.assertEqual(task["mask_file"], input_name(task["task_id"], "mask.png", kind="mask"))
         self.assertEqual(fake.edit_calls, [])
+
+    def test_generate_route_supports_delete_chat_after_gen_parameter(self) -> None:
+        from codex_image.webui.app import create_app
+
+        fake = FakeImageClient()
+        with tempfile.TemporaryDirectory() as tmp:
+            app = create_app(output_root=Path(tmp), client_factory=lambda: fake, auth_checker=lambda: True)
+            client = TestClient(app)
+            response = client.post(
+                "/api/generate",
+                data={
+                    "prompt": "a calm lake at sunrise",
+                    "model": "gpt-image-2",
+                    "delete_chat_after_gen": "false",
+                },
+            )
+            self.assertEqual(response.status_code, 200)
+            body = response.json()
+            task = body["task"]
+            self.assertEqual(task["params"]["chatgpt.delete_chat_after_gen"], False)
+
+    def test_openai_images_client_build_payload_includes_delete_chat_after_gen(self) -> None:
+        from codex_image.openai_images_client import OpenAIImagesImageClient
+
+        client = OpenAIImagesImageClient(base_url="http://127.0.0.1:3000/v1", api_key="sk-local")
+        payload = client.build_payload(
+            prompt="test prompt",
+            delete_chat_after_gen=False,
+        )
+        self.assertEqual(payload.get("delete_chat_after_gen"), False)
+
+        payload_true = client.build_payload(
+            prompt="test prompt",
+            delete_chat_after_gen=True,
+        )
+        self.assertEqual(payload_true.get("delete_chat_after_gen"), True)

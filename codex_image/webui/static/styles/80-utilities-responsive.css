@@ -492,7 +492,8 @@ button:disabled {
     gap: clamp(6px, calc(1.61dvh - 6.4px), 16px);
   }
 
-  .web-search-toggle {
+  .web-search-toggle,
+  .chatgpt-delete-chat-toggle {
     --compact-web-search-track-width: clamp(32px, calc(0.64dvh + 27.1px), 36px);
     --compact-web-search-track-height: clamp(18px, calc(0.32dvh + 15.5px), 20px);
     --compact-web-search-knob-size: clamp(12px, calc(0.32dvh + 9.5px), 14px);
@@ -505,21 +506,25 @@ button:disabled {
     padding: 0 clamp(8px, calc(0.32dvh + 5.5px), 10px);
   }
 
-  .web-search-toggle-track {
+  .web-search-toggle-track,
+  .chatgpt-delete-chat-toggle-track {
     width: var(--compact-web-search-track-width);
     height: var(--compact-web-search-track-height);
   }
 
-  .web-search-toggle-track::before {
+  .web-search-toggle-track::before,
+  .chatgpt-delete-chat-toggle-track::before {
     width: var(--compact-web-search-knob-size);
     height: var(--compact-web-search-knob-size);
   }
 
-  .web-search-toggle input:checked + .web-search-toggle-track::before {
+  .web-search-toggle input:checked + .web-search-toggle-track::before,
+  .chatgpt-delete-chat-toggle input:checked + .chatgpt-delete-chat-toggle-track::before {
     transform: translateX(var(--compact-web-search-shift));
   }
 
-  .web-search-toggle-text {
+  .web-search-toggle-text,
+  .chatgpt-delete-chat-toggle-text {
     font-size: clamp(11px, calc(0.32dvh + 8.5px), 13px);
   }
 

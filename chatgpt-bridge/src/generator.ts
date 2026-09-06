@@ -31,6 +31,10 @@ export function resolveTimeoutOptions(options: GenerateOptions = {}): {
   };
 }
 
+export function resolveDeleteChatOption(deleteChatAfterGen?: boolean): boolean {
+  return deleteChatAfterGen ?? (process.env.CHATGPT_DELETE_CHAT !== "false");
+}
+
 export function sizeToAspectRatio(sizeOrRatio?: string | null): string | null {
   if (!sizeOrRatio || typeof sizeOrRatio !== "string") return null;
   const s = sizeOrRatio.trim().toLowerCase();
@@ -360,8 +364,7 @@ export async function generateImage(prompt: string, options: GenerateOptions = {
     });
 
     // Tự động dọn dẹp (xóa) phiên chat vừa tạo trên ChatGPT nếu được bật (mặc định bật)
-    const shouldDeleteChat =
-      options.deleteChatAfterGen ?? (process.env.CHATGPT_DELETE_CHAT !== "false");
+    const shouldDeleteChat = resolveDeleteChatOption(options.deleteChatAfterGen);
 
     if (shouldDeleteChat) {
       try {
@@ -386,6 +389,8 @@ export async function generateImage(prompt: string, options: GenerateOptions = {
       } catch (delErr) {
         console.warn("⚠️ Gặp lỗi khi dọn dẹp chat:", delErr instanceof Error ? delErr.message : delErr);
       }
+    } else {
+      console.log("ℹ️ Giữ lại đoạn chat trên ChatGPT Web theo tùy chọn của người dùng.");
     }
 
     return results;

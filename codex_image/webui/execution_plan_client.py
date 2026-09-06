@@ -19,6 +19,12 @@ class _LegacyClientAdapter:
         command = plan.command
         params = {**command.parameters, **command.legacy_compat_parameters}
         count = max(1, int(params.get("output.count") or 1))
+        delete_chat_after_gen = params.get("chatgpt.delete_chat_after_gen")
+        if delete_chat_after_gen is None and "delete_chat_after_gen" in params:
+            delete_chat_after_gen = params.get("delete_chat_after_gen")
+        if isinstance(delete_chat_after_gen, str):
+            delete_chat_after_gen = delete_chat_after_gen.lower() not in {"false", "0", "no"}
+
         common: dict[str, Any] = {
             "prompt": command.prompt,
             "main_model": command.main_model,
@@ -42,6 +48,10 @@ class _LegacyClientAdapter:
             getattr(self.client, "supports_batch_generation", False)
             or ":3000" in str(getattr(self.client, "base_url", "")).lower()
         )
+        if delete_chat_after_gen is not None and (
+            is_batch_bridge or hasattr(self.client, "generations_url")
+        ):
+            common["delete_chat_after_gen"] = bool(delete_chat_after_gen)
 
         try:
             if command.operation == "edit":

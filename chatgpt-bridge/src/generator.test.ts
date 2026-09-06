@@ -1,5 +1,47 @@
 import { describe, expect, it } from "bun:test";
-import { deleteChatGPTConversation, inspectChatGPTPageState, resolveTimeoutOptions, sizeToAspectRatio } from "./generator.js";
+import { deleteChatGPTConversation, inspectChatGPTPageState, resolveDeleteChatOption, resolveTimeoutOptions, sizeToAspectRatio } from "./generator.js";
+
+describe("resolveDeleteChatOption", () => {
+  it("mặc định là true khi không truyền options", () => {
+    const prevEnv = process.env.CHATGPT_DELETE_CHAT;
+    try {
+      delete process.env.CHATGPT_DELETE_CHAT;
+      expect(resolveDeleteChatOption()).toBe(true);
+    } finally {
+      if (prevEnv !== undefined) process.env.CHATGPT_DELETE_CHAT = prevEnv;
+    }
+  });
+
+  it("trả về false khi được truyền trực tiếp là false", () => {
+    expect(resolveDeleteChatOption(false)).toBe(false);
+  });
+
+  it("trả về true khi được truyền trực tiếp là true", () => {
+    expect(resolveDeleteChatOption(true)).toBe(true);
+  });
+
+  it("ưu tiên options truyền vào hơn biến môi trường", () => {
+    const prevEnv = process.env.CHATGPT_DELETE_CHAT;
+    try {
+      process.env.CHATGPT_DELETE_CHAT = "false";
+      expect(resolveDeleteChatOption(true)).toBe(true);
+      process.env.CHATGPT_DELETE_CHAT = "true";
+      expect(resolveDeleteChatOption(false)).toBe(false);
+    } finally {
+      if (prevEnv !== undefined) process.env.CHATGPT_DELETE_CHAT = prevEnv;
+    }
+  });
+
+  it("tôn trọng CHATGPT_DELETE_CHAT='false' khi options undefined", () => {
+    const prevEnv = process.env.CHATGPT_DELETE_CHAT;
+    try {
+      process.env.CHATGPT_DELETE_CHAT = "false";
+      expect(resolveDeleteChatOption()).toBe(false);
+    } finally {
+      if (prevEnv !== undefined) process.env.CHATGPT_DELETE_CHAT = prevEnv;
+    }
+  });
+});
 
 describe("resolveTimeoutOptions", () => {
   it("dùng giá trị mặc định khi không truyền options (idle: 60s, max: 600s)", () => {

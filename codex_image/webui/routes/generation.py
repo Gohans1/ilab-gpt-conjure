@@ -280,6 +280,7 @@ def _prepare_generation_submission(
     image_data_urls: list[str],
     mask_data_url: str | None,
     reference_file_inputs: list[ResponsesInputFile],
+    delete_chat_after_gen: bool | None = None,
 ) -> PreparedGenerationSubmission:
     h = ctx.route_helpers
     compression = _normalize_compression(output_format, output_compression)
@@ -445,6 +446,11 @@ def _prepare_generation_submission(
         params["api_provider_name"] = effective_api_provider_name
     if auth_source == "api":
         params["api_images_concurrency"] = effective_api_images_concurrency
+    if delete_chat_after_gen is not None:
+        params["chatgpt.delete_chat_after_gen"] = bool(delete_chat_after_gen)
+        if hasattr(plan, "command") and hasattr(plan.command, "parameters"):
+            plan.command.parameters["chatgpt.delete_chat_after_gen"] = bool(delete_chat_after_gen)
+        request_payload["delete_chat_after_gen"] = bool(delete_chat_after_gen)
     return PreparedGenerationSubmission(
         plan=plan,
         request_payload=request_payload,
@@ -807,6 +813,7 @@ def register_generation_routes(app: FastAPI, ctx: WebUIContext) -> None:
         reference_file_ids: list[str] | None = Form(None),
         reference_images: list[UploadFile] | None = File(None),
         reference_files: list[UploadFile] | None = File(None),
+        delete_chat_after_gen: bool | None = Form(None),
     ) -> dict[str, Any]:
         explicit_form_fields = frozenset(str(key) for key in (await request.form()).keys())
         auth_source = _request_auth_source(ctx, provider_id)
@@ -912,6 +919,7 @@ def register_generation_routes(app: FastAPI, ctx: WebUIContext) -> None:
             image_data_urls=all_reference_data_urls,
             mask_data_url=None,
             reference_file_inputs=list(prepared_reference_files.response_inputs),
+            delete_chat_after_gen=delete_chat_after_gen,
         )
 
         reference_assets = _commit_reference_assets(
@@ -977,6 +985,7 @@ def register_generation_routes(app: FastAPI, ctx: WebUIContext) -> None:
         images: list[UploadFile] | None = File(None),
         mask: UploadFile | None = File(None),
         reference_files: list[UploadFile] | None = File(None),
+        delete_chat_after_gen: bool | None = Form(None),
     ) -> dict[str, Any]:
         explicit_form_fields = frozenset(str(key) for key in (await request.form()).keys())
         auth_source = _request_auth_source(ctx, provider_id)
@@ -1099,6 +1108,7 @@ def register_generation_routes(app: FastAPI, ctx: WebUIContext) -> None:
             image_data_urls=all_image_data_urls,
             mask_data_url=mask_data_url,
             reference_file_inputs=list(prepared_reference_files.response_inputs),
+            delete_chat_after_gen=delete_chat_after_gen,
         )
 
         reference_assets = _commit_reference_assets(

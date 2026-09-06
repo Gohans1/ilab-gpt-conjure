@@ -50,6 +50,34 @@ const els = bridge.els;
 
 let formControlsInitialized = false;
 let formControlEventsBound = false;
+const CHATGPT_DELETE_CHAT_STORAGE_KEY = "codex-image-chatgpt-delete-chat";
+
+export function syncChatGPTDeleteChatState(): void {
+  if (!els.chatgptDeleteChat) return;
+  const isChecked = Boolean(els.chatgptDeleteChat.checked);
+  if (els.chatgptDeleteChatStatus) {
+    els.chatgptDeleteChatStatus.textContent = translate(
+      isChecked ? "output.chatgptDeleteChatToggle" : "output.chatgptDeleteChatToggleOff",
+    );
+  }
+}
+
+export function restoreChatGPTDeleteChatState(): void {
+  if (!els.chatgptDeleteChat) return;
+  const saved = localStorage.getItem(CHATGPT_DELETE_CHAT_STORAGE_KEY);
+  els.chatgptDeleteChat.checked = saved !== "false";
+  syncChatGPTDeleteChatState();
+}
+
+export function persistChatGPTDeleteChatState(): void {
+  if (!els.chatgptDeleteChat) return;
+  localStorage.setItem(CHATGPT_DELETE_CHAT_STORAGE_KEY, String(Boolean(els.chatgptDeleteChat.checked)));
+  syncChatGPTDeleteChatState();
+}
+
+export function currentChatGPTDeleteChatEnabled(): boolean {
+  return Boolean(els.chatgptDeleteChat?.checked ?? true);
+}
 
 function syncRunButtonLabel(): void {
   if (!els.runButton || state.runTimerId) return;
@@ -61,6 +89,14 @@ function syncRunButtonLabel(): void {
 export function bindFormControlEvents(): void {
   if (formControlEventsBound) return;
   formControlEventsBound = true;
+
+  restoreChatGPTDeleteChatState();
+  const handleChatGPTDeleteChatChange = () => {
+    persistChatGPTDeleteChatState();
+    updateRequestPreview();
+  };
+  els.chatgptDeleteChat?.addEventListener("input", handleChatGPTDeleteChatChange);
+  els.chatgptDeleteChat?.addEventListener("change", handleChatGPTDeleteChatChange);
 
   document.querySelectorAll("[data-mode]").forEach((button: any) => {
     button.addEventListener("click", () => setMode(button.dataset.mode));
@@ -168,8 +204,13 @@ export function initFormControlsFeature(): void {
   if (formControlsInitialized) return;
   formControlsInitialized = true;
   document.addEventListener(LOCALE_CHANGE_EVENT, syncRunButtonLabel);
+  document.addEventListener(LOCALE_CHANGE_EVENT, syncChatGPTDeleteChatState);
   Object.assign(getLegacyBridge().methods, {
     bindFormControlEvents,
+    syncChatGPTDeleteChatState,
+    restoreChatGPTDeleteChatState,
+    persistChatGPTDeleteChatState,
+    currentChatGPTDeleteChatEnabled,
     setMode,
     syncRunButtonLabel,
     updateQuantity,

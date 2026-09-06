@@ -1,6 +1,6 @@
 import { getLegacyBridge } from "./state";
 import { currentLocaleCode, translate } from "./i18n";
-import { selectedProviderBinding } from "./provider-selection";
+import { selectedProviderBinding, isChatGPTWebProvider } from "./provider-selection";
 import { appendCanonicalGenerationFields, currentGenerationSelection } from "./generation-request";
 import { taskOutputControlValues } from "./task-model-summary";
 
@@ -143,6 +143,10 @@ export function applyTaskOutputParams(task: any): void {
     els.webSearch.checked = Boolean(output.web_search);
     els.webSearch.dispatchEvent(new Event("input"));
   }
+  if (els.chatgptDeleteChat && typeof params["chatgpt.delete_chat_after_gen"] === "boolean") {
+    els.chatgptDeleteChat.checked = params["chatgpt.delete_chat_after_gen"];
+    els.chatgptDeleteChat.dispatchEvent(new Event("change"));
+  }
   if (params.model && els.model) els.model.value = params.model;
   if (output.size) syncSizeControlsFromSize(output.size);
   if (output.n && els.nInput) {
@@ -216,6 +220,9 @@ function buildPreviewRequest() {
   } else if (isCodex) {
     payload.codex_mode = codexMode;
     if (usesGptPromptProcessing) payload.main_model = params.main_model;
+  }
+  if (isChatGPTWebProvider()) {
+    payload.delete_chat_after_gen = Boolean(els.chatgptDeleteChat?.checked ?? true);
   }
   return payload;
 }
@@ -306,6 +313,9 @@ async function runTask() {
   if (!state.generationCatalog || state.selectedModelId === "gpt-image-2") {
     form.append("main_model", currentMainModel());
     form.append("prompt_fidelity", currentPromptFidelity());
+  }
+  if (els.chatgptDeleteChat && isChatGPTWebProvider()) {
+    form.append("delete_chat_after_gen", String(Boolean(els.chatgptDeleteChat.checked)));
   }
   galleries.forEach((source: any) => form.append("gallery_image_ids", source.id));
   assets.forEach((source: any) => form.append("reference_asset_ids", source.id));

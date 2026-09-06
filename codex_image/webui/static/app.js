@@ -424,6 +424,9 @@
       mainModelOptions: document.querySelector("#mainModelOptions"),
       webSearchField: document.querySelector("#webSearchField"),
       webSearch: document.querySelector("#webSearch"),
+      chatgptDeleteChatField: document.querySelector("#chatgptDeleteChatField"),
+      chatgptDeleteChat: document.querySelector("#chatgptDeleteChat"),
+      chatgptDeleteChatStatus: document.querySelector("#chatgptDeleteChatStatus"),
       promptFidelityField: document.querySelector("#promptFidelityField"),
       promptFidelity: document.querySelector("#promptFidelity"),
       apiDirectSettingsNotice: document.querySelector("#apiDirectSettingsNotice"),
@@ -1110,6 +1113,10 @@
     "output.webSearch": "Web search",
     "output.webSearchToggle": "On",
     "output.webSearchTitle": "Search the web first, then use it for this generation; Codex and API Responses only",
+    "output.chatgptDeleteChat": "Delete chat after generation",
+    "output.chatgptDeleteChatToggle": "On",
+    "output.chatgptDeleteChatToggleOff": "Off",
+    "output.chatgptDeleteChatTitle": "Automatically delete thread on ChatGPT Web after image generation",
     "output.promptMode": "Prompt handling",
     "output.modeOriginal": "Original",
     "output.modeStrict": "Faithful",
@@ -13300,6 +13307,10 @@
     "output.webSearch": "T\xECm ki\u1EBFm tr\xEAn web",
     "output.webSearchToggle": "B\u1EADt",
     "output.webSearchTitle": "T\xECm ki\u1EBFm web tr\u01B0\u1EDBc, r\u1ED3i d\xF9ng k\u1EBFt qu\u1EA3 cho l\u1EA7n t\u1EA1o n\xE0y; ch\u1EC9 h\u1ED7 tr\u1EE3 Codex v\xE0 API Responses",
+    "output.chatgptDeleteChat": "Xo\xE1 \u0111o\u1EA1n chat sau khi t\u1EA1o \u1EA3nh",
+    "output.chatgptDeleteChatToggle": "B\u1EADt",
+    "output.chatgptDeleteChatToggleOff": "T\u1EAFt",
+    "output.chatgptDeleteChatTitle": "T\u1EF1 \u0111\u1ED9ng xo\xE1 thread chat tr\xEAn ChatGPT Web sau khi t\u1EA1o \u1EA3nh xong",
     "output.promptMode": "Ch\u1EBF \u0111\u1ED9 l\u1EDDi nh\u1EAFc",
     "output.modeOriginal": "B\u1EA3n g\u1ED1c",
     "output.modeStrict": "Gi\u1EEF s\xE1t l\u1EDDi nh\u1EAFc",
@@ -14528,6 +14539,10 @@
     "output.webSearch": "\u8054\u7F51\u641C\u7D22",
     "output.webSearchToggle": "\u5F00\u542F",
     "output.webSearchTitle": "\u5148\u8054\u7F51\u641C\u7D22\uFF0C\u518D\u7528\u4E8E\u672C\u6B21\u751F\u6210\uFF1B\u4EC5 Codex \u548C API Responses \u652F\u6301",
+    "output.chatgptDeleteChat": "\u751F\u6210\u540E\u5220\u9664\u5BF9\u8BDD",
+    "output.chatgptDeleteChatToggle": "\u5F00\u542F",
+    "output.chatgptDeleteChatToggleOff": "\u5173\u95ED",
+    "output.chatgptDeleteChatTitle": "\u56FE\u50CF\u751F\u6210\u5B8C\u6210\u540E\u81EA\u52A8\u5220\u9664 ChatGPT Web \u4E0A\u7684\u5BF9\u8BDD",
     "output.promptMode": "\u63D0\u793A\u8BCD\u5904\u7406",
     "output.modeOriginal": "\u539F\u6587",
     "output.modeStrict": "\u4FDD\u771F",
@@ -16984,6 +16999,10 @@
     "output.webSearch": "\u806F\u7DB2\u641C\u5C0B",
     "output.webSearchToggle": "\u958B\u555F",
     "output.webSearchTitle": "\u5148\u806F\u7DB2\u641C\u5C0B\uFF0C\u518D\u7528\u65BC\u672C\u6B21\u751F\u6210\uFF1B\u50C5Codex\u548CAPIResponses \u652F\u6301",
+    "output.chatgptDeleteChat": "\u751F\u6210\u5F8C\u522A\u9664\u5C0D\u8A71",
+    "output.chatgptDeleteChatToggle": "\u958B\u555F",
+    "output.chatgptDeleteChatToggleOff": "\u95DC\u9589",
+    "output.chatgptDeleteChatTitle": "\u5F71\u50CF\u751F\u6210\u5B8C\u6210\u5F8C\u81EA\u52D5\u522A\u9664 ChatGPT Web \u4E0A\u7684\u5C0D\u8A71",
     "output.promptMode": "\u63D0\u793A\u8A5E\u8655\u7406",
     "output.modeOriginal": "\u539F\u6587",
     "output.modeStrict": "\u4FDD\u771F",
@@ -35450,10 +35469,33 @@ ${hint}` : hint;
       select.value = resolved?.selectionKey || "";
       select.disabled = !resolved;
       select.title = resolved ? optionLabel(resolved) : "";
-      select.setAttribute("aria-invalid", resolved ? "false" : "true");
       syncThemedSelect(select);
     }
+    syncChatGPTDeleteChatControl();
     if (els44.runButton) els44.runButton.disabled = !resolved;
+  }
+  function isChatGPTWebProvider() {
+    const { state: state33 } = getLegacyBridge();
+    const providerId = state33.selectedProviderId;
+    if (!providerId) return false;
+    if (providerId === "default") return true;
+    const provider = state33.generationCatalog?.providers.find((item) => item.id === providerId);
+    if (provider?.name?.toLowerCase().includes("chatgpt web")) return true;
+    const providerSettings = state33.apiSettings?.providers?.find((item) => item.id === providerId);
+    if (providerSettings?.name?.toLowerCase().includes("chatgpt web")) return true;
+    if (typeof providerSettings?.base_url === "string" && providerSettings.base_url.includes(":3000")) return true;
+    return false;
+  }
+  function syncChatGPTDeleteChatControl() {
+    const { els: els44 } = getLegacyBridge();
+    if (!els44.chatgptDeleteChatField) return;
+    const isChatGPT = isChatGPTWebProvider();
+    els44.chatgptDeleteChatField.style.display = isChatGPT ? "" : "none";
+    els44.chatgptDeleteChatField.classList.toggle("hidden", !isChatGPT);
+    if (els44.webSearchField) {
+      els44.webSearchField.style.display = isChatGPT ? "none" : "";
+      if (isChatGPT) els44.webSearchField.classList.add("hidden");
+    }
   }
   function selectGenerationProvider(selectionOrProviderId) {
     const { state: state33 } = getLegacyBridge();
@@ -35484,7 +35526,9 @@ ${hint}` : hint;
       renderProviderSelection,
       selectedProviderBinding,
       selectGenerationProvider,
-      syncCodexCatalogMode
+      syncCodexCatalogMode,
+      isChatGPTWebProvider,
+      syncChatGPTDeleteChatControl
     });
   }
 
@@ -35601,6 +35645,7 @@ ${hint}` : hint;
       legacyDirectApi: isDirectApi
     }));
     updateWebSearchAvailability(authSource);
+    syncChatGPTDeleteChatControl();
     legacyMethod12("syncReferenceFileAvailability");
     const refreshOutputSettingsLock2 = getLegacyBridge().methods.refreshOutputSettingsLock;
     if (typeof refreshOutputSettingsLock2 === "function") refreshOutputSettingsLock2();
@@ -36598,6 +36643,7 @@ ${hint}` : hint;
     }
     els44.settingsGrid?.classList.toggle("custom-size-mode", visibility.customSize);
     els44.webSearchField?.classList.toggle("hidden", !legacyGpt);
+    syncChatGPTDeleteChatControl();
     root.classList.toggle("hidden", legacyGpt);
     if (legacyGpt) root.replaceChildren();
     else renderInteractiveParameterDefinitionsInto(
@@ -43946,6 +43992,9 @@ ${galleryText}`;
     if (currentWebSearchEnabled()) {
       params.web_search = true;
     }
+    if (isChatGPTWebProvider()) {
+      params["chatgpt.delete_chat_after_gen"] = Boolean(els25.chatgptDeleteChat?.checked ?? true);
+    }
     const presetMatch = findPresetForSize(params.size);
     if (presetMatch) {
       params.resolution = presetMatch.resolution;
@@ -44443,6 +44492,30 @@ ${galleryText}`;
   var els27 = bridge24.els;
   var formControlsInitialized = false;
   var formControlEventsBound = false;
+  var CHATGPT_DELETE_CHAT_STORAGE_KEY = "codex-image-chatgpt-delete-chat";
+  function syncChatGPTDeleteChatState() {
+    if (!els27.chatgptDeleteChat) return;
+    const isChecked = Boolean(els27.chatgptDeleteChat.checked);
+    if (els27.chatgptDeleteChatStatus) {
+      els27.chatgptDeleteChatStatus.textContent = translate(
+        isChecked ? "output.chatgptDeleteChatToggle" : "output.chatgptDeleteChatToggleOff"
+      );
+    }
+  }
+  function restoreChatGPTDeleteChatState() {
+    if (!els27.chatgptDeleteChat) return;
+    const saved = localStorage.getItem(CHATGPT_DELETE_CHAT_STORAGE_KEY);
+    els27.chatgptDeleteChat.checked = saved !== "false";
+    syncChatGPTDeleteChatState();
+  }
+  function persistChatGPTDeleteChatState() {
+    if (!els27.chatgptDeleteChat) return;
+    localStorage.setItem(CHATGPT_DELETE_CHAT_STORAGE_KEY, String(Boolean(els27.chatgptDeleteChat.checked)));
+    syncChatGPTDeleteChatState();
+  }
+  function currentChatGPTDeleteChatEnabled() {
+    return Boolean(els27.chatgptDeleteChat?.checked ?? true);
+  }
   function syncRunButtonLabel2() {
     if (!els27.runButton || state18.runTimerId) return;
     const mode = state18.mode === "edit" ? "edit" : "generate";
@@ -44452,6 +44525,13 @@ ${galleryText}`;
   function bindFormControlEvents() {
     if (formControlEventsBound) return;
     formControlEventsBound = true;
+    restoreChatGPTDeleteChatState();
+    const handleChatGPTDeleteChatChange = () => {
+      persistChatGPTDeleteChatState();
+      updateRequestPreview10();
+    };
+    els27.chatgptDeleteChat?.addEventListener("input", handleChatGPTDeleteChatChange);
+    els27.chatgptDeleteChat?.addEventListener("change", handleChatGPTDeleteChatChange);
     document.querySelectorAll("[data-mode]").forEach((button) => {
       button.addEventListener("click", () => setMode4(button.dataset.mode));
     });
@@ -44553,8 +44633,13 @@ ${galleryText}`;
     if (formControlsInitialized) return;
     formControlsInitialized = true;
     document.addEventListener(LOCALE_CHANGE_EVENT, syncRunButtonLabel2);
+    document.addEventListener(LOCALE_CHANGE_EVENT, syncChatGPTDeleteChatState);
     Object.assign(getLegacyBridge().methods, {
       bindFormControlEvents,
+      syncChatGPTDeleteChatState,
+      restoreChatGPTDeleteChatState,
+      persistChatGPTDeleteChatState,
+      currentChatGPTDeleteChatEnabled,
       setMode: setMode4,
       syncRunButtonLabel: syncRunButtonLabel2,
       updateQuantity,
@@ -48453,6 +48538,10 @@ ${galleryText}`;
       els33.webSearch.checked = Boolean(output.web_search);
       els33.webSearch.dispatchEvent(new Event("input"));
     }
+    if (els33.chatgptDeleteChat && typeof params["chatgpt.delete_chat_after_gen"] === "boolean") {
+      els33.chatgptDeleteChat.checked = params["chatgpt.delete_chat_after_gen"];
+      els33.chatgptDeleteChat.dispatchEvent(new Event("change"));
+    }
     if (params.model && els33.model) els33.model.value = params.model;
     if (output.size) syncSizeControlsFromSize2(output.size);
     if (output.n && els33.nInput) {
@@ -48524,6 +48613,9 @@ ${galleryText}`;
     } else if (isCodex) {
       payload2.codex_mode = codexMode;
       if (usesGptPromptProcessing) payload2.main_model = params.main_model;
+    }
+    if (isChatGPTWebProvider()) {
+      payload2.delete_chat_after_gen = Boolean(els33.chatgptDeleteChat?.checked ?? true);
     }
     return payload2;
   }
@@ -48610,6 +48702,9 @@ ${galleryText}`;
     if (!state24.generationCatalog || state24.selectedModelId === "gpt-image-2") {
       form.append("main_model", currentMainModel2());
       form.append("prompt_fidelity", currentPromptFidelity4());
+    }
+    if (els33.chatgptDeleteChat && isChatGPTWebProvider()) {
+      form.append("delete_chat_after_gen", String(Boolean(els33.chatgptDeleteChat.checked)));
     }
     galleries.forEach((source) => form.append("gallery_image_ids", source.id));
     assets.forEach((source) => form.append("reference_asset_ids", source.id));
