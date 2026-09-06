@@ -432,7 +432,7 @@ export async function handleRequest(req: Request): Promise<Response> {
 
     // Regex bao quát toàn bộ 14 ngôn ngữ hỗ trợ để bóc sạch câu ratio nếu có
     const ratioRegex =
-      /(?:Set the aspect ratio to|Đặt tỷ lệ khung hình thành|将宽高比设为|將寬高比設為|アスペクト比を|화면 비율을|Establece la relación de aspecto en|Defina a proporção da imagem como|Réglez le rapport largeur\/hauteur sur|Stelle das Seitenverhältnis auf|Установите соотношение сторон|Imposta le proporzioni su|पक्षानुपात को)\s+[0-9]+:[0-9]+(?:\s*に設定してください|\s*로 설정하세요|\s*ein)?\.?/gi;
+      /(?:Set the aspect ratio to|Đặt tỷ lệ khung hình thành|将宽高比设为|將寬高比設為|アスペクト比を|화면 비율을|Establece la relación de aspecto en|Defina a proporção da imagem como|Réglez le rapport largeur\/hauteur sur|Stelle das Seitenverhältnis auf|Установите соотношение сторон|Imposta le proporzioni su|पक्षानुपात को)\s+[0-9]+:[0-9]+(?:\s*に設定してください|\s*로 설정하세요|\s*ein)?[.\u3002]?/gi;
 
     let ratioInstruction = "";
 
