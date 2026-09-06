@@ -1,5 +1,13 @@
 import { describe, expect, it } from "bun:test";
-import { deleteChatGPTConversation, inspectChatGPTPageState, resolveDeleteChatOption, resolveTimeoutOptions, sizeToAspectRatio } from "./generator.js";
+import {
+  attachImagesToChatGPT,
+  deleteChatGPTConversation,
+  inspectChatGPTPageState,
+  resolveDeleteChatOption,
+  resolveInputImages,
+  resolveTimeoutOptions,
+  sizeToAspectRatio,
+} from "./generator.js";
 
 describe("resolveDeleteChatOption", () => {
   it("mặc định là true khi không truyền options", () => {
@@ -414,4 +422,137 @@ describe("inspectChatGPTPageState", () => {
     expect(state.hasImageWidget).toBe(true);
   });
 });
+
+describe("resolveInputImages", () => {
+  it("trả về mảng rỗng khi input rỗng hoặc undefined", () => {
+    expect(resolveInputImages()).toEqual([]);
+    expect(resolveInputImages(null)).toEqual([]);
+    expect(resolveInputImages("")).toEqual([]);
+    expect(resolveInputImages([])).toEqual([]);
+  });
+
+  it("chuyển đổi chuỗi đơn thành mảng 1 phần tử", () => {
+    expect(resolveInputImages("C:/images/cat.png")).toEqual(["C:/images/cat.png"]);
+  });
+
+  it("lọc bỏ các phần tử rỗng hoặc không hợp lệ trong mảng", () => {
+    const input = ["C:/images/cat.png", "  ", null as any, "C:/images/dog.jpg"];
+    expect(resolveInputImages(input)).toEqual(["C:/images/cat.png", "C:/images/dog.jpg"]);
+  });
+});
+
+describe("attachImagesToChatGPT", () => {
+  it("bỏ qua ngay khi danh sách ảnh rỗng", async () => {
+    let called = false;
+    const mockPage = {
+      locator: () => {
+        called = true;
+        return { first: () => ({}) };
+      },
+    };
+    await attachImagesToChatGPT(mockPage as any, []);
+    expect(called).toBe(false);
+  });
+
+  it("gọi setInputFiles khi tìm thấy thẻ input file trong DOM", async () => {
+    let capturedFiles: any = null;
+    let timeoutUsed = 0;
+    const mockLocator = {
+      count: async () => 1,
+      getAttribute: async (attr: string) => (attr === "multiple" ? "multiple" : null),
+      setInputFiles: async (files: any, opts: any) => {
+        capturedFiles = files;
+        timeoutUsed = opts?.timeout;
+      },
+      waitFor: async () => {},
+    };
+
+    const mockPage = {
+      locator: (selector: string) => ({
+        first: () => mockLocator,
+      }),
+      waitForTimeout: async () => {},
+    };
+
+    await attachImagesToChatGPT(mockPage as any, ["C:/test.png"]);
+    expect(capturedFiles).toEqual(["C:/test.png"]);
+    expect(timeoutUsed).toBe(15_000);
+  });
+
+  it("chỉ upload 1 file nếu thẻ input không hỗ trợ multiple", async () => {
+    let capturedFiles: any = null;
+    const mockLocator = {
+      count: async () => 1,
+      getAttribute: async () => null, // Không có multiple
+      setInputFiles: async (files: any) => {
+        capturedFiles = files;
+      },
+      waitFor: async () => {},
+    };
+
+    const mockPage = {
+      locator: () => ({
+        first: () => mockLocator,
+      }),
+      waitForTimeout: async () => {},
+    };
+
+    await attachImagesToChatGPT(mockPage as any, ["C:/img1.png", "C:/img2.png"]);
+    expect(capturedFiles).toEqual(["C:/img1.png"]);
+  });
+
+  it("AUT-02: Ném ngoại lệ khi không tìm thấy thẻ input và nút đính kèm", async () => {
+    const mockLocator = {
+      count: async () => 0,
+      click: async () => {
+        throw new Error("Button not found");
+      },
+      waitFor: async () => {},
+    };
+
+    const mockPage = {
+      locator: () => ({
+        first: () => mockLocator,
+      }),
+      waitForEvent: async () => null,
+      waitForTimeout: async () => {},
+    };
+
+    await expect(attachImagesToChatGPT(mockPage as any, ["C:/test.png"])).rejects.toThrow(
+      "không tìm thấy input file hoặc nút đính kèm"
+    );
+  });
+
+  it("AUT-02: Ném ngoại lệ khi nạp ảnh xong nhưng thumbnail không xuất hiện", async () => {
+    const mockFileInput = {
+      count: async () => 1,
+      getAttribute: async () => "multiple",
+      setInputFiles: async () => {},
+      waitFor: async () => {},
+    };
+
+    const mockThumbnail = {
+      waitFor: async () => {
+        throw new Error("Timeout waiting for thumbnail");
+      },
+    };
+
+    const mockPage = {
+      locator: (selector: string) => {
+        if (selector.includes("attachment") || selector.includes("file-pill")) {
+          return { first: () => mockThumbnail };
+        }
+        return { first: () => mockFileInput };
+      },
+      waitForTimeout: async () => {},
+    };
+
+    await expect(attachImagesToChatGPT(mockPage as any, ["C:/test.png"])).rejects.toThrow(
+      "không hiển thị thumbnail"
+    );
+  });
+});
+
+
+
 

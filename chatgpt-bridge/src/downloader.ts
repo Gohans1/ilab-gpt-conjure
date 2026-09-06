@@ -25,10 +25,12 @@ export async function extractAndSaveImages(
 
   const extractedList = await page.evaluate(async ({ selector, existingUrls }) => {
     const images = Array.from(document.querySelectorAll<HTMLImageElement>(selector));
-    const validImages = images.filter((img) => {
-      const src = img.src || img.getAttribute("src") || "";
-      return src.startsWith("http://") || src.startsWith("https://") || src.startsWith("data:");
-    });
+    const validImages = images
+      .filter((img) => !img.closest('[data-message-author-role="user"]') && !img.closest("form"))
+      .filter((img) => {
+        const src = img.src || img.getAttribute("src") || "";
+        return src.startsWith("http://") || src.startsWith("https://") || src.startsWith("data:");
+      });
 
     const knownSet = new Set(existingUrls);
     const fileMap = new Map<string, string>();

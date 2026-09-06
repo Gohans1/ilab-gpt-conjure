@@ -1,4 +1,4 @@
-import { rmSync } from "node:fs";
+import { existsSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { CHATGPT_URL, SELECTORS, USER_DATA_DIR } from "./config.js";
 import { getBrowserSession, type BrowserOptions, type BrowserSession } from "./browser.js";
@@ -13,6 +13,7 @@ export interface GenerateOptions extends BrowserOptions {
   maxTimeoutMs?: number;
   skipDiskWrite?: boolean;
   deleteChatAfterGen?: boolean;
+  inputImages?: string[];
 }
 
 export function resolveTimeoutOptions(options: GenerateOptions = {}): {
@@ -34,6 +35,81 @@ export function resolveTimeoutOptions(options: GenerateOptions = {}): {
 export function resolveDeleteChatOption(deleteChatAfterGen?: boolean): boolean {
   return deleteChatAfterGen ?? (process.env.CHATGPT_DELETE_CHAT !== "false");
 }
+
+export function resolveInputImages(input?: unknown): string[] {
+  if (!input) return [];
+  if (typeof input === "string") {
+    const trimmed = input.trim();
+    return trimmed ? [trimmed] : [];
+  }
+  if (Array.isArray(input)) {
+    return input
+      .filter((item): item is string => typeof item === "string" && item.trim().length > 0)
+      .map((item) => item.trim());
+  }
+  return [];
+}
+
+export async function attachImagesToChatGPT(
+  page: any,
+  imagePaths: string[],
+  options: { timeoutMs?: number; settleMs?: number } = {}
+): Promise<void> {
+  const paths = resolveInputImages(imagePaths);
+  if (paths.length === 0) return;
+
+  const timeout = options.timeoutMs ?? 15_000;
+  const settleMs = options.settleMs ?? 1_500;
+
+  let uploaded = false;
+
+  // 1. Thử tìm thẻ input[type="file"] có sẵn trong DOM
+  try {
+    const fileInput = page.locator(SELECTORS.fileInput).first();
+    const inputCount = await fileInput.count().catch(() => 0);
+
+    if (inputCount > 0) {
+      const isMultiple = typeof fileInput.getAttribute === "function"
+        ? await fileInput.getAttribute("multiple").then((val: any) => val !== null).catch(() => false)
+        : false;
+      const filesToUpload = isMultiple || paths.length === 1 ? paths : paths.slice(0, 1);
+      await fileInput.setInputFiles(filesToUpload, { timeout });
+      uploaded = true;
+    }
+  } catch {}
+
+  // 2. Fallback nếu thẻ input chưa có trong DOM hoặc setInputFiles gặp lỗi
+  if (!uploaded) {
+    try {
+      const attachBtn = page.locator(SELECTORS.attachButton).first();
+      const fileChooserPromise = page.waitForEvent("filechooser", { timeout: 8_000 }).catch(() => null);
+      const clickPromise = attachBtn.click({ timeout: 5000 }).catch(() => {});
+      const [fileChooser] = await Promise.all([fileChooserPromise, clickPromise]);
+      if (fileChooser) {
+        await fileChooser.setFiles(paths);
+        uploaded = true;
+      }
+    } catch {}
+  }
+
+  if (!uploaded) {
+    throw new Error("Không thể nạp ảnh tham chiếu vào giao diện ChatGPT (không tìm thấy input file hoặc nút đính kèm).");
+  }
+
+  // 3. Đợi thumbnail xuất hiện
+  const thumbnail = page.locator(SELECTORS.attachmentThumbnail).first();
+  const hasThumb = await thumbnail.waitFor({ state: "attached", timeout: 10_000 }).then(() => true).catch(() => false);
+  if (!hasThumb) {
+    throw new Error("Giao diện ChatGPT không hiển thị thumbnail ảnh đính kèm sau khi nạp file.");
+  }
+
+  // 4. Chờ indicator uploading biến mất (nếu đang tải ảnh lên)
+  const uploading = page.locator(SELECTORS.attachmentUploading).first();
+  await uploading.waitFor({ state: "detached", timeout: 30_000 }).catch(() => {});
+
+  await page.waitForTimeout(settleMs);
+}
+
 
 export function sizeToAspectRatio(sizeOrRatio?: string | null): string | null {
   if (!sizeOrRatio || typeof sizeOrRatio !== "string") return null;
@@ -171,6 +247,13 @@ export function inspectChatGPTPageState(
 }
 
 export async function generateImage(prompt: string, options: GenerateOptions = {}): Promise<DownloadResult[]> {
+  const inputImages = resolveInputImages(options.inputImages);
+  for (const imgPath of inputImages) {
+    if (!existsSync(imgPath)) {
+      throw new Error(`Không tìm thấy file ảnh tham chiếu: ${imgPath}`);
+    }
+  }
+
   const session: BrowserSession = await getBrowserSession({
     headless: options.headless,
   });
@@ -229,9 +312,16 @@ export async function generateImage(prompt: string, options: GenerateOptions = {
     const composer = page.locator(SELECTORS.composer).first();
     await composer.waitFor({ state: "visible", timeout: 30_000 });
 
-    // Lưu danh sách URL ảnh cũ trước khi gửi prompt
+    const inputImages = resolveInputImages(options.inputImages);
+    if (inputImages.length > 0) {
+      console.log(`[2.5/5] Đang nạp ${inputImages.length} ảnh tham chiếu vào DOM...`);
+      await attachImagesToChatGPT(page, inputImages);
+    }
+
+    // Lưu danh sách URL ảnh cũ trước khi gửi prompt (loại trừ user message và form để không dính ảnh tham chiếu)
     const initialUrls = await page.evaluate((selector) => {
       return Array.from(document.querySelectorAll<HTMLImageElement>(selector))
+        .filter((img) => !img.closest('[data-message-author-role="user"]') && !img.closest("form"))
         .map((img) => img.src || img.getAttribute("src") || "")
         .filter((src) => src.length > 0);
     }, SELECTORS.generatedImage);
@@ -240,13 +330,12 @@ export async function generateImage(prompt: string, options: GenerateOptions = {
     await composer.click();
     await composer.fill(prompt);
 
-    // Gửi prompt
+    // Gửi prompt: Playwright click tự động chờ nút enabled (actionability wait)
     await page.waitForTimeout(400);
     const sendBtn = page.locator(SELECTORS.sendButton).first();
-    const canClickSend = await sendBtn.isEnabled({ timeout: 2000 }).catch(() => false);
-    if (canClickSend) {
-      await sendBtn.click();
-    } else {
+    try {
+      await sendBtn.click({ timeout: 20_000 });
+    } catch {
       await composer.press("Enter");
     }
 
@@ -268,6 +357,7 @@ export async function generateImage(prompt: string, options: GenerateOptions = {
     while (Date.now() - startTime < maxTimeoutMs) {
       const currentImages = await page.evaluate((selector) => {
         return Array.from(document.querySelectorAll<HTMLImageElement>(selector))
+          .filter((img) => !img.closest('[data-message-author-role="user"]') && !img.closest("form"))
           .map((img) => img.src || img.getAttribute("src") || "")
           .filter((src) => src.startsWith("http") || src.startsWith("blob:") || src.startsWith("data:"));
       }, SELECTORS.generatedImage);
