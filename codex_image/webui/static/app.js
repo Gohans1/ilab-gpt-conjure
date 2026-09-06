@@ -44000,7 +44000,10 @@ ${galleryText}`;
     const presetMatch = findPresetForSize(params.size);
     if (presetMatch) {
       params.resolution = presetMatch.resolution;
-      params.ratio = els25.ratio?.value === "None" ? "None" : presetMatch.ratio;
+      params.ratio = presetMatch.ratio;
+      if (els25.ratio?.value === "None") {
+        params.ratio = "None";
+      }
       params.orientation = presetMatch.orientation;
     } else {
       const customRatio = currentCustomRatio();
@@ -44266,6 +44269,12 @@ ${galleryText}`;
   }
   function syncRatioAndOrientation(changedControl) {
     if (!els26.resolution || !els26.ratio || !els26.orientation) return;
+    if (els26.ratio.value === "None") {
+      if (changedControl === "orientation") {
+        syncRatioFromOrientation();
+      }
+      return;
+    }
     if (!GPT_IMAGE_2_SIZE_PRESETS[els26.resolution.value]) {
       setSizeControlValue(els26.resolution, DEFAULT_RESOLUTION);
     }
@@ -44286,6 +44295,7 @@ ${galleryText}`;
     setSizeControlValue(els26.orientation, nextOrientation);
   }
   function syncRatioFromOrientation() {
+    if (els26.ratio.value === "None") return;
     const orientation = els26.orientation.value;
     if (orientation === "square") {
       setSizeControlValue(els26.ratio, DEFAULT_RATIO);
@@ -44340,7 +44350,9 @@ ${galleryText}`;
     if (presetMatch) {
       if (els26.customSizeToggle) els26.customSizeToggle.checked = false;
       els26.resolution.value = presetMatch.resolution;
-      els26.ratio.value = presetMatch.ratio;
+      if (els26.ratio?.value !== "None") {
+        els26.ratio.value = presetMatch.ratio;
+      }
       els26.orientation.value = presetMatch.orientation;
       updateSizeFromPreset();
       syncRadioButtons(els26.resolution, els26.ratio, els26.orientation);

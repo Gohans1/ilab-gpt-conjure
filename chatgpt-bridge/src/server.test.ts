@@ -2,7 +2,7 @@ import { describe, expect, it } from "bun:test";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { cleanupTempFiles, handleRequest, parseImageRequest } from "./server.js";
+import { buildGenerationPrompt, cleanupTempFiles, handleRequest, parseImageRequest } from "./server.js";
 
 describe("parseImageRequest", () => {
   it("phân tích đúng JSON request không có ảnh", async () => {
@@ -226,4 +226,47 @@ describe("handleRequest validation", () => {
     expect(json.error?.code).toBe("missing_image");
   });
 });
+
+describe("buildGenerationPrompt", () => {
+  it("giữ prompt fresh 100% khi hasInputImages = true, bóc sạch ratio command", () => {
+    const prompt = buildGenerationPrompt({
+      prompt: "Make the hair bright green. Set the aspect ratio to 16:9.",
+      aspectRatioOrSize: "16:9",
+      hasInputImages: true,
+      n: 1,
+    });
+    expect(prompt).toBe("Make the hair bright green.");
+  });
+
+  it("không bọc Generate an image of: khi có ảnh reference", () => {
+    const prompt = buildGenerationPrompt({
+      prompt: "Change the background to a sunny beach",
+      aspectRatioOrSize: "None",
+      hasInputImages: true,
+      n: 1,
+    });
+    expect(prompt).toBe("Change the background to a sunny beach");
+  });
+
+  it("thêm wrapper và aspect ratio khi KHÔNG có ảnh reference", () => {
+    const prompt = buildGenerationPrompt({
+      prompt: "A futuristic cyberpunk city",
+      aspectRatioOrSize: "16:9",
+      hasInputImages: false,
+      n: 1,
+    });
+    expect(prompt).toBe("Generate an image of: A futuristic cyberpunk city. Set the aspect ratio to 16:9.");
+  });
+
+  it("không thêm aspect ratio khi chọn None dù không có ảnh reference", () => {
+    const prompt = buildGenerationPrompt({
+      prompt: "A peaceful forest with mist. Set the aspect ratio to 1:1.",
+      aspectRatioOrSize: "None",
+      hasInputImages: false,
+      n: 1,
+    });
+    expect(prompt).toBe("Generate an image of: A peaceful forest with mist.");
+  });
+});
+
 

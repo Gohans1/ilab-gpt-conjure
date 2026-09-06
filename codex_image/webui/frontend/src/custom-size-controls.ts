@@ -303,6 +303,13 @@ export function sizeControlName(target: any): string | null {
 export function syncRatioAndOrientation(changedControl: any): void {
   if (!els.resolution || !els.ratio || !els.orientation) return;
 
+  if (els.ratio.value === "None") {
+    if (changedControl === "orientation") {
+      syncRatioFromOrientation();
+    }
+    return;
+  }
+
   if (!GPT_IMAGE_2_SIZE_PRESETS[els.resolution.value]) {
     setSizeControlValue(els.resolution, DEFAULT_RESOLUTION);
   }
@@ -326,6 +333,7 @@ export function syncOrientationFromRatio(): void {
 }
 
 export function syncRatioFromOrientation(): void {
+  if (els.ratio.value === "None") return;
   const orientation = els.orientation.value;
   if (orientation === "square") {
     setSizeControlValue(els.ratio, DEFAULT_RATIO);
@@ -386,7 +394,9 @@ export function syncSizeControlsFromSize(size: any): void {
   if (presetMatch) {
     if (els.customSizeToggle) els.customSizeToggle.checked = false;
     els.resolution.value = presetMatch.resolution;
-    els.ratio.value = presetMatch.ratio;
+    if (els.ratio?.value !== "None") {
+      els.ratio.value = presetMatch.ratio;
+    }
     els.orientation.value = presetMatch.orientation;
     updateSizeFromPreset();
     syncRadioButtons(els.resolution, els.ratio, els.orientation);

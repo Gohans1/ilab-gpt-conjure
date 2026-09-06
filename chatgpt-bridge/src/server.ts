@@ -275,6 +275,78 @@ function enqueueTask<T>(task: () => Promise<T>): Promise<T> {
   });
 }
 
+export function buildGenerationPrompt(options: {
+  prompt: string;
+  aspectRatioOrSize?: string | null;
+  hasInputImages: boolean;
+  n: number;
+}): string {
+  // 2.1 Bóc tách prompt sạch (loại bỏ rác Prompt fidelity guidance nếu có)
+  let cleanPrompt = options.prompt.trim();
+  const marker = "Original user prompt:";
+  if (cleanPrompt.includes(marker)) {
+    const afterMarker = cleanPrompt.slice(cleanPrompt.indexOf(marker) + marker.length).trim();
+    if (afterMarker) {
+      cleanPrompt = afterMarker;
+    }
+  }
+
+  // Giữ lại câu aspect ratio nếu có trong prompt hoặc trích xuất từ body
+  const rawAspect = options.aspectRatioOrSize;
+  const rawRatioStr = String(rawAspect || "").trim().toLowerCase();
+  const isExplicitNoneRatio =
+    rawRatioStr === "none" ||
+    rawRatioStr === "off" ||
+    rawRatioStr === "null" ||
+    rawRatioStr === "auto" ||
+    rawRatioStr === "undefined";
+
+  // Regex bao quát toàn bộ 14 ngôn ngữ hỗ trợ để bóc sạch câu ratio nếu có
+  const ratioRegex =
+    /(?:Set the aspect ratio to|Đặt tỷ lệ khung hình thành|将宽高比设为|將寬高比設為|アスペクト比を|화면 비율을|Establece la relación de aspecto en|Defina a proporção da imagem como|Réglez le rapport largeur\/hauteur sur|Stelle das Seitenverhältnis auf|Установите соотношение сторон|Imposta le proporzioni su|पक्षानुपात को)\s+[0-9]+:[0-9]+(?:\s*に設定してください|\s*로 설정하세요|\s*ein)?[.\u3002]?/gi;
+
+  let ratioInstruction = "";
+
+  if (isExplicitNoneRatio) {
+    // Khi chọn None / tự do, bóc sạch câu ratio khỏi prompt để ChatGPT tự do quyết định tỷ lệ
+    cleanPrompt = cleanPrompt.replace(ratioRegex, "").trim();
+  } else {
+    const ratioMatch = cleanPrompt.match(ratioRegex);
+    if (ratioMatch) {
+      ratioInstruction = ` ${ratioMatch[0].trim()}`;
+      cleanPrompt = cleanPrompt.replace(ratioRegex, "").trim();
+    } else if (!options.hasInputImages) {
+      // Chỉ fallback từ size khi KHÔNG có ảnh reference (vẽ mới). Có ảnh reference phải giữ fresh tuyệt đối!
+      const detectedRatio = sizeToAspectRatio(rawAspect);
+      if (detectedRatio) {
+        ratioInstruction = ` Set the aspect ratio to ${detectedRatio}.`;
+      }
+    }
+  }
+
+  // 2.2 Bọc mệnh lệnh vẽ và số lượng n
+  if (options.hasInputImages) {
+    // Khi có ảnh reference: giữ prompt FRESH nguyên bản 100%, bóc sạch bất kỳ câu ratio tự động nào
+    cleanPrompt = cleanPrompt.replace(ratioRegex, "").trim();
+    return cleanPrompt;
+  }
+
+  const separator = /[.!?]$/.test(cleanPrompt) ? "" : ".";
+  const lower = cleanPrompt.toLowerCase();
+  const alreadyHasCommand =
+    lower.startsWith("generate an image") ||
+    lower.startsWith("generate a creative variation") ||
+    lower.startsWith("generate exactly");
+
+  if (options.n > 1) {
+    return `Generate exactly ${options.n} distinct images of: ${cleanPrompt}${separator}${ratioInstruction}`;
+  }
+  if (alreadyHasCommand) {
+    return `${cleanPrompt}${separator}${ratioInstruction}`;
+  }
+  return `Generate an image of: ${cleanPrompt}${separator}${ratioInstruction}`;
+}
+
 export async function handleRequest(req: Request): Promise<Response> {
   const url = new URL(req.url);
   const pathname = url.pathname.replace(/\/$/, "");
@@ -389,7 +461,9 @@ export async function handleRequest(req: Request): Promise<Response> {
       );
     }
 
-    if ((pathname.includes("edits") || pathname.includes("variations")) && parsed.inputImages.length === 0) {
+    const hasInputImages = parsed.inputImages.length > 0;
+
+    if ((pathname.includes("edits") || pathname.includes("variations")) && !hasInputImages) {
       cleanupTempFiles(parsed.tempFilesToClean);
       return Response.json(
         formatOpenAIError("image is required for image edits/variations", "invalid_request_error", "missing_image"),
@@ -410,72 +484,12 @@ export async function handleRequest(req: Request): Promise<Response> {
       );
     }
 
-    // 2.1 Bóc tách prompt sạch (loại bỏ rác Prompt fidelity guidance nếu có)
-    let cleanPrompt = prompt.trim();
-    const marker = "Original user prompt:";
-    if (cleanPrompt.includes(marker)) {
-      const afterMarker = cleanPrompt.slice(cleanPrompt.indexOf(marker) + marker.length).trim();
-      if (afterMarker) {
-        cleanPrompt = afterMarker;
-      }
-    }
-
-    // Giữ lại câu aspect ratio nếu có trong prompt hoặc trích xuất từ body
-    const rawAspect = parsed.aspectRatioOrSize;
-    const rawRatioStr = String(rawAspect || "").trim().toLowerCase();
-    const isExplicitNoneRatio =
-      rawRatioStr === "none" ||
-      rawRatioStr === "off" ||
-      rawRatioStr === "null" ||
-      rawRatioStr === "auto" ||
-      rawRatioStr === "undefined";
-
-    // Regex bao quát toàn bộ 14 ngôn ngữ hỗ trợ để bóc sạch câu ratio nếu có
-    const ratioRegex =
-      /(?:Set the aspect ratio to|Đặt tỷ lệ khung hình thành|将宽高比设为|將寬高比設為|アスペクト比を|화면 비율을|Establece la relación de aspecto en|Defina a proporção da imagem como|Réglez le rapport largeur\/hauteur sur|Stelle das Seitenverhältnis auf|Установите соотношение сторон|Imposta le proporzioni su|पक्षानुपात को)\s+[0-9]+:[0-9]+(?:\s*に設定してください|\s*로 설정하세요|\s*ein)?[.\u3002]?/gi;
-
-    let ratioInstruction = "";
-
-    if (isExplicitNoneRatio) {
-      // Khi chọn None / tự do, bóc sạch câu ratio khỏi prompt để ChatGPT tự do quyết định tỷ lệ
-      cleanPrompt = cleanPrompt.replace(ratioRegex, "").trim();
-    } else {
-      const ratioMatch = cleanPrompt.match(ratioRegex);
-      if (ratioMatch) {
-        ratioInstruction = ` ${ratioMatch[0].trim()}`;
-        cleanPrompt = cleanPrompt.replace(ratioRegex, "").trim();
-      } else if (!hasInputImages) {
-        // Chỉ fallback từ size khi KHÔNG có ảnh reference (vẽ mới). Có ảnh reference phải giữ fresh tuyệt đối!
-        const detectedRatio = sizeToAspectRatio(rawAspect);
-        if (detectedRatio) {
-          ratioInstruction = ` Set the aspect ratio to ${detectedRatio}.`;
-        }
-      }
-    }
-
-    // 2.2 Bọc mệnh lệnh vẽ và số lượng n
-    let generationPrompt: string;
-
-    if (hasInputImages) {
-      // Khi có ảnh reference: giữ prompt FRESH nguyên bản 100%, bóc sạch bất kỳ câu ratio tự động nào
-      cleanPrompt = cleanPrompt.replace(ratioRegex, "").trim();
-      generationPrompt = cleanPrompt;
-    } else {
-      const separator = /[.!?]$/.test(cleanPrompt) ? "" : ".";
-      const lower = cleanPrompt.toLowerCase();
-      const alreadyHasCommand =
-        lower.startsWith("generate an image") ||
-        lower.startsWith("generate a creative variation") ||
-        lower.startsWith("generate exactly");
-
-      if (parsed.n > 1) {
-        generationPrompt = `Generate exactly ${parsed.n} distinct images of: ${cleanPrompt}${separator}${ratioInstruction}`;
-      } else if (alreadyHasCommand) {
-        generationPrompt = `${cleanPrompt}${separator}${ratioInstruction}`;
-      } else {
-        generationPrompt = `Generate an image of: ${cleanPrompt}${separator}${ratioInstruction}`;
-      }
-    }
+    const generationPrompt = buildGenerationPrompt({
+      prompt,
+      aspectRatioOrSize: parsed.aspectRatioOrSize,
+      hasInputImages,
+      n: parsed.n,
+    });
 
     console.log(
       `\n📥 [Bridge] Nhận request (${pathname}) từ client (Số lượng yêu cầu: ${parsed.n}, Ảnh tham chiếu: ${parsed.inputImages.length}, Xoá chat sau khi tạo: ${parsed.deleteChatAfterGen ?? "mặc định"})!`

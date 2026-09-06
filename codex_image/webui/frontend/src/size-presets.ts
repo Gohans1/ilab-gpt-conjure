@@ -215,7 +215,10 @@ export function currentTaskParams(): any {
   const presetMatch = findPresetForSize(params.size);
   if (presetMatch) {
     params.resolution = presetMatch.resolution;
-    params.ratio = els.ratio?.value === "None" ? "None" : presetMatch.ratio;
+    params.ratio = presetMatch.ratio;
+    if (els.ratio?.value === "None") {
+      params.ratio = "None";
+    }
     params.orientation = presetMatch.orientation;
   } else {
     const customRatio = currentCustomRatio();

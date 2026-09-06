@@ -1963,7 +1963,7 @@ class WebUIStaticLayoutTests(WebUIStaticTestCase):
         )
         self.assertRegex(
             compact,
-            r"\.ratio-group\s*\{[^}]*grid-template-columns:\s*repeat\(6,\s*minmax\(0,\s*1fr\)\)"
+            r"\.ratio-group\s*\{[^}]*grid-template-columns:\s*repeat\(7,\s*minmax\(0,\s*1fr\)\)"
             r"[^}]*grid-template-rows:\s*repeat\(2,\s*var\(--compact-settings-segment-height\)\)",
         )
         self.assertRegex(
@@ -2839,24 +2839,27 @@ class WebUIStaticLayoutTests(WebUIStaticTestCase):
         styles = Path("codex_image/webui/static/styles.css").read_text(encoding="utf-8")
 
         self.assertRegex(html, r'<div class="field full-width ratio-field">[\s\S]*id="ratioGroup"')
-        self.assertRegex(styles, r"\.ratio-group\s*\{[^}]*grid-template-columns:\s*repeat\(6,\s*minmax\(0,\s*1fr\)\)")
+        self.assertRegex(styles, r"\.ratio-group\s*\{[^}]*grid-template-columns:\s*repeat\(7,\s*minmax\(0,\s*1fr\)\)")
         self.assertRegex(styles, r"\.ratio-group\s*\{[^}]*grid-template-rows:\s*repeat\(2,\s*30px\)")
         self.assertRegex(styles, r"\.ratio-group\s+\.radio-btn\s*\{[^}]*transform:\s*scale\(0\.985\)")
         self.assertRegex(styles, r"\.ratio-group\s+\.radio-btn\.active\s*\{[^}]*transform:\s*scale\(1\)")
         self.assertRegex(styles, r"\.radio-btn\s*\{[^}]*transition:\s*[\s\S]*background-color var\(--motion-base\)")
         self.assertRegex(styles, r"@media \(prefers-reduced-motion:\s*reduce\)\s*\{[\s\S]*\.ratio-group\s+\.radio-btn\s*\{[^}]*transform:\s*none")
+        self.assertRegex(styles, r"\.ratio-group\s+\.radio-btn\[data-val=\"None\"\]\s*\{[^}]*grid-column:\s*1")
+        self.assertRegex(styles, r"\.ratio-group\s+\.radio-btn\[data-val=\"None\"\]\s*\{[^}]*grid-row:\s*1\s*/\s*3")
+        self.assertRegex(styles, r"\.ratio-group\s+\.radio-btn\[data-val=\"1:1\"\]\s*\{[^}]*grid-column:\s*2")
         self.assertRegex(styles, r"\.ratio-group\s+\.radio-btn\[data-val=\"1:1\"\]\s*\{[^}]*grid-row:\s*1\s*/\s*3")
         for value, column, row in (
-            ("4:5", 2, 1),
-            ("5:4", 2, 2),
-            ("3:4", 3, 1),
-            ("4:3", 3, 2),
-            ("2:3", 4, 1),
-            ("3:2", 4, 2),
-            ("9:16", 5, 1),
-            ("16:9", 5, 2),
-            ("9:21", 6, 1),
-            ("21:9", 6, 2),
+            ("4:5", 3, 1),
+            ("5:4", 3, 2),
+            ("3:4", 4, 1),
+            ("4:3", 4, 2),
+            ("2:3", 5, 1),
+            ("3:2", 5, 2),
+            ("9:16", 6, 1),
+            ("16:9", 6, 2),
+            ("9:21", 7, 1),
+            ("21:9", 7, 2),
         ):
             self.assertRegex(styles, rf"\.ratio-group\s+\.radio-btn\[data-val=\"{value}\"\]\s*\{{[^}}]*grid-column:\s*{column}")
             self.assertRegex(styles, rf"\.ratio-group\s+\.radio-btn\[data-val=\"{value}\"\]\s*\{{[^}}]*grid-row:\s*{row}")
@@ -2865,16 +2868,16 @@ class WebUIStaticLayoutTests(WebUIStaticTestCase):
 
         self.assertRegex(
             html,
-            r'<div class="field orientation-field">[\s\S]*id="orientationGroup"[\s\S]*</div>\s*'
-            r'<div class="field resolution-field">[\s\S]*id="resolutionGroup"[\s\S]*</div>\s*'
+            r'<div class="field orientation-field"(?: style="display: none;")?>[\s\S]*id="orientationGroup"[\s\S]*</div>\s*'
+            r'<div class="field resolution-field"(?: style="display: none;")?>[\s\S]*id="resolutionGroup"[\s\S]*</div>\s*'
             r'<div id="customSize" class="custom-size hidden"[\s\S]*id="customWidth"[\s\S]*id="customHeight"[\s\S]*</div>\s*'
             r'<div class="field full-width ratio-field">[\s\S]*id="ratioGroup"',
         )
         self.assertRegex(
             html,
             r'<div class="field-pair full-width quantity-quality-row">[\s\S]*'
-            r'<div class="field quality-field">[\s\S]*id="quality"[\s\S]*</div>\s*'
-            r'<div class="field quantity-field">[\s\S]*id="quantityGroup"',
+            r'<div class="field quality-field"(?: style="[^"]*")?>[\s\S]*id="quality"[\s\S]*</div>\s*'
+            r'<div class="field quantity-field"(?: style="[^"]*")?>[\s\S]*id="quantityGroup"',
         )
     def test_button_radio_groups_are_not_wrapped_by_labels(self) -> None:
         html = Path("codex_image/webui/static/index.html").read_text(encoding="utf-8")
@@ -2933,9 +2936,9 @@ class WebUIStaticLayoutTests(WebUIStaticTestCase):
         self.assertRegex(html, r'class="field-group full-width custom-size-control"[\s\S]*id="sizeModeGroup"[\s\S]*data-custom-size-mode="preset"[\s\S]*data-custom-size-mode="custom"')
         self.assertRegex(
             html,
-            r'class="field-group full-width custom-size-control"[\s\S]*id="customSizeToggle"[\s\S]*</div>\s*'
-            r'<div class="field orientation-field">[\s\S]*id="orientationGroup"[\s\S]*</div>\s*'
-            r'<div class="field resolution-field">[\s\S]*id="resolutionGroup"[\s\S]*</div>\s*'
+            r'class="field-group full-width custom-size-control"(?: style="display: none;")?[\s\S]*id="customSizeToggle"[\s\S]*</div>\s*'
+            r'<div class="field orientation-field"(?: style="display: none;")?>[\s\S]*id="orientationGroup"[\s\S]*</div>\s*'
+            r'<div class="field resolution-field"(?: style="display: none;")?>[\s\S]*id="resolutionGroup"[\s\S]*</div>\s*'
             r'<div id="customSize" class="custom-size hidden"[\s\S]*class="custom-size-main"[\s\S]*class="field custom-ratio-field"',
         )
         self.assertRegex(html, r'id="customSizeToggle" class="hidden"')
