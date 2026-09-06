@@ -28,6 +28,7 @@ def gpt_image_parameters(command: GenerationCommand) -> dict[str, Any]:
     params = {**command.parameters, **command.legacy_compat_parameters}
     return {
         "size": params.get("canvas.size"),
+        "aspect_ratio": params.get("canvas.aspect_ratio") or params.get("aspect_ratio") or params.get("ratio"),
         "quality": params.get("gpt.quality"),
         "background": params.get("gpt.background"),
         "output_format": params.get("output.format", "png"),
@@ -62,6 +63,7 @@ def _images_payload(
         input_images=[image.data_url for image in command.image_inputs],
         mask_image=command.mask_image,
         size=parameters["size"],
+        aspect_ratio=parameters["aspect_ratio"],
         quality=parameters["quality"],
         background=parameters["background"],
         output_format=parameters["output_format"],

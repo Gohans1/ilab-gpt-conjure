@@ -50,6 +50,7 @@ def build_openai_images_payload(
     input_images: list[str] | None = None,
     mask_image: str | None = None,
     size: str | None = None,
+    aspect_ratio: str | None = None,
     quality: str | None = None,
     background: str | None = None,
     output_format: str = "png",
@@ -69,6 +70,8 @@ def build_openai_images_payload(
         "n": count,
         "output_format": output_format,
     }
+    if aspect_ratio:
+        payload["aspect_ratio"] = aspect_ratio
     for key, value in (("size", size), ("quality", quality), ("background", background)):
         if value:
             payload[key] = value
