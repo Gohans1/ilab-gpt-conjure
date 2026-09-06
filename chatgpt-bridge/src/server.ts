@@ -303,18 +303,18 @@ export function buildGenerationPrompt(options: {
 
   // Regex bao quát toàn bộ 14 ngôn ngữ hỗ trợ để bóc sạch câu ratio nếu có
   const ratioRegex =
-    /(?:Set the aspect ratio to|Đặt tỷ lệ khung hình thành|将宽高比设为|將寬高比設為|アスペクト比を|화면 비율을|Establece la relación de aspecto en|Defina a proporção da imagem como|Réglez le rapport largeur\/hauteur sur|Stelle das Seitenverhältnis auf|Установите соотношение сторон|Imposta le proporzioni su|पक्षानुपात को)\s+[0-9]+:[0-9]+(?:\s*に設定してください|\s*로 설정하세요|\s*ein)?[.\u3002]?/gi;
+    /(?:Set the aspect ratio to|Đặt tỷ lệ khung hình thành|将宽高比设为|將寬高比設為|アスペクト比を|화면 비율을|Establece la relación de aspecto en|Defina a proporção da imagem como|Réglez le rapport largeur\/hauteur sur|Stelle das Seitenverhältnis auf|Установите соотношение сторон|Imposta le proporzioni su|पक्षानुपात को)\s+[0-9]+:[0-9]+(?:\s*に設定してください|\s*로 설정하세요|\s*ein|\s*पर सेट करें)?[.\u3002\u0964]?/gi;
 
   let ratioInstruction = "";
 
   if (isExplicitNoneRatio) {
     // Khi chọn None / tự do, bóc sạch câu ratio khỏi prompt để ChatGPT tự do quyết định tỷ lệ
-    cleanPrompt = cleanPrompt.replace(ratioRegex, "").trim();
+    cleanPrompt = cleanPrompt.replace(ratioRegex, "").replace(/\s{2,}/g, " ").trim();
   } else {
     const ratioMatch = cleanPrompt.match(ratioRegex);
     if (ratioMatch) {
       ratioInstruction = ` ${ratioMatch[0].trim()}`;
-      cleanPrompt = cleanPrompt.replace(ratioRegex, "").trim();
+      cleanPrompt = cleanPrompt.replace(ratioRegex, "").replace(/\s{2,}/g, " ").trim();
     } else if (!options.hasInputImages) {
       // Chỉ fallback từ size khi KHÔNG có ảnh reference (vẽ mới). Có ảnh reference phải giữ fresh tuyệt đối!
       const detectedRatio = sizeToAspectRatio(rawAspect);
@@ -327,7 +327,10 @@ export function buildGenerationPrompt(options: {
   // 2.2 Bọc mệnh lệnh vẽ và số lượng n
   if (options.hasInputImages) {
     // Khi có ảnh reference: giữ prompt FRESH nguyên bản 100%, bóc sạch bất kỳ câu ratio tự động nào
-    cleanPrompt = cleanPrompt.replace(ratioRegex, "").trim();
+    cleanPrompt = cleanPrompt.replace(ratioRegex, "").replace(/\s{2,}/g, " ").trim();
+    if (!cleanPrompt) {
+      cleanPrompt = "Generate a creative variation of the attached image.";
+    }
     return cleanPrompt;
   }
 

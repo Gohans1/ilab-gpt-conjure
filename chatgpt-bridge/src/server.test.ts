@@ -267,6 +267,26 @@ describe("buildGenerationPrompt", () => {
     });
     expect(prompt).toBe("Generate an image of: A peaceful forest with mist.");
   });
+
+  it("bóc sạch câu lệnh aspect ratio tiếng Hindi bao gồm hậu tố và dấu danda", () => {
+    const prompt = buildGenerationPrompt({
+      prompt: "Make the character smile. पक्षानुपात को 16:9 पर सेट करें।",
+      aspectRatioOrSize: "16:9",
+      hasInputImages: true,
+      n: 1,
+    });
+    expect(prompt).toBe("Make the character smile.");
+  });
+
+  it("fallback sang prompt mặc định khi người dùng chỉ nhập đúng câu ratio khi có ảnh tham chiếu", () => {
+    const prompt = buildGenerationPrompt({
+      prompt: "Set the aspect ratio to 16:9.",
+      aspectRatioOrSize: "16:9",
+      hasInputImages: true,
+      n: 1,
+    });
+    expect(prompt).toBe("Generate a creative variation of the attached image.");
+  });
 });
 
 
