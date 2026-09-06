@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { deleteChatGPTConversation, resolveTimeoutOptions, sizeToAspectRatio } from "./generator.js";
+import { deleteChatGPTConversation, inspectChatGPTPageState, resolveTimeoutOptions, sizeToAspectRatio } from "./generator.js";
 
 describe("resolveTimeoutOptions", () => {
   it("dùng giá trị mặc định khi không truyền options (idle: 60s, max: 600s)", () => {
@@ -140,3 +140,236 @@ describe("sizeToAspectRatio", () => {
     expect(sizeToAspectRatio("0:1")).toBeNull();
   });
 });
+
+describe("inspectChatGPTPageState", () => {
+  it("trả về mặc định khi không có document", () => {
+    const state = inspectChatGPTPageState(null);
+    expect(state.isActivelyLoading).toBe(false);
+    expect(state.hasImageWidget).toBe(false);
+    expect(state.hasRegenerateBtn).toBe(false);
+    expect(state.errorMessage).toBeNull();
+    expect(state.isOnline).toBe(true);
+  });
+
+  it("nhận diện đúng khi spinner hoặc loading text đang hoạt động (isActivelyLoading = true)", () => {
+    const mockDoc = {
+      querySelector: (selector: string) => {
+        if (selector.includes("animate-spin")) return {};
+        return null;
+      },
+      querySelectorAll: (selector: string) => {
+        if (selector.includes("assistant")) {
+          return [
+            {
+              textContent: "Creating image of a cyberpunk city...",
+              closest: () => null,
+              querySelector: () => null,
+              querySelectorAll: () => [],
+            },
+          ];
+        }
+        return [];
+      },
+    };
+
+    const state = inspectChatGPTPageState(mockDoc);
+    expect(state.isActivelyLoading).toBe(true);
+    expect(state.text).toContain("Creating image");
+  });
+
+  it("không nhận nhầm nút Regenerate từ turn cũ nếu turn cuối chưa có nút Regenerate", () => {
+    const oldTurn = {
+      querySelector: (sel: string) => (sel.includes("regenerate") ? {} : null),
+      querySelectorAll: () => [],
+    };
+    const oldMessage = {
+      textContent: "Tin nhắn cũ đã xong",
+      closest: (sel: string) => (sel.includes("article") ? oldTurn : null),
+      querySelector: () => null,
+      querySelectorAll: () => [],
+    };
+
+    const lastTurn = {
+      querySelector: () => null,
+      querySelectorAll: () => [],
+    };
+    const lastMessage = {
+      textContent: "Tin nhắn mới đang vẽ ảnh",
+      closest: (sel: string) => (sel.includes("article") ? lastTurn : null),
+      querySelector: () => null,
+      querySelectorAll: () => [],
+    };
+
+    const mockDoc = {
+      querySelector: () => null,
+      querySelectorAll: (selector: string) => {
+        if (selector.includes("assistant")) {
+          return [oldMessage, lastMessage];
+        }
+        return [];
+      },
+    };
+
+    const state = inspectChatGPTPageState(mockDoc);
+    expect(state.hasRegenerateBtn).toBe(false);
+  });
+
+  it("nhận diện đúng nút Regenerate / refresh nằm ở cấp article của turn cuối", () => {
+    const lastTurn = {
+      querySelector: (sel: string) => (sel.includes("regenerate") || sel.includes("refresh") ? {} : null),
+      querySelectorAll: () => [],
+    };
+    const lastMessage = {
+      textContent: "Ảnh đã tạo xong hoặc thất bại",
+      closest: (sel: string) => (sel.includes("article") ? lastTurn : null),
+      querySelector: () => null,
+      querySelectorAll: () => [],
+    };
+
+    const mockDoc = {
+      querySelector: () => null,
+      querySelectorAll: (selector: string) => {
+        if (selector.includes("assistant")) {
+          return [lastMessage];
+        }
+        return [];
+      },
+    };
+
+    const state = inspectChatGPTPageState(mockDoc);
+    expect(state.hasRegenerateBtn).toBe(true);
+  });
+
+  it("không bị ảnh cũ ở turn trước làm ô nhiễm hasImageWidget ở turn cuối", () => {
+    const oldTurn = {
+      querySelector: (sel: string) => (sel.includes("image") ? {} : null),
+      querySelectorAll: () => [],
+    };
+    const oldMessage = {
+      textContent: "Tin nhắn cũ có ảnh",
+      closest: (sel: string) => (sel.includes("article") ? oldTurn : null),
+      querySelector: () => null,
+      querySelectorAll: () => [],
+    };
+
+    const lastTurn = {
+      querySelector: () => null,
+      querySelectorAll: () => [],
+    };
+    const lastMessage = {
+      textContent: "Tôi không thể vẽ ảnh này vì vi phạm chính sách.",
+      closest: (sel: string) => (sel.includes("article") ? lastTurn : null),
+      querySelector: () => null,
+      querySelectorAll: () => [],
+    };
+
+    const mockDoc = {
+      querySelector: (sel: string) => (sel.includes("image") ? {} : null), // Toàn cục có ảnh cũ
+      querySelectorAll: (selector: string) => {
+        if (selector.includes("assistant")) {
+          return [oldMessage, lastMessage];
+        }
+        return [];
+      },
+    };
+
+    const state = inspectChatGPTPageState(mockDoc);
+    // hasImageWidget chỉ check trong lastTurn nên phải là false
+    expect(state.hasImageWidget).toBe(false);
+    expect(state.text).toContain("Tôi không thể vẽ ảnh");
+  });
+
+  it("phát hiện lỗi đỏ hoặc rate limit từ ChatGPT", () => {
+    const mockDoc = {
+      querySelector: () => null,
+      querySelectorAll: (selector: string) => {
+        if (selector.includes("error")) {
+          return [{ textContent: "Something went wrong. Please try again later." }];
+        }
+        return [];
+      },
+    };
+
+    const state = inspectChatGPTPageState(mockDoc);
+    expect(state.errorMessage).toContain("Something went wrong");
+  });
+
+  it("không bị shimmer hoặc spinner ở sidebar làm ô nhiễm isActivelyLoading", () => {
+    const lastTurn = {
+      textContent: "Đang chờ tải...",
+      querySelector: () => null,
+      querySelectorAll: () => [],
+    };
+    const mockDoc = {
+      querySelector: (sel: string) => {
+        // Giả lập sidebar có shimmer / animate-spin nhưng mainChat thì không có
+        if (sel.includes("main")) {
+          return { querySelector: () => null };
+        }
+        return null;
+      },
+      querySelectorAll: (selector: string) => {
+        if (selector.includes("assistant")) {
+          return [{ textContent: "Đang chờ tải...", closest: () => lastTurn }];
+        }
+        return [];
+      },
+    };
+
+    const state = inspectChatGPTPageState(mockDoc);
+    expect(state.isActivelyLoading).toBe(false);
+  });
+
+  it("nhận diện đúng nút Try again / Retry dạng icon dùng aria-label", () => {
+    const retryBtn = {
+      textContent: "",
+      getAttribute: (attr: string) => (attr === "aria-label" ? "Try again" : null),
+    };
+    const lastTurn = {
+      querySelector: (sel: string) => (sel.includes("Try again") ? retryBtn : null),
+      querySelectorAll: (sel: string) => (sel === "button" ? [retryBtn] : []),
+    };
+    const lastMessage = {
+      textContent: "Không tạo được ảnh",
+      closest: () => lastTurn,
+    };
+
+    const mockDoc = {
+      querySelector: () => null,
+      querySelectorAll: (selector: string) => {
+        if (selector.includes("assistant")) {
+          return [lastMessage];
+        }
+        return [];
+      },
+    };
+
+    const state = inspectChatGPTPageState(mockDoc);
+    expect(state.hasRegenerateBtn).toBe(true);
+  });
+
+  it("nhận diện đúng widget ảnh từ CDN files.oaiusercontent.com hoặc dalle", () => {
+    const lastTurn = {
+      querySelector: (sel: string) => (sel.includes("files.oaiusercontent.com") ? {} : null),
+      querySelectorAll: () => [],
+    };
+    const lastMessage = {
+      textContent: "",
+      closest: () => lastTurn,
+    };
+
+    const mockDoc = {
+      querySelector: () => null,
+      querySelectorAll: (selector: string) => {
+        if (selector.includes("assistant")) {
+          return [lastMessage];
+        }
+        return [];
+      },
+    };
+
+    const state = inspectChatGPTPageState(mockDoc);
+    expect(state.hasImageWidget).toBe(true);
+  });
+});
+

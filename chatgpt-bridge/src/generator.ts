@@ -65,6 +65,107 @@ export function sizeToAspectRatio(sizeOrRatio?: string | null): string | null {
   return null;
 }
 
+export interface ChatGPTPageState {
+  isActivelyLoading: boolean;
+  hasImageWidget: boolean;
+  text: string;
+  isOnline: boolean;
+  errorMessage: string | null;
+  hasRegenerateBtn: boolean;
+}
+
+export function inspectChatGPTPageState(
+  doc?: any,
+  nav?: any
+): ChatGPTPageState {
+  const d = doc || (typeof document !== "undefined" ? document : null);
+  const n = nav || (typeof navigator !== "undefined" ? navigator : null);
+  if (!d) {
+    return {
+      isActivelyLoading: false,
+      hasImageWidget: false,
+      text: "",
+      isOnline: true,
+      errorMessage: null,
+      hasRegenerateBtn: false,
+    };
+  }
+
+  const isOnline = n && typeof n.onLine === "boolean" ? n.onLine : true;
+
+  // Chỉ truy vấn đúng vai trò của assistant, loại bỏ .markdown tự do để tránh tóm nhầm tin nhắn của user
+  const nodes = Array.from(
+    d.querySelectorAll('[data-message-author-role="assistant"]')
+  );
+  const last: any = nodes.length > 0 ? nodes[nodes.length - 1] : null;
+  const text = (last?.textContent || "").trim();
+
+  // Scope lên đúng cấp turn: article hoặc conversation-turn bọc tin nhắn cuối
+  const lastTurn: any = last?.closest?.('article, [data-testid^="conversation-turn-"]') || last;
+
+  const mainChat: any = d.querySelector?.('main, [role="presentation"]') || d;
+
+  // 1. Kiểm tra xem có spinner hoặc hiệu ứng loading đang xoay trong lượt chat cuối hoặc form chính hay không (tránh quét shimmer ở sidebar)
+  const isActivelyLoading =
+    (lastTurn !== null &&
+      ((lastTurn.textContent || "").includes("Creating image") ||
+       (lastTurn.textContent || "").includes("Generating image") ||
+       lastTurn.querySelector?.(
+         'svg.animate-spin, [class*="animate-spin"], [class*="shimmer"], [class*="spin"], [class*="loader"], [role="progressbar"], [aria-label*="Generating"], [aria-label*="Creating"]'
+       ) !== null)) ||
+    mainChat.querySelector?.(
+      'form [aria-label*="Stop"], form [data-testid="stop-button"], main [aria-label*="Generating"], main [aria-label*="Creating"]'
+    ) !== null;
+
+  // 2. Kiểm tra xem lượt chat cuối có widget / container ảnh hay không (đồng bộ đầy đủ với CDN và định dạng ảnh của ChatGPT)
+  const hasImageWidget = lastTurn
+    ? lastTurn.querySelector?.(
+        'div[data-testid*="image"], div[data-testid*="dalle"], div[class*="image-generation"], img[src*="estuary"], img[src*="files.oaiusercontent.com"], img[alt*="Generated image"], img[src*="oaidalleapiprodscus"], canvas'
+      ) !== null
+    : false;
+
+  // 3. Tìm banner / thông báo lỗi đỏ từ ChatGPT
+  const errorNodes = Array.from(
+    d.querySelectorAll('[role="alert"], [class*="error"], [class*="danger"], .text-red-500')
+  );
+  let errorMessage: string | null = null;
+  for (const el of errorNodes) {
+    const t = ((el as any).textContent || "").trim();
+    if (
+      t.includes("Something went wrong") ||
+      t.includes("Network error") ||
+      t.includes("error generating") ||
+      t.includes("There was an error") ||
+      t.includes("Unable to load") ||
+      t.includes("Failed to load") ||
+      t.includes("Rate limit")
+    ) {
+      errorMessage = t;
+      break;
+    }
+  }
+
+  // 4. Kiểm tra nút Regenerate xuất hiện ở lượt tin nhắn cuối (bao gồm cả icon button dùng aria-label)
+  const hasRegenerateBtn = lastTurn
+    ? lastTurn.querySelector?.(
+        'button[data-testid*="regenerate"], button[data-testid*="refresh"], button[data-testid*="retry"], button[aria-label*="Regenerate" i], button[aria-label*="Try again" i], button[aria-label*="Retry" i]'
+      ) !== null ||
+      Array.from(lastTurn.querySelectorAll?.("button") || []).some((b: any) => {
+        const txt = (b.textContent || "").trim().toLowerCase();
+        const aria = (b.getAttribute?.("aria-label") || "").toLowerCase();
+        return (
+          txt.includes("regenerate") ||
+          txt.includes("retry") ||
+          aria.includes("regenerate") ||
+          aria.includes("try again") ||
+          aria.includes("retry")
+        );
+      })
+    : false;
+
+  return { isActivelyLoading, hasImageWidget, text, isOnline, errorMessage, hasRegenerateBtn };
+}
+
 export async function generateImage(prompt: string, options: GenerateOptions = {}): Promise<DownloadResult[]> {
   const session: BrowserSession = await getBrowserSession({
     headless: options.headless,
@@ -170,46 +271,7 @@ export async function generateImage(prompt: string, options: GenerateOptions = {
       const hasNewImages = currentImages.some((src) => !knownSet.has(src));
       const isGenerating = await page.locator(SELECTORS.stopButton).first().isVisible().catch(() => false);
 
-      const pageState = await page.evaluate(() => {
-        const hasWidget =
-          document.querySelector('div[data-testid*="image"], div[class*="image-generation"], img[src*="estuary"]') !== null;
-        const nodes = Array.from(
-          document.querySelectorAll('[data-message-author-role="assistant"], .markdown')
-        );
-        const last = nodes.length > 0 ? nodes[nodes.length - 1] : null;
-        const text = (last?.textContent || "").trim();
-
-        // 1. Kiểm tra trạng thái mạng của trình duyệt
-        const isOnline = typeof navigator !== "undefined" ? navigator.onLine : true;
-
-        // 2. Tìm banner / thông báo lỗi đỏ từ ChatGPT
-        const errorNodes = Array.from(
-          document.querySelectorAll('[role="alert"], [class*="error"], [class*="danger"], .text-red-500')
-        );
-        let errorMessage: string | null = null;
-        for (const el of errorNodes) {
-          const t = (el.textContent || "").trim();
-          if (
-            t.includes("Something went wrong") ||
-            t.includes("Network error") ||
-            t.includes("error generating") ||
-            t.includes("There was an error") ||
-            t.includes("Unable to load") ||
-            t.includes("Failed to load") ||
-            t.includes("Rate limit")
-          ) {
-            errorMessage = t;
-            break;
-          }
-        }
-
-        // 3. Kiểm tra nút Regenerate xuất hiện
-        const hasRegenerateBtn =
-          document.querySelector('button[data-testid*="regenerate"], button:has([data-testid*="refresh"])') !== null ||
-          Array.from(document.querySelectorAll("button")).some((b) => (b.textContent || "").trim() === "Regenerate");
-
-        return { hasWidget, text, isOnline, errorMessage, hasRegenerateBtn };
-      });
+      const pageState = await page.evaluate(inspectChatGPTPageState);
 
       // Fail-fast mạng: Trình duyệt mất kết nối Internet
       if (!pageState.isOnline) {
@@ -223,7 +285,12 @@ export async function generateImage(prompt: string, options: GenerateOptions = {
       }
 
       // Reset Inactivity Timer khi có bất kỳ tín hiệu đang tạo ảnh nào từ ChatGPT
-      if (isGenerating || currentImages.length > previousImageCount || pageState.text.length > previousTextLength) {
+      if (
+        isGenerating ||
+        pageState.isActivelyLoading ||
+        currentImages.length > previousImageCount ||
+        pageState.text.length > previousTextLength
+      ) {
         lastActivityTime = Date.now();
       }
       if (currentImages.length > previousImageCount) {
@@ -241,17 +308,20 @@ export async function generateImage(prompt: string, options: GenerateOptions = {
         break;
       }
 
-      // Fail-fast: Nút Stop đã tắt, đã qua ít nhất 5s, có nút Regenerate nhưng không có ảnh mới
-      if (!isGenerating && pageState.hasRegenerateBtn && !hasNewImages && Date.now() - startTime > 5000) {
-        throw new Error("ChatGPT đã dừng quá trình tạo và hiển thị nút Regenerate nhưng không sinh ra ảnh mới nào.");
-      }
-
-      // Fail-fast: Chỉ kiểm tra khi nút Stop đã tắt (sinh xong), đã qua ít nhất 8s, và không có image widget nào đang tải
-      if (!isGenerating && Date.now() - startTime > 8000) {
-        if (!pageState.hasWidget && pageState.text && !hasNewImages) {
+      // Fail-fast: Nút Stop đã tắt, không có spinner đang tải, không có widget ảnh ở turn cuối, có nút Regenerate nhưng không có ảnh mới
+      if (
+        !isGenerating &&
+        !pageState.isActivelyLoading &&
+        !pageState.hasImageWidget &&
+        pageState.hasRegenerateBtn &&
+        !hasNewImages &&
+        Date.now() - startTime > 5000
+      ) {
+        if (pageState.text) {
           const preview = pageState.text.length > 120 ? pageState.text.slice(0, 120) + "..." : pageState.text;
           throw new Error(`ChatGPT không tạo ảnh mà trả lời bằng văn bản: "${preview}"`);
         }
+        throw new Error("ChatGPT đã dừng quá trình tạo và hiển thị nút Regenerate nhưng không sinh ra ảnh mới nào.");
       }
 
       // In nhật ký nhịp tim (Heartbeat log) mỗi 15s nếu tác vụ đang chạy lâu
