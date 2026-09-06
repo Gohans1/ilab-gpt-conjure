@@ -115,6 +115,11 @@ export function sizeToAspectRatio(sizeOrRatio?: string | null): string | null {
   if (!sizeOrRatio || typeof sizeOrRatio !== "string") return null;
   const s = sizeOrRatio.trim().toLowerCase();
 
+  // Bỏ qua nếu là None / off / null / auto
+  if (s === "none" || s === "off" || s === "null" || s === "undefined" || s === "auto") {
+    return null;
+  }
+
   // Đã là dạng tỷ lệ X:Y nguyên dương (ví dụ "16:9", "1:1", "9:16", "4:3", "3:4", "3:2", "2:3", "21:9")
   if (/^[1-9][0-9]*:[1-9][0-9]*$/.test(s)) {
     return s;

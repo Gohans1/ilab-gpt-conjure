@@ -421,36 +421,56 @@ export async function handleRequest(req: Request): Promise<Response> {
     }
 
     // Giữ lại câu aspect ratio nếu có trong prompt hoặc trích xuất từ body
+    const rawRatioStr = String(parsed.aspectRatioOrSize || "").trim().toLowerCase();
+    const isExplicitNoneRatio =
+      rawRatioStr === "none" ||
+      rawRatioStr === "off" ||
+      rawRatioStr === "null" ||
+      rawRatioStr === "auto" ||
+      rawRatioStr === "undefined";
+
+    // Xóa sạch câu aspect ratio regex trong cleanPrompt nếu có
+    const ratioRegex = /(?:Set the aspect ratio to|Đặt tỷ lệ khung hình thành)\s+[0-9]+:[0-9]+\.?/i;
     let ratioInstruction = "";
-    const ratioMatch = cleanPrompt.match(/(?:Set the aspect ratio to|Đặt tỷ lệ khung hình thành)\s+[0-9]+:[0-9]+\.?/i);
-    if (ratioMatch) {
-      ratioInstruction = ` ${ratioMatch[0].trim()}`;
-      cleanPrompt = cleanPrompt.replace(ratioMatch[0], "").trim();
+
+    if (isExplicitNoneRatio) {
+      // Khi chọn None / tự do, bóc sạch câu ratio khỏi prompt để ChatGPT tự do quyết định tỷ lệ
+      cleanPrompt = cleanPrompt.replace(ratioRegex, "").trim();
     } else {
-      const detectedRatio = sizeToAspectRatio(parsed.aspectRatioOrSize);
-      if (detectedRatio) {
-        ratioInstruction = ` Set the aspect ratio to ${detectedRatio}.`;
+      const ratioMatch = cleanPrompt.match(ratioRegex);
+      if (ratioMatch) {
+        ratioInstruction = ` ${ratioMatch[0].trim()}`;
+        cleanPrompt = cleanPrompt.replace(ratioMatch[0], "").trim();
+      } else {
+        const detectedRatio = sizeToAspectRatio(parsed.aspectRatioOrSize);
+        if (detectedRatio) {
+          ratioInstruction = ` Set the aspect ratio to ${detectedRatio}.`;
+        }
       }
     }
 
     // 2.2 Bọc mệnh lệnh vẽ và số lượng n
     let generationPrompt: string;
-    const separator = /[.!?]$/.test(cleanPrompt) ? "" : ".";
     const hasInputImages = parsed.inputImages.length > 0;
-    const prefix = hasInputImages ? "Based on the attached reference image(s), " : "";
 
-    const lower = cleanPrompt.toLowerCase();
-    const alreadyHasCommand =
-      lower.startsWith("generate an image") ||
-      lower.startsWith("generate a creative variation") ||
-      lower.startsWith("generate exactly");
-
-    if (parsed.n > 1) {
-      generationPrompt = `${prefix}Generate exactly ${parsed.n} distinct images of: ${cleanPrompt}${separator}${ratioInstruction}`;
-    } else if (alreadyHasCommand) {
-      generationPrompt = `${prefix}${cleanPrompt}${separator}${ratioInstruction}`;
+    if (hasInputImages) {
+      // Khi có ảnh reference: giữ prompt FRESH nguyên bản 100%, không thêm prefix hay bọc 'Generate an image of:'
+      generationPrompt = `${cleanPrompt}${ratioInstruction}`.trim();
     } else {
-      generationPrompt = `${prefix}Generate an image of: ${cleanPrompt}${separator}${ratioInstruction}`;
+      const separator = /[.!?]$/.test(cleanPrompt) ? "" : ".";
+      const lower = cleanPrompt.toLowerCase();
+      const alreadyHasCommand =
+        lower.startsWith("generate an image") ||
+        lower.startsWith("generate a creative variation") ||
+        lower.startsWith("generate exactly");
+
+      if (parsed.n > 1) {
+        generationPrompt = `Generate exactly ${parsed.n} distinct images of: ${cleanPrompt}${separator}${ratioInstruction}`;
+      } else if (alreadyHasCommand) {
+        generationPrompt = `${cleanPrompt}${separator}${ratioInstruction}`;
+      } else {
+        generationPrompt = `Generate an image of: ${cleanPrompt}${separator}${ratioInstruction}`;
+      }
     }
 
     console.log(

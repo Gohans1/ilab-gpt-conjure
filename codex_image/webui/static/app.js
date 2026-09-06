@@ -43820,6 +43820,7 @@ ${galleryText}`;
   var DEFAULT_RATIO = "1:1";
   var DEFAULT_ORIENTATION = "square";
   var RATIO_ORIENTATION = {
+    None: "square",
     "1:1": "square",
     "4:5": "portrait",
     "5:4": "landscape",
@@ -43833,6 +43834,7 @@ ${galleryText}`;
     "21:9": "landscape"
   };
   var RATIO_COUNTERPARTS = {
+    None: "None",
     "1:1": "1:1",
     "4:5": "5:4",
     "5:4": "4:5",
@@ -43998,12 +44000,14 @@ ${galleryText}`;
     const presetMatch = findPresetForSize(params.size);
     if (presetMatch) {
       params.resolution = presetMatch.resolution;
-      params.ratio = presetMatch.ratio;
+      params.ratio = els25.ratio?.value === "None" ? "None" : presetMatch.ratio;
       params.orientation = presetMatch.orientation;
     } else {
       const customRatio = currentCustomRatio();
       if (customRatio) {
         params.ratio = customRatio;
+      } else if (els25.ratio?.value === "None") {
+        params.ratio = "None";
       }
       const dimensions2 = String(params.size || "").split("x").map((value) => Number(value));
       if (dimensions2.length === 2 && dimensions2.every((value) => Number.isFinite(value) && value > 0)) {

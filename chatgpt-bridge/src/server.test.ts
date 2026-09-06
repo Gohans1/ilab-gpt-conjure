@@ -24,6 +24,21 @@ describe("parseImageRequest", () => {
     expect(parsed.tempFilesToClean).toEqual([]);
   });
 
+  it("phân tích đúng khi size hoặc aspect_ratio truyền là None", async () => {
+    const req = new Request("http://127.0.0.1:3000/v1/images/generations", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        prompt: "A beautiful sunset",
+        aspect_ratio: "None",
+      }),
+    });
+
+    const parsed = await parseImageRequest(req);
+    expect(parsed.prompt).toBe("A beautiful sunset");
+    expect(parsed.aspectRatioOrSize).toBe("None");
+  });
+
   it("phân tích đúng JSON request có base64 image và dọn dẹp sạch cả thư mục tạm", async () => {
     const fakeBase64Png = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
     const req = new Request("http://127.0.0.1:3000/v1/images/edits", {

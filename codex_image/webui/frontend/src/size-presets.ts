@@ -11,6 +11,7 @@ export const DEFAULT_RATIO = "1:1";
 export const DEFAULT_ORIENTATION = "square";
 
 export const RATIO_ORIENTATION: Record<string, string> = {
+  None: "square",
   "1:1": "square",
   "4:5": "portrait",
   "5:4": "landscape",
@@ -25,6 +26,7 @@ export const RATIO_ORIENTATION: Record<string, string> = {
 };
 
 export const RATIO_COUNTERPARTS: Record<string, string> = {
+  None: "None",
   "1:1": "1:1",
   "4:5": "5:4",
   "5:4": "4:5",
@@ -213,12 +215,14 @@ export function currentTaskParams(): any {
   const presetMatch = findPresetForSize(params.size);
   if (presetMatch) {
     params.resolution = presetMatch.resolution;
-    params.ratio = presetMatch.ratio;
+    params.ratio = els.ratio?.value === "None" ? "None" : presetMatch.ratio;
     params.orientation = presetMatch.orientation;
   } else {
     const customRatio = currentCustomRatio();
     if (customRatio) {
       params.ratio = customRatio;
+    } else if (els.ratio?.value === "None") {
+      params.ratio = "None";
     }
     const dimensions = String(params.size || "").split("x").map((value) => Number(value));
     if (dimensions.length === 2 && dimensions.every((value) => Number.isFinite(value) && value > 0)) {

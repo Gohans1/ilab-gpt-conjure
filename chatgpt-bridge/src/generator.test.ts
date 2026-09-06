@@ -183,6 +183,10 @@ describe("sizeToAspectRatio", () => {
     expect(sizeToAspectRatio(null)).toBeNull();
     expect(sizeToAspectRatio(undefined)).toBeNull();
     expect(sizeToAspectRatio("")).toBeNull();
+    expect(sizeToAspectRatio("none")).toBeNull();
+    expect(sizeToAspectRatio("None")).toBeNull();
+    expect(sizeToAspectRatio("off")).toBeNull();
+    expect(sizeToAspectRatio("auto")).toBeNull();
     expect(sizeToAspectRatio("invalid")).toBeNull();
     expect(sizeToAspectRatio("0x0")).toBeNull();
     expect(sizeToAspectRatio("0:0")).toBeNull();
