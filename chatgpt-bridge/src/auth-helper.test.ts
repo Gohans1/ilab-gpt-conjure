@@ -8,7 +8,16 @@ import { join } from "node:path";
 const testProfileDir = mkdtempSync(join(tmpdir(), "chatgpt-test-profile-"));
 process.env.CHATGPT_PROFILE_DIR = testProfileDir;
 
-const { checkIsLoggedIn, isSessionCookieValid, sanitizeBrowserLoginStorageState } = await import("./auth-helper.js");
+const {
+  allowedAuthUrl,
+  allowedLoginStorageHost,
+  checkIsLoggedIn,
+  checkSessionEndpoint,
+  isSessionCookieValid,
+  sanitizeBrowserLoginStorageState,
+  throwIfChatGptRateLimitDialog,
+  throwIfChatGptSessionFailureAlert,
+} = await import("./auth-helper.js");
 const {
   clearSessionVerified,
   getSessionVerifiedMarkerPath,
@@ -299,4 +308,215 @@ describe("auth-helper: checkIsLoggedIn fail-fast", () => {
     expect(duration).toBeGreaterThanOrEqual(500);
   });
 });
+
+describe("auth-helper: allowedLoginStorageHost & allowedAuthUrl", () => {
+  test("allowedLoginStorageHost chỉ chấp nhận chatgpt.com và openai.com chuẩn chỉ", () => {
+    expect(allowedLoginStorageHost("chatgpt.com")).toBe(true);
+    expect(allowedLoginStorageHost("sub.chatgpt.com")).toBe(true);
+    expect(allowedLoginStorageHost("openai.com")).toBe(true);
+    expect(allowedLoginStorageHost("auth.openai.com")).toBe(true);
+
+    // Hostname không được có leading dot (phải được strip trước khi validate host)
+    expect(allowedLoginStorageHost(".chatgpt.com")).toBe(false);
+
+    // Bác bỏ domain giả mạo hoặc chứa ký tự độc hại
+    expect(allowedLoginStorageHost("notchatgpt.com")).toBe(false);
+    expect(allowedLoginStorageHost("chatgpt.com.attacker.com")).toBe(false);
+    expect(allowedLoginStorageHost("user:pass@chatgpt.com")).toBe(false);
+    expect(allowedLoginStorageHost("chatgpt.com/path")).toBe(false);
+    expect(allowedLoginStorageHost("..chatgpt.com")).toBe(false);
+    expect(allowedLoginStorageHost("google.com")).toBe(false);
+  });
+
+  test("allowedAuthUrl chỉ chấp nhận các OAuth Provider chính chủ và URL auth chuẩn", () => {
+    expect(allowedAuthUrl("https://chatgpt.com/auth/login")).toBe(true);
+    expect(allowedAuthUrl("https://chatgpt.com/auth")).toBe(true);
+    expect(allowedAuthUrl("https://chatgpt.com/login")).toBe(true);
+    expect(allowedAuthUrl("https://auth.openai.com/oauth/token")).toBe(true);
+    expect(allowedAuthUrl("https://accounts.google.com/o/oauth2/v2/auth")).toBe(true);
+    expect(allowedAuthUrl("https://login.microsoftonline.com/common/oauth2")).toBe(true);
+    expect(allowedAuthUrl("https://appleid.apple.com/auth/authorize")).toBe(true);
+
+    // Bác bỏ http hoặc domain bên ngoài
+    expect(allowedAuthUrl("http://chatgpt.com/auth/login")).toBe(false);
+    expect(allowedAuthUrl("https://chatgpt.com/api/other")).toBe(false);
+    expect(allowedAuthUrl("https://malicious-oauth.com/login")).toBe(false);
+    expect(allowedAuthUrl("not a url")).toBe(false);
+  });
+});
+
+describe("auth-helper: runtime alert helpers", () => {
+  test("throwIfChatGptSessionFailureAlert ném lỗi khi có modal session expired", async () => {
+    const fakePage = {
+      isClosed: () => false,
+      locator: (sel: string) => ({
+        filter: (opt: any) => ({
+          last: () => ({
+            isVisible: async () => true,
+          }),
+        }),
+      }),
+    } as any;
+
+    expect(throwIfChatGptSessionFailureAlert(fakePage)).rejects.toThrow("Phiên đăng nhập ChatGPT đã hết hạn");
+  });
+
+  test("throwIfChatGptSessionFailureAlert bỏ qua an toàn khi không có alert", async () => {
+    const fakePage = {
+      isClosed: () => false,
+      locator: (sel: string) => ({
+        filter: (opt: any) => ({
+          last: () => ({
+            isVisible: async () => false,
+          }),
+        }),
+      }),
+    } as any;
+
+    expect(throwIfChatGptSessionFailureAlert(fakePage)).resolves.toBeUndefined();
+  });
+
+  test("throwIfChatGptRateLimitDialog ném lỗi và tự động click acknowledge khi có modal rate limit", async () => {
+    let ackClicked = false;
+    const fakePage = {
+      isClosed: () => false,
+      locator: (sel: string) => ({
+        filter: (opt: any) => ({
+          last: () => ({
+            isVisible: async () => true,
+            locator: (btnSel: string) => ({
+              filter: (btnOpt: any) => ({
+                last: () => ({
+                  isVisible: async () => true,
+                  click: async () => {
+                    ackClicked = true;
+                  },
+                }),
+              }),
+            }),
+          }),
+        }),
+      }),
+    } as any;
+
+    await expect(throwIfChatGptRateLimitDialog(fakePage)).rejects.toThrow("ChatGPT báo lỗi giới hạn tần suất");
+    expect(ackClicked).toBe(true);
+  });
+
+  test("throwIfChatGptRateLimitDialog bỏ qua an toàn khi không có modal rate limit", async () => {
+    const fakePage = {
+      isClosed: () => false,
+      locator: (sel: string) => ({
+        filter: (opt: any) => ({
+          last: () => ({
+            isVisible: async () => false,
+          }),
+        }),
+      }),
+    } as any;
+
+    await expect(throwIfChatGptRateLimitDialog(fakePage)).resolves.toBeUndefined();
+  });
+});
+
+describe("check-session: chunked cookies validation", () => {
+  const markerPath = getSessionVerifiedMarkerPath();
+
+  test("từ chối khi chỉ có chunk .1 mà thiếu chunk .0 (chống false-positive)", () => {
+    try {
+      markSessionVerified();
+      const partialState = {
+        cookies: [
+          {
+            name: "__Secure-next-auth.session-token.1",
+            value: "valid-looking-jwt-fragment-chunk-1-long-enough",
+            domain: "chatgpt.com",
+            path: "/",
+          },
+        ],
+      };
+      writeFileSync(STORAGE_STATE_PATH, JSON.stringify(partialState), "utf-8");
+      expect(isSessionCached()).toBe(false);
+    } finally {
+      clearSessionVerified(true);
+    }
+  });
+
+  test("từ chối khi chunk .0 là 'deleted' dù chunk .1 còn nguyên", () => {
+    try {
+      markSessionVerified();
+      const revokedState = {
+        cookies: [
+          {
+            name: "__Secure-next-auth.session-token.0",
+            value: "deleted",
+            domain: "chatgpt.com",
+            path: "/",
+          },
+          {
+            name: "__Secure-next-auth.session-token.1",
+            value: "valid-looking-jwt-fragment-chunk-1-long-enough",
+            domain: "chatgpt.com",
+            path: "/",
+          },
+        ],
+      };
+      writeFileSync(STORAGE_STATE_PATH, JSON.stringify(revokedState), "utf-8");
+      expect(isSessionCached()).toBe(false);
+    } finally {
+      clearSessionVerified(true);
+    }
+  });
+
+  test("chấp nhận khi đầy đủ chunk .0 và .1 hợp lệ", () => {
+    try {
+      markSessionVerified();
+      const validChunkedState = {
+        cookies: [
+          {
+            name: "__Secure-next-auth.session-token.0",
+            value: "valid-looking-jwt-fragment-chunk-0-long-enough",
+            domain: "chatgpt.com",
+            path: "/",
+          },
+          {
+            name: "__Secure-next-auth.session-token.1",
+            value: "valid-looking-jwt-fragment-chunk-1-long-enough",
+            domain: "chatgpt.com",
+            path: "/",
+          },
+        ],
+      };
+      writeFileSync(STORAGE_STATE_PATH, JSON.stringify(validChunkedState), "utf-8");
+      expect(isSessionCached()).toBe(true);
+    } finally {
+      clearSessionVerified(true);
+    }
+  });
+});
+
+describe("auth-helper: checkSessionEndpoint", () => {
+  test("trả về false khi page đã đóng", async () => {
+    const closedPage = {
+      isClosed: () => true,
+    } as any;
+    expect(await checkSessionEndpoint(closedPage)).toBe(false);
+  });
+
+  test("gọi page.evaluate và xử lý kết quả", async () => {
+    const mockPage = {
+      isClosed: () => false,
+      evaluate: async (fn: any) => true,
+    } as any;
+    expect(await checkSessionEndpoint(mockPage)).toBe(true);
+
+    const failingPage = {
+      isClosed: () => false,
+      evaluate: async () => false,
+    } as any;
+    expect(await checkSessionEndpoint(failingPage)).toBe(false);
+  });
+});
+
+
 

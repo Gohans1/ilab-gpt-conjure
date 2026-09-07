@@ -176,7 +176,7 @@ if %ERRORLEVEL% EQU 0 (
 )
 
 echo [4/4] Dang khoi dong ChatGPT Image Bridge (Port 3000)...
-start "" /b cmd /c "cd /d "%PROJECT_DIR%chatgpt-bridge" && "%BUN_CMD%" run src/server.ts > "%BRIDGE_LOG%" 2>&1"
+start "iLab CONJURE - ChatGPT Bridge (Port 3000)" cmd /c ""%PROJECT_DIR%bin\disable-quickedit.exe" 2>nul & cd /d "%PROJECT_DIR%chatgpt-bridge" && "%BUN_CMD%" run src/server.ts || pause"
 
 set /a ATTEMPTS=0
 :wait_bridge
@@ -188,7 +188,7 @@ ping 127.0.0.1 -n 2 >nul
 goto :wait_bridge
 
 :bridge_timeout
-echo [CANH BAO] Bridge Server khong phan hoi sau 15 giay. Kiem tra: %BRIDGE_LOG%
+echo [CANH BAO] Bridge Server khong phan hoi sau 15 giay. Kiem tra cua so: iLab CONJURE - ChatGPT Bridge
 goto :start_webui
 
 :bridge_ready
@@ -203,7 +203,8 @@ if %ERRORLEVEL% EQU 0 (
 )
 
 echo Dang khoi dong iLab CONJURE WebUI (Port 8787)...
-start "" /b cmd /c ""%PYTHON_BIN%" -m codex_image.webui.server codex_image.webui.app:app --host 127.0.0.1 --port 8787 --no-access-log --timeout-graceful-shutdown 5 > "%WEBUI_LOG%" 2>&1"
+set "PYTHONUNBUFFERED=1"
+start "iLab CONJURE - WebUI Server (Port 8787)" cmd /c ""%PROJECT_DIR%bin\disable-quickedit.exe" 2>nul & "%PYTHON_BIN%" -m codex_image.webui.server codex_image.webui.app:app --host 127.0.0.1 --port 8787 --no-access-log --timeout-graceful-shutdown 5 || pause"
 
 set /a ATTEMPTS=0
 :wait_webui
@@ -215,7 +216,7 @@ ping 127.0.0.1 -n 2 >nul
 goto :wait_webui
 
 :webui_timeout
-echo [CANH BAO] WebUI Server khong phan hoi sau 20 giay. Kiem tra: %WEBUI_LOG%
+echo [CANH BAO] WebUI Server khong phan hoi sau 20 giay. Kiem tra cua so: iLab CONJURE - WebUI Server
 goto :dashboard
 
 :webui_ready
@@ -230,12 +231,11 @@ echo ============================================================
 echo   iLab CONJURE Controller - Dashboard Dang Hoat Dong
 echo ============================================================
 echo.
-echo   [*] ChatGPT Bridge : http://127.0.0.1:3000   [RUNNING]
-echo   [*] iLab WebUI     : http://127.0.0.1:8787   [RUNNING]
+echo   [*] ChatGPT Bridge : http://127.0.0.1:3000   [RUNNING - Cua so console rieng]
+echo   [*] iLab WebUI     : http://127.0.0.1:8787   [RUNNING - Cua so console rieng]
 echo.
 echo   Trinh duyet da mo  : http://127.0.0.1:8787/
-echo   Bridge Server Log  : output\bridge-server.log
-echo   WebUI Server Log   : output\webui-server.log
+echo   Theo doi log live  : Xem truc tiep tai 2 cua so console doc lap
 echo.
 echo ------------------------------------------------------------
 echo   NHAN BAT KY PHIM NAO DE DUNG TAT CA DICH VU VA THOAT
@@ -249,6 +249,7 @@ echo Dang tat tat ca server va tien trinh lien quan...
 powershell -NoProfile -Command "Get-NetTCPConnection -LocalPort 3000, 8787 -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess -Unique | ForEach-Object { $p = Get-Process -Id $_ -ErrorAction SilentlyContinue; if ($p -and $p.ProcessName -match 'bun|node|python|cmd') { Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue } }" >nul 2>nul
 powershell -NoProfile -Command "Get-Process bun, python -ErrorAction SilentlyContinue | Where-Object { $_.Path -like '*ilab*conjure*' } | Stop-Process -Force -ErrorAction SilentlyContinue" >nul 2>nul
 powershell -NoProfile -Command "Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -like '*chatgpt-profile*' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }" >nul 2>nul
+powershell -NoProfile -Command "Get-Process cmd -ErrorAction SilentlyContinue | Where-Object { $_.MainWindowTitle -like '*iLab CONJURE - ChatGPT Bridge*' -or $_.MainWindowTitle -like '*iLab CONJURE - WebUI Server*' } | Stop-Process -Force -ErrorAction SilentlyContinue" >nul 2>nul
 echo Da tat toan bo tien trinh an toan. Tam biet!
 ping 127.0.0.1 -n 3 >nul
 exit /b 0

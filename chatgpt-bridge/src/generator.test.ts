@@ -141,6 +141,13 @@ describe("deleteChatGPTConversation", () => {
     expect(result.success).toBe(false);
     expect(result.error).toContain("Page context destroyed");
   });
+
+  it("từ chối ID đoạn chat không hợp lệ (chống injection/traversal)", async () => {
+    const mockPage: any = {};
+    const result = await deleteChatGPTConversation(mockPage, "../../bad-id", null);
+    expect(result.success).toBe(false);
+    expect(result.error).toContain("ID đoạn chat không hợp lệ");
+  });
 });
 
 describe("sizeToAspectRatio", () => {

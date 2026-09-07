@@ -6,8 +6,10 @@ import {
   checkIsLoggedIn,
   dismissCookieBannerIfPresent,
   saveSanitizedStorageState,
+  throwIfChatGptRateLimitDialog,
+  throwIfChatGptSessionFailureAlert,
 } from "./auth-helper.js";
-import { clearSessionVerified } from "./check-session.js";
+import { clearSessionVerified, isSessionCached } from "./check-session.js";
 
 import type { Page } from "playwright-core";
 
@@ -331,6 +333,16 @@ export function inspectChatGPTPageState(
 }
 
 export async function generateImage(prompt: string, options: GenerateOptions = {}): Promise<DownloadResult[]> {
+  if (options.signal?.aborted) {
+    throw new Error("Quá trình sinh ảnh đã bị hủy bởi client (Client aborted request)");
+  }
+
+  if (!isSessionCached()) {
+    throw new Error(
+      "Phiên đăng nhập ChatGPT chưa có hoặc đã hết hạn. Vui lòng chạy 'chatgpt-image --login' hoặc bấm [🔑 Đăng nhập ChatGPT] trên WebUI để đăng nhập lại!"
+    );
+  }
+
   const inputImages = resolveInputImages(options.inputImages);
   for (const imgPath of inputImages) {
     if (!existsSync(imgPath)) {
@@ -342,20 +354,33 @@ export async function generateImage(prompt: string, options: GenerateOptions = {
     headless: options.headless,
   });
 
+  const abortHandler = () => {
+    session.close().catch(() => {});
+  };
+  if (options.signal) {
+    options.signal.addEventListener("abort", abortHandler, { once: true });
+  }
+
   try {
     const page = session.page;
     let capturedAuthHeader: string | null = null;
     let detectedConversationId: string | null = null;
-
     const requestListener = (req: any) => {
       try {
-        const url = req.url();
-        if (url.includes("/backend-api/")) {
+        const urlStr = req.url();
+        let parsed: URL;
+        try {
+          parsed = new URL(urlStr);
+        } catch {
+          return;
+        }
+        if (parsed.origin !== "https://chatgpt.com") return;
+        if (parsed.pathname.startsWith("/backend-api/")) {
           const auth = req.headers()["authorization"];
           if (auth && !capturedAuthHeader) {
             capturedAuthHeader = auth;
           }
-          const match = url.match(/\/backend-api\/conversation\/([a-zA-Z0-9_-]+)/);
+          const match = parsed.pathname.match(/^\/backend-api\/conversation\/([a-zA-Z0-9_-]+)$/);
           if (match && !detectedConversationId) {
             detectedConversationId = match[1];
           }
@@ -365,9 +390,16 @@ export async function generateImage(prompt: string, options: GenerateOptions = {
 
     const responseListener = (res: any) => {
       try {
-        const url = res.url();
-        if (url.includes("/backend-api/conversation")) {
-          const match = url.match(/\/backend-api\/conversation\/([a-zA-Z0-9_-]+)/);
+        const urlStr = res.url();
+        let parsed: URL;
+        try {
+          parsed = new URL(urlStr);
+        } catch {
+          return;
+        }
+        if (parsed.origin !== "https://chatgpt.com") return;
+        if (parsed.pathname.startsWith("/backend-api/conversation")) {
+          const match = parsed.pathname.match(/^\/backend-api\/conversation\/([a-zA-Z0-9_-]+)$/);
           if (match && !detectedConversationId) {
             detectedConversationId = match[1];
           }
@@ -378,8 +410,16 @@ export async function generateImage(prompt: string, options: GenerateOptions = {
     page.on("request", requestListener);
     page.on("response", responseListener);
 
+    if (options.signal?.aborted) {
+      throw new Error("Quá trình sinh ảnh đã bị hủy bởi client (Client aborted request)");
+    }
+
     console.log(`[1/5] Đang mở ChatGPT Web (${CHATGPT_URL})...`);
     await page.goto(CHATGPT_URL, { waitUntil: "domcontentloaded", timeout: 60_000 });
+
+    if (options.signal?.aborted) {
+      throw new Error("Quá trình sinh ảnh đã bị hủy bởi client (Client aborted request)");
+    }
 
     await dismissCookieBannerIfPresent(page);
 
@@ -391,6 +431,13 @@ export async function generateImage(prompt: string, options: GenerateOptions = {
       throw new Error(
         "Phiên đăng nhập ChatGPT chưa có hoặc đã hết hạn. Vui lòng chạy 'chatgpt-image --login' hoặc bấm [🔑 Đăng nhập ChatGPT] trên WebUI để đăng nhập lại!"
       );
+    }
+
+    await throwIfChatGptSessionFailureAlert(page);
+    await throwIfChatGptRateLimitDialog(page);
+
+    if (options.signal?.aborted) {
+      throw new Error("Quá trình sinh ảnh đã bị hủy bởi client (Client aborted request)");
     }
 
     // Đợi ô nhập liệu hiển thị
@@ -423,6 +470,9 @@ export async function generateImage(prompt: string, options: GenerateOptions = {
         await page.keyboard.insertText(prompt);
       }
     }
+
+    // Reset ID hội thoại trước khi gửi để tránh vô tình xoá nhầm các chat cũ từ sidebar hoặc lần tải trang ban đầu
+    detectedConversationId = null;
 
     // Gửi prompt: Playwright click tự động chờ nút enabled (actionability wait)
     await page.waitForTimeout(400);
@@ -482,10 +532,14 @@ export async function generateImage(prompt: string, options: GenerateOptions = {
         throw new Error("Trình duyệt mất kết nối Internet (navigator.onLine = false).");
       }
 
-      // Fail-fast lỗi giao diện: ChatGPT hiển thị banner / thông báo lỗi
-      if (pageState.errorMessage && !hasNewImages) {
-        const cleanErr = pageState.errorMessage.length > 150 ? pageState.errorMessage.slice(0, 150) + "..." : pageState.errorMessage;
-        throw new Error(`ChatGPT báo lỗi: "${cleanErr}"`);
+      // Fail-fast lỗi giao diện: ChatGPT hiển thị banner hoặc modal dialog
+      if (pageState.errorMessage) {
+        await throwIfChatGptSessionFailureAlert(page);
+        await throwIfChatGptRateLimitDialog(page);
+        if (!hasNewImages) {
+          const cleanErr = pageState.errorMessage.length > 150 ? pageState.errorMessage.slice(0, 150) + "..." : pageState.errorMessage;
+          throw new Error(`ChatGPT báo lỗi: "${cleanErr}"`);
+        }
       }
 
       // Reset Inactivity Timer khi có bất kỳ tín hiệu đang tạo ảnh nào từ ChatGPT
@@ -610,6 +664,9 @@ export async function generateImage(prompt: string, options: GenerateOptions = {
 
     return results;
   } finally {
+    if (options.signal) {
+      options.signal.removeEventListener("abort", abortHandler);
+    }
     await session.close();
   }
 }
@@ -619,10 +676,16 @@ export async function deleteChatGPTConversation(
   conversationId: string,
   authHeader?: string | null
 ): Promise<{ success: boolean; status?: number; error?: string }> {
+  if (!conversationId || !/^[a-zA-Z0-9_-]+$/.test(conversationId)) {
+    return { success: false, error: "ID đoạn chat không hợp lệ (Invalid conversation ID format)" };
+  }
   try {
     const result = await page.evaluate(
       async ({ id, auth }: { id: string; auth: string | null }) => {
+        let timer: any;
         try {
+          const controller = new AbortController();
+          timer = setTimeout(() => controller.abort(), 5000);
           const headers: Record<string, string> = {
             "Content-Type": "application/json",
           };
@@ -630,7 +693,10 @@ export async function deleteChatGPTConversation(
             headers["Authorization"] = auth;
           } else {
             try {
-              const sessionRes = await fetch("/api/auth/session", { credentials: "include" });
+              const sessionRes = await fetch("/api/auth/session", {
+                credentials: "include",
+                signal: controller.signal,
+              });
               if (sessionRes.ok) {
                 const sessionData = (await sessionRes.json()) as { accessToken?: string };
                 if (sessionData?.accessToken) {
@@ -644,11 +710,14 @@ export async function deleteChatGPTConversation(
             method: "PATCH",
             headers,
             body: JSON.stringify({ is_visible: false }),
+            signal: controller.signal,
           });
 
           return { success: res.ok, status: res.status };
         } catch (err) {
           return { success: false, error: String(err) };
+        } finally {
+          if (timer) clearTimeout(timer);
         }
       },
       { id: conversationId, auth: authHeader || null }

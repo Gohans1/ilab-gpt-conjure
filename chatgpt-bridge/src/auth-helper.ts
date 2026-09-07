@@ -1,17 +1,26 @@
-import { existsSync, mkdirSync, readFileSync, renameSync, rmSync, statSync, writeFileSync } from "node:fs";
-import { dirname, join } from "node:path";
-import type { BrowserContext, Page } from "playwright-core";
-import { atomicWriteFile, SELECTORS, STORAGE_STATE_PATH, USER_DATA_DIR } from "./config.js";
+import { spawn } from "node:child_process";
+import { mkdtempSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { chromium, type BrowserContext, type Page } from "playwright-core";
+import { atomicWriteFile, CHATGPT_LOGIN_URL, findBrowserCandidates, SELECTORS, STORAGE_STATE_PATH } from "./config.js";
 import {
+  AUTH_PROVIDER_HOSTS,
+  allowedLoginStorageHost,
   clearSessionVerified,
-  getSessionVerifiedMarkerPath,
-  isSessionCached,
+  hasValidSessionToken,
   isSessionCookieValid,
   markSessionVerified,
 } from "./check-session.js";
-import { cleanupStaleLocks, killOrphanBrowsers, killProcessTree } from "./browser.js";
+import {
+  cleanupStaleLocks,
+  killOrphanBrowsers,
+  killProcessTree,
+  registerActiveBrowserPid,
+  unregisterActiveBrowserPid,
+} from "./browser.js";
 
-export { isSessionCookieValid };
+export { isSessionCookieValid, hasValidSessionToken, AUTH_PROVIDER_HOSTS, allowedLoginStorageHost };
 
 export async function dismissCookieBannerIfPresent(page: Page): Promise<void> {
   if (page.isClosed()) return;
@@ -29,29 +38,126 @@ export async function dismissCookieBannerIfPresent(page: Page): Promise<void> {
   } catch {}
 }
 
+export function allowedAuthUrl(value: string): boolean {
+  let parsed: URL;
+  try {
+    parsed = new URL(value);
+  } catch {
+    return false;
+  }
+  if (parsed.protocol !== "https:") return false;
+  if (parsed.hostname === "chatgpt.com") {
+    return (
+      parsed.pathname === "/auth" ||
+      parsed.pathname.startsWith("/auth/") ||
+      parsed.pathname === "/login"
+    );
+  }
+  return AUTH_PROVIDER_HOSTS.has(parsed.hostname);
+}
+
 export async function checkSessionEndpoint(page: Page): Promise<boolean> {
   if (page.isClosed()) return false;
   return await page
     .evaluate(async () => {
       let timer: any;
       try {
+        if (location.origin !== "https://chatgpt.com") {
+          return false;
+        }
         const controller = new AbortController();
         timer = setTimeout(() => controller.abort(), 4000);
         const res = await fetch("/api/auth/session", {
           credentials: "include",
+          cache: "no-store",
+          headers: { accept: "application/json" },
           signal: controller.signal,
         });
-        if (res.ok) {
-          const data = await res.json();
-          if (data && (data.user || data.accessToken)) return true;
+        const responseUrl = new URL(res.url);
+        // Chống bẫy redirect 302 về trang HTML login
+        if (
+          !res.ok ||
+          responseUrl.origin !== location.origin ||
+          responseUrl.pathname !== "/api/auth/session" ||
+          !res.headers.get("content-type")?.includes("application/json")
+        ) {
+          return false;
         }
+        const payload = await res.json();
+        if (!payload || typeof payload !== "object") return false;
+        // Bắt lỗi RefreshAccessTokenError
+        if (payload.error) return false;
+        // Kiểm tra thời hạn expires trong JSON payload
+        if (
+          typeof payload.expires === "string" &&
+          Number.isFinite(Date.parse(payload.expires)) &&
+          Date.parse(payload.expires) <= Date.now()
+        ) {
+          return false;
+        }
+        const user =
+          payload.user && typeof payload.user === "object" && !Array.isArray(payload.user)
+            ? payload.user
+            : null;
+        const hasUser = user !== null && Object.keys(user).length > 0;
+        return Boolean(hasUser || payload.accessToken);
       } catch {
+        return false;
       } finally {
         if (timer) clearTimeout(timer);
       }
-      return false;
     })
     .catch(() => false);
+}
+
+export async function throwIfChatGptSessionFailureAlert(page: Page): Promise<void> {
+  if (page.isClosed()) return;
+  const expiredAlert = page
+    .locator('[role="alert"], [role="dialog"]')
+    .filter({
+      hasText:
+        /Your session has expired|Phiên làm việc đã hết hạn|Phiên đăng nhập đã hết hạn|你的工作階段已過期|您的工作階段已過期|你的会话已过期|您的会话已过期/i,
+    })
+    .last();
+
+  const isExpired = await expiredAlert.isVisible().catch(() => false);
+  if (isExpired) {
+    clearSessionVerified(false);
+    throw new Error("Phiên đăng nhập ChatGPT đã hết hạn (Your session has expired). Vui lòng đăng nhập lại!");
+  }
+
+  const subFailure = page
+    .locator('[role="alert"]')
+    .filter({ hasText: /Failed to load subscription/i })
+    .last();
+  if (await subFailure.isVisible().catch(() => false)) {
+    throw new Error("ChatGPT không thể tải thông tin gói thuê bao (Failed to load subscription).");
+  }
+}
+
+export async function throwIfChatGptRateLimitDialog(page: Page): Promise<void> {
+  if (page.isClosed()) return;
+  const rateLimitModal = page
+    .locator('[role="dialog"]')
+    .filter({
+      hasText:
+        /Too many requests|quá nhiều yêu cầu|quá nhiều request|gửi yêu cầu quá nhanh|太多要求|太多请求|リクエストが多すぎます/i,
+    })
+    .last();
+
+  const isVisible = await rateLimitModal.isVisible().catch(() => false);
+  if (!isVisible) return;
+
+  // Cố gắng bấm nút Acknowledge để giải phóng DOM modal
+  const ackBtn = rateLimitModal
+    .locator('button')
+    .filter({ hasText: /^(Got it|知道了|了解|Đã hiểu|OK|Đóng)$/i })
+    .last();
+  if (await ackBtn.isVisible().catch(() => false)) {
+    await ackBtn.click({ timeout: 2000 }).catch(() => {});
+  }
+
+  throw new Error("ChatGPT báo lỗi giới hạn tần suất (Rate limit / Too many requests). Vui lòng thử lại sau vài phút.");
 }
 
 export async function checkIsLoggedIn(page: Page): Promise<boolean> {
@@ -70,7 +176,7 @@ export async function checkIsLoggedIn(page: Page): Promise<boolean> {
 
       if (isLoginBtnVisible) {
         loginBtnSeenCount++;
-        // Fail-fast: Nếu nút đăng nhập hiển thị liên tiếp >= 2 lần (~1.2s) và không có cookie hợp lệ thì ngắt ngay
+        // Fail-fast: Nếu nút đăng nhập hiển thị liên tiếp >= 2 lần (~1.2s)
         if (loginBtnSeenCount >= 2) {
           const cookies = await page
             .context()
@@ -80,6 +186,12 @@ export async function checkIsLoggedIn(page: Page): Promise<boolean> {
           if (!hasValidCookie) {
             return false;
           }
+          // Cookie có trên client nhưng nút Login vẫn hiện -> kiểm tra server session xem đã bị revoke chưa
+          const hasActiveSession = await checkSessionEndpoint(page);
+          if (!hasActiveSession) {
+            return false;
+          }
+          return true;
         }
       } else {
         loginBtnSeenCount = 0;
@@ -129,17 +241,12 @@ export function removeTemporaryChromeTabSessions(profileDir: string): void {
 }
 
 export function sanitizeBrowserLoginStorageState(state: any): any {
-  const allowedHost = (host: string) => {
-    const h = (host || "").toLowerCase().replace(/^\.+/, "");
-    return h === "chatgpt.com" || h.endsWith(".chatgpt.com") || h === "openai.com" || h.endsWith(".openai.com");
-  };
-
   return {
     cookies: (state.cookies || [])
       .filter(
         (cookie: any) =>
           !Object.prototype.hasOwnProperty.call(cookie, "partitionKey") &&
-          allowedHost(cookie.domain || "")
+          allowedLoginStorageHost((cookie.domain || "").replace(/^\.+/, ""))
       )
       .map((cookie: any) => ({ ...cookie })),
     origins: (state.origins || [])
@@ -158,7 +265,7 @@ export async function saveSanitizedStorageState(
   try {
     const raw = await context.storageState();
     const sanitized = sanitizeBrowserLoginStorageState(raw);
-    const hasValidToken = (sanitized.cookies || []).some(isSessionCookieValid);
+    const hasValidToken = hasValidSessionToken(sanitized.cookies || []);
     if (hasValidToken) {
       atomicWriteFile(targetPath, JSON.stringify(sanitized, null, 2));
       if (targetPath === STORAGE_STATE_PATH) {
@@ -171,12 +278,6 @@ export async function saveSanitizedStorageState(
 }
 
 export async function handleLogin(timeoutMs: number = 300_000): Promise<void> {
-  const { spawn, spawnSync } = await import("node:child_process");
-  const { mkdtempSync, mkdirSync, rmSync } = await import("node:fs");
-  const { tmpdir } = await import("node:os");
-  const { chromium } = await import("playwright-core");
-  const { findBrowserCandidates, CHATGPT_LOGIN_URL, atomicWriteFile } = await import("./config.js");
-
   const { primary, fallback } = findBrowserCandidates();
   const executablePath = primary[0] || fallback[0];
   if (!executablePath) {
@@ -207,6 +308,10 @@ export async function handleLogin(timeoutMs: number = 300_000): Promise<void> {
       { stdio: "ignore" }
     );
 
+    if (loginBrowser?.pid) {
+      registerActiveBrowserPid(loginBrowser.pid);
+    }
+
     let timer: ReturnType<typeof setTimeout> | undefined;
     try {
       await new Promise<void>((resolveExit, rejectExit) => {
@@ -227,9 +332,9 @@ export async function handleLogin(timeoutMs: number = 300_000): Promise<void> {
           if (timer) clearTimeout(timer);
           if (signal) {
             rejectExit(new Error(`Trình duyệt đăng nhập bị tắt bởi tín hiệu: ${signal}`));
-          } else if (code !== 0 && code !== null) {
-            rejectExit(new Error(`Trình duyệt đăng nhập thoát với mã lỗi: ${code}`));
           } else {
+            // Không reject nếu code !== 0 khi user bấm X trên Windows
+            // Bước trích xuất và xác thực storageState tiếp theo là nguồn kiểm chứng chính xác nhất
             resolveExit();
           }
         });
@@ -297,7 +402,7 @@ export async function handleLogin(timeoutMs: number = 300_000): Promise<void> {
 
     const rawState = await context.storageState();
     const state = sanitizeBrowserLoginStorageState(rawState);
-    const hasValidToken = (state.cookies || []).some(isSessionCookieValid);
+    const hasValidToken = hasValidSessionToken(state.cookies || []);
 
     if (!hasValidToken) {
       throw new Error(
@@ -311,13 +416,17 @@ export async function handleLogin(timeoutMs: number = 300_000): Promise<void> {
     console.log("\n🎉 Đăng nhập thành công! Phiên đăng nhập đã được lưu vĩnh viễn vào storage-state.json.");
     console.log("Bây giờ bạn có thể tạo ảnh bình thường qua WebUI hoặc CLI!");
   } finally {
-    if (context) {
-      await context.close().catch(() => {});
-    }
     if (loginBrowser?.pid) {
+      unregisterActiveBrowserPid(loginBrowser.pid);
       try {
         killProcessTree(loginBrowser.pid);
       } catch {}
+    }
+    if (context) {
+      await Promise.race([
+        context.close().catch(() => {}),
+        new Promise((r) => setTimeout(r, 5000)),
+      ]);
     }
     killOrphanBrowsers(tempProfileDir, true);
     for (let i = 0; i < 5; i++) {

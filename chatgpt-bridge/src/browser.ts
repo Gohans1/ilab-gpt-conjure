@@ -1,5 +1,4 @@
 import { existsSync, readFileSync, unlinkSync } from "node:fs";
-import { createServer } from "node:net";
 import { spawnSync } from "node:child_process";
 import { join } from "node:path";
 import { chromium, type Browser, type BrowserContext, type Page } from "playwright-core";
@@ -29,12 +28,25 @@ export function cleanupActiveBrowsers(): void {
   activeBrowserPids.clear();
 }
 
+export function registerActiveBrowserPid(pid: number): void {
+  if (Number.isInteger(pid) && pid > 0) {
+    activeBrowserPids.add(pid);
+  }
+}
+
+export function unregisterActiveBrowserPid(pid: number): void {
+  activeBrowserPids.delete(pid);
+}
+
 export function killProcessTree(pid: number): void {
   if (!Number.isInteger(pid) || pid <= 0) return;
   if (process.platform === "win32") {
     try {
-      spawnSync("taskkill", ["/PID", String(pid), "/T", "/F"], {
+      const systemRoot = process.env.SystemRoot || process.env.SYSTEMROOT || "C:\\Windows";
+      const taskkill = join(systemRoot, "System32", "taskkill.exe");
+      spawnSync(taskkill, ["/PID", String(pid), "/T", "/F"], {
         stdio: "ignore",
+        windowsHide: true,
         timeout: 3000,
       });
     } catch {}
@@ -59,21 +71,24 @@ export function killOrphanBrowsers(profileDir?: string, force = false): void {
 
   if (process.platform === "win32") {
     try {
+      const systemRoot = process.env.SystemRoot || process.env.SYSTEMROOT || "C:\\Windows";
+      const powershell = join(systemRoot, "System32", "WindowsPowerShell", "v1.0", "powershell.exe");
       const normalized = profileDir ? profileDir.replace(/[/\\]+/g, "\\").replace(/'/g, "''") : "";
       const script = `
 $target = if ('${normalized}') { [regex]::Escape('${normalized}') } else { $null };
 Get-CimInstance Win32_Process -Filter "Name = 'chrome.exe' or Name = 'msedge.exe'" |
   Where-Object {
     $_.CommandLine -and (
-      ($target -and ($_.CommandLine -match $target)) -or
+      ($target -and $_.CommandLine -match $target) -or
       ($_.CommandLine -match '--chatgpt-bridge-instance')
     )
   } |
   ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
 `.trim();
       const b64 = Buffer.from(script, "utf16le").toString("base64");
-      spawnSync("powershell", ["-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-EncodedCommand", b64], {
+      spawnSync(powershell, ["-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-EncodedCommand", b64], {
         stdio: "ignore",
+        windowsHide: true,
         timeout: 5000,
       });
     } catch {}
@@ -81,8 +96,9 @@ Get-CimInstance Win32_Process -Filter "Name = 'chrome.exe' or Name = 'msedge.exe
     try {
       if (profileDir) {
         spawnSync("pkill", ["-f", profileDir], { stdio: "ignore" });
+      } else {
+        spawnSync("pkill", ["-f", "--chatgpt-bridge-instance"], { stdio: "ignore" });
       }
-      spawnSync("pkill", ["-f", "--chatgpt-bridge-instance"], { stdio: "ignore" });
     } catch {}
   }
   if (profileDir) {
@@ -102,24 +118,6 @@ export function cleanupStaleLocks(profileDir: string): void {
   }
 }
 
-export function getFreePort(preferred = 9222): Promise<number> {
-  return new Promise((resolve) => {
-    const srv = createServer();
-    srv.listen(preferred, "127.0.0.1", () => {
-      const port = (srv.address() as any).port;
-      srv.close(() => resolve(port));
-    });
-    srv.on("error", () => {
-      const altSrv = createServer();
-      altSrv.listen(0, "127.0.0.1", () => {
-        const port = (altSrv.address() as any).port;
-        altSrv.close(() => resolve(port));
-      });
-      altSrv.on("error", () => resolve(9222));
-    });
-  });
-}
-
 
 export async function getBrowserSession(options: BrowserOptions = {}): Promise<BrowserSession> {
   const { primary, fallback } = findBrowserCandidates();
@@ -130,9 +128,10 @@ export async function getBrowserSession(options: BrowserOptions = {}): Promise<B
   const browser = await chromium.launch({
     executablePath: executablePath || undefined,
     headless,
-    ignoreDefaultArgs: ["--enable-automation"],
+    ignoreDefaultArgs: ["--enable-automation", "--password-store=basic", "--use-mock-keychain"],
     args: [
       "--chatgpt-bridge-instance",
+      "--disable-blink-features=AutomationControlled",
       "--disable-background-mode",
       "--no-first-run",
       "--no-default-browser-check",
@@ -163,20 +162,6 @@ export async function getBrowserSession(options: BrowserOptions = {}): Promise<B
       viewport: { width: 1280, height: 800 },
     });
 
-    await context.addInitScript(() => {
-      try {
-        const proto = Object.getPrototypeOf(navigator);
-        if (proto && "webdriver" in proto) {
-          delete (proto as any).webdriver;
-        }
-        delete (navigator as any).webdriver;
-        Object.defineProperty(navigator, "webdriver", {
-          get: () => false,
-          configurable: true,
-        });
-      } catch {}
-    });
-
     const page = await context.newPage();
 
     return {
@@ -187,10 +172,10 @@ export async function getBrowserSession(options: BrowserOptions = {}): Promise<B
         let timer: any;
         let timedOut = false;
         await Promise.race([
-          Promise.all([
-            context.close().catch(() => {}),
-            browser.close().catch(() => {}),
-          ]),
+          (async () => {
+            await context.close().catch(() => {});
+            await browser.close().catch(() => {});
+          })(),
           new Promise((resolve) => {
             timer = setTimeout(() => {
               timedOut = true;

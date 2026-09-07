@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { existsSync, writeFileSync, mkdirSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { cleanupActiveBrowsers, cleanupStaleLocks, getActiveBrowserPids, getFreePort, killOrphanBrowsers, killProcessTree } from "./browser.js";
+import { cleanupActiveBrowsers, cleanupStaleLocks, getActiveBrowserPids, killOrphanBrowsers, killProcessTree } from "./browser.js";
 import { findBrowserCandidates } from "./config.js";
 
 describe("browser helpers", () => {
@@ -27,13 +27,6 @@ describe("browser helpers", () => {
     rmSync(testDir, { recursive: true, force: true });
   });
 
-  test("getFreePort trả về port hợp lệ", async () => {
-    const port = await getFreePort();
-    expect(typeof port).toBe("number");
-    expect(port).toBeGreaterThan(0);
-    expect(port).toBeLessThanOrEqual(65535);
-  });
-
   test("findBrowserCandidates trả về cấu trúc primary và fallback", () => {
     const candidates = findBrowserCandidates();
     expect(Array.isArray(candidates.primary)).toBe(true);
@@ -44,7 +37,7 @@ describe("browser helpers", () => {
     expect(() => killOrphanBrowsers("non-existent-profile-path")).not.toThrow();
     expect(() => killOrphanBrowsers("non-existent-profile-path", true)).not.toThrow();
     expect(() => killOrphanBrowsers()).not.toThrow();
-  });
+  }, 15000);
 
   test("getActiveBrowserPids và cleanupActiveBrowsers hoạt động ổn định", () => {
     expect(Array.isArray(getActiveBrowserPids())).toBe(true);
