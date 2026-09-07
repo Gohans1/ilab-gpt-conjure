@@ -37,7 +37,7 @@ export function killProcessTree(pid: number): void {
 export function killOrphanBrowsers(profileDir: string): void {
   if (process.platform === "win32") {
     try {
-      const normalized = profileDir.replace(/[/\\]+/g, "\\");
+      const normalized = profileDir.replace(/[/\\]+/g, "\\").replace(/'/g, "''");
       const script = `
 $target = [regex]::Escape('${normalized}');
 Get-CimInstance Win32_Process -Filter "Name = 'chrome.exe' or Name = 'msedge.exe'" |
@@ -158,7 +158,6 @@ export async function getBrowserSession(options: BrowserOptions = {}): Promise<B
     );
   }
 
-  killOrphanBrowsers(USER_DATA_DIR);
   cleanupStaleLocks(USER_DATA_DIR);
 
   let activeProc: ChildProcess | null = null;

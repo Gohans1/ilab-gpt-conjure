@@ -660,7 +660,10 @@ if (import.meta.main) {
   // Dọn dẹp trình duyệt mồ côi khi server khởi động
   killOrphanBrowsers(USER_DATA_DIR);
 
+  let isCleaned = false;
   const cleanup = () => {
+    if (isCleaned) return;
+    isCleaned = true;
     try {
       killOrphanBrowsers(USER_DATA_DIR);
     } catch {}
@@ -670,9 +673,12 @@ if (import.meta.main) {
   process.on("SIGINT", cleanup);
   process.on("SIGTERM", cleanup);
   process.on("exit", () => {
-    try {
-      killOrphanBrowsers(USER_DATA_DIR);
-    } catch {}
+    if (!isCleaned) {
+      isCleaned = true;
+      try {
+        killOrphanBrowsers(USER_DATA_DIR);
+      } catch {}
+    }
   });
 
   startServer();
