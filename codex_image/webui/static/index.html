@@ -1801,22 +1801,60 @@
 
         let isChecking = false;
 
+        function isChatGPTProvider(settings) {
+          if (!settings) return false;
+
+          if (typeof window.__codexImageWebUI?.methods?.currentAuthSource === "function") {
+            try {
+              if (window.__codexImageWebUI.methods.currentAuthSource() === "codex") return false;
+            } catch {}
+          }
+
+          const rawSelectVal = (providerSelect?.value || "").split("::")[0].trim();
+          const activeId =
+            window.__codexImageWebUI?.state?.selectedProviderId ||
+            (rawSelectVal || null) ||
+            settings.active_provider_id;
+
+          if (!activeId || activeId === "codex") return false;
+
+          const providers = Array.isArray(settings.providers) ? settings.providers : [];
+          const currentProvider =
+            providers.find((p) => p.id === activeId) ||
+            (rawSelectVal ? null : providers.find((p) => p.id === settings.active_provider_id));
+
+          if (!currentProvider) return false;
+
+          const baseUrl = String(currentProvider.base_url || "").toLowerCase();
+          const providerName = String(currentProvider.name || "").toLowerCase();
+          const providerId = String(currentProvider.id || "").toLowerCase();
+
+          return (
+            baseUrl.includes(":3000") ||
+            baseUrl.includes("chatgpt-bridge") ||
+            providerName.includes("chatgpt web") ||
+            providerId.includes("chatgpt-web")
+          );
+        }
+
         async function checkBridgeStatus() {
           if (isChecking || !banner || !bannerText || !loginBtn) return;
+          if (document.visibilityState === "hidden") return;
           if (banner.classList.contains("success")) return;
           isChecking = true;
           try {
-            const [settingsRes, bridgeRes] = await Promise.all([
-              fetch("/api/api-settings").then((r) => (r.ok ? r.json() : null)).catch(() => null),
-              fetch("/api/bridge/status").then((r) => (r.ok ? r.json() : null)).catch(() => null),
-            ]);
+            let settings = window.__codexImageWebUI?.state?.apiSettings;
+            if (!settings) {
+              const settingsRes = await fetch("/api/api-settings").then((r) => (r.ok ? r.json() : null)).catch(() => null);
+              settings = settingsRes?.settings;
+            }
 
-            const activeProviderId = settingsRes?.settings?.active_provider_id || "default";
-            if (activeProviderId !== "default") {
+            if (!isChatGPTProvider(settings)) {
               banner.style.display = "none";
               return;
             }
 
+            const bridgeRes = await fetch("/api/bridge/status").then((r) => (r.ok ? r.json() : null)).catch(() => null);
             if (!bridgeRes) {
               banner.style.display = "none";
               return;
@@ -1883,6 +1921,14 @@
             }
           });
         }
+
+        if (providerSelect) {
+          providerSelect.addEventListener("change", () => setTimeout(checkBridgeStatus, 100));
+        }
+        document.addEventListener("visibilitychange", () => {
+          if (document.visibilityState === "visible") checkBridgeStatus();
+        });
+        window.checkChatGPTBridgeStatus = checkBridgeStatus;
 
         // Check on startup and periodic poll
         setTimeout(checkBridgeStatus, 1200);

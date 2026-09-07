@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import shutil
 import subprocess
 import sys
 import tempfile
+import textwrap
 import unittest
 from pathlib import Path
 
@@ -511,3 +513,44 @@ class WebUIRefactorContractTests(unittest.TestCase):
 
             self.assertEqual(response.status_code, 200)
             self.assertTrue(response.json()["auth_available"])
+
+    def test_chatgpt_bridge_banner_active_provider_contract(self) -> None:
+        html = Path("codex_image/webui/static/index.html").read_text(encoding="utf-8")
+        self.assertNotIn('activeProviderId !== "default"', html)
+        self.assertNotIn("provider-1788408583782", html)
+        self.assertIn("isChatGPTProvider", html)
+        self.assertIn('includes(":3000")', html)
+        self.assertIn("window.checkChatGPTBridgeStatus", html)
+
+        node = shutil.which("node")
+        if node is not None:
+            script = textwrap.dedent(
+                """
+                const fs = require('fs');
+                const html = fs.readFileSync('codex_image/webui/static/index.html', 'utf8');
+                const match = html.match(/function isChatGPTProvider[\\s\\S]*?(?=\\s*async function checkBridgeStatus)/);
+                if (!match) throw new Error('isChatGPTProvider not found');
+                function makeTester(windowObj, selectObj) {
+                  return new Function('providerSelect', 'window', match[0] + '; return isChatGPTProvider;')(selectObj, windowObj);
+                }
+                const settings = {
+                  active_provider_id: 'chatgpt-web-local',
+                  providers: [
+                    { id: 'default', name: 'Default', base_url: 'https://api.openai.com/v1' },
+                    { id: 'chatgpt-web-local', name: 'ChatGPT Web Free', base_url: 'http://127.0.0.1:3000/v1' },
+                    { id: 'custom-openai', name: 'ChatGPT Plus API', base_url: 'https://api.openai.com/v1' }
+                  ]
+                };
+                const fn1 = makeTester({}, null);
+                const fn2 = makeTester({ __codexImageWebUI: { state: { selectedProviderId: 'default' } } }, null);
+                const fn3 = makeTester({ __codexImageWebUI: { state: { selectedProviderId: 'codex' }, methods: { currentAuthSource: () => 'codex' } } }, null);
+                const fn4 = makeTester({}, { value: 'chatgpt-web-local::binding-1' });
+                const fn5 = makeTester({ __codexImageWebUI: { state: { selectedProviderId: 'custom-openai' } } }, null);
+                if (fn1(settings) !== true || fn2(settings) !== false || fn3(settings) !== false || fn4(settings) !== true || fn5(settings) !== false) {
+                  process.exit(1);
+                }
+                """
+            )
+            result = subprocess.run([node, "-e", script], cwd=Path.cwd(), capture_output=True, text=True)
+            self.assertEqual(result.returncode, 0, f"Node behavioral test failed: {result.stderr}")
+
