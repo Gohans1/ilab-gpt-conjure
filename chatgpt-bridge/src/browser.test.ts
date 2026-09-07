@@ -59,4 +59,10 @@ describe("browser helpers", () => {
     expect(() => killProcessTree(NaN as any)).not.toThrow();
     expect(() => killProcessTree(3.14)).not.toThrow();
   });
+
+  test("browser process handling an toàn khi đối tượng browser không có method process", () => {
+    const mockBrowser: any = { close: async () => {} };
+    const pid = mockBrowser.process?.()?.pid;
+    expect(pid).toBeUndefined();
+  });
 });

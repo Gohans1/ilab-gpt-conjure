@@ -139,7 +139,7 @@ export async function getBrowserSession(options: BrowserOptions = {}): Promise<B
     ],
   });
 
-  const pid = browser.process()?.pid;
+  const pid = (browser as any).process?.()?.pid;
   if (pid) {
     activeBrowserPids.add(pid);
   }
