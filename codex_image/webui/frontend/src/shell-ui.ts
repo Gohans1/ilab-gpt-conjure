@@ -334,6 +334,9 @@ function resetForm() {
       if (sel) sel.dispatchEvent(new Event("change"));
     });
     updateSizeFromPreset();
+    if (typeof getLegacyBridge().methods.restoreChatGPTDeleteChatState === "function") {
+      legacyMethod("restoreChatGPTDeleteChatState");
+    }
   }
   setMode("generate");
   updatePromptCount();

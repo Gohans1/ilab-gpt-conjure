@@ -62,17 +62,48 @@ export function syncChatGPTDeleteChatState(): void {
   }
 }
 
+function activeChatGPTProvider(): any {
+  const providerId = state.selectedProviderId || state.apiSettings?.active_provider_id;
+  const providers = state.apiSettings?.providers || state.generationCatalog?.providers || [];
+  return providers.find((item: any) => item.id === providerId)
+    || providers.find((item: any) => item.id === "default")
+    || providers.find((item: any) => (item.name || "").toLowerCase().includes("chatgpt"))
+    || null;
+}
+
 export function restoreChatGPTDeleteChatState(): void {
   if (!els.chatgptDeleteChat) return;
+  const provider = activeChatGPTProvider();
+  const providerSetting = typeof provider?.delete_chat_after_gen === "boolean" ? provider.delete_chat_after_gen : null;
   const saved = localStorage.getItem(CHATGPT_DELETE_CHAT_STORAGE_KEY);
-  els.chatgptDeleteChat.checked = saved !== "false";
+  const enabled = providerSetting !== null ? providerSetting : (saved !== null ? saved !== "false" : true);
+  els.chatgptDeleteChat.checked = enabled;
+  localStorage.setItem(CHATGPT_DELETE_CHAT_STORAGE_KEY, String(enabled));
   syncChatGPTDeleteChatState();
 }
 
 export function persistChatGPTDeleteChatState(): void {
   if (!els.chatgptDeleteChat) return;
-  localStorage.setItem(CHATGPT_DELETE_CHAT_STORAGE_KEY, String(Boolean(els.chatgptDeleteChat.checked)));
+  const enabled = Boolean(els.chatgptDeleteChat.checked);
+  localStorage.setItem(CHATGPT_DELETE_CHAT_STORAGE_KEY, String(enabled));
   syncChatGPTDeleteChatState();
+  const provider = activeChatGPTProvider();
+  if (provider && state.apiSettings?.providers) {
+    const target = state.apiSettings.providers.find((p: any) => p.id === provider.id);
+    if (target && target.delete_chat_after_gen !== enabled) {
+      target.delete_chat_after_gen = enabled;
+      const methods = getLegacyBridge().methods;
+      if (typeof methods?.persistApiSettings === "function") {
+        methods.persistApiSettings();
+      }
+      if (typeof methods?.queueApiSettingsAutosave === "function") {
+        methods.queueApiSettingsAutosave();
+      }
+    }
+  }
+  if (els.apiProviderDeleteChat) {
+    els.apiProviderDeleteChat.checked = enabled;
+  }
 }
 
 export function currentChatGPTDeleteChatEnabled(): boolean {

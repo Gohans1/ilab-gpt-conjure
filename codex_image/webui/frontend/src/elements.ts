@@ -174,6 +174,8 @@ export function createWebUIElements(): WebUIElements {
   apiKey: document.querySelector("#apiKey"),
   apiKeyRevealButton: document.querySelector("#apiKeyRevealButton"),
   apiImagesConcurrency: document.querySelector("#apiImagesConcurrency"),
+  apiProviderDeleteChatField: document.querySelector("#apiProviderDeleteChatField"),
+  apiProviderDeleteChat: document.querySelector("#apiProviderDeleteChat"),
   apiProviderBindings: document.querySelector("#apiProviderBindings"),
   addProviderBindingButton: document.querySelector("#addProviderBindingButton"),
   newTaskButton: document.querySelector("#newTaskButton"),

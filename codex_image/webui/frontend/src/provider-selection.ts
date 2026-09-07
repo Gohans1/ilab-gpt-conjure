@@ -216,11 +216,14 @@ export function isChatGPTWebProvider(): boolean {
 }
 
 export function syncChatGPTDeleteChatControl(): void {
-  const { els } = getLegacyBridge();
+  const { els, methods } = getLegacyBridge();
   if (!els.chatgptDeleteChatField) return;
   const isChatGPT = isChatGPTWebProvider();
   els.chatgptDeleteChatField.style.display = isChatGPT ? "" : "none";
   els.chatgptDeleteChatField.classList.toggle("hidden", !isChatGPT);
+  if (isChatGPT && typeof methods.restoreChatGPTDeleteChatState === "function") {
+    methods.restoreChatGPTDeleteChatState();
+  }
   if (els.webSearchField) {
     els.webSearchField.style.display = isChatGPT ? "none" : "";
     if (isChatGPT) els.webSearchField.classList.add("hidden");

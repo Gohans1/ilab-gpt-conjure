@@ -102,6 +102,7 @@ export function normalizeApiProvider(provider: any = {}, index: any = 0): any {
     api_key_masked: String(provider.api_key_masked || ""),
     api_key_source_provider_id: String(provider.api_key_source_provider_id || "").trim(),
     icon_emoji: String(provider.icon_emoji || "").trim(),
+    delete_chat_after_gen: typeof provider.delete_chat_after_gen === "boolean" ? provider.delete_chat_after_gen : true,
     default_model_ids: Array.isArray(provider.default_model_ids)
       ? provider.default_model_ids.map((value: any) => String(value || "").trim()).filter(Boolean)
       : [],
@@ -293,6 +294,7 @@ function draftProviderFromForm(): any {
     api_key_set: Boolean(draft.api_key_set || draft.api_key || draft.api_key_source_provider_id),
     api_key_masked: draft.api_key_masked,
     api_key_source_provider_id: draft.api_key_source_provider_id,
+    delete_chat_after_gen: els.apiProviderDeleteChat ? Boolean(els.apiProviderDeleteChat.checked) : draft.delete_chat_after_gen !== false,
   }, 0);
 }
 
@@ -301,6 +303,15 @@ function writeProviderForm(provider: any): void {
   if (els.apiProviderIconEmoji) els.apiProviderIconEmoji.value = provider.icon_emoji || "";
   if (els.apiBaseUrl) els.apiBaseUrl.value = provider.base_url || DEFAULT_API_BASE_URL;
   if (els.apiImagesConcurrency) els.apiImagesConcurrency.value = String(normalizeApiImagesConcurrency(provider.concurrency ?? provider.images_concurrency));
+  if (els.apiProviderDeleteChat) {
+    els.apiProviderDeleteChat.checked = provider.delete_chat_after_gen !== false;
+  }
+  if (els.apiProviderDeleteChatField) {
+    const isChatGPT = provider.id === "default"
+      || (provider.name || "").toLowerCase().includes("chatgpt")
+      || (typeof provider.base_url === "string" && provider.base_url.includes(":3000"));
+    els.apiProviderDeleteChatField.style.display = isChatGPT ? "" : "none";
+  }
   if (els.apiKey) {
     els.apiKey.value = provider.api_key || "";
     els.apiKey.placeholder = provider.api_key_set && !provider.api_key
@@ -524,6 +535,7 @@ export function persistApiSettings(): void {
         bindings: provider.bindings,
         api_key_set: provider.api_key_set,
         api_key_masked: provider.api_key_masked,
+        delete_chat_after_gen: provider.delete_chat_after_gen,
       })),
     }));
   } catch {
@@ -1223,6 +1235,7 @@ export async function saveApiSettings(options: any = {}): Promise<boolean> {
         base_url: provider.base_url,
         concurrency: provider.concurrency,
         bindings: provider.bindings,
+        delete_chat_after_gen: provider.delete_chat_after_gen !== false,
       };
       if (provider.api_key || !provider.api_key_set) item.api_key = provider.api_key;
       if (!provider.api_key && provider.api_key_source_provider_id) {
@@ -1276,6 +1289,9 @@ export async function saveApiSettings(options: any = {}): Promise<boolean> {
     setStatus(translate("apiSettings.savedStatus"), "ok");
     await refreshGenerationCatalog();
     await refreshHealth();
+    if (typeof bridge.methods.restoreChatGPTDeleteChatState === "function") {
+      bridge.methods.restoreChatGPTDeleteChatState();
+    }
     updateRequestPreview();
     return true;
   } catch (error: any) {

@@ -18730,6 +18730,8 @@
       apiKey: document.querySelector("#apiKey"),
       apiKeyRevealButton: document.querySelector("#apiKeyRevealButton"),
       apiImagesConcurrency: document.querySelector("#apiImagesConcurrency"),
+      apiProviderDeleteChatField: document.querySelector("#apiProviderDeleteChatField"),
+      apiProviderDeleteChat: document.querySelector("#apiProviderDeleteChat"),
       apiProviderBindings: document.querySelector("#apiProviderBindings"),
       addProviderBindingButton: document.querySelector("#addProviderBindingButton"),
       newTaskButton: document.querySelector("#newTaskButton"),
@@ -19725,11 +19727,14 @@
     return false;
   }
   function syncChatGPTDeleteChatControl() {
-    const { els: els9 } = getLegacyBridge();
+    const { els: els9, methods } = getLegacyBridge();
     if (!els9.chatgptDeleteChatField) return;
     const isChatGPT = isChatGPTWebProvider();
     els9.chatgptDeleteChatField.style.display = isChatGPT ? "" : "none";
     els9.chatgptDeleteChatField.classList.toggle("hidden", !isChatGPT);
+    if (isChatGPT && typeof methods.restoreChatGPTDeleteChatState === "function") {
+      methods.restoreChatGPTDeleteChatState();
+    }
     if (els9.webSearchField) {
       els9.webSearchField.style.display = isChatGPT ? "none" : "";
       if (isChatGPT) els9.webSearchField.classList.add("hidden");
@@ -22403,6 +22408,7 @@
       api_key_masked: String(provider.api_key_masked || ""),
       api_key_source_provider_id: String(provider.api_key_source_provider_id || "").trim(),
       icon_emoji: String(provider.icon_emoji || "").trim(),
+      delete_chat_after_gen: typeof provider.delete_chat_after_gen === "boolean" ? provider.delete_chat_after_gen : true,
       default_model_ids: Array.isArray(provider.default_model_ids) ? provider.default_model_ids.map((value) => String(value || "").trim()).filter(Boolean) : []
     };
   }
@@ -22561,7 +22567,8 @@
       default_model_ids: bindingCards.filter((binding) => binding.is_default).map((binding) => binding.canonical_model_id),
       api_key_set: Boolean(draft.api_key_set || draft.api_key || draft.api_key_source_provider_id),
       api_key_masked: draft.api_key_masked,
-      api_key_source_provider_id: draft.api_key_source_provider_id
+      api_key_source_provider_id: draft.api_key_source_provider_id,
+      delete_chat_after_gen: els4.apiProviderDeleteChat ? Boolean(els4.apiProviderDeleteChat.checked) : draft.delete_chat_after_gen !== false
     }, 0);
   }
   function writeProviderForm(provider) {
@@ -22569,6 +22576,13 @@
     if (els4.apiProviderIconEmoji) els4.apiProviderIconEmoji.value = provider.icon_emoji || "";
     if (els4.apiBaseUrl) els4.apiBaseUrl.value = provider.base_url || DEFAULT_API_BASE_URL;
     if (els4.apiImagesConcurrency) els4.apiImagesConcurrency.value = String(normalizeApiImagesConcurrency(provider.concurrency ?? provider.images_concurrency));
+    if (els4.apiProviderDeleteChat) {
+      els4.apiProviderDeleteChat.checked = provider.delete_chat_after_gen !== false;
+    }
+    if (els4.apiProviderDeleteChatField) {
+      const isChatGPT = provider.id === "default" || (provider.name || "").toLowerCase().includes("chatgpt") || typeof provider.base_url === "string" && provider.base_url.includes(":3000");
+      els4.apiProviderDeleteChatField.style.display = isChatGPT ? "" : "none";
+    }
     if (els4.apiKey) {
       els4.apiKey.value = provider.api_key || "";
       els4.apiKey.placeholder = provider.api_key_set && !provider.api_key ? translate("apiSettings.savedKeyPlaceholder") : "sk-...";
@@ -22780,7 +22794,8 @@
           concurrency: provider.concurrency,
           bindings: provider.bindings,
           api_key_set: provider.api_key_set,
-          api_key_masked: provider.api_key_masked
+          api_key_masked: provider.api_key_masked,
+          delete_chat_after_gen: provider.delete_chat_after_gen
         }))
       }));
     } catch {
@@ -23412,7 +23427,8 @@
           icon_emoji: provider.icon_emoji || "",
           base_url: provider.base_url,
           concurrency: provider.concurrency,
-          bindings: provider.bindings
+          bindings: provider.bindings,
+          delete_chat_after_gen: provider.delete_chat_after_gen !== false
         };
         if (provider.api_key || !provider.api_key_set) item.api_key = provider.api_key;
         if (!provider.api_key && provider.api_key_source_provider_id) {
@@ -23466,6 +23482,9 @@
       setStatus3(translate("apiSettings.savedStatus"), "ok");
       await refreshGenerationCatalog();
       await refreshHealth();
+      if (typeof bridge3.methods.restoreChatGPTDeleteChatState === "function") {
+        bridge3.methods.restoreChatGPTDeleteChatState();
+      }
       updateRequestPreview2();
       return true;
     } catch (error) {
@@ -25032,6 +25051,9 @@
         if (sel) sel.dispatchEvent(new Event("change"));
       });
       updateSizeFromPreset();
+      if (typeof getLegacyBridge().methods.restoreChatGPTDeleteChatState === "function") {
+        legacyMethod6("restoreChatGPTDeleteChatState");
+      }
     }
     setMode("generate");
     updatePromptCount2();

@@ -144,10 +144,6 @@ export function applyTaskOutputParams(task: any): void {
     els.webSearch.checked = Boolean(output.web_search);
     els.webSearch.dispatchEvent(new Event("input"));
   }
-  if (els.chatgptDeleteChat && typeof params["chatgpt.delete_chat_after_gen"] === "boolean") {
-    els.chatgptDeleteChat.checked = params["chatgpt.delete_chat_after_gen"];
-    els.chatgptDeleteChat.dispatchEvent(new Event("change"));
-  }
   if (params.model && els.model) els.model.value = params.model;
   if (output.size) syncSizeControlsFromSize(output.size);
   if (output.n && els.nInput) {

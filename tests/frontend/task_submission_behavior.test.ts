@@ -146,6 +146,11 @@ function resetSubmissionState(): void {
     storedReferenceFileInputs: () => [],
     syncGalleryInputsFromPrompt() {},
     syncPromptFromEditor() {},
+    syncRadioButtons() {},
+    updateCompression() {},
+    updateCustomSize() {},
+    updateQuantity() {},
+    updateRequestPreview() {},
     uploadInputs: () => [],
   });
   initTaskSubmitFeature();
@@ -236,4 +241,19 @@ test("a second submission is ignored until the first server response arrives", a
     await Promise.all([firstSubmission, secondSubmission]);
   }
   if (assertionError) throw assertionError;
+});
+
+test("applyTaskOutputParams does not overwrite chatgptDeleteChat setting from past task params", () => {
+  resetSubmissionState();
+  const chatgptCheckbox = { checked: true, style: {}, classList: new FakeClassList() };
+  (els as any).chatgptDeleteChat = chatgptCheckbox;
+
+  methods.applyTaskOutputParams({
+    params: {
+      "chatgpt.delete_chat_after_gen": false,
+    },
+    output: {},
+  });
+
+  assert.equal(chatgptCheckbox.checked, true, "Historical task params must not overwrite chatgptDeleteChat setting");
 });

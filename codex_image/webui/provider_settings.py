@@ -88,6 +88,8 @@ def migrate_legacy_provider(raw: Mapping[str, Any]) -> dict[str, Any]:
     icon_emoji = _normalize_provider_icon_emoji(raw.get("icon_emoji"))
     if icon_emoji:
         provider["icon_emoji"] = icon_emoji
+    if "delete_chat_after_gen" in raw and raw.get("delete_chat_after_gen") is not None:
+        provider["delete_chat_after_gen"] = bool(raw.get("delete_chat_after_gen"))
     return provider
 
 
@@ -233,7 +235,7 @@ class ProviderSettings(StoreLockMixin):
 
     @classmethod
     def default_provider(cls) -> dict[str, Any]:
-        return migrate_legacy_provider({"id": "default", "name": "ChatGPT Web Free", **cls.default_settings()})
+        return migrate_legacy_provider({"id": "default", "name": "ChatGPT Web Free", "delete_chat_after_gen": True, **cls.default_settings()})
 
     @classmethod
     def _default_settings(cls) -> dict[str, Any]:
@@ -348,6 +350,8 @@ class ProviderSettings(StoreLockMixin):
                 provider["concurrency"] = _normalize_legacy_concurrency(
                     merged.get("images_concurrency")
                 )
+            if "delete_chat_after_gen" in merged:
+                provider["delete_chat_after_gen"] = bool(merged.get("delete_chat_after_gen"))
             gpt_binding = next(
                 (
                     binding
@@ -434,6 +438,7 @@ class ProviderSettings(StoreLockMixin):
             "image_model",
             "api_mode",
             "images_concurrency",
+            "delete_chat_after_gen",
         }
         if not legacy_provider_fields.intersection(payload):
             return candidate
@@ -457,6 +462,8 @@ class ProviderSettings(StoreLockMixin):
                 provider["concurrency"] = _normalize_legacy_concurrency(
                     payload.get("images_concurrency")
                 )
+            if "delete_chat_after_gen" in payload:
+                provider["delete_chat_after_gen"] = bool(payload.get("delete_chat_after_gen"))
             if "image_model" in payload or "api_mode" in payload:
                 gpt_binding = next(
                     (
@@ -544,6 +551,7 @@ class ProviderSettings(StoreLockMixin):
             "base_url": provider.get("base_url"),
             "concurrency": provider.get("concurrency"),
             "bindings": deepcopy(provider.get("bindings") or []),
+            "delete_chat_after_gen": provider.get("delete_chat_after_gen"),
         }
 
     @classmethod
@@ -595,7 +603,7 @@ class ProviderSettings(StoreLockMixin):
             ),
             provider["bindings"][0],
         )
-        return {
+        legacy = {
             "id": provider["id"],
             "name": provider["name"],
             "base_url": provider["base_url"],
@@ -606,6 +614,9 @@ class ProviderSettings(StoreLockMixin):
             ),
             "images_concurrency": provider["concurrency"],
         }
+        if "delete_chat_after_gen" in provider:
+            legacy["delete_chat_after_gen"] = provider["delete_chat_after_gen"]
+        return legacy
 
     @staticmethod
     def _persisted(settings: Mapping[str, Any]) -> dict[str, Any]:

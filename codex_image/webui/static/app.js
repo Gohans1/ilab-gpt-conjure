@@ -335,6 +335,8 @@
       apiKey: document.querySelector("#apiKey"),
       apiKeyRevealButton: document.querySelector("#apiKeyRevealButton"),
       apiImagesConcurrency: document.querySelector("#apiImagesConcurrency"),
+      apiProviderDeleteChatField: document.querySelector("#apiProviderDeleteChatField"),
+      apiProviderDeleteChat: document.querySelector("#apiProviderDeleteChat"),
       apiProviderBindings: document.querySelector("#apiProviderBindings"),
       addProviderBindingButton: document.querySelector("#addProviderBindingButton"),
       newTaskButton: document.querySelector("#newTaskButton"),
@@ -36267,11 +36269,14 @@ ${hint}` : hint;
     return false;
   }
   function syncChatGPTDeleteChatControl() {
-    const { els: els44 } = getLegacyBridge();
+    const { els: els44, methods } = getLegacyBridge();
     if (!els44.chatgptDeleteChatField) return;
     const isChatGPT = isChatGPTWebProvider();
     els44.chatgptDeleteChatField.style.display = isChatGPT ? "" : "none";
     els44.chatgptDeleteChatField.classList.toggle("hidden", !isChatGPT);
+    if (isChatGPT && typeof methods.restoreChatGPTDeleteChatState === "function") {
+      methods.restoreChatGPTDeleteChatState();
+    }
     if (els44.webSearchField) {
       els44.webSearchField.style.display = isChatGPT ? "none" : "";
       if (isChatGPT) els44.webSearchField.classList.add("hidden");
@@ -39083,6 +39088,7 @@ ${hint}` : hint;
       api_key_masked: String(provider.api_key_masked || ""),
       api_key_source_provider_id: String(provider.api_key_source_provider_id || "").trim(),
       icon_emoji: String(provider.icon_emoji || "").trim(),
+      delete_chat_after_gen: typeof provider.delete_chat_after_gen === "boolean" ? provider.delete_chat_after_gen : true,
       default_model_ids: Array.isArray(provider.default_model_ids) ? provider.default_model_ids.map((value) => String(value || "").trim()).filter(Boolean) : []
     };
   }
@@ -39241,7 +39247,8 @@ ${hint}` : hint;
       default_model_ids: bindingCards.filter((binding) => binding.is_default).map((binding) => binding.canonical_model_id),
       api_key_set: Boolean(draft.api_key_set || draft.api_key || draft.api_key_source_provider_id),
       api_key_masked: draft.api_key_masked,
-      api_key_source_provider_id: draft.api_key_source_provider_id
+      api_key_source_provider_id: draft.api_key_source_provider_id,
+      delete_chat_after_gen: els10.apiProviderDeleteChat ? Boolean(els10.apiProviderDeleteChat.checked) : draft.delete_chat_after_gen !== false
     }, 0);
   }
   function writeProviderForm(provider) {
@@ -39249,6 +39256,13 @@ ${hint}` : hint;
     if (els10.apiProviderIconEmoji) els10.apiProviderIconEmoji.value = provider.icon_emoji || "";
     if (els10.apiBaseUrl) els10.apiBaseUrl.value = provider.base_url || DEFAULT_API_BASE_URL;
     if (els10.apiImagesConcurrency) els10.apiImagesConcurrency.value = String(normalizeApiImagesConcurrency(provider.concurrency ?? provider.images_concurrency));
+    if (els10.apiProviderDeleteChat) {
+      els10.apiProviderDeleteChat.checked = provider.delete_chat_after_gen !== false;
+    }
+    if (els10.apiProviderDeleteChatField) {
+      const isChatGPT = provider.id === "default" || (provider.name || "").toLowerCase().includes("chatgpt") || typeof provider.base_url === "string" && provider.base_url.includes(":3000");
+      els10.apiProviderDeleteChatField.style.display = isChatGPT ? "" : "none";
+    }
     if (els10.apiKey) {
       els10.apiKey.value = provider.api_key || "";
       els10.apiKey.placeholder = provider.api_key_set && !provider.api_key ? translate("apiSettings.savedKeyPlaceholder") : "sk-...";
@@ -39460,7 +39474,8 @@ ${hint}` : hint;
           concurrency: provider.concurrency,
           bindings: provider.bindings,
           api_key_set: provider.api_key_set,
-          api_key_masked: provider.api_key_masked
+          api_key_masked: provider.api_key_masked,
+          delete_chat_after_gen: provider.delete_chat_after_gen
         }))
       }));
     } catch {
@@ -40092,7 +40107,8 @@ ${hint}` : hint;
           icon_emoji: provider.icon_emoji || "",
           base_url: provider.base_url,
           concurrency: provider.concurrency,
-          bindings: provider.bindings
+          bindings: provider.bindings,
+          delete_chat_after_gen: provider.delete_chat_after_gen !== false
         };
         if (provider.api_key || !provider.api_key_set) item.api_key = provider.api_key;
         if (!provider.api_key && provider.api_key_source_provider_id) {
@@ -40146,6 +40162,9 @@ ${hint}` : hint;
       setStatus8(translate("apiSettings.savedStatus"), "ok");
       await refreshGenerationCatalog();
       await refreshHealth();
+      if (typeof bridge9.methods.restoreChatGPTDeleteChatState === "function") {
+        bridge9.methods.restoreChatGPTDeleteChatState();
+      }
       updateRequestPreview5();
       return true;
     } catch (error) {
@@ -47154,16 +47173,43 @@ ${galleryText}`;
       );
     }
   }
+  function activeChatGPTProvider() {
+    const providerId = state18.selectedProviderId || state18.apiSettings?.active_provider_id;
+    const providers = state18.apiSettings?.providers || state18.generationCatalog?.providers || [];
+    return providers.find((item) => item.id === providerId) || providers.find((item) => item.id === "default") || providers.find((item) => (item.name || "").toLowerCase().includes("chatgpt")) || null;
+  }
   function restoreChatGPTDeleteChatState() {
     if (!els27.chatgptDeleteChat) return;
+    const provider = activeChatGPTProvider();
+    const providerSetting = typeof provider?.delete_chat_after_gen === "boolean" ? provider.delete_chat_after_gen : null;
     const saved = localStorage.getItem(CHATGPT_DELETE_CHAT_STORAGE_KEY);
-    els27.chatgptDeleteChat.checked = saved !== "false";
+    const enabled = providerSetting !== null ? providerSetting : saved !== null ? saved !== "false" : true;
+    els27.chatgptDeleteChat.checked = enabled;
+    localStorage.setItem(CHATGPT_DELETE_CHAT_STORAGE_KEY, String(enabled));
     syncChatGPTDeleteChatState();
   }
   function persistChatGPTDeleteChatState() {
     if (!els27.chatgptDeleteChat) return;
-    localStorage.setItem(CHATGPT_DELETE_CHAT_STORAGE_KEY, String(Boolean(els27.chatgptDeleteChat.checked)));
+    const enabled = Boolean(els27.chatgptDeleteChat.checked);
+    localStorage.setItem(CHATGPT_DELETE_CHAT_STORAGE_KEY, String(enabled));
     syncChatGPTDeleteChatState();
+    const provider = activeChatGPTProvider();
+    if (provider && state18.apiSettings?.providers) {
+      const target = state18.apiSettings.providers.find((p) => p.id === provider.id);
+      if (target && target.delete_chat_after_gen !== enabled) {
+        target.delete_chat_after_gen = enabled;
+        const methods = getLegacyBridge().methods;
+        if (typeof methods?.persistApiSettings === "function") {
+          methods.persistApiSettings();
+        }
+        if (typeof methods?.queueApiSettingsAutosave === "function") {
+          methods.queueApiSettingsAutosave();
+        }
+      }
+    }
+    if (els27.apiProviderDeleteChat) {
+      els27.apiProviderDeleteChat.checked = enabled;
+    }
   }
   function currentChatGPTDeleteChatEnabled() {
     return Boolean(els27.chatgptDeleteChat?.checked ?? true);
@@ -51190,10 +51236,6 @@ ${galleryText}`;
     if (els33.webSearch) {
       els33.webSearch.checked = Boolean(output.web_search);
       els33.webSearch.dispatchEvent(new Event("input"));
-    }
-    if (els33.chatgptDeleteChat && typeof params["chatgpt.delete_chat_after_gen"] === "boolean") {
-      els33.chatgptDeleteChat.checked = params["chatgpt.delete_chat_after_gen"];
-      els33.chatgptDeleteChat.dispatchEvent(new Event("change"));
     }
     if (params.model && els33.model) els33.model.value = params.model;
     if (output.size) syncSizeControlsFromSize2(output.size);
@@ -56550,6 +56592,9 @@ ${galleryText}`;
         if (sel) sel.dispatchEvent(new Event("change"));
       });
       updateSizeFromPreset2();
+      if (typeof getLegacyBridge().methods.restoreChatGPTDeleteChatState === "function") {
+        legacyMethod45("restoreChatGPTDeleteChatState");
+      }
     }
     setMode6("generate");
     updatePromptCount7();

@@ -14,6 +14,7 @@
       "base_url": "http://127.0.0.1:3000/v1",
       "api_key": "sk-local",
       "concurrency": 4,
+      "delete_chat_after_gen": true,
       "bindings": [
         {
           "id": "default-gpt-image-2",

@@ -686,6 +686,57 @@ class ProviderSettingsV2Tests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "duplicate_provider_id"):
             self.settings.read()
 
+    def test_delete_chat_after_gen_validation_and_persistence(self) -> None:
+        self.write_json(
+            self.v2_payload(
+                providers=[self.provider(delete_chat_after_gen=False)]
+            )
+        )
+        settings = self.settings.read()
+        self.assertEqual(settings["providers"][0]["delete_chat_after_gen"], False)
+
+        public = self.settings.public_settings()
+        self.assertEqual(public["providers"][0]["delete_chat_after_gen"], False)
+
+        # Invalid non-bool value in read must raise
+        self.write_json(
+            self.v2_payload(
+                providers=[self.provider(delete_chat_after_gen="invalid")]
+            )
+        )
+        with self.assertRaisesRegex(ValueError, "invalid_delete_chat_after_gen"):
+            self.settings.read()
+
+        # Reset to valid json before testing write()
+        self.write_json(self.v2_payload())
+
+        # settings.write() should persist delete_chat_after_gen
+        written = self.settings.write(
+            self.v2_payload(
+                providers=[self.provider(delete_chat_after_gen=False)]
+            )
+        )
+        self.assertEqual(written["providers"][0]["delete_chat_after_gen"], False)
+        reloaded = self.settings.read()
+        self.assertEqual(reloaded["providers"][0]["delete_chat_after_gen"], False)
+
+        # Invalid non-bool value in write must raise
+        with self.assertRaisesRegex(ValueError, "invalid_delete_chat_after_gen"):
+            self.settings.write(
+                self.v2_payload(
+                    providers=[self.provider(delete_chat_after_gen=123)]
+                )
+            )
+
+        # Legacy write should preserve delete_chat_after_gen
+        legacy_written = self.settings.write(
+            {
+                "active_provider_id": "default",
+                "delete_chat_after_gen": True,
+            }
+        )
+        self.assertEqual(legacy_written["providers"][0]["delete_chat_after_gen"], True)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -205,6 +205,11 @@ def _validate_provider(raw: Mapping[str, Any], *, index: int) -> dict[str, Any]:
     icon_emoji = normalize_provider_icon_emoji(raw.get("icon_emoji"))
     if icon_emoji:
         provider["icon_emoji"] = icon_emoji
+    delete_chat_after_gen = raw.get("delete_chat_after_gen")
+    if delete_chat_after_gen is not None:
+        if not isinstance(delete_chat_after_gen, bool):
+            raise ValueError("invalid_delete_chat_after_gen")
+        provider["delete_chat_after_gen"] = delete_chat_after_gen
     return provider
 
 

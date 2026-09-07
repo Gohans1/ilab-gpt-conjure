@@ -1275,6 +1275,13 @@
                 <span data-i18n="apiSettings.concurrency">并发上限</span>
                 <input id="apiImagesConcurrency" class="control" type="number" min="1" max="32" step="1" value="4" />
               </label>
+              <div id="apiProviderDeleteChatField" class="field api-provider-delete-chat-field">
+                <span data-i18n="output.chatgptDeleteChat">生成后删除对话</span>
+                <label class="chatgpt-delete-chat-toggle" title="图像生成完成后自动删除 ChatGPT Web 上的对话" data-i18n-attr="title:output.chatgptDeleteChatTitle">
+                  <input id="apiProviderDeleteChat" type="checkbox" checked />
+                  <span class="chatgpt-delete-chat-toggle-track" aria-hidden="true"></span>
+                </label>
+              </div>
               <section class="provider-bindings-editor" aria-labelledby="providerBindingsTitle">
                 <div class="provider-bindings-header">
                   <div class="provider-bindings-title-row">
