@@ -10,6 +10,7 @@ export interface ParsedImageRequest {
   n: number;
   aspectRatioOrSize?: string;
   deleteChatAfterGen?: boolean;
+  headless?: boolean;
   customTimeout?: number;
   idleTimeout?: number;
   tempFilesToClean: string[];
@@ -80,6 +81,8 @@ export async function parseImageRequest(req: Request): Promise<ParsedImageReques
   let n = 1;
   let aspectRatioOrSize: string | undefined;
   let deleteChatRaw: any;
+  let headlessRaw: any;
+  let visibleBrowserRaw: any;
   let customTimeout: number | undefined;
   let idleTimeout: number | undefined;
 
@@ -101,6 +104,8 @@ export async function parseImageRequest(req: Request): Promise<ParsedImageReques
 
       aspectRatioOrSize = (formData.get("aspect_ratio") || formData.get("ratio") || formData.get("size")) as string | undefined;
       deleteChatRaw = formData.get("delete_chat_after_gen") ?? formData.get("deleteChatAfterGen");
+      headlessRaw = formData.get("headless");
+      visibleBrowserRaw = formData.get("visible_browser") ?? formData.get("visibleBrowser");
 
       const fileEntries: File[] = [];
       for (const field of ["image", "images", "file"]) {
@@ -134,6 +139,8 @@ export async function parseImageRequest(req: Request): Promise<ParsedImageReques
       if (typeof body.n === "number" && body.n > 1) n = body.n;
       aspectRatioOrSize = body.aspect_ratio || body.ratio || body.size;
       deleteChatRaw = body.delete_chat_after_gen ?? body.deleteChatAfterGen;
+      headlessRaw = body.headless;
+      visibleBrowserRaw = body.visible_browser ?? body.visibleBrowser;
 
       customTimeout =
         typeof body.max_timeout === "number"
@@ -226,11 +233,32 @@ export async function parseImageRequest(req: Request): Promise<ParsedImageReques
         ? !["false", "0", "no", "off"].includes(deleteChatRaw.trim().toLowerCase())
         : undefined;
 
+    let headless: boolean | undefined = undefined;
+    if (headlessRaw !== undefined && headlessRaw !== null) {
+      headless =
+        typeof headlessRaw === "boolean"
+          ? headlessRaw
+          : typeof headlessRaw === "string"
+          ? !["false", "0", "no", "off"].includes(headlessRaw.trim().toLowerCase())
+          : undefined;
+    } else if (visibleBrowserRaw !== undefined && visibleBrowserRaw !== null) {
+      const isVisible =
+        typeof visibleBrowserRaw === "boolean"
+          ? visibleBrowserRaw
+          : typeof visibleBrowserRaw === "string"
+          ? !["false", "0", "no", "off"].includes(visibleBrowserRaw.trim().toLowerCase())
+          : undefined;
+      if (isVisible !== undefined) {
+        headless = !isVisible;
+      }
+    }
+
     return {
       prompt,
       n,
       aspectRatioOrSize,
       deleteChatAfterGen,
+      headless,
       customTimeout,
       idleTimeout,
       tempFilesToClean,
@@ -552,7 +580,10 @@ export async function handleRequest(req: Request): Promise<Response> {
 
     try {
       // 3. Xếp hàng tạo ảnh tuần tự để tránh xung đột SingletonLock của Chrome
-      const headless = process.env.HEADLESS === "true";
+      const headless =
+        parsed.headless !== undefined
+          ? parsed.headless
+          : process.env.HEADLESS === "true";
 
       const results = await enqueueTask(() =>
         generateImage(generationPrompt, {

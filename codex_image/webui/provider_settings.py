@@ -90,6 +90,8 @@ def migrate_legacy_provider(raw: Mapping[str, Any]) -> dict[str, Any]:
         provider["icon_emoji"] = icon_emoji
     if "delete_chat_after_gen" in raw and raw.get("delete_chat_after_gen") is not None:
         provider["delete_chat_after_gen"] = bool(raw.get("delete_chat_after_gen"))
+    if "visible_browser" in raw and raw.get("visible_browser") is not None:
+        provider["visible_browser"] = bool(raw.get("visible_browser"))
     return provider
 
 
@@ -235,7 +237,7 @@ class ProviderSettings(StoreLockMixin):
 
     @classmethod
     def default_provider(cls) -> dict[str, Any]:
-        return migrate_legacy_provider({"id": "default", "name": "ChatGPT Web Free", "delete_chat_after_gen": True, **cls.default_settings()})
+        return migrate_legacy_provider({"id": "default", "name": "ChatGPT Web Free", "delete_chat_after_gen": True, "visible_browser": False, **cls.default_settings()})
 
     @classmethod
     def _default_settings(cls) -> dict[str, Any]:
@@ -352,6 +354,8 @@ class ProviderSettings(StoreLockMixin):
                 )
             if "delete_chat_after_gen" in merged:
                 provider["delete_chat_after_gen"] = bool(merged.get("delete_chat_after_gen"))
+            if "visible_browser" in merged:
+                provider["visible_browser"] = bool(merged.get("visible_browser"))
             gpt_binding = next(
                 (
                     binding
@@ -439,6 +443,7 @@ class ProviderSettings(StoreLockMixin):
             "api_mode",
             "images_concurrency",
             "delete_chat_after_gen",
+            "visible_browser",
         }
         if not legacy_provider_fields.intersection(payload):
             return candidate
@@ -464,6 +469,8 @@ class ProviderSettings(StoreLockMixin):
                 )
             if "delete_chat_after_gen" in payload:
                 provider["delete_chat_after_gen"] = bool(payload.get("delete_chat_after_gen"))
+            if "visible_browser" in payload:
+                provider["visible_browser"] = bool(payload.get("visible_browser"))
             if "image_model" in payload or "api_mode" in payload:
                 gpt_binding = next(
                     (
@@ -552,6 +559,7 @@ class ProviderSettings(StoreLockMixin):
             "concurrency": provider.get("concurrency"),
             "bindings": deepcopy(provider.get("bindings") or []),
             "delete_chat_after_gen": provider.get("delete_chat_after_gen"),
+            "visible_browser": provider.get("visible_browser"),
         }
 
     @classmethod
@@ -616,6 +624,8 @@ class ProviderSettings(StoreLockMixin):
         }
         if "delete_chat_after_gen" in provider:
             legacy["delete_chat_after_gen"] = provider["delete_chat_after_gen"]
+        if "visible_browser" in provider:
+            legacy["visible_browser"] = provider["visible_browser"]
         return legacy
 
     @staticmethod

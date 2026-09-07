@@ -210,6 +210,11 @@ def _validate_provider(raw: Mapping[str, Any], *, index: int) -> dict[str, Any]:
         if not isinstance(delete_chat_after_gen, bool):
             raise ValueError("invalid_delete_chat_after_gen")
         provider["delete_chat_after_gen"] = delete_chat_after_gen
+    visible_browser = raw.get("visible_browser")
+    if visible_browser is not None:
+        if not isinstance(visible_browser, bool):
+            raise ValueError("invalid_visible_browser")
+        provider["visible_browser"] = visible_browser
     return provider
 
 

@@ -51,6 +51,7 @@ const els = bridge.els;
 let formControlsInitialized = false;
 let formControlEventsBound = false;
 const CHATGPT_DELETE_CHAT_STORAGE_KEY = "codex-image-chatgpt-delete-chat";
+const CHATGPT_VISIBLE_BROWSER_STORAGE_KEY = "codex-image-chatgpt-visible-browser";
 
 export function syncChatGPTDeleteChatState(): void {
   if (!els.chatgptDeleteChat) return;
@@ -58,6 +59,16 @@ export function syncChatGPTDeleteChatState(): void {
   if (els.chatgptDeleteChatStatus) {
     els.chatgptDeleteChatStatus.textContent = translate(
       isChecked ? "output.chatgptDeleteChatToggle" : "output.chatgptDeleteChatToggleOff",
+    );
+  }
+}
+
+export function syncChatGPTVisibleBrowserState(): void {
+  if (!els.chatgptVisibleBrowser) return;
+  const isChecked = Boolean(els.chatgptVisibleBrowser.checked);
+  if (els.chatgptVisibleBrowserStatus) {
+    els.chatgptVisibleBrowserStatus.textContent = translate(
+      isChecked ? "output.chatgptVisibleBrowserToggle" : "output.chatgptVisibleBrowserToggleOff",
     );
   }
 }
@@ -80,6 +91,17 @@ export function restoreChatGPTDeleteChatState(): void {
   els.chatgptDeleteChat.checked = enabled;
   localStorage.setItem(CHATGPT_DELETE_CHAT_STORAGE_KEY, String(enabled));
   syncChatGPTDeleteChatState();
+}
+
+export function restoreChatGPTVisibleBrowserState(): void {
+  if (!els.chatgptVisibleBrowser) return;
+  const provider = activeChatGPTProvider();
+  const providerSetting = typeof provider?.visible_browser === "boolean" ? provider.visible_browser : null;
+  const saved = localStorage.getItem(CHATGPT_VISIBLE_BROWSER_STORAGE_KEY);
+  const enabled = providerSetting !== null ? providerSetting : (saved !== null ? saved === "true" : false);
+  els.chatgptVisibleBrowser.checked = enabled;
+  localStorage.setItem(CHATGPT_VISIBLE_BROWSER_STORAGE_KEY, String(enabled));
+  syncChatGPTVisibleBrowserState();
 }
 
 export function persistChatGPTDeleteChatState(): void {
@@ -106,8 +128,33 @@ export function persistChatGPTDeleteChatState(): void {
   }
 }
 
+export function persistChatGPTVisibleBrowserState(): void {
+  if (!els.chatgptVisibleBrowser) return;
+  const enabled = Boolean(els.chatgptVisibleBrowser.checked);
+  localStorage.setItem(CHATGPT_VISIBLE_BROWSER_STORAGE_KEY, String(enabled));
+  syncChatGPTVisibleBrowserState();
+  const provider = activeChatGPTProvider();
+  if (provider && state.apiSettings?.providers) {
+    const target = state.apiSettings.providers.find((p: any) => p.id === provider.id);
+    if (target && target.visible_browser !== enabled) {
+      target.visible_browser = enabled;
+      const methods = getLegacyBridge().methods;
+      if (typeof methods?.persistApiSettings === "function") {
+        methods.persistApiSettings();
+      }
+      if (typeof methods?.queueApiSettingsAutosave === "function") {
+        methods.queueApiSettingsAutosave();
+      }
+    }
+  }
+}
+
 export function currentChatGPTDeleteChatEnabled(): boolean {
   return Boolean(els.chatgptDeleteChat?.checked ?? true);
+}
+
+export function currentChatGPTVisibleBrowserEnabled(): boolean {
+  return Boolean(els.chatgptVisibleBrowser?.checked ?? false);
 }
 
 function syncRunButtonLabel(): void {
@@ -122,12 +169,20 @@ export function bindFormControlEvents(): void {
   formControlEventsBound = true;
 
   restoreChatGPTDeleteChatState();
+  restoreChatGPTVisibleBrowserState();
   const handleChatGPTDeleteChatChange = () => {
     persistChatGPTDeleteChatState();
     updateRequestPreview();
   };
   els.chatgptDeleteChat?.addEventListener("input", handleChatGPTDeleteChatChange);
   els.chatgptDeleteChat?.addEventListener("change", handleChatGPTDeleteChatChange);
+
+  const handleChatGPTVisibleBrowserChange = () => {
+    persistChatGPTVisibleBrowserState();
+    updateRequestPreview();
+  };
+  els.chatgptVisibleBrowser?.addEventListener("input", handleChatGPTVisibleBrowserChange);
+  els.chatgptVisibleBrowser?.addEventListener("change", handleChatGPTVisibleBrowserChange);
 
   document.querySelectorAll("[data-mode]").forEach((button: any) => {
     button.addEventListener("click", () => setMode(button.dataset.mode));
@@ -236,12 +291,17 @@ export function initFormControlsFeature(): void {
   formControlsInitialized = true;
   document.addEventListener(LOCALE_CHANGE_EVENT, syncRunButtonLabel);
   document.addEventListener(LOCALE_CHANGE_EVENT, syncChatGPTDeleteChatState);
+  document.addEventListener(LOCALE_CHANGE_EVENT, syncChatGPTVisibleBrowserState);
   Object.assign(getLegacyBridge().methods, {
     bindFormControlEvents,
     syncChatGPTDeleteChatState,
     restoreChatGPTDeleteChatState,
     persistChatGPTDeleteChatState,
     currentChatGPTDeleteChatEnabled,
+    syncChatGPTVisibleBrowserState,
+    restoreChatGPTVisibleBrowserState,
+    persistChatGPTVisibleBrowserState,
+    currentChatGPTVisibleBrowserEnabled,
     setMode,
     syncRunButtonLabel,
     updateQuantity,

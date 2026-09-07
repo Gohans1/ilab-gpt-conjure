@@ -39,6 +39,57 @@ describe("parseImageRequest", () => {
     expect(parsed.aspectRatioOrSize).toBe("None");
   });
 
+  it("phân tích đúng headless và visible_browser từ JSON request", async () => {
+    // visible_browser: true -> headless: false
+    const req1 = new Request("http://127.0.0.1:3000/v1/images/generations", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        prompt: "A beautiful landscape",
+        visible_browser: true,
+      }),
+    });
+    const parsed1 = await parseImageRequest(req1);
+    expect(parsed1.headless).toBe(false);
+
+    // visible_browser: false -> headless: true
+    const req2 = new Request("http://127.0.0.1:3000/v1/images/generations", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        prompt: "A beautiful landscape",
+        visible_browser: false,
+      }),
+    });
+    const parsed2 = await parseImageRequest(req2);
+    expect(parsed2.headless).toBe(true);
+
+    // headless: true trực tiếp
+    const req3 = new Request("http://127.0.0.1:3000/v1/images/generations", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        prompt: "A beautiful landscape",
+        headless: true,
+      }),
+    });
+    const parsed3 = await parseImageRequest(req3);
+    expect(parsed3.headless).toBe(true);
+  });
+
+  it("phân tích đúng visible_browser từ multipart/form-data request", async () => {
+    const formData = new FormData();
+    formData.append("prompt", "A futuristic car");
+    formData.append("visible_browser", "true");
+
+    const req = new Request("http://127.0.0.1:3000/v1/images/generations", {
+      method: "POST",
+      body: formData,
+    });
+    const parsed = await parseImageRequest(req);
+    expect(parsed.headless).toBe(false);
+  });
+
   it("phân tích đúng JSON request có base64 image và dọn dẹp sạch cả thư mục tạm", async () => {
     const fakeBase64Png = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
     const req = new Request("http://127.0.0.1:3000/v1/images/edits", {

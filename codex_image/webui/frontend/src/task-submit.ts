@@ -220,6 +220,7 @@ function buildPreviewRequest() {
   }
   if (isChatGPTWebProvider()) {
     payload.delete_chat_after_gen = Boolean(els.chatgptDeleteChat?.checked ?? true);
+    payload.visible_browser = Boolean(els.chatgptVisibleBrowser?.checked ?? false);
   }
   return payload;
 }
@@ -314,6 +315,9 @@ async function runTask() {
   }
   if (els.chatgptDeleteChat && isChatGPTWebProvider()) {
     form.append("delete_chat_after_gen", String(Boolean(els.chatgptDeleteChat.checked)));
+  }
+  if (els.chatgptVisibleBrowser && isChatGPTWebProvider()) {
+    form.append("visible_browser", String(Boolean(els.chatgptVisibleBrowser.checked)));
   }
   galleries.forEach((source: any) => form.append("gallery_image_ids", source.id));
   assets.forEach((source: any) => form.append("reference_asset_ids", source.id));

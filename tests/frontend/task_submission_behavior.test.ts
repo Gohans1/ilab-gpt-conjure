@@ -257,3 +257,18 @@ test("applyTaskOutputParams does not overwrite chatgptDeleteChat setting from pa
 
   assert.equal(chatgptCheckbox.checked, true, "Historical task params must not overwrite chatgptDeleteChat setting");
 });
+
+test("applyTaskOutputParams does not overwrite chatgptVisibleBrowser setting from past task params", () => {
+  resetSubmissionState();
+  const visibleBrowserCheckbox = { checked: true, style: {}, classList: new FakeClassList() };
+  (els as any).chatgptVisibleBrowser = visibleBrowserCheckbox;
+
+  methods.applyTaskOutputParams({
+    params: {
+      "chatgpt.visible_browser": false,
+    },
+    output: {},
+  });
+
+  assert.equal(visibleBrowserCheckbox.checked, true, "Historical task params must not overwrite chatgptVisibleBrowser setting");
+});

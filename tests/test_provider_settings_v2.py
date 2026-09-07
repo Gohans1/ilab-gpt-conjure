@@ -737,6 +737,57 @@ class ProviderSettingsV2Tests(unittest.TestCase):
         )
         self.assertEqual(legacy_written["providers"][0]["delete_chat_after_gen"], True)
 
+    def test_visible_browser_validation_and_persistence(self) -> None:
+        self.write_json(
+            self.v2_payload(
+                providers=[self.provider(visible_browser=True)]
+            )
+        )
+        settings = self.settings.read()
+        self.assertEqual(settings["providers"][0]["visible_browser"], True)
+
+        public = self.settings.public_settings()
+        self.assertEqual(public["providers"][0]["visible_browser"], True)
+
+        # Invalid non-bool value in read must raise
+        self.write_json(
+            self.v2_payload(
+                providers=[self.provider(visible_browser="invalid")]
+            )
+        )
+        with self.assertRaisesRegex(ValueError, "invalid_visible_browser"):
+            self.settings.read()
+
+        # Reset to valid json before testing write()
+        self.write_json(self.v2_payload())
+
+        # settings.write() should persist visible_browser
+        written = self.settings.write(
+            self.v2_payload(
+                providers=[self.provider(visible_browser=True)]
+            )
+        )
+        self.assertEqual(written["providers"][0]["visible_browser"], True)
+        reloaded = self.settings.read()
+        self.assertEqual(reloaded["providers"][0]["visible_browser"], True)
+
+        # Invalid non-bool value in write must raise
+        with self.assertRaisesRegex(ValueError, "invalid_visible_browser"):
+            self.settings.write(
+                self.v2_payload(
+                    providers=[self.provider(visible_browser=123)]
+                )
+            )
+
+        # Legacy write should preserve visible_browser
+        legacy_written = self.settings.write(
+            {
+                "active_provider_id": "default",
+                "visible_browser": True,
+            }
+        )
+        self.assertEqual(legacy_written["providers"][0]["visible_browser"], True)
+
 
 if __name__ == "__main__":
     unittest.main()

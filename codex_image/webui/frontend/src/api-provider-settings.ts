@@ -103,6 +103,7 @@ export function normalizeApiProvider(provider: any = {}, index: any = 0): any {
     api_key_source_provider_id: String(provider.api_key_source_provider_id || "").trim(),
     icon_emoji: String(provider.icon_emoji || "").trim(),
     delete_chat_after_gen: typeof provider.delete_chat_after_gen === "boolean" ? provider.delete_chat_after_gen : true,
+    visible_browser: typeof provider.visible_browser === "boolean" ? provider.visible_browser : false,
     default_model_ids: Array.isArray(provider.default_model_ids)
       ? provider.default_model_ids.map((value: any) => String(value || "").trim()).filter(Boolean)
       : [],
@@ -295,6 +296,7 @@ function draftProviderFromForm(): any {
     api_key_masked: draft.api_key_masked,
     api_key_source_provider_id: draft.api_key_source_provider_id,
     delete_chat_after_gen: els.apiProviderDeleteChat ? Boolean(els.apiProviderDeleteChat.checked) : draft.delete_chat_after_gen !== false,
+    visible_browser: typeof draft.visible_browser === "boolean" ? draft.visible_browser : false,
   }, 0);
 }
 
@@ -536,6 +538,7 @@ export function persistApiSettings(): void {
         api_key_set: provider.api_key_set,
         api_key_masked: provider.api_key_masked,
         delete_chat_after_gen: provider.delete_chat_after_gen,
+        visible_browser: provider.visible_browser,
       })),
     }));
   } catch {
@@ -1236,6 +1239,7 @@ export async function saveApiSettings(options: any = {}): Promise<boolean> {
         concurrency: provider.concurrency,
         bindings: provider.bindings,
         delete_chat_after_gen: provider.delete_chat_after_gen !== false,
+        visible_browser: Boolean(provider.visible_browser),
       };
       if (provider.api_key || !provider.api_key_set) item.api_key = provider.api_key;
       if (!provider.api_key && provider.api_key_source_provider_id) {

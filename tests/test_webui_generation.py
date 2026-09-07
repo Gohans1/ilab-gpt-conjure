@@ -891,3 +891,40 @@ class WebUIGenerationTests(unittest.TestCase):
             delete_chat_after_gen=True,
         )
         self.assertEqual(payload_true.get("delete_chat_after_gen"), True)
+
+    def test_generate_route_supports_visible_browser_parameter(self) -> None:
+        from codex_image.webui.app import create_app
+
+        fake = FakeImageClient()
+        with tempfile.TemporaryDirectory() as tmp:
+            app = create_app(output_root=Path(tmp), client_factory=lambda: fake, auth_checker=lambda: True)
+            client = TestClient(app)
+            response = client.post(
+                "/api/generate",
+                data={
+                    "prompt": "a futuristic city",
+                    "model": "gpt-image-2",
+                    "visible_browser": "true",
+                },
+            )
+            self.assertEqual(response.status_code, 200)
+            body = response.json()
+            task = body["task"]
+            self.assertEqual(task["params"]["chatgpt.visible_browser"], True)
+
+    def test_openai_images_client_build_payload_includes_visible_browser(self) -> None:
+        from codex_image.openai_images_client import OpenAIImagesImageClient
+
+        client = OpenAIImagesImageClient(base_url="http://127.0.0.1:3000/v1", api_key="sk-local")
+        payload = client.build_payload(
+            prompt="test prompt",
+            visible_browser=False,
+        )
+        self.assertEqual(payload.get("visible_browser"), False)
+
+        payload_true = client.build_payload(
+            prompt="test prompt",
+            visible_browser=True,
+        )
+        self.assertEqual(payload_true.get("visible_browser"), True)
+
