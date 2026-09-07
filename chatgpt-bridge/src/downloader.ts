@@ -33,14 +33,18 @@ export async function extractAndSaveImages(
       });
 
     const knownSet = new Set(existingUrls);
+    const knownKeys = new Set(existingUrls.map((u) => {
+      const match = u.match(/[?&]id=([^&]+)/);
+      return match ? match[1] : u;
+    }));
     const fileMap = new Map<string, string>();
 
     for (const img of validImages) {
       const src = img.src || img.getAttribute("src") || "";
-      if (knownSet.has(src)) continue;
-
       const match = src.match(/[?&]id=([^&]+)/);
       const fileKey = match ? match[1] : src;
+
+      if (knownSet.has(src) || knownKeys.has(fileKey)) continue;
 
       if (!fileMap.has(fileKey)) {
         let fullSizeUrl = src;
@@ -59,37 +63,36 @@ export async function extractAndSaveImages(
       return [];
     }
 
-    const results: Array<{ base64?: string; error?: string; url: string }> = [];
+    const results = await Promise.all(
+      Array.from(fileMap.values()).map(async (url) => {
+        try {
+          if (url.startsWith("data:")) {
+            const parts = url.split(",");
+            return { base64: parts[1], url: "data-uri" };
+          }
 
-    for (const [_, url] of fileMap.entries()) {
-      try {
-        if (url.startsWith("data:")) {
-          const parts = url.split(",");
-          results.push({ base64: parts[1], url: "data-uri" });
-          continue;
+          const response = await fetch(url, { mode: "cors", credentials: "include" });
+          if (!response.ok) {
+            throw new Error(`Fetch failed: ${response.status}`);
+          }
+          const blob = await response.blob();
+
+          const base64 = await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+              const res = reader.result as string;
+              resolve(res.includes(",") ? res.split(",")[1] : res);
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+          });
+
+          return { base64, url };
+        } catch (err) {
+          return { error: err instanceof Error ? err.message : String(err), url };
         }
-
-        const response = await fetch(url, { mode: "cors", credentials: "include" });
-        if (!response.ok) {
-          throw new Error(`Fetch failed: ${response.status}`);
-        }
-        const blob = await response.blob();
-
-        const base64 = await new Promise<string>((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onloadend = () => {
-            const res = reader.result as string;
-            resolve(res.includes(",") ? res.split(",")[1] : res);
-          };
-          reader.onerror = reject;
-          reader.readAsDataURL(blob);
-        });
-
-        results.push({ base64, url });
-      } catch (err) {
-        results.push({ error: err instanceof Error ? err.message : String(err), url });
-      }
-    }
+      })
+    );
 
     return results;
   }, { selector: imageSelector, existingUrls: knownUrls });

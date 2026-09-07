@@ -45,7 +45,7 @@ Get-CimInstance Win32_Process -Filter "Name = 'chrome.exe' or Name = 'msedge.exe
   ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
 `.trim();
       const b64 = Buffer.from(script, "utf16le").toString("base64");
-      spawnSync("powershell", ["-NoProfile", "-NonInteractive", "-EncodedCommand", b64], {
+      spawnSync("powershell", ["-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-EncodedCommand", b64], {
         stdio: "ignore",
         timeout: 5000,
       });
@@ -58,7 +58,7 @@ Get-CimInstance Win32_Process -Filter "Name = 'chrome.exe' or Name = 'msedge.exe
 }
 
 export function cleanupStaleLocks(profileDir: string): void {
-  const locks = ["SingletonLock", "SingletonCookie", "SingletonSocket"];
+  const locks = ["SingletonLock", "SingletonCookie", "SingletonSocket", "lockfile"];
   for (const name of locks) {
     const lockFile = join(profileDir, name);
     if (existsSync(lockFile)) {
@@ -99,7 +99,7 @@ async function waitForCDPEndpoint(
   while (Date.now() - start < timeoutMs) {
     if (!isProcessAlive()) return false;
     try {
-      const res = await fetch(url);
+      const res = await fetch(url, { signal: AbortSignal.timeout(1000) });
       if (res.ok) return true;
     } catch {}
     await new Promise((r) => setTimeout(r, 100));
@@ -171,7 +171,11 @@ export async function getBrowserSession(options: BrowserOptions = {}): Promise<B
 
     const proc = spawnBrowserProcess(candidate.path, port, USER_DATA_DIR, headless);
 
-    const isReady = await waitForCDPEndpoint(port, () => proc.exitCode === null, 7000);
+    const isReady = await waitForCDPEndpoint(
+      port,
+      () => proc.exitCode === null && proc.signalCode === null && !proc.killed,
+      7000
+    );
     if (!isReady || proc.exitCode !== null) {
       console.warn(`⚠️ [Browser] ${candidate.type} không phản hồi CDP hoặc tự thoát (exitCode: ${proc.exitCode}). Thử phương án tiếp theo...`);
       if (proc.pid) killProcessTree(proc.pid);
@@ -205,11 +209,19 @@ export async function getBrowserSession(options: BrowserOptions = {}): Promise<B
       "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36",
   }));
 
-  // Ẩn navigator.webdriver để tránh Cloudflare chặn
+  // Ẩn navigator.webdriver sạch ở prototype để tránh Cloudflare / Turnstile phát hiện own-property
   await context.addInitScript(() => {
-    Object.defineProperty(navigator, "webdriver", {
-      get: () => undefined,
-    });
+    try {
+      const proto = Object.getPrototypeOf(navigator);
+      if (proto && "webdriver" in proto) {
+        delete (proto as any).webdriver;
+      }
+      delete (navigator as any).webdriver;
+      Object.defineProperty(navigator, "webdriver", {
+        get: () => undefined,
+        configurable: true,
+      });
+    } catch {}
   });
 
   const page = context.pages()[0] || (await context.newPage());
@@ -219,7 +231,17 @@ export async function getBrowserSession(options: BrowserOptions = {}): Promise<B
     page,
     close: async () => {
       try {
-        await connectedBrowser.close();
+          let closeTimer: ReturnType<typeof setTimeout> | undefined;
+          try {
+            await Promise.race([
+              connectedBrowser.close(),
+              new Promise((_, reject) => {
+                closeTimer = setTimeout(() => reject(new Error("CDP close timeout")), 2500);
+              }),
+            ]);
+          } finally {
+            if (closeTimer) clearTimeout(closeTimer);
+          }
       } catch (err) {
         console.warn("⚠️ Không thể ngắt kết nối CDP hoàn tất:", err);
       }

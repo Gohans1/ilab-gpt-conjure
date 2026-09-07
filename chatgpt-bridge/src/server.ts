@@ -54,7 +54,7 @@ function isValidLocalImage(filePath: string): boolean {
   }
 }
 
-function detectImageExtension(buf: Buffer): string {
+export function detectImageExtension(buf: Buffer): string | null {
   if (buf.length >= 4 && buf[0] === 0x89 && buf[1] === 0x50 && buf[2] === 0x4e && buf[3] === 0x47) {
     return ".png";
   }
@@ -71,7 +71,7 @@ function detectImageExtension(buf: Buffer): string {
   ) {
     return ".webp";
   }
-  return ".png";
+  return null;
 }
 
 export async function parseImageRequest(req: Request): Promise<ParsedImageRequest> {
@@ -127,8 +127,11 @@ export async function parseImageRequest(req: Request): Promise<ParsedImageReques
           fileIdx++;
           const arrayBuffer = await file.arrayBuffer();
           const buf = Buffer.from(arrayBuffer);
-          // SEC-01 Fix: Dùng magic bytes để phát hiện extension thực sự, TUYỆT ĐỐI KHÔNG dùng file.name
+          // SEC-01 & REQ-05 Fix: Dùng magic bytes để phát hiện extension thực sự, TUYỆT ĐỐI KHÔNG dùng file.name
           const ext = detectImageExtension(buf);
+          if (!ext) {
+            throw new Error(`Unsupported or invalid image format in uploaded file "${file.name || `file-${fileIdx}`}". Only PNG, JPEG, GIF, and WebP are allowed.`);
+          }
           const tempPath = join(getTempDir(), `input-${fileIdx}${ext}`);
           writeFileSync(tempPath, buf);
           tempFilesToClean.push(tempPath);
@@ -209,12 +212,7 @@ export async function parseImageRequest(req: Request): Promise<ParsedImageReques
                 const buf = Buffer.from(trimmed, "base64");
                 if (buf.length >= 4) {
                   const ext = detectImageExtension(buf);
-                  const isMagicImage =
-                    (ext === ".png" && buf[0] === 0x89) ||
-                    (ext === ".jpg" && buf[0] === 0xff) ||
-                    (ext === ".gif" && buf[0] === 0x47) ||
-                    (ext === ".webp" && buf.toString("ascii", 0, 4) === "RIFF");
-                  if (isMagicImage) {
+                  if (ext) {
                     const tempPath = join(getTempDir(), `input-${fileIdx}${ext}`);
                     writeFileSync(tempPath, buf);
                     tempFilesToClean.push(tempPath);
@@ -278,10 +276,33 @@ const PORT = Number(process.env.PORT || 3000);
 const HOSTNAME = "127.0.0.1";
 const REQUIRED_API_KEY = process.env.API_KEY || "sk-local";
 
-const corsHeaders: Record<string, string> = {
-  "Access-Control-Allow-Origin": "*",
+export function isAllowedOrigin(origin: string | null): boolean {
+  if (!origin || origin === "null") return true;
+  try {
+    const parsed = new URL(origin);
+    const host = parsed.hostname.toLowerCase();
+    return host === "localhost" || host === "127.0.0.1" || host === "::1" || host === "[::1]";
+  } catch {
+    return false;
+  }
+}
+
+export function getCorsHeaders(req: Request): Record<string, string> {
+  const origin = req.headers.get("origin");
+  const allowOrigin = origin && isAllowedOrigin(origin) ? origin : "http://127.0.0.1";
+  return {
+    "Access-Control-Allow-Origin": allowOrigin,
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization, User-Agent",
+    "Vary": "Origin",
+  };
+}
+
+export const corsHeaders: Record<string, string> = {
+  "Access-Control-Allow-Origin": "http://127.0.0.1",
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type, Authorization, User-Agent",
+  "Vary": "Origin",
 };
 
 function formatOpenAIError(message: string, type: string = "invalid_request_error", code: string | null = null) {
@@ -432,6 +453,7 @@ export function buildGenerationPrompt(options: {
 }
 
 export async function handleRequest(req: Request): Promise<Response> {
+  const corsHeaders = getCorsHeaders(req);
   const url = new URL(req.url);
   const pathname = url.pathname.replace(/\/$/, "");
 
@@ -456,8 +478,16 @@ export async function handleRequest(req: Request): Promise<Response> {
     );
   }
 
-  // Trigger login endpoint
+  // Trigger login endpoint (chống CSRF từ web bên ngoài kích hoạt popup Chromium)
   if (pathname === "/auth/login" || pathname === "/api/auth/login") {
+    const origin = req.headers.get("origin");
+    const secFetchSite = req.headers.get("sec-fetch-site");
+    if ((origin && !isAllowedOrigin(origin)) || origin === "null" || secFetchSite === "cross-site") {
+      return Response.json(
+        { error: "Forbidden: Cross-site or sandboxed request rejected" },
+        { status: 403, headers: corsHeaders }
+      );
+    }
     if (req.method !== "POST") {
       return Response.json({ error: "Method not allowed" }, { status: 405, headers: corsHeaders });
     }

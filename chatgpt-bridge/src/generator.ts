@@ -51,6 +51,12 @@ export function resolveInputImages(input?: unknown): string[] {
   return [];
 }
 
+export function extractImageKey(src: string): string {
+  if (!src) return "";
+  const match = src.match(/[?&]id=([^&]+)/);
+  return match ? match[1] : src;
+}
+
 export async function attachImagesToChatGPT(
   page: any,
   imagePaths: string[],
@@ -73,6 +79,9 @@ export async function attachImagesToChatGPT(
       const isMultiple = typeof fileInput.getAttribute === "function"
         ? await fileInput.getAttribute("multiple").then((val: any) => val !== null).catch(() => false)
         : false;
+      if (!isMultiple && paths.length > 1) {
+        console.warn(`⚠️ Giao diện ChatGPT không hỗ trợ upload nhiều ảnh cùng lúc. Chỉ ảnh đầu tiên (${paths[0]}) được đính kèm.`);
+      }
       const filesToUpload = isMultiple || paths.length === 1 ? paths : paths.slice(0, 1);
       await fileInput.setInputFiles(filesToUpload, { timeout });
       uploaded = true;
@@ -87,7 +96,9 @@ export async function attachImagesToChatGPT(
       const clickPromise = attachBtn.click({ timeout: 5000 }).catch(() => {});
       const [fileChooser] = await Promise.all([fileChooserPromise, clickPromise]);
       if (fileChooser) {
-        await fileChooser.setFiles(paths);
+        const canMultiple = typeof fileChooser.isMultiple === "function" ? fileChooser.isMultiple() : true;
+        const filesToSet = canMultiple || paths.length === 1 ? paths : paths.slice(0, 1);
+        await fileChooser.setFiles(filesToSet);
         uploaded = true;
       }
     } catch {}
@@ -224,7 +235,10 @@ export function inspectChatGPTPageState(
       t.includes("There was an error") ||
       t.includes("Unable to load") ||
       t.includes("Failed to load") ||
-      t.includes("Rate limit")
+      t.includes("Rate limit") ||
+      t.includes("limit of") ||
+      t.includes("usage limit") ||
+      t.includes("generation limit")
     ) {
       errorMessage = t;
       break;
@@ -318,7 +332,6 @@ export async function generateImage(prompt: string, options: GenerateOptions = {
     const composer = page.locator(SELECTORS.composer).first();
     await composer.waitFor({ state: "visible", timeout: 30_000 });
 
-    const inputImages = resolveInputImages(options.inputImages);
     if (inputImages.length > 0) {
       // Đợi 2s cho React hydrate xong và cắm event listener vào thẻ input file
       await page.waitForTimeout(2_000);
@@ -362,6 +375,7 @@ export async function generateImage(prompt: string, options: GenerateOptions = {
     let previousTextLength = 0;
     let success = false;
     const knownSet = new Set(initialUrls);
+    const knownKeys = new Set(initialUrls.map(extractImageKey));
 
     while (Date.now() - startTime < maxTimeoutMs) {
       const currentImages = await page.evaluate((selector) => {
@@ -371,7 +385,16 @@ export async function generateImage(prompt: string, options: GenerateOptions = {
           .filter((src) => src.startsWith("http") || src.startsWith("blob:") || src.startsWith("data:"));
       }, SELECTORS.generatedImage);
 
-      const newImages = currentImages.filter((src) => !knownSet.has(src));
+      const currentKeyMap = new Map<string, string>();
+      for (const src of currentImages) {
+        const key = extractImageKey(src);
+        if (!currentKeyMap.has(key)) {
+          currentKeyMap.set(key, src);
+        }
+      }
+      const newImages = Array.from(currentKeyMap.values()).filter(
+        (src) => !knownSet.has(src) && !knownKeys.has(extractImageKey(src))
+      );
       const hasNewImages = newImages.length > 0;
       const isGenerating = await page.locator(SELECTORS.stopButton).first().isVisible().catch(() => false);
 
@@ -436,7 +459,7 @@ export async function generateImage(prompt: string, options: GenerateOptions = {
         lastLoggedTime = Date.now();
         const elapsedSec = Math.round((Date.now() - startTime) / 1000);
         const idleSec = Math.round((Date.now() - lastActivityTime) / 1000);
-        const newCount = currentImages.filter((src) => !knownSet.has(src)).length;
+        const newCount = newImages.length;
         console.log(
           `⏳ [Bridge] Đang sinh ảnh... (Đã chạy: ${elapsedSec}s | Hoạt động gần nhất: ${idleSec}s trước | Đã tìm thấy: ${newCount} ảnh mới)`
         );

@@ -140,7 +140,7 @@ describe("parseImageRequest", () => {
     const formData = new FormData();
     formData.append("prompt", "Turn into cyber style");
     formData.append("n", "1");
-    const fakeFile = new File([new Uint8Array([1, 2, 3, 4])], "sample.png", { type: "image/png" });
+    const fakeFile = new File([new Uint8Array([0x89, 0x50, 0x4e, 0x47, 1, 2, 3, 4])], "sample.png", { type: "image/png" });
     formData.append("image", fakeFile);
 
     const req = new Request("http://127.0.0.1:3000/v1/images/edits", {
@@ -154,13 +154,27 @@ describe("parseImageRequest", () => {
       expect(parsed.inputImages.length).toBe(1);
       expect(existsSync(parsed.inputImages[0])).toBe(true);
       const content = readFileSync(parsed.inputImages[0]);
-      expect(content).toEqual(Buffer.from([1, 2, 3, 4]));
+      expect(content).toEqual(Buffer.from([0x89, 0x50, 0x4e, 0x47, 1, 2, 3, 4]));
     } finally {
       cleanupTempFiles(parsed.tempFilesToClean);
       for (const item of parsed.tempFilesToClean) {
         expect(existsSync(item)).toBe(false);
       }
     }
+  });
+
+  it("REQ-05: Từ chối file upload không khớp magic bytes của định dạng ảnh hợp lệ", async () => {
+    const formData = new FormData();
+    formData.append("prompt", "Turn into cyber style");
+    const corruptedFile = new File([new Uint8Array([1, 2, 3, 4])], "corrupted.png", { type: "image/png" });
+    formData.append("image", corruptedFile);
+
+    const req = new Request("http://127.0.0.1:3000/v1/images/edits", {
+      method: "POST",
+      body: formData,
+    });
+
+    await expect(parseImageRequest(req)).rejects.toThrow("Unsupported or invalid image format");
   });
 
   it("từ chối đường dẫn local file nếu là thư mục hoặc không phải định dạng ảnh", async () => {
@@ -444,5 +458,54 @@ describe("buildGenerationPrompt", () => {
   });
 });
 
+describe("CORS & Origin Security (REQ-06)", () => {
+  it("cho phép loopback origins và cấu hình đúng Vary Origin", async () => {
+    const req = new Request("http://127.0.0.1:3000/health", {
+      headers: { Origin: "http://localhost:8787" },
+    });
+    const res = await handleRequest(req);
+    expect(res.headers.get("Access-Control-Allow-Origin")).toBe("http://localhost:8787");
+    expect(res.headers.get("Vary")).toBe("Origin");
+  });
 
+  it("không cấp phát Origin của bên thứ 3 (untrusted) trong CORS", async () => {
+    const req = new Request("http://127.0.0.1:3000/health", {
+      headers: { Origin: "https://evil.com" },
+    });
+    const res = await handleRequest(req);
+    expect(res.headers.get("Access-Control-Allow-Origin")).toBe("http://127.0.0.1");
+  });
 
+  it("chặn đứng 403 Forbidden khi web bên ngoài gửi CSRF tới /auth/login", async () => {
+    const req = new Request("http://127.0.0.1:3000/auth/login", {
+      method: "POST",
+      headers: { Origin: "https://evil.com" },
+    });
+    const res = await handleRequest(req);
+    expect(res.status).toBe(403);
+    const json: any = await res.json();
+    expect(json.error).toContain("Forbidden");
+  });
+
+  it("chặn đứng 403 Forbidden khi sandboxed iframe (Origin: null) gửi CSRF tới /auth/login", async () => {
+    const req = new Request("http://127.0.0.1:3000/auth/login", {
+      method: "POST",
+      headers: { Origin: "null" },
+    });
+    const res = await handleRequest(req);
+    expect(res.status).toBe(403);
+    const json: any = await res.json();
+    expect(json.error).toContain("Forbidden");
+  });
+
+  it("chặn đứng 403 Forbidden khi Sec-Fetch-Site là cross-site trên /auth/login", async () => {
+    const req = new Request("http://127.0.0.1:3000/auth/login", {
+      method: "POST",
+      headers: { "Sec-Fetch-Site": "cross-site" },
+    });
+    const res = await handleRequest(req);
+    expect(res.status).toBe(403);
+    const json: any = await res.json();
+    expect(json.error).toContain("Forbidden");
+  });
+});

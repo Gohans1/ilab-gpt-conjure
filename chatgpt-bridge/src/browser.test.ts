@@ -13,6 +13,7 @@ describe("browser helpers", () => {
     writeFileSync(join(testDir, "SingletonLock"), "lock");
     writeFileSync(join(testDir, "SingletonCookie"), "cookie");
     writeFileSync(join(testDir, "SingletonSocket"), "socket");
+    writeFileSync(join(testDir, "lockfile"), "lockfile");
     writeFileSync(join(testDir, "regular-file.txt"), "keep me");
 
     cleanupStaleLocks(testDir);
@@ -20,6 +21,7 @@ describe("browser helpers", () => {
     expect(existsSync(join(testDir, "SingletonLock"))).toBe(false);
     expect(existsSync(join(testDir, "SingletonCookie"))).toBe(false);
     expect(existsSync(join(testDir, "SingletonSocket"))).toBe(false);
+    expect(existsSync(join(testDir, "lockfile"))).toBe(false);
     expect(existsSync(join(testDir, "regular-file.txt"))).toBe(true);
 
     rmSync(testDir, { recursive: true, force: true });
