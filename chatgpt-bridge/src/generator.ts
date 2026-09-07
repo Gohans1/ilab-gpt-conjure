@@ -1,8 +1,13 @@
-import { existsSync, rmSync } from "node:fs";
-import { join } from "node:path";
-import { CHATGPT_URL, SELECTORS, USER_DATA_DIR } from "./config.js";
+import { existsSync } from "node:fs";
+import { CHATGPT_URL, SELECTORS } from "./config.js";
 import { getBrowserSession, type BrowserOptions, type BrowserSession } from "./browser.js";
 import { extractAndSaveImages, type DownloadResult } from "./downloader.js";
+import {
+  checkIsLoggedIn,
+  dismissCookieBannerIfPresent,
+  saveSanitizedStorageState,
+} from "./auth-helper.js";
+import { clearSessionVerified } from "./check-session.js";
 
 import type { Page } from "playwright-core";
 
@@ -15,6 +20,7 @@ export interface GenerateOptions extends BrowserOptions {
   deleteChatAfterGen?: boolean;
   inputImages?: string[];
   expectedCount?: number;
+  signal?: AbortSignal;
 }
 
 export function resolveTimeoutOptions(options: GenerateOptions = {}): {
@@ -145,14 +151,27 @@ export function sizeToAspectRatio(sizeOrRatio?: string | null): string | null {
     if (w <= 0 || h <= 0) return null;
 
     const ratio = w / h;
-    if (Math.abs(ratio - 1) < 0.05) return "1:1";
-    if (Math.abs(ratio - 16 / 9) < 0.08) return "16:9";
-    if (Math.abs(ratio - 9 / 16) < 0.03) return "9:16";
-    if (Math.abs(ratio - 4 / 3) < 0.06) return "4:3";
-    if (Math.abs(ratio - 3 / 4) < 0.06) return "3:4";
-    if (Math.abs(ratio - 3 / 2) < 0.06) return "3:2";
-    if (Math.abs(ratio - 2 / 3) < 0.06) return "2:3";
-    if (Math.abs(ratio - 21 / 9) < 0.1) return "21:9";
+    const standardRatios: Array<[string, number]> = [
+      ["1:1", 1],
+      ["16:9", 16 / 9],
+      ["9:16", 9 / 16],
+      ["4:3", 4 / 3],
+      ["3:4", 3 / 4],
+      ["3:2", 3 / 2],
+      ["2:3", 2 / 3],
+      ["21:9", 21 / 9],
+    ];
+
+    let bestMatch: string | null = null;
+    let minDiff = 0.04;
+    for (const [name, targetRatio] of standardRatios) {
+      const diff = Math.abs(ratio - targetRatio);
+      if (diff < minDiff) {
+        minDiff = diff;
+        bestMatch = name;
+      }
+    }
+    if (bestMatch) return bestMatch;
 
     const gcd = (a: number, b: number): number => (b === 0 ? a : gcd(b, a % b));
     const d = gcd(w, h);
@@ -222,26 +241,49 @@ export function inspectChatGPTPageState(
     : false;
 
   // 3. Tìm banner / thông báo lỗi đỏ từ ChatGPT
-  const errorNodes = Array.from(
-    d.querySelectorAll('[role="alert"], [class*="error"], [class*="danger"], .text-red-500')
-  );
   let errorMessage: string | null = null;
-  for (const el of errorNodes) {
-    const t = ((el as any).textContent || "").trim();
+
+  // 3.1 Kiểm tra modal / alert dialog toàn cục (ví dụ: Session expired, Quota, Rate limit)
+  const modalDialog = d.querySelector?.('[role="dialog"], [role="alertdialog"]');
+  if (modalDialog) {
+    const modalText = ((modalDialog as any).textContent || "").trim();
     if (
-      t.includes("Something went wrong") ||
-      t.includes("Network error") ||
-      t.includes("error generating") ||
-      t.includes("There was an error") ||
-      t.includes("Unable to load") ||
-      t.includes("Failed to load") ||
-      t.includes("Rate limit") ||
-      t.includes("limit of") ||
-      t.includes("usage limit") ||
-      t.includes("generation limit")
+      /session has expired|your session has expired|工作階段已過期|会话已过期|phiên đăng nhập đã hết hạn/i.test(
+        modalText
+      )
     ) {
-      errorMessage = t;
-      break;
+      errorMessage = "Your session has expired. Please log in again.";
+    } else if (
+      /too many requests|rate limit|usage limit|generation limit/i.test(modalText)
+    ) {
+      errorMessage = modalText;
+    }
+  }
+
+  // 3.2 Tìm banner lỗi trong turn hiện tại (giới hạn trong turn hiện tại để không bắt nhầm lỗi cũ)
+  if (!errorMessage) {
+    const errorScope = lastTurn || mainChat || d;
+    const errorNodes = Array.from(
+      errorScope.querySelectorAll?.('[role="alert"], [class*="error"], [class*="danger"], .text-red-500') || []
+    );
+    for (const el of errorNodes) {
+      const t = ((el as any).textContent || "").trim();
+      if (
+        t.includes("Something went wrong") ||
+        t.includes("Network error") ||
+        t.includes("error generating") ||
+        t.includes("There was an error") ||
+        t.includes("Unable to load") ||
+        t.includes("Failed to load") ||
+        t.includes("Rate limit") ||
+        t.includes("limit of") ||
+        t.includes("usage limit") ||
+        t.includes("generation limit") ||
+        t.includes("session has expired")
+      ) {
+        errorMessage = t;
+        break;
+      }
     }
   }
 
@@ -291,7 +333,19 @@ export async function generateImage(prompt: string, options: GenerateOptions = {
           if (auth && !capturedAuthHeader) {
             capturedAuthHeader = auth;
           }
-          const match = url.match(/\/backend-api\/conversation\/([0-9a-fA-F-]{36})/);
+          const match = url.match(/\/backend-api\/conversation\/([a-zA-Z0-9_-]+)/);
+          if (match && !detectedConversationId) {
+            detectedConversationId = match[1];
+          }
+        }
+      } catch {}
+    };
+
+    const responseListener = (res: any) => {
+      try {
+        const url = res.url();
+        if (url.includes("/backend-api/conversation")) {
+          const match = url.match(/\/backend-api\/conversation\/([a-zA-Z0-9_-]+)/);
           if (match && !detectedConversationId) {
             detectedConversationId = match[1];
           }
@@ -300,31 +354,21 @@ export async function generateImage(prompt: string, options: GenerateOptions = {
     };
 
     page.on("request", requestListener);
+    page.on("response", responseListener);
 
     console.log(`[1/5] Đang mở ChatGPT Web (${CHATGPT_URL})...`);
     await page.goto(CHATGPT_URL, { waitUntil: "domcontentloaded", timeout: 60_000 });
 
-    // Kiểm tra trạng thái đăng nhập
-    const isLoginVisible = await page
-      .locator(SELECTORS.loginButton)
-      .first()
-      .isVisible({ timeout: 4000 })
-      .catch(() => false);
+    await dismissCookieBannerIfPresent(page);
 
-    if (isLoginVisible) {
-      try {
-        rmSync(join(USER_DATA_DIR, ".session-verified"), { force: true });
-      } catch {}
-      if (options.headless) {
-        throw new Error(
-          "Phiên đăng nhập ChatGPT chưa có hoặc đã hết hạn. Vui lòng bấm [🔑 Đăng nhập ChatGPT] trên WebUI!"
-        );
-      }
-      console.warn("\n⚠️ [CHÚ Ý] Bạn chưa đăng nhập ChatGPT!");
-      console.log("👉 Vui lòng đăng nhập tài khoản của bạn trên cửa sổ trình duyệt vừa mở...");
-      console.log("⏳ Đang chờ đăng nhập thành công...\n");
-      await page.locator(SELECTORS.composer).first().waitFor({ state: "visible", timeout: 180_000 });
-      console.log("✅ Đã phát hiện phiên đăng nhập thành công!\n");
+    // Kiểm tra trạng thái đăng nhập dương tính
+    const loggedIn = await checkIsLoggedIn(page);
+
+    if (!loggedIn) {
+      clearSessionVerified(false);
+      throw new Error(
+        "Phiên đăng nhập ChatGPT chưa có hoặc đã hết hạn. Vui lòng chạy 'chatgpt-image --login' hoặc bấm [🔑 Đăng nhập ChatGPT] trên WebUI để đăng nhập lại!"
+      );
     }
 
     // Đợi ô nhập liệu hiển thị
@@ -349,13 +393,17 @@ export async function generateImage(prompt: string, options: GenerateOptions = {
 
     console.log(`[3/5] Đang nhập prompt: "${prompt}"...`);
     await composer.click();
-    await composer.fill(prompt);
+    try {
+      await composer.fill(prompt);
+    } catch {
+      await page.keyboard.insertText(prompt);
+    }
 
     // Gửi prompt: Playwright click tự động chờ nút enabled (actionability wait)
     await page.waitForTimeout(400);
     const sendBtn = page.locator(SELECTORS.sendButton).first();
     try {
-      await sendBtn.click({ timeout: 20_000 });
+      await sendBtn.click({ timeout: 4_000 });
     } catch {
       await composer.press("Enter");
     }
@@ -378,6 +426,10 @@ export async function generateImage(prompt: string, options: GenerateOptions = {
     const knownKeys = new Set(initialUrls.map(extractImageKey));
 
     while (Date.now() - startTime < maxTimeoutMs) {
+      if (options.signal?.aborted) {
+        throw new Error("Quá trình sinh ảnh đã bị hủy bởi client (Client aborted request)");
+      }
+
       const currentImages = await page.evaluate((selector) => {
         return Array.from(document.querySelectorAll<HTMLImageElement>(selector))
           .filter((img) => !img.closest('[data-message-author-role="user"]') && !img.closest("form"))
@@ -502,7 +554,7 @@ export async function generateImage(prompt: string, options: GenerateOptions = {
 
     if (shouldDeleteChat) {
       try {
-        const urlMatch = page.url().match(/\/c\/([0-9a-fA-F-]{36})/);
+        const urlMatch = page.url().match(/\/c\/([a-zA-Z0-9_-]+)/);
         const targetConvId = urlMatch?.[1] || detectedConversationId;
 
         if (targetConvId) {
@@ -527,6 +579,10 @@ export async function generateImage(prompt: string, options: GenerateOptions = {
       console.log("ℹ️ Giữ lại đoạn chat trên ChatGPT Web theo tùy chọn của người dùng.");
     }
 
+    try {
+      await saveSanitizedStorageState(session.context);
+    } catch {}
+
     return results;
   } finally {
     await session.close();
@@ -549,7 +605,7 @@ export async function deleteChatGPTConversation(
             headers["Authorization"] = auth;
           } else {
             try {
-              const sessionRes = await fetch("/api/auth/session");
+              const sessionRes = await fetch("/api/auth/session", { credentials: "include" });
               if (sessionRes.ok) {
                 const sessionData = (await sessionRes.json()) as { accessToken?: string };
                 if (sessionData?.accessToken) {

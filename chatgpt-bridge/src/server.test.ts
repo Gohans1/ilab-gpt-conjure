@@ -2,7 +2,7 @@ import { describe, expect, it } from "bun:test";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { buildGenerationPrompt, cleanupTempFiles, handleRequest, parseImageRequest } from "./server.js";
+import { buildGenerationPrompt, cleanupTempFiles, enqueueTask, handleRequest, parseImageRequest } from "./server.js";
 
 describe("parseImageRequest", () => {
   it("phân tích đúng JSON request không có ảnh", async () => {
@@ -177,6 +177,21 @@ describe("parseImageRequest", () => {
     await expect(parseImageRequest(req)).rejects.toThrow("Unsupported or invalid image format");
   });
 
+  it("REQ-07: Từ chối Base64 Data URI không khớp magic bytes của định dạng ảnh hợp lệ", async () => {
+    // Fake base64 text "AQIDBA==" (1, 2, 3, 4) đội lốt data:image/png
+    const fakeDataUri = "data:image/png;base64,AQIDBA==";
+    const req = new Request("http://127.0.0.1:3000/v1/images/edits", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        prompt: "Turn into cyber style",
+        image: fakeDataUri,
+      }),
+    });
+
+    await expect(parseImageRequest(req)).rejects.toThrow("Invalid or unsupported base64 image format");
+  });
+
   it("từ chối đường dẫn local file nếu là thư mục hoặc không phải định dạng ảnh", async () => {
     const req = new Request("http://127.0.0.1:3000/v1/images/edits", {
       method: "POST",
@@ -289,6 +304,36 @@ describe("handleRequest validation", () => {
     expect(res.status).toBe(400);
     const json: any = await res.json();
     expect(json.error?.code).toBe("missing_image");
+  });
+
+  it("trả về 401 fail-fast khi request hợp lệ nhưng chưa có session đăng nhập hợp lệ", async () => {
+    const req = new Request("http://127.0.0.1:3000/v1/images/generations", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer sk-local",
+      },
+      body: JSON.stringify({
+        prompt: "A beautiful scenery",
+      }),
+    });
+
+    const res = await handleRequest(req);
+    // Khi chưa đăng nhập (hoặc trong môi trường test cô lập), server phải fail-fast 401
+    expect(res.status).toBe(401);
+    const json: any = await res.json();
+    expect(json.error?.type).toBe("authentication_error");
+  });
+
+  it("trả về 405 Method Not Allowed khi gửi request không phải POST tới images endpoint", async () => {
+    const req = new Request("http://127.0.0.1:3000/v1/images/generations", {
+      method: "GET",
+    });
+
+    const res = await handleRequest(req);
+    expect(res.status).toBe(405);
+    const json: any = await res.json();
+    expect(json.error?.code).toBe("method_not_allowed");
   });
 });
 
@@ -507,5 +552,20 @@ describe("CORS & Origin Security (REQ-06)", () => {
     expect(res.status).toBe(403);
     const json: any = await res.json();
     expect(json.error).toContain("Forbidden");
+  });
+});
+
+describe("enqueueTask", () => {
+  it("thực thi tác vụ bình thường khi không bị abort", async () => {
+    const result = await enqueueTask(async () => 12345);
+    expect(result).toBe(12345);
+  });
+
+  it("reject ngay lập tức mà không treo promise khi signal bị aborted", async () => {
+    const controller = new AbortController();
+    controller.abort();
+    await expect(enqueueTask(async () => 999, controller.signal)).rejects.toThrow(
+      "Yêu cầu đã bị hủy bởi client trước khi thực thi"
+    );
   });
 });

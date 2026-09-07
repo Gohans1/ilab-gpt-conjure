@@ -1,11 +1,12 @@
-import { existsSync, mkdirSync, unlinkSync } from "node:fs";
+import { existsSync, readFileSync, unlinkSync } from "node:fs";
 import { createServer } from "node:net";
-import { spawn, spawnSync, type ChildProcess } from "node:child_process";
+import { spawnSync } from "node:child_process";
 import { join } from "node:path";
-import { chromium, type BrowserContext, type Page } from "playwright-core";
-import { findBrowserCandidates, USER_DATA_DIR } from "./config.js";
+import { chromium, type Browser, type BrowserContext, type Page } from "playwright-core";
+import { findBrowserCandidates, STORAGE_STATE_PATH } from "./config.js";
 
 export interface BrowserSession {
+  browser: Browser;
   context: BrowserContext;
   page: Page;
   close: () => Promise<void>;
@@ -15,7 +16,21 @@ export interface BrowserOptions {
   headless?: boolean;
 }
 
+const activeBrowserPids = new Set<number>();
+
+export function getActiveBrowserPids(): number[] {
+  return Array.from(activeBrowserPids);
+}
+
+export function cleanupActiveBrowsers(): void {
+  for (const pid of activeBrowserPids) {
+    killProcessTree(pid);
+  }
+  activeBrowserPids.clear();
+}
+
 export function killProcessTree(pid: number): void {
+  if (!Number.isInteger(pid) || pid <= 0) return;
   if (process.platform === "win32") {
     try {
       spawnSync("taskkill", ["/PID", String(pid), "/T", "/F"], {
@@ -34,14 +49,26 @@ export function killProcessTree(pid: number): void {
   }
 }
 
-export function killOrphanBrowsers(profileDir: string): void {
+export function killOrphanBrowsers(profileDir?: string, force = false): void {
+  const hasLock = profileDir
+    ? ["SingletonLock", "lockfile", "SingletonCookie", "SingletonSocket"].some((f) =>
+        existsSync(join(profileDir, f))
+      )
+    : false;
+  if (profileDir && !hasLock && !force) return;
+
   if (process.platform === "win32") {
     try {
-      const normalized = profileDir.replace(/[/\\]+/g, "\\").replace(/'/g, "''");
+      const normalized = profileDir ? profileDir.replace(/[/\\]+/g, "\\").replace(/'/g, "''") : "";
       const script = `
-$target = [regex]::Escape('${normalized}');
+$target = if ('${normalized}') { [regex]::Escape('${normalized}') } else { $null };
 Get-CimInstance Win32_Process -Filter "Name = 'chrome.exe' or Name = 'msedge.exe'" |
-  Where-Object { $_.CommandLine -and ($_.CommandLine -match $target -or $_.CommandLine -match 'chatgpt-profile') } |
+  Where-Object {
+    $_.CommandLine -and (
+      ($target -and ($_.CommandLine -match $target)) -or
+      ($_.CommandLine -match '--chatgpt-bridge-instance')
+    )
+  } |
   ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
 `.trim();
       const b64 = Buffer.from(script, "utf16le").toString("base64");
@@ -52,8 +79,14 @@ Get-CimInstance Win32_Process -Filter "Name = 'chrome.exe' or Name = 'msedge.exe
     } catch {}
   } else {
     try {
-      spawnSync("pkill", ["-f", profileDir], { stdio: "ignore" });
+      if (profileDir) {
+        spawnSync("pkill", ["-f", profileDir], { stdio: "ignore" });
+      }
+      spawnSync("pkill", ["-f", "--chatgpt-bridge-instance"], { stdio: "ignore" });
     } catch {}
+  }
+  if (profileDir) {
+    cleanupStaleLocks(profileDir);
   }
 }
 
@@ -64,9 +97,7 @@ export function cleanupStaleLocks(profileDir: string): void {
     if (existsSync(lockFile)) {
       try {
         unlinkSync(lockFile);
-      } catch {
-        // Ignored if actively held by a running process
-      }
+      } catch {}
     }
   }
 }
@@ -89,167 +120,119 @@ export function getFreePort(preferred = 9222): Promise<number> {
   });
 }
 
-async function waitForCDPEndpoint(
-  port: number,
-  isProcessAlive: () => boolean,
-  timeoutMs = 7000
-): Promise<boolean> {
-  const start = Date.now();
-  const url = `http://127.0.0.1:${port}/json/version`;
-  while (Date.now() - start < timeoutMs) {
-    if (!isProcessAlive()) return false;
-    try {
-      const res = await fetch(url, { signal: AbortSignal.timeout(1000) });
-      if (res.ok) return true;
-    } catch {}
-    await new Promise((r) => setTimeout(r, 100));
-  }
-  return false;
-}
-
-function spawnBrowserProcess(
-  executablePath: string,
-  port: number,
-  profileDir: string,
-  headless: boolean
-): ChildProcess {
-  const args = [
-    `--remote-debugging-port=${port}`,
-    "--remote-debugging-address=127.0.0.1",
-    "--remote-allow-origins=*",
-    `--user-data-dir=${profileDir}`,
-    "--no-first-run",
-    "--no-default-browser-check",
-    "--disable-blink-features=AutomationControlled",
-    "--disable-infobars",
-    "--window-size=1280,900",
-    "--disable-background-networking",
-    "--disable-background-timer-throttling",
-    "--disable-backgrounding-occluded-windows",
-    "--disable-renderer-backgrounding",
-  ];
-  if (headless) {
-    args.push("--headless=new");
-  }
-  args.push("about:blank");
-
-  return spawn(executablePath, args, {
-    detached: false,
-    stdio: "ignore",
-  });
-}
 
 export async function getBrowserSession(options: BrowserOptions = {}): Promise<BrowserSession> {
-  if (!existsSync(USER_DATA_DIR)) {
-    mkdirSync(USER_DATA_DIR, { recursive: true });
-  }
-
-  const headless = options.headless ?? false;
   const { primary, fallback } = findBrowserCandidates();
+  const executablePath = primary[0] || fallback[0];
 
-  const candidates = [
-    ...primary.map((path) => ({ type: "Google Chrome", path })),
-    ...fallback.map((path) => ({ type: "Microsoft Edge (Fallback)", path })),
-  ];
+  const headless = options.headless ?? true;
 
-  if (candidates.length === 0) {
-    throw new Error(
-      "Không tìm thấy Google Chrome hoặc Microsoft Edge trên máy. Vui lòng cài đặt Chrome hoặc Edge!"
-    );
-  }
-
-  cleanupStaleLocks(USER_DATA_DIR);
-
-  let activeProc: ChildProcess | null = null;
-  let connectedBrowser: any = null;
-
-  for (const candidate of candidates) {
-    killOrphanBrowsers(USER_DATA_DIR);
-    cleanupStaleLocks(USER_DATA_DIR);
-    const port = await getFreePort();
-    console.log(`[Browser] Khởi chạy ${candidate.type} (headless: ${headless}, port: ${port}) tại: ${USER_DATA_DIR}`);
-
-    const proc = spawnBrowserProcess(candidate.path, port, USER_DATA_DIR, headless);
-
-    const isReady = await waitForCDPEndpoint(
-      port,
-      () => proc.exitCode === null && proc.signalCode === null && !proc.killed,
-      7000
-    );
-    if (!isReady || proc.exitCode !== null) {
-      console.warn(`⚠️ [Browser] ${candidate.type} không phản hồi CDP hoặc tự thoát (exitCode: ${proc.exitCode}). Thử phương án tiếp theo...`);
-      if (proc.pid) killProcessTree(proc.pid);
-      killOrphanBrowsers(USER_DATA_DIR);
-      cleanupStaleLocks(USER_DATA_DIR);
-      continue;
-    }
-
-    try {
-      connectedBrowser = await chromium.connectOverCDP(`http://127.0.0.1:${port}`, { timeout: 10000 });
-      activeProc = proc;
-      break;
-    } catch (err) {
-      console.warn(`⚠️ [Browser] Lỗi kết nối CDP tới ${candidate.type}:`, err);
-      if (proc.pid) killProcessTree(proc.pid);
-      killOrphanBrowsers(USER_DATA_DIR);
-      cleanupStaleLocks(USER_DATA_DIR);
-    }
-  }
-
-  if (!connectedBrowser || !activeProc) {
-    throw new Error(
-      "Không thể khởi chạy và kết nối tới trình duyệt qua cổng DevTools (đã thử cả Chrome và Edge fallback)."
-    );
-  }
-
-  const contexts = connectedBrowser.contexts();
-  const context = contexts[0] || (await connectedBrowser.newContext({
-    viewport: { width: 1280, height: 900 },
-    userAgent:
-      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36",
-  }));
-
-  // Ẩn navigator.webdriver sạch ở prototype để tránh Cloudflare / Turnstile phát hiện own-property
-  await context.addInitScript(() => {
-    try {
-      const proto = Object.getPrototypeOf(navigator);
-      if (proto && "webdriver" in proto) {
-        delete (proto as any).webdriver;
-      }
-      delete (navigator as any).webdriver;
-      Object.defineProperty(navigator, "webdriver", {
-        get: () => undefined,
-        configurable: true,
-      });
-    } catch {}
+  const browser = await chromium.launch({
+    executablePath: executablePath || undefined,
+    headless,
+    ignoreDefaultArgs: ["--enable-automation"],
+    args: [
+      "--chatgpt-bridge-instance",
+      "--disable-background-mode",
+      "--no-first-run",
+      "--no-default-browser-check",
+    ],
   });
 
-  const page = context.pages()[0] || (await context.newPage());
+  const pid = browser.process()?.pid;
+  if (pid) {
+    activeBrowserPids.add(pid);
+  }
 
-  return {
-    context,
-    page,
-    close: async () => {
+  try {
+    let validStorageState: string | undefined = undefined;
+    if (existsSync(STORAGE_STATE_PATH)) {
       try {
-          let closeTimer: ReturnType<typeof setTimeout> | undefined;
-          try {
-            await Promise.race([
-              connectedBrowser.close(),
-              new Promise((_, reject) => {
-                closeTimer = setTimeout(() => reject(new Error("CDP close timeout")), 2500);
-              }),
-            ]);
-          } finally {
-            if (closeTimer) clearTimeout(closeTimer);
+        const content = readFileSync(STORAGE_STATE_PATH, "utf-8").trim();
+        if (content.length > 0) {
+          JSON.parse(content);
+          validStorageState = STORAGE_STATE_PATH;
+        }
+      } catch {
+        console.warn("⚠️ [Browser] storage-state.json bị hỏng hoặc rỗng, khởi tạo context sạch không nạp cookie lỗi.");
+      }
+    }
+
+    const context = await browser.newContext({
+      storageState: validStorageState,
+      viewport: { width: 1280, height: 800 },
+    });
+
+    await context.addInitScript(() => {
+      try {
+        const proto = Object.getPrototypeOf(navigator);
+        if (proto && "webdriver" in proto) {
+          delete (proto as any).webdriver;
+        }
+        delete (navigator as any).webdriver;
+        Object.defineProperty(navigator, "webdriver", {
+          get: () => false,
+          configurable: true,
+        });
+      } catch {}
+    });
+
+    const page = await context.newPage();
+
+    return {
+      browser,
+      context,
+      page,
+      close: async () => {
+        let timer: any;
+        let timedOut = false;
+        await Promise.race([
+          Promise.all([
+            context.close().catch(() => {}),
+            browser.close().catch(() => {}),
+          ]),
+          new Promise((resolve) => {
+            timer = setTimeout(() => {
+              timedOut = true;
+              resolve(null);
+            }, 5000);
+          }),
+        ]);
+        if (timer) clearTimeout(timer);
+        if (pid) {
+          activeBrowserPids.delete(pid);
+          if (timedOut) {
+            killProcessTree(pid);
           }
-      } catch (err) {
-        console.warn("⚠️ Không thể ngắt kết nối CDP hoàn tất:", err);
+        }
+      },
+    };
+  } catch (err) {
+    let timer: any;
+    let timedOut = false;
+    await Promise.race([
+      browser.close().catch(() => {}),
+      new Promise((resolve) => {
+        timer = setTimeout(() => {
+          timedOut = true;
+          resolve(null);
+        }, 3000);
+      }),
+    ]);
+    if (timer) clearTimeout(timer);
+    if (pid) {
+      activeBrowserPids.delete(pid);
+      if (timedOut) {
+        killProcessTree(pid);
       }
-      if (activeProc && activeProc.pid) {
-        killProcessTree(activeProc.pid);
-        await new Promise((r) => setTimeout(r, 200));
-      }
-      cleanupStaleLocks(USER_DATA_DIR);
-    },
-  };
+    }
+    throw err;
+  }
 }
+
+// Global hook để đảm bảo dọn sạch các tiến trình browser đang chạy khi tiến trình chính kết thúc
+process.on("exit", () => {
+  cleanupActiveBrowsers();
+});
+
+export const createBrowserSession = getBrowserSession;

@@ -1,8 +1,18 @@
 import { getBrowserSession } from "./browser.js";
-import { CHATGPT_URL, SELECTORS } from "./config.js";
+import { CHATGPT_URL } from "./config.js";
+import { checkIsLoggedIn } from "./auth-helper.js";
+import { isSessionCached } from "./check-session.js";
 
 async function runTest() {
   console.log("🔍 Đang kiểm tra kết nối trình duyệt và trạng thái đăng nhập ChatGPT...");
+
+  const cached = isSessionCached();
+  if (!cached) {
+    console.log("ℹ️ [Session] Chưa phát hiện session hợp lệ trên đĩa (storage-state.json).");
+  } else {
+    console.log("🔑 [Session] Đã phát hiện session token hợp lệ trên đĩa.");
+  }
+
   const session = await getBrowserSession({ headless: true });
   let hasError = false;
 
@@ -11,24 +21,13 @@ async function runTest() {
     console.log(`🌐 Đang mở trang: ${CHATGPT_URL}...`);
     await session.page.goto(CHATGPT_URL, { waitUntil: "domcontentloaded", timeout: 30_000 });
 
-    const composerVisible = await session.page
-      .locator(SELECTORS.composer)
-      .first()
-      .isVisible({ timeout: 5000 })
-      .catch(() => false);
+    const loggedIn = await checkIsLoggedIn(session.page);
 
-    const loginVisible = await session.page
-      .locator(SELECTORS.loginButton)
-      .first()
-      .isVisible({ timeout: 2000 })
-      .catch(() => false);
-
-    if (composerVisible) {
+    if (loggedIn) {
       console.log("🎉 Trạng thái: ĐÃ ĐĂNG NHẬP SẴN SÀNG! Bạn có thể tạo ảnh ngay.");
-    } else if (loginVisible) {
-      console.log("⚠️ Trạng thái: CHƯA ĐĂNG NHẬP. Vui lòng chạy `bun run login` để đăng nhập.");
     } else {
-      console.log("ℹ️ Trạng thái: Đang tải giao diện hoặc cần kiểm tra thêm.");
+      console.log("⚠️ Trạng thái: CHƯA ĐĂNG NHẬP. Vui lòng chạy `bun run login` để đăng nhập.");
+      hasError = true;
     }
   } catch (err) {
     hasError = true;

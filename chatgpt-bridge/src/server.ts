@@ -1,10 +1,11 @@
 import { existsSync, mkdtempSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve, sep } from "node:path";
+import crypto from "node:crypto";
 import { generateImage, sizeToAspectRatio } from "./generator.js";
-import { handleLogin } from "./cli.js";
-import { isSessionCached } from "./check-session.js";
-import { killOrphanBrowsers } from "./browser.js";
+import { handleLogin } from "./auth-helper.js";
+import { clearSessionVerified, isSessionCached } from "./check-session.js";
+import { cleanupActiveBrowsers, killOrphanBrowsers } from "./browser.js";
 import { USER_DATA_DIR } from "./config.js";
 
 export interface ParsedImageRequest {
@@ -109,6 +110,17 @@ export async function parseImageRequest(req: Request): Promise<ParsedImageReques
       headlessRaw = formData.get("headless");
       visibleBrowserRaw = formData.get("visible_browser") ?? formData.get("visibleBrowser");
 
+      const timeoutRaw = formData.get("timeout") ?? formData.get("max_timeout") ?? formData.get("timeout_ms");
+      if (timeoutRaw) {
+        const parsedTimeout = Number(timeoutRaw);
+        if (Number.isFinite(parsedTimeout) && parsedTimeout > 0) customTimeout = parsedTimeout;
+      }
+      const idleTimeoutRaw = formData.get("idle_timeout") ?? formData.get("idleTimeout");
+      if (idleTimeoutRaw) {
+        const parsedIdle = Number(idleTimeoutRaw);
+        if (Number.isFinite(parsedIdle) && parsedIdle > 0) idleTimeout = parsedIdle;
+      }
+
       const fileEntries: File[] = [];
       for (const field of ["image", "images", "file"]) {
         const entries = formData.getAll(field);
@@ -197,9 +209,13 @@ export async function parseImageRequest(req: Request): Promise<ParsedImageReques
 
           const match = strVal.match(/^data:image\/([a-zA-Z0-9+.-]+);base64,(.+)$/s);
           if (match) {
-            const ext = `.${match[1] === "jpeg" ? "jpg" : match[1]}`;
-            const tempPath = join(getTempDir(), `input-${fileIdx}${ext}`);
-            writeFileSync(tempPath, Buffer.from(match[2], "base64"));
+            const buf = Buffer.from(match[2], "base64");
+            const detectedExt = detectImageExtension(buf);
+            if (!detectedExt) {
+              throw new Error("Invalid or unsupported base64 image format (expected JPEG, PNG, WebP, GIF)");
+            }
+            const tempPath = join(getTempDir(), `input-${fileIdx}${detectedExt}`);
+            writeFileSync(tempPath, buf);
             tempFilesToClean.push(tempPath);
             inputImages.push(tempPath);
           } else if (isValidLocalImage(strVal)) {
@@ -277,7 +293,8 @@ const HOSTNAME = "127.0.0.1";
 const REQUIRED_API_KEY = process.env.API_KEY || "sk-local";
 
 export function isAllowedOrigin(origin: string | null): boolean {
-  if (!origin || origin === "null") return true;
+  if (!origin) return true;
+  if (origin === "null") return false;
   try {
     const parsed = new URL(origin);
     const host = parsed.hostname.toLowerCase();
@@ -318,11 +335,25 @@ function formatOpenAIError(message: string, type: string = "invalid_request_erro
 
 // Hàng đợi tuần tự (FIFO Queue) để chống xung đột SingletonLock của Chromium
 let taskQueue: Promise<unknown> = Promise.resolve();
+let isLoginQueued = false;
 let isLoggingIn = false;
 
-function enqueueTask<T>(task: () => Promise<T>): Promise<T> {
+export function enqueueTask<T>(task: () => Promise<T>, signal?: AbortSignal): Promise<T> {
   return new Promise<T>((resolve, reject) => {
-    taskQueue = taskQueue.then(() => task().then(resolve, reject)).catch(() => {});
+    taskQueue = taskQueue
+      .then(async () => {
+        if (signal?.aborted) {
+          reject(new Error("Yêu cầu đã bị hủy bởi client trước khi thực thi (Client aborted request)"));
+          return;
+        }
+        try {
+          const result = await task();
+          resolve(result);
+        } catch (err) {
+          reject(err);
+        }
+      })
+      .catch(() => {});
   });
 }
 
@@ -473,7 +504,7 @@ export async function handleRequest(req: Request): Promise<Response> {
   if (pathname === "/auth/status" || pathname === "/api/auth/status") {
     const loggedIn = isSessionCached();
     return Response.json(
-      { status: "ok", logged_in: loggedIn, is_logging_in: isLoggingIn },
+      { status: "ok", logged_in: loggedIn, is_logging_in: isLoggingIn || isLoginQueued },
       { headers: corsHeaders }
     );
   }
@@ -491,16 +522,23 @@ export async function handleRequest(req: Request): Promise<Response> {
     if (req.method !== "POST") {
       return Response.json({ error: "Method not allowed" }, { status: 405, headers: corsHeaders });
     }
-    if (isLoggingIn) {
+    if (isLoginQueued || isLoggingIn) {
       return Response.json(
-        { ok: false, message: "Trình duyệt đăng nhập đang được mở sẵn." },
+        { ok: false, message: "Trình duyệt đăng nhập đang được mở sẵn hoặc đã nằm trong hàng đợi." },
         { headers: corsHeaders }
       );
     }
-    isLoggingIn = true;
+    isLoginQueued = true;
     try {
-      console.log("🔑 [Bridge] Nhận yêu cầu mở trình duyệt đăng nhập từ WebUI...");
-      await enqueueTask(() => handleLogin());
+      await enqueueTask(async () => {
+        isLoggingIn = true;
+        try {
+          console.log("🔑 [Bridge] Nhận yêu cầu mở trình duyệt đăng nhập từ WebUI...");
+          await handleLogin();
+        } finally {
+          isLoggingIn = false;
+        }
+      });
       return Response.json({ ok: true, message: "Đăng nhập thành công!" }, { headers: corsHeaders });
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
@@ -510,7 +548,7 @@ export async function handleRequest(req: Request): Promise<Response> {
         { status: 500, headers: corsHeaders }
       );
     } finally {
-      isLoggingIn = false;
+      isLoginQueued = false;
     }
   }
 
@@ -537,8 +575,14 @@ export async function handleRequest(req: Request): Promise<Response> {
     pathname === "/v1/images/variations" ||
     pathname === "/images/variations";
 
-  if (isImagesEndpoint && req.method === "POST") {
-    if (isLoggingIn) {
+  if (isImagesEndpoint) {
+    if (req.method !== "POST") {
+      return Response.json(
+        formatOpenAIError("Only POST method is accepted for this endpoint.", "invalid_request_error", "method_not_allowed"),
+        { status: 405, headers: { ...corsHeaders, Allow: "POST, OPTIONS" } }
+      );
+    }
+    if (isLoggingIn || isLoginQueued) {
       return Response.json(
         formatOpenAIError(
           "ChatGPT Bridge is currently in login mode. Please complete the login process in the browser first.",
@@ -550,17 +594,25 @@ export async function handleRequest(req: Request): Promise<Response> {
     }
     // 1. Kiểm tra xác thực Bearer Token
     const authHeader = req.headers.get("Authorization") || "";
-    const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7).trim() : "";
+    const authMatch = authHeader.match(/^bearer\s+(.+)$/i);
+    const token = authMatch ? authMatch[1].trim() : "";
 
-    if (REQUIRED_API_KEY && token !== REQUIRED_API_KEY) {
-      return Response.json(
-        formatOpenAIError(
-          "Incorrect API key provided. You must provide a valid API key (default: Bearer sk-local).",
-          "invalid_request_error",
-          "invalid_api_key"
-        ),
-        { status: 401, headers: corsHeaders }
-      );
+    if (REQUIRED_API_KEY) {
+      const keyBuffer = Buffer.from(REQUIRED_API_KEY);
+      const tokenBuffer = Buffer.from(token);
+      const isKeyValid =
+        keyBuffer.length === tokenBuffer.length &&
+        crypto.timingSafeEqual(keyBuffer, tokenBuffer);
+      if (!isKeyValid) {
+        return Response.json(
+          formatOpenAIError(
+            "Incorrect API key provided. You must provide a valid API key (default: Bearer sk-local).",
+            "invalid_request_error",
+            "invalid_api_key"
+          ),
+          { status: 401, headers: corsHeaders }
+        );
+      }
     }
 
     // 2. Parse request (hỗ trợ cả application/json lẫn multipart/form-data)
@@ -605,6 +657,19 @@ export async function handleRequest(req: Request): Promise<Response> {
       n: parsed.n,
     });
 
+    // 2.5 Kiểm tra phiên đăng nhập sớm (Fail-fast trong 1ms thay vì tốn 30s mở browser)
+    if (!isSessionCached()) {
+      cleanupTempFiles(parsed.tempFilesToClean);
+      return Response.json(
+        formatOpenAIError(
+          "Chưa phát hiện phiên đăng nhập ChatGPT hợp lệ trên hệ thống. Vui lòng bấm [🔑 Đăng nhập ChatGPT] trên WebUI hoặc chạy 'bun login' trên terminal để đăng nhập trước khi tạo ảnh.",
+          "authentication_error",
+          "unauthorized"
+        ),
+        { status: 401, headers: corsHeaders }
+      );
+    }
+
     console.log(
       `\n📥 [Bridge] Nhận request (${pathname}) từ client (Số lượng yêu cầu: ${parsed.n}, Ảnh tham chiếu: ${parsed.inputImages.length}, Xoá chat sau khi tạo: ${parsed.deleteChatAfterGen ?? "mặc định"})!`
     );
@@ -617,25 +682,39 @@ export async function handleRequest(req: Request): Promise<Response> {
           ? parsed.headless
           : process.env.HEADLESS === "true";
 
-      const results = await enqueueTask(() =>
-        generateImage(generationPrompt, {
-          headless,
-          timeoutMs: parsed.customTimeout,
-          idleTimeoutMs: parsed.idleTimeout,
-          deleteChatAfterGen: parsed.deleteChatAfterGen,
-          inputImages: parsed.inputImages,
-          expectedCount: parsed.n,
-          skipDiskWrite: true,
-        })
+      const results = await enqueueTask(
+        () =>
+          generateImage(generationPrompt, {
+            headless,
+            timeoutMs: parsed.customTimeout,
+            idleTimeoutMs: parsed.idleTimeout,
+            deleteChatAfterGen: parsed.deleteChatAfterGen,
+            inputImages: parsed.inputImages,
+            expectedCount: parsed.n,
+            skipDiskWrite: true,
+            signal: req.signal,
+          }),
+        req.signal
       );
 
       console.log(`✅ [Bridge] Đã tạo thành công ${results.length} ảnh. Trả dữ liệu Base64 về cho client...`);
 
-      // 4. Trả về đúng chuẩn OpenAI schema (b64_json, revised_prompt) trực tiếp từ RAM, không đọc lại từ đĩa
-      const dataItems = results.map((item) => ({
-        b64_json: item.base64,
-        revised_prompt: prompt,
-      }));
+      // 4. Trả về đúng chuẩn OpenAI schema (b64_json, url, revised_prompt) trực tiếp từ RAM
+      // Trường url luôn dùng Data URL an toàn để mọi client bên ngoài không bị dính 403 Forbidden từ Estuary CDN
+      const dataItems = results.map((item) => {
+        let mime = "image/png";
+        try {
+          const head = Buffer.from(item.base64.slice(0, 32), "base64");
+          const ext = detectImageExtension(head);
+          if (ext === ".jpg" || ext === ".jpeg") mime = "image/jpeg";
+          else if (ext === ".webp") mime = "image/webp";
+        } catch {}
+        return {
+          b64_json: item.base64,
+          url: `data:${mime};base64,${item.base64}`,
+          revised_prompt: prompt,
+        };
+      });
 
       return Response.json(
         {
@@ -648,7 +727,13 @@ export async function handleRequest(req: Request): Promise<Response> {
       const errorMsg = err instanceof Error ? err.message : String(err);
       console.error("❌ [Bridge] Lỗi khi tạo ảnh:", errorMsg);
 
-      const status = errorMsg.includes("Phiên đăng nhập") ? 401 : 500;
+      const isAuthError =
+        errorMsg.includes("Phiên đăng nhập") ||
+        /session has expired|log in again|unauthorized/i.test(errorMsg);
+      const status = isAuthError ? 401 : 500;
+      if (status === 401) {
+        clearSessionVerified(false);
+      }
       const errorType = status === 401 ? "authentication_error" : "server_error";
 
       return Response.json(
@@ -688,14 +773,15 @@ export function startServer(port: number = PORT, hostname: string = HOSTNAME) {
 
 if (import.meta.main) {
   // Dọn dẹp trình duyệt mồ côi khi server khởi động
-  killOrphanBrowsers(USER_DATA_DIR);
+  killOrphanBrowsers(USER_DATA_DIR, true);
 
   let isCleaned = false;
   const cleanup = () => {
     if (isCleaned) return;
     isCleaned = true;
     try {
-      killOrphanBrowsers(USER_DATA_DIR);
+      cleanupActiveBrowsers();
+      killOrphanBrowsers(USER_DATA_DIR, true);
     } catch {}
     process.exit(0);
   };
@@ -706,7 +792,8 @@ if (import.meta.main) {
     if (!isCleaned) {
       isCleaned = true;
       try {
-        killOrphanBrowsers(USER_DATA_DIR);
+        cleanupActiveBrowsers();
+        killOrphanBrowsers(USER_DATA_DIR, true);
       } catch {}
     }
   });

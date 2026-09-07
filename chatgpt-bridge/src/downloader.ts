@@ -71,7 +71,11 @@ export async function extractAndSaveImages(
             return { base64: parts[1], url: "data-uri" };
           }
 
-          const response = await fetch(url, { mode: "cors", credentials: "include" });
+          const response = await fetch(url, {
+            mode: "cors",
+            credentials: "include",
+            signal: AbortSignal.timeout(15_000),
+          });
           if (!response.ok) {
             throw new Error(`Fetch failed: ${response.status}`);
           }

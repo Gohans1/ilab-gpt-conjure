@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { existsSync, writeFileSync, mkdirSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { cleanupStaleLocks, getFreePort, killOrphanBrowsers, killProcessTree } from "./browser.js";
+import { cleanupActiveBrowsers, cleanupStaleLocks, getActiveBrowserPids, getFreePort, killOrphanBrowsers, killProcessTree } from "./browser.js";
 import { findBrowserCandidates } from "./config.js";
 
 describe("browser helpers", () => {
@@ -40,11 +40,23 @@ describe("browser helpers", () => {
     expect(Array.isArray(candidates.fallback)).toBe(true);
   });
 
-  test("killOrphanBrowsers thực thi an toàn mà không throw lỗi", () => {
+  test("killOrphanBrowsers thực thi an toàn mà không throw lỗi kể cả khi force = true", () => {
     expect(() => killOrphanBrowsers("non-existent-profile-path")).not.toThrow();
+    expect(() => killOrphanBrowsers("non-existent-profile-path", true)).not.toThrow();
+    expect(() => killOrphanBrowsers()).not.toThrow();
   });
 
-  test("killProcessTree thực thi an toàn với PID không tồn tại", () => {
+  test("getActiveBrowserPids và cleanupActiveBrowsers hoạt động ổn định", () => {
+    expect(Array.isArray(getActiveBrowserPids())).toBe(true);
+    expect(() => cleanupActiveBrowsers()).not.toThrow();
+    expect(getActiveBrowserPids()).toEqual([]);
+  });
+
+  test("killProcessTree thực thi an toàn với PID không tồn tại hoặc không hợp lệ", () => {
     expect(() => killProcessTree(99999999)).not.toThrow();
+    expect(() => killProcessTree(0)).not.toThrow();
+    expect(() => killProcessTree(-1)).not.toThrow();
+    expect(() => killProcessTree(NaN as any)).not.toThrow();
+    expect(() => killProcessTree(3.14)).not.toThrow();
   });
 });

@@ -348,6 +348,48 @@ describe("inspectChatGPTPageState", () => {
     expect(state.errorMessage).toContain("Something went wrong");
   });
 
+  it("không bị thông báo lỗi cũ ở turn trước làm ô nhiễm errorMessage của turn cuối", () => {
+    const oldTurn = {
+      querySelector: () => null,
+      querySelectorAll: (sel: string) =>
+        sel.includes("error") ? [{ textContent: "Something went wrong in old turn" }] : [],
+    };
+    const oldMessage = {
+      textContent: "Tin nhắn cũ bị lỗi",
+      closest: (sel: string) => (sel.includes("article") ? oldTurn : null),
+      querySelector: () => null,
+      querySelectorAll: () => [],
+    };
+
+    const lastTurn = {
+      querySelector: () => null,
+      querySelectorAll: () => [], // Turn mới đang sạch sẽ, không có lỗi
+    };
+    const lastMessage = {
+      textContent: "Tôi đang tiến hành tạo ảnh cho bạn...",
+      closest: (sel: string) => (sel.includes("article") ? lastTurn : null),
+      querySelector: () => null,
+      querySelectorAll: () => [],
+    };
+
+    const mockDoc = {
+      querySelector: () => null,
+      querySelectorAll: (selector: string) => {
+        if (selector.includes("assistant")) {
+          return [oldMessage, lastMessage];
+        }
+        if (selector.includes("error")) {
+          return [{ textContent: "Something went wrong in old turn" }]; // Lỗi cũ vẫn còn trong DOM toàn cục
+        }
+        return [];
+      },
+    };
+
+    const state = inspectChatGPTPageState(mockDoc);
+    // errorScope là lastTurn nên errorMessage phải là null, không bị abort oan
+    expect(state.errorMessage).toBeNull();
+  });
+
   it("không bị shimmer hoặc spinner ở sidebar làm ô nhiễm isActivelyLoading", () => {
     const lastTurn = {
       textContent: "Đang chờ tải...",

@@ -1,9 +1,11 @@
 #!/usr/bin/env bun
-import { existsSync, writeFileSync } from "node:fs";
-import { join, resolve } from "node:path";
+import { existsSync } from "node:fs";
+import { resolve } from "node:path";
 import { generateImage } from "./generator.js";
-import { getBrowserSession, killOrphanBrowsers } from "./browser.js";
-import { CHATGPT_URL, SELECTORS, USER_DATA_DIR } from "./config.js";
+import { cleanupActiveBrowsers, killOrphanBrowsers } from "./browser.js";
+import { handleLogin } from "./auth-helper.js";
+import { isSessionCached } from "./check-session.js";
+import { USER_DATA_DIR } from "./config.js";
 
 function printHelp(): void {
   console.log(`
@@ -27,27 +29,6 @@ Ví dụ:
 `);
 }
 
-export async function handleLogin(): Promise<void> {
-  console.log("🔑 [Login Mode] Đang mở Chrome để bạn đăng nhập ChatGPT...");
-  const session = await getBrowserSession({ headless: false });
-  try {
-    const page = session.page;
-    await page.goto(CHATGPT_URL, { waitUntil: "domcontentloaded" });
-    console.log(`👉 Trình duyệt đã mở tại: ${CHATGPT_URL}`);
-    console.log("👉 Vui lòng đăng nhập vào tài khoản ChatGPT của bạn trên cửa sổ này.");
-    console.log("⏳ Đang chờ bạn đăng nhập xong...");
-
-    await page.locator(SELECTORS.composer).first().waitFor({ state: "visible", timeout: 300_000 });
-    try {
-      writeFileSync(join(USER_DATA_DIR, ".session-verified"), new Date().toISOString(), "utf-8");
-    } catch {}
-    console.log("\n🎉 Đăng nhập thành công! Phiên đăng nhập đã được lưu lại vĩnh viễn.");
-    console.log("Bạn có thể tắt trình duyệt và bắt đầu dùng lệnh tạo ảnh bình thường.");
-  } finally {
-    await session.close();
-  }
-}
-
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
 
@@ -61,7 +42,7 @@ async function main(): Promise<void> {
     process.exit(0);
   }
 
-  let prompt = "";
+  const promptParts: string[] = [];
   let outputPath = "";
   let headless = false;
   let keepChat = false;
@@ -87,14 +68,24 @@ async function main(): Promise<void> {
       headless = false;
     } else if (arg === "--keep-chat" || arg === "--no-delete") {
       keepChat = true;
-    } else if (!arg.startsWith("-") && !prompt) {
-      prompt = arg;
+    } else if (!arg.startsWith("-")) {
+      promptParts.push(arg);
     }
   }
+
+  const prompt = promptParts.join(" ").trim();
 
   if (!prompt) {
     console.error("❌ Lỗi: Bạn chưa nhập prompt tạo ảnh!");
     printHelp();
+    process.exit(1);
+  }
+
+  // Fail-fast: Kiểm tra sớm session cache trong 1ms trước khi khởi chạy Chrome
+  if (!isSessionCached()) {
+    console.error("❌ Lỗi: Chưa phát hiện phiên đăng nhập ChatGPT hợp lệ trên hệ thống!");
+    console.error("👉 Vui lòng chạy lệnh sau để đăng nhập trước khi tạo ảnh:");
+    console.error("   bun run src/cli.ts --login\n");
     process.exit(1);
   }
 
@@ -137,7 +128,8 @@ async function main(): Promise<void> {
 if (import.meta.main) {
   const cleanup = () => {
     try {
-      killOrphanBrowsers(USER_DATA_DIR);
+      cleanupActiveBrowsers();
+      killOrphanBrowsers(USER_DATA_DIR, true);
     } catch {}
     process.exit(0);
   };
