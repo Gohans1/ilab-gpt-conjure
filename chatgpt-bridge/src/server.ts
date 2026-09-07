@@ -315,13 +315,6 @@ export function getCorsHeaders(req: Request): Record<string, string> {
   };
 }
 
-export const corsHeaders: Record<string, string> = {
-  "Access-Control-Allow-Origin": "http://127.0.0.1",
-  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization, User-Agent",
-  "Vary": "Origin",
-};
-
 function formatOpenAIError(message: string, type: string = "invalid_request_error", code: string | null = null) {
   return {
     error: {

@@ -181,6 +181,28 @@ export function sizeToAspectRatio(sizeOrRatio?: string | null): string | null {
   return null;
 }
 
+export function insertPlainTextIntoComposer(element: HTMLElement, value: string): boolean {
+  if (document.activeElement !== element) element.focus();
+  if (document.activeElement !== element) return false;
+  const selection = window.getSelection();
+  if (!selection) return false;
+  const alreadyPlaced =
+    selection.isCollapsed &&
+    selection.anchorNode !== null &&
+    element.contains(selection.anchorNode);
+  if (!alreadyPlaced) {
+    const range = document.createRange();
+    range.selectNodeContents(element);
+    range.collapse(false);
+    selection.removeAllRanges();
+    selection.addRange(range);
+  }
+  if (!selection.isCollapsed || !selection.anchorNode || !element.contains(selection.anchorNode)) {
+    return false;
+  }
+  return document.execCommand("insertText", false, value);
+}
+
 export interface ChatGPTPageState {
   isActivelyLoading: boolean;
   hasImageWidget: boolean;
@@ -392,11 +414,14 @@ export async function generateImage(prompt: string, options: GenerateOptions = {
     }, SELECTORS.generatedImage);
 
     console.log(`[3/5] Đang nhập prompt: "${prompt}"...`);
-    await composer.click();
-    try {
-      await composer.fill(prompt);
-    } catch {
-      await page.keyboard.insertText(prompt);
+    await composer.focus();
+    const inserted = await composer.evaluate(insertPlainTextIntoComposer, prompt).catch(() => false);
+    if (!inserted) {
+      try {
+        await composer.fill(prompt);
+      } catch {
+        await page.keyboard.insertText(prompt);
+      }
     }
 
     // Gửi prompt: Playwright click tự động chờ nút enabled (actionability wait)

@@ -33,19 +33,22 @@ export async function checkSessionEndpoint(page: Page): Promise<boolean> {
   if (page.isClosed()) return false;
   return await page
     .evaluate(async () => {
+      let timer: any;
       try {
         const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), 4000);
+        timer = setTimeout(() => controller.abort(), 4000);
         const res = await fetch("/api/auth/session", {
           credentials: "include",
           signal: controller.signal,
         });
-        clearTimeout(timer);
         if (res.ok) {
           const data = await res.json();
           if (data && (data.user || data.accessToken)) return true;
         }
-      } catch {}
+      } catch {
+      } finally {
+        if (timer) clearTimeout(timer);
+      }
       return false;
     })
     .catch(() => false);
