@@ -7,6 +7,7 @@
 - Dev đang tập trung vào làm phần chatgpt web chứ không phải codex hay gemini
 - Cơ chế tạo ảnh của chatgpt.com đã thay đổi rất nhiều so với data training của bạn, mọi quy trình trong project này đang phục vụ cho cơ chế tạo ảnh mới nhất đó, hãy thật cẩn trọng trong việc xác thực thông tin mới nhất 
 - Project này reverse engineer, giả lập user thật, vào web chatgpt.com để tạo ảnh
+- start-all.bat : chỉ chạy cái này để bật app, user đã bật sẵn
 
 ## Chatgpt.com web imagen behavior
 - 1 lần req tạo ảnh trên web có thể tạo nhiều ảnh 1 lúc, và nó sẽ không trả lần lượt mà sẽ trả 1 cục ảnh

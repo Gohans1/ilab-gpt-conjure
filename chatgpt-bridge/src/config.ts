@@ -4,23 +4,36 @@ import { join, resolve } from "node:path";
 
 export const CHATGPT_URL = "https://chatgpt.com/";
 
+export function findBrowserCandidates(): { primary: string[]; fallback: string[] } {
+  const primaryCandidates = Array.from(
+    new Set(
+      [
+        process.env.CHROME_PATH || "",
+        "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+        "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe",
+        join(process.env.LOCALAPPDATA || "", "Google\\Chrome\\Application\\chrome.exe"),
+      ].filter((p) => Boolean(p && existsSync(p)))
+    )
+  );
+
+  const fallbackCandidates = Array.from(
+    new Set(
+      [
+        process.env.EDGE_PATH || "",
+        "C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe",
+        "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
+        join(process.env.LOCALAPPDATA || "", "Microsoft\\Edge\\Application\\msedge.exe"),
+      ].filter((p) => Boolean(p && existsSync(p)))
+    )
+  );
+
+  return { primary: primaryCandidates, fallback: fallbackCandidates };
+}
+
 function findChromePath(): string {
-  if (process.env.CHROME_PATH && existsSync(process.env.CHROME_PATH)) {
-    return process.env.CHROME_PATH;
-  }
-  const candidatePaths = [
-    // Google Chrome
-    "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
-    "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe",
-    join(process.env.LOCALAPPDATA || "", "Google\\Chrome\\Application\\chrome.exe"),
-    // Microsoft Edge
-    "C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe",
-    "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
-    join(process.env.LOCALAPPDATA || "", "Microsoft\\Edge\\Application\\msedge.exe"),
-  ];
-  for (const path of candidatePaths) {
-    if (existsSync(path)) return path;
-  }
+  const { primary, fallback } = findBrowserCandidates();
+  if (primary.length > 0) return primary[0];
+  if (fallback.length > 0) return fallback[0];
   return "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";
 }
 
