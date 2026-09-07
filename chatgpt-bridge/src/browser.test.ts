@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { existsSync, writeFileSync, mkdirSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { cleanupStaleLocks, getFreePort } from "./browser.js";
+import { cleanupStaleLocks, getFreePort, killOrphanBrowsers, killProcessTree } from "./browser.js";
 import { findBrowserCandidates } from "./config.js";
 
 describe("browser helpers", () => {
@@ -36,5 +36,13 @@ describe("browser helpers", () => {
     const candidates = findBrowserCandidates();
     expect(Array.isArray(candidates.primary)).toBe(true);
     expect(Array.isArray(candidates.fallback)).toBe(true);
+  });
+
+  test("killOrphanBrowsers thực thi an toàn mà không throw lỗi", () => {
+    expect(() => killOrphanBrowsers("non-existent-profile-path")).not.toThrow();
+  });
+
+  test("killProcessTree thực thi an toàn với PID không tồn tại", () => {
+    expect(() => killProcessTree(99999999)).not.toThrow();
   });
 });

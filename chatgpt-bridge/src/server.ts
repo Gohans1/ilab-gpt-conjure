@@ -4,6 +4,8 @@ import { join, resolve, sep } from "node:path";
 import { generateImage, sizeToAspectRatio } from "./generator.js";
 import { handleLogin } from "./cli.js";
 import { isSessionCached } from "./check-session.js";
+import { killOrphanBrowsers } from "./browser.js";
+import { USER_DATA_DIR } from "./config.js";
 
 export interface ParsedImageRequest {
   prompt: string;
@@ -655,5 +657,23 @@ export function startServer(port: number = PORT, hostname: string = HOSTNAME) {
 }
 
 if (import.meta.main) {
+  // Dọn dẹp trình duyệt mồ côi khi server khởi động
+  killOrphanBrowsers(USER_DATA_DIR);
+
+  const cleanup = () => {
+    try {
+      killOrphanBrowsers(USER_DATA_DIR);
+    } catch {}
+    process.exit(0);
+  };
+
+  process.on("SIGINT", cleanup);
+  process.on("SIGTERM", cleanup);
+  process.on("exit", () => {
+    try {
+      killOrphanBrowsers(USER_DATA_DIR);
+    } catch {}
+  });
+
   startServer();
 }

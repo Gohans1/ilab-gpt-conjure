@@ -2,7 +2,7 @@
 import { existsSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { generateImage } from "./generator.js";
-import { getBrowserSession } from "./browser.js";
+import { getBrowserSession, killOrphanBrowsers } from "./browser.js";
 import { CHATGPT_URL, SELECTORS, USER_DATA_DIR } from "./config.js";
 
 function printHelp(): void {
@@ -135,5 +135,15 @@ async function main(): Promise<void> {
 }
 
 if (import.meta.main) {
+  const cleanup = () => {
+    try {
+      killOrphanBrowsers(USER_DATA_DIR);
+    } catch {}
+    process.exit(0);
+  };
+
+  process.on("SIGINT", cleanup);
+  process.on("SIGTERM", cleanup);
+
   void main();
 }
