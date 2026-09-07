@@ -1,8 +1,10 @@
-### ChatGPT Web Reverse Engineering
+
+# ChatGPT Web Reverse Engineering
 - Khi gặp vấn đề liên quan đến DOM thay đổi, element selector, hoặc cấu trúc network request/response,etc..., nói chung là mấy vấn đề mà phải soi thẳng vào web chatgpt.com thì PHẢI BẮT BUỘC phải yêu cầu và hướng dẫn chi tiết dev chui vào lấy data từ trình duyệt thật.
 - CẤM AI tự ý dùng headless browser/automation tool để cào hoặc inspect trực tiếp `chatgpt.com` (tránh dính Cloudflare, WAF, Turnstile và rác token).
 - 
 # Chatgpt Web Free (seperate với Codex)
+- Dev đang tập trung vào làm phần chatgpt web chứ không phải codex hay gemini
 - Cơ chế tạo ảnh của chatgpt.com đã thay đổi rất nhiều so với data training của bạn, mọi quy trình trong project này đang phục vụ cho cơ chế tạo ảnh mới nhất đó, hãy thật cẩn trọng trong việc xác thực thông tin mới nhất 
 - Project này reverse engineer, giả lập user thật, vào web chatgpt.com để tạo ảnh
 
