@@ -734,6 +734,55 @@ class GeminiExecutionPlanClientTests(unittest.TestCase):
             self.assertEqual(result.tool_usage["text_parts"], ["Search-assisted result"])
             self.assertIn("grounding", result.tool_usage["provider_metadata"])
 
+    def test_execution_plan_image_client_partial_batch_fails_remaining_slots(self) -> None:
+        from codex_image.providers.codecs.gemini_image import GeminiGenerateContentImageCodec
+        from codex_image.providers.registry import ProviderRegistry
+        from codex_image.webui.execution_plan_client import ExecutionPlanImageClient
+        from concurrent.futures import ThreadPoolExecutor
+
+        class PartialBatchProtocol:
+            def __init__(self) -> None:
+                self.calls = 0
+
+            def execute(self, plan: ExecutionPlan) -> GenerationResult:
+                self.calls += 1
+                return GenerationResult(
+                    assets=(GeneratedAsset(b"image-only-one", "image/png"),),
+                )
+
+        protocol = PartialBatchProtocol()
+        registry = ProviderRegistry(
+            protocols={"gemini_generate_content": protocol},
+            codecs={"gemini_generate_content_image": GeminiGenerateContentImageCodec()},
+        )
+        client = ExecutionPlanImageClient(
+            _plan(
+                profile="gemini_generate_content",
+                codec="gemini_generate_content_image",
+                base_url="https://relay.example/v1beta",
+            ),
+            object(),
+            registry=registry,
+        )
+
+        def _call_slot() -> Any:
+            try:
+                return client.generate_image()
+            except Exception as exc:
+                return exc
+
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            results = list(pool.map(lambda _: _call_slot(), range(2)))
+
+        self.assertEqual(protocol.calls, 1)
+        successes = [item for item in results if not isinstance(item, Exception)]
+        failures = [item for item in results if isinstance(item, Exception)]
+        self.assertEqual(len(successes), 1)
+        self.assertEqual(successes[0].image_bytes, b"image-only-one")
+        self.assertEqual(len(failures), 1)
+        self.assertIn("partial batch", str(failures[0]))
+
 
 if __name__ == "__main__":
     unittest.main()
+

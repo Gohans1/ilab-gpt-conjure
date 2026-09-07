@@ -288,24 +288,28 @@ describe("buildGenerationPrompt", () => {
     expect(prompt).toBe("Generate a creative variation of the attached image.");
   });
 
-  it("bọc Generate exactly N distinct variations khi có ảnh reference và n > 1", () => {
+  it("bọc Generate exactly N separate individual variations khi có ảnh reference và n > 1", () => {
     const prompt = buildGenerationPrompt({
       prompt: "Make the hair bright green",
       aspectRatioOrSize: "16:9",
       hasInputImages: true,
       n: 4,
     });
-    expect(prompt).toBe("Generate exactly 4 distinct variations of the attached image: Make the hair bright green.");
+    expect(prompt).toBe(
+      "Generate exactly 4 separate individual variations of the attached image: Make the hair bright green. Do not combine the 4 variations into a single grid or collage; output each as a separate image."
+    );
   });
 
-  it("bọc Generate exactly N distinct creative variations khi có ảnh reference và không có prompt (hoặc prompt rỗng)", () => {
+  it("bọc Generate exactly N separate individual creative variations khi có ảnh reference và không có prompt (hoặc prompt rỗng)", () => {
     const prompt = buildGenerationPrompt({
       prompt: "",
       aspectRatioOrSize: "None",
       hasInputImages: true,
       n: 4,
     });
-    expect(prompt).toBe("Generate exactly 4 distinct creative variations of the attached image.");
+    expect(prompt).toBe(
+      "Generate exactly 4 separate individual creative variations of the attached image. Do not combine the 4 variations into a single grid or collage; output each as a separate image."
+    );
   });
 
   it("không xóa mất prompt của user khi prompt bắt đầu bằng 'Generate a creative variation with...'", () => {
@@ -316,7 +320,7 @@ describe("buildGenerationPrompt", () => {
       n: 4,
     });
     expect(prompt).toBe(
-      "Generate exactly 4 distinct variations of the attached image: Generate a creative variation with steampunk aesthetics and golden goggles."
+      "Generate exactly 4 separate individual variations of the attached image: Generate a creative variation with steampunk aesthetics and golden goggles. Do not combine the 4 variations into a single grid or collage; output each as a separate image."
     );
   });
 
@@ -328,7 +332,7 @@ describe("buildGenerationPrompt", () => {
       n: 4,
     });
     expect(prompt).toBe(
-      "Generate exactly 4 distinct variations of the attached image: Generate exactly what is shown in the image but with dark green hair."
+      "Generate exactly 4 separate individual variations of the attached image: Generate exactly what is shown in the image but with dark green hair. Do not combine the 4 variations into a single grid or collage; output each as a separate image."
     );
   });
 
@@ -340,7 +344,7 @@ describe("buildGenerationPrompt", () => {
       n: 4,
     });
     expect(prompt).toBe(
-      "Generate exactly 4 distinct variations of the attached image: Add red glasses."
+      "Generate exactly 4 separate individual variations of the attached image: Add red glasses. Do not combine the 4 variations into a single grid or collage; output each as a separate image."
     );
   });
 
@@ -352,13 +356,13 @@ describe("buildGenerationPrompt", () => {
       n: 4,
     });
     expect(prompt).toBe(
-      "Generate exactly 4 distinct variations of the attached image: 背景を青空に変えてください。"
+      "Generate exactly 4 separate individual variations of the attached image: 背景を青空に変えてください。 Do not combine the 4 variations into a single grid or collage; output each as a separate image."
     );
   });
 
   it("tự unwrap về prompt gốc khi có ảnh reference nhưng n = 1 trên prompt batch cũ", () => {
     const prompt = buildGenerationPrompt({
-      prompt: "Generate exactly 4 distinct variations of the attached image: Add red glasses.",
+      prompt: "Generate exactly 4 separate individual variations of the attached image: Add red glasses. Do not combine the 4 variations into a single grid or collage; output each as a separate image.",
       aspectRatioOrSize: "None",
       hasInputImages: true,
       n: 1,
@@ -373,12 +377,14 @@ describe("buildGenerationPrompt", () => {
       hasInputImages: false,
       n: 4,
     });
-    expect(prompt).toBe("Generate exactly 4 distinct images of: A cute cat.");
+    expect(prompt).toBe(
+      "Generate exactly 4 separate individual images of: A cute cat. Do not combine the 4 images into a single grid or collage; output each as a separate image."
+    );
   });
 
   it("tự unwrap về prompt đơn ở chế độ text-to-image khi n = 1 trên prompt batch cũ", () => {
     const prompt = buildGenerationPrompt({
-      prompt: "Generate exactly 4 distinct images of: A cute cat.",
+      prompt: "Generate exactly 4 separate individual images of: A cute cat. Do not combine the 4 images into a single grid or collage; output each as a separate image.",
       aspectRatioOrSize: "None",
       hasInputImages: false,
       n: 1,

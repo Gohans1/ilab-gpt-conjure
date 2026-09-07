@@ -444,6 +444,14 @@ export async function generateImage(prompt: string, options: GenerateOptions = {
 
       // Kiểm tra Inactivity Timeout (ChatGPT đơ/bất động không có hoạt động mới)
       if (Date.now() - lastActivityTime > idleTimeoutMs) {
+        if (hasNewImages) {
+          console.warn(
+            `⚠️ [Bridge] Hết thời gian chờ bất động (${idleTimeoutMs / 1000}s) nhưng đã tạo được ${newImages.length} ảnh mới. Trả về ảnh đã có cho client thay vì huỷ toàn bộ.`
+          );
+          success = true;
+          await page.waitForTimeout(1000);
+          break;
+        }
         throw new Error(
           `Quá thời gian chờ bất động (${idleTimeoutMs / 1000}s) do không phát hiện hoạt động mới từ ChatGPT. (Tổng thời gian đã chờ: ${Math.round((Date.now() - startTime) / 1000)}s)`
         );

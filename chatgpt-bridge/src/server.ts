@@ -308,12 +308,19 @@ export function cleanAndUnwrapPrompt(rawPrompt: string): string {
     }
   }
 
-  // Bóc sạch bất kỳ câu ratio tự động nào
-  prompt = prompt.replace(ratioRegex, "").replace(/\s{2,}/g, " ").trim();
+  // Bóc sạch bất kỳ câu ratio tự động và câu chống grid nào
+  prompt = prompt
+    .replace(ratioRegex, "")
+    .replace(
+      /\s*Do not combine (?:the \d+ (?:images|variations)|them) into a single grid or collage(?:;\s*output each as a separate image)?[.!?]?/gi,
+      ""
+    )
+    .replace(/\s{2,}/g, " ")
+    .trim();
 
   // Bóc sạch vỏ variations wrapper nếu prompt đã từng bị wrap
   const varMatch = prompt.match(
-    /^generate exactly \d+ distinct (?:creative )?variations of the attached image(?::\s*(.*)|[.!?\u3002\u0964\uFF01\uFF1F]?)$/i
+    /^generate exactly \d+ (?:distinct|separate individual) (?:creative )?variations of the attached image(?::\s*(.*)|[.!?\u3002\u0964\uFF01\uFF1F]?)$/i
   );
   if (varMatch) {
     return (varMatch[1] || "").trim();
@@ -321,13 +328,17 @@ export function cleanAndUnwrapPrompt(rawPrompt: string): string {
 
   // Bóc sạch vỏ text-to-image wrapper nếu prompt đã từng bị wrap
   const imgMatch = prompt.match(
-    /^generate (?:an image of|exactly \d+ distinct images of):\s*(.*)$/i
+    /^generate (?:an image of|exactly \d+ (?:distinct|separate individual) images of):\s*(.*)$/i
   );
   if (imgMatch) {
     return (imgMatch[1] || "").trim();
   }
 
-  if (/^generate a creative variation of the attached image[.!?\u3002\u0964\uFF01\uFF1F]?$/i.test(prompt)) {
+  if (
+    /^generate (?:a creative variation of the attached image|exactly \d+ (?:distinct|separate individual) (?:creative )?images)[.!?\u3002\u0964\uFF01\uFF1F]?$/i.test(
+      prompt
+    )
+  ) {
     return "";
   }
 
@@ -345,10 +356,11 @@ export function buildGenerationPrompt(options: {
 
   if (options.hasInputImages) {
     if (options.n > 1) {
+      const antiGridSuffix = ` Do not combine the ${options.n} variations into a single grid or collage; output each as a separate image.`;
       if (!cleanPrompt) {
-        return `Generate exactly ${options.n} distinct creative variations of the attached image.`;
+        return `Generate exactly ${options.n} separate individual creative variations of the attached image.${antiGridSuffix}`;
       }
-      return `Generate exactly ${options.n} distinct variations of the attached image: ${cleanPrompt}${separator}`;
+      return `Generate exactly ${options.n} separate individual variations of the attached image: ${cleanPrompt}${separator}${antiGridSuffix}`;
     }
     return cleanPrompt || "Generate a creative variation of the attached image.";
   }
@@ -378,13 +390,13 @@ export function buildGenerationPrompt(options: {
 
   if (!cleanPrompt) {
     if (options.n > 1) {
-      return `Generate exactly ${options.n} distinct creative images.${ratioInstruction}`;
+      return `Generate exactly ${options.n} separate individual creative images. Do not combine the ${options.n} images into a single grid or collage; output each as a separate image.${ratioInstruction}`;
     }
     return `Generate a creative image.${ratioInstruction}`;
   }
 
   if (options.n > 1) {
-    return `Generate exactly ${options.n} distinct images of: ${cleanPrompt}${separator}${ratioInstruction}`;
+    return `Generate exactly ${options.n} separate individual images of: ${cleanPrompt}${separator} Do not combine the ${options.n} images into a single grid or collage; output each as a separate image.${ratioInstruction}`;
   }
   return `Generate an image of: ${cleanPrompt}${separator}${ratioInstruction}`;
 }

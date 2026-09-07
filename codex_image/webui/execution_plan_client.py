@@ -227,6 +227,12 @@ class ExecutionPlanImageClient:
 
         with self._condition:
             self._pending_results.extend(converted)
+            missing = max(0, self._expected_outputs - len(converted))
+            if missing > 0:
+                self._failure = RuntimeError(
+                    f"Upstream provider returned partial batch: expected {self._expected_outputs}, got {len(converted)}"
+                )
+                self._failure_remaining = missing
             self._request_in_flight = False
             image_result = self._pending_results.popleft()
             self._condition.notify_all()
