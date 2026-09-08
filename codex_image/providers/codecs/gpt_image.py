@@ -26,9 +26,13 @@ GPT_PARAMETER_IDS = frozenset(
 
 def gpt_image_parameters(command: GenerationCommand) -> dict[str, Any]:
     params = {**command.parameters, **command.legacy_compat_parameters}
+    size = params.get("canvas.size")
+    aspect_ratio = params.get("canvas.aspect_ratio") or params.get("aspect_ratio") or params.get("ratio")
+    if size == "auto" and not aspect_ratio:
+        aspect_ratio = "None"
     return {
-        "size": params.get("canvas.size"),
-        "aspect_ratio": params.get("canvas.aspect_ratio") or params.get("aspect_ratio") or params.get("ratio"),
+        "size": size,
+        "aspect_ratio": aspect_ratio,
         "quality": params.get("gpt.quality"),
         "background": params.get("gpt.background"),
         "output_format": params.get("output.format", "png"),

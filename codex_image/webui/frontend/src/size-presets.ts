@@ -124,6 +124,9 @@ export function presetDimensions(resolution: any, ratio: any): [number, number] 
 }
 
 export function sizeForPreset(resolution: any, ratio: any): string {
+  if (ratio === "None" || ratio === "none" || ratio === "auto") {
+    return "auto";
+  }
   const [width, height] = presetDimensions(resolution, ratio);
   return `${width}x${height}`;
 }

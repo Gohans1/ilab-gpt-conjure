@@ -68,6 +68,7 @@ def _command(
     *,
     operation: str = "generate",
     count: int = 1,
+    size: str = "1024x1024",
     image_inputs: tuple[Any, ...] = (),
 ) -> GenerationCommand:
     return GenerationCommand(
@@ -76,7 +77,7 @@ def _command(
         provider_id="relay",
         prompt="draw a rabbit",
         parameters={
-            "canvas.size": "1024x1024",
+            "canvas.size": size,
             "gpt.quality": "low",
             "gpt.background": "opaque",
             "output.format": "png",
@@ -461,6 +462,14 @@ class LegacyProviderAdapterTests(unittest.TestCase):
             "gpt_openai_responses",
         ):
             self.assertIsNotNone(registry.codec(codec))
+
+    def test_gpt_image_auto_size_sets_aspect_ratio_none(self) -> None:
+        binding = _binding(profile="openai_images", codec="gpt_openai_images")
+        command = _command(size="auto")
+        encoded = GptOpenAIImagesCodec().encode(command, get_model_manifest("gpt-image-2"), binding)
+        body = dict(encoded.json_body or {})
+        self.assertEqual(body.get("size"), "auto")
+        self.assertEqual(body.get("aspect_ratio"), "None")
 
 
 def _image_result():

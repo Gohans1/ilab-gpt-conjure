@@ -46618,6 +46618,9 @@ ${galleryText}`;
     return dimensions2;
   }
   function sizeForPreset(resolution, ratio) {
+    if (ratio === "None" || ratio === "none" || ratio === "auto") {
+      return "auto";
+    }
     const [width, height] = presetDimensions(resolution, ratio);
     return `${width}x${height}`;
   }
@@ -46953,7 +46956,8 @@ ${galleryText}`;
   }
   function populateCustomSizeFromCurrentPreset() {
     if (!els26.customWidth || !els26.customHeight) return;
-    const [width, height] = sizeForPreset(els26.resolution?.value, els26.ratio?.value).split("x");
+    const presetSize = sizeForPreset(els26.resolution?.value, els26.ratio?.value);
+    const [width, height] = (presetSize === "auto" ? "1024x1024" : presetSize).split("x");
     if (!width || !height) return;
     els26.customWidth.value = width;
     els26.customHeight.value = height;

@@ -411,6 +411,16 @@ describe("buildGenerationPrompt", () => {
     expect(prompt).toBe("Generate an image of: A peaceful forest with mist.");
   });
 
+  it("không thêm aspect ratio khi aspectRatioOrSize là auto dù không có ảnh reference", () => {
+    const prompt = buildGenerationPrompt({
+      prompt: "A peaceful forest with mist. Set the aspect ratio to 1:1.",
+      aspectRatioOrSize: "auto",
+      hasInputImages: false,
+      n: 1,
+    });
+    expect(prompt).toBe("Generate an image of: A peaceful forest with mist.");
+  });
+
   it("bóc sạch câu lệnh aspect ratio tiếng Hindi bao gồm hậu tố và dấu danda", () => {
     const prompt = buildGenerationPrompt({
       prompt: "Make the character smile. पक्षानुपात को 16:9 पर सेट करें।",

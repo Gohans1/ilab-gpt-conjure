@@ -287,7 +287,8 @@ export function updateSizeFromPreset(event: any = null): void {
 
 export function populateCustomSizeFromCurrentPreset(): void {
   if (!els.customWidth || !els.customHeight) return;
-  const [width, height] = sizeForPreset(els.resolution?.value, els.ratio?.value).split("x");
+  const presetSize = sizeForPreset(els.resolution?.value, els.ratio?.value);
+  const [width, height] = (presetSize === "auto" ? "1024x1024" : presetSize).split("x");
   if (!width || !height) return;
   els.customWidth.value = width;
   els.customHeight.value = height;
