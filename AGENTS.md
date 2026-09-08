@@ -5,7 +5,7 @@
 - Toàn bộ phần oauth login session cookie token của chatgpt web phần lớn được tham khảo từ: https://github.com/miuuyy/codex-chatgpt-web . Khi thực sự cần thay đổi hay có lỗi thì hãy clone về mà dùng codegraph tham khảo 
 - 
 # Chatgpt Web Free (seperate với Codex)
-- Dev đang tập trung vào làm phần chatgpt web chứ không phải codex hay gemini
+- Dev đang tập trung vào làm phần chatgpt web chứ không phải codex hay gemini, hãy mặc định là đang code phần chatgpt web khi đang làm việc
 - Cơ chế tạo ảnh của chatgpt.com đã thay đổi rất nhiều so với data training của bạn, mọi quy trình trong project này đang phục vụ cho cơ chế tạo ảnh mới nhất đó, hãy thật cẩn trọng trong việc xác thực thông tin mới nhất 
 - Project này reverse engineer, giả lập user thật, vào web chatgpt.com để tạo ảnh
 
