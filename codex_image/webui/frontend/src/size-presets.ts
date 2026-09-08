@@ -212,7 +212,6 @@ export function currentTaskParams(): any {
   }
   if (isChatGPTWebProvider()) {
     params["chatgpt.delete_chat_after_gen"] = Boolean(els.chatgptDeleteChat?.checked ?? true);
-    params["chatgpt.visible_browser"] = Boolean(els.chatgptVisibleBrowser?.checked ?? false);
     params["chatgpt.browser"] = currentChatGPTBrowser();
   }
   const presetMatch = findPresetForSize(params.size);

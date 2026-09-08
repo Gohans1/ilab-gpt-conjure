@@ -222,19 +222,12 @@ export function syncChatGPTDeleteChatControl(): void {
     els.chatgptDeleteChatField.style.display = isChatGPT ? "" : "none";
     els.chatgptDeleteChatField.classList.toggle("hidden", !isChatGPT);
   }
-  if (els.chatgptVisibleBrowserField) {
-    els.chatgptVisibleBrowserField.style.display = isChatGPT ? "" : "none";
-    els.chatgptVisibleBrowserField.classList.toggle("hidden", !isChatGPT);
-  }
   if (els.chatgptBrowserField) {
     els.chatgptBrowserField.style.display = isChatGPT ? "" : "none";
     els.chatgptBrowserField.classList.toggle("hidden", !isChatGPT);
   }
   if (isChatGPT && typeof methods.restoreChatGPTDeleteChatState === "function") {
     methods.restoreChatGPTDeleteChatState();
-  }
-  if (isChatGPT && typeof methods.restoreChatGPTVisibleBrowserState === "function") {
-    methods.restoreChatGPTVisibleBrowserState();
   }
   if (isChatGPT && typeof methods.restoreChatGPTBrowserState === "function") {
     methods.restoreChatGPTBrowserState();

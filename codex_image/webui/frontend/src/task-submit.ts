@@ -1,7 +1,7 @@
 import { getLegacyBridge } from "./state";
 import { currentLocaleCode, translate } from "./i18n";
 import { selectedProviderBinding, isChatGPTWebProvider } from "./provider-selection";
-import { currentChatGPTBrowser } from "./form-controls";
+import { currentChatGPTBrowser, persistChatGPTBrowserState, persistChatGPTDeleteChatState } from "./form-controls";
 import { appendCanonicalGenerationFields, currentGenerationSelection } from "./generation-request";
 import { taskOutputControlValues } from "./task-model-summary";
 
@@ -159,6 +159,14 @@ export function applyTaskOutputParams(task: any): void {
   [els.quality, els.outputFormat, els.moderation].forEach((element: any) => {
     element?.dispatchEvent(new Event("change"));
   });
+  if (output.chatgpt_browser) {
+    const b = String(output.chatgpt_browser).toLowerCase() === "chrome" ? "chrome" : "edge";
+    persistChatGPTBrowserState(b);
+  }
+  if (output.chatgpt_delete_chat !== undefined && els.chatgptDeleteChat) {
+    els.chatgptDeleteChat.checked = Boolean(output.chatgpt_delete_chat);
+    persistChatGPTDeleteChatState();
+  }
   updateQuantity();
   syncRadioButtons(els.nInput);
   updateCompression();
@@ -221,7 +229,6 @@ function buildPreviewRequest() {
   }
   if (isChatGPTWebProvider()) {
     payload.delete_chat_after_gen = Boolean(els.chatgptDeleteChat?.checked ?? true);
-    payload.visible_browser = Boolean(els.chatgptVisibleBrowser?.checked ?? false);
     payload.browser = currentChatGPTBrowser();
   }
   return payload;
@@ -317,9 +324,6 @@ async function runTask() {
   }
   if (els.chatgptDeleteChat && isChatGPTWebProvider()) {
     form.append("delete_chat_after_gen", String(Boolean(els.chatgptDeleteChat.checked)));
-  }
-  if (els.chatgptVisibleBrowser && isChatGPTWebProvider()) {
-    form.append("visible_browser", String(Boolean(els.chatgptVisibleBrowser.checked)));
   }
   if (els.chatgptBrowser && isChatGPTWebProvider()) {
     form.append("browser", currentChatGPTBrowser());

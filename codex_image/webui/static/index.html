@@ -121,7 +121,7 @@
         });
       })();
     </script>
-    <link rel="stylesheet" href="/static/styles.css?v=runtime-789" />
+    <link rel="stylesheet" href="/static/styles.css?v=runtime-790" />
     <style>
       .ratio-group {
         grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
@@ -953,14 +953,6 @@
                       <span id="chatgptDeleteChatStatus" class="chatgpt-delete-chat-toggle-text" data-i18n="output.chatgptDeleteChatToggle">开启</span>
                     </label>
                   </div>
-                  <div id="chatgptVisibleBrowserField" class="field chatgpt-delete-chat-field" style="display: none;">
-                    <span data-i18n="output.chatgptVisibleBrowser">生成时显示浏览器窗口</span>
-                    <label class="chatgpt-delete-chat-toggle" title="在生成图像时显示 Chrome 浏览器窗口" data-i18n-attr="title:output.chatgptVisibleBrowserTitle">
-                      <input id="chatgptVisibleBrowser" type="checkbox" />
-                      <span class="chatgpt-delete-chat-toggle-track" aria-hidden="true"></span>
-                      <span id="chatgptVisibleBrowserStatus" class="chatgpt-delete-chat-toggle-text" data-i18n="output.chatgptVisibleBrowserToggleOff">关闭</span>
-                    </label>
-                  </div>
                   <div id="chatgptBrowserField" class="field chatgpt-browser-field" style="display: none;">
                     <span data-i18n="output.chatgptBrowser">Trình duyệt</span>
                     <div class="radio-group" id="chatgptBrowserGroup" role="group" aria-label="Trình duyệt" data-i18n-attr="aria-label:output.chatgptBrowser">
@@ -1773,7 +1765,7 @@
     </div>
 
     <div id="taskNotificationToastRegion" class="task-notification-toast-region" aria-live="polite"></div>
-    <script src="/static/app.js?v=runtime-789"></script>
+    <script src="/static/app.js?v=runtime-790"></script>
     <script>
       (() => {
         document.querySelectorAll(".radio-group").forEach((group) => {
@@ -1814,9 +1806,10 @@
         let isChecking = false;
 
         function getSelectedBrowser() {
-          const el = document.getElementById("chatgptBrowser");
           const saved = localStorage.getItem("codex-image-chatgpt-browser");
-          return (el?.value || saved) === "chrome" ? "chrome" : "edge";
+          if (saved === "chrome" || saved === "edge") return saved;
+          const el = document.getElementById("chatgptBrowser");
+          return el?.value === "chrome" ? "chrome" : "edge";
         }
 
         function isChatGPTProvider(settings) {

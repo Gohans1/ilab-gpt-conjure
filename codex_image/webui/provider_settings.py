@@ -358,6 +358,10 @@ class ProviderSettings(StoreLockMixin):
                 provider["delete_chat_after_gen"] = bool(merged.get("delete_chat_after_gen"))
             if "visible_browser" in merged:
                 provider["visible_browser"] = bool(merged.get("visible_browser"))
+            if "browser" in merged:
+                browser_val = str(merged.get("browser") or "").strip().lower()
+                if browser_val in {"chrome", "edge"}:
+                    provider["browser"] = browser_val
             gpt_binding = next(
                 (
                     binding
@@ -565,8 +569,6 @@ class ProviderSettings(StoreLockMixin):
             "base_url": provider.get("base_url"),
             "concurrency": provider.get("concurrency"),
             "bindings": deepcopy(provider.get("bindings") or []),
-            "delete_chat_after_gen": provider.get("delete_chat_after_gen"),
-            "visible_browser": provider.get("visible_browser"),
         }
 
     @classmethod
@@ -633,6 +635,8 @@ class ProviderSettings(StoreLockMixin):
             legacy["delete_chat_after_gen"] = provider["delete_chat_after_gen"]
         if "visible_browser" in provider:
             legacy["visible_browser"] = provider["visible_browser"]
+        if "browser" in provider:
+            legacy["browser"] = provider["browser"]
         return legacy
 
     @staticmethod

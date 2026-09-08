@@ -112,15 +112,7 @@ export function syncChatGPTDeleteChatState(): void {
   }
 }
 
-export function syncChatGPTVisibleBrowserState(): void {
-  if (!els.chatgptVisibleBrowser) return;
-  const isChecked = Boolean(els.chatgptVisibleBrowser.checked);
-  if (els.chatgptVisibleBrowserStatus) {
-    els.chatgptVisibleBrowserStatus.textContent = translate(
-      isChecked ? "output.chatgptVisibleBrowserToggle" : "output.chatgptVisibleBrowserToggleOff",
-    );
-  }
-}
+export function syncChatGPTVisibleBrowserState(): void {}
 
 function activeChatGPTProvider(): any {
   const providerId = state.selectedProviderId || state.apiSettings?.active_provider_id;
@@ -142,16 +134,7 @@ export function restoreChatGPTDeleteChatState(): void {
   syncChatGPTDeleteChatState();
 }
 
-export function restoreChatGPTVisibleBrowserState(): void {
-  if (!els.chatgptVisibleBrowser) return;
-  const provider = activeChatGPTProvider();
-  const providerSetting = typeof provider?.visible_browser === "boolean" ? provider.visible_browser : null;
-  const saved = localStorage.getItem(CHATGPT_VISIBLE_BROWSER_STORAGE_KEY);
-  const enabled = providerSetting !== null ? providerSetting : (saved !== null ? saved === "true" : false);
-  els.chatgptVisibleBrowser.checked = enabled;
-  localStorage.setItem(CHATGPT_VISIBLE_BROWSER_STORAGE_KEY, String(enabled));
-  syncChatGPTVisibleBrowserState();
-}
+export function restoreChatGPTVisibleBrowserState(): void {}
 
 export function persistChatGPTDeleteChatState(): void {
   if (!els.chatgptDeleteChat) return;
@@ -177,33 +160,14 @@ export function persistChatGPTDeleteChatState(): void {
   }
 }
 
-export function persistChatGPTVisibleBrowserState(): void {
-  if (!els.chatgptVisibleBrowser) return;
-  const enabled = Boolean(els.chatgptVisibleBrowser.checked);
-  localStorage.setItem(CHATGPT_VISIBLE_BROWSER_STORAGE_KEY, String(enabled));
-  syncChatGPTVisibleBrowserState();
-  const provider = activeChatGPTProvider();
-  if (provider && state.apiSettings?.providers) {
-    const target = state.apiSettings.providers.find((p: any) => p.id === provider.id);
-    if (target && target.visible_browser !== enabled) {
-      target.visible_browser = enabled;
-      const methods = getLegacyBridge().methods;
-      if (typeof methods?.persistApiSettings === "function") {
-        methods.persistApiSettings();
-      }
-      if (typeof methods?.queueApiSettingsAutosave === "function") {
-        methods.queueApiSettingsAutosave();
-      }
-    }
-  }
-}
+export function persistChatGPTVisibleBrowserState(): void {}
 
 export function currentChatGPTDeleteChatEnabled(): boolean {
   return Boolean(els.chatgptDeleteChat?.checked ?? true);
 }
 
 export function currentChatGPTVisibleBrowserEnabled(): boolean {
-  return Boolean(els.chatgptVisibleBrowser?.checked ?? false);
+  return true;
 }
 
 function syncRunButtonLabel(): void {
@@ -218,7 +182,6 @@ export function bindFormControlEvents(): void {
   formControlEventsBound = true;
 
   restoreChatGPTDeleteChatState();
-  restoreChatGPTVisibleBrowserState();
   restoreChatGPTBrowserState();
   const handleChatGPTDeleteChatChange = () => {
     persistChatGPTDeleteChatState();
@@ -226,13 +189,6 @@ export function bindFormControlEvents(): void {
   };
   els.chatgptDeleteChat?.addEventListener("input", handleChatGPTDeleteChatChange);
   els.chatgptDeleteChat?.addEventListener("change", handleChatGPTDeleteChatChange);
-
-  const handleChatGPTVisibleBrowserChange = () => {
-    persistChatGPTVisibleBrowserState();
-    updateRequestPreview();
-  };
-  els.chatgptVisibleBrowser?.addEventListener("input", handleChatGPTVisibleBrowserChange);
-  els.chatgptVisibleBrowser?.addEventListener("change", handleChatGPTVisibleBrowserChange);
 
   els.chatgptBrowserGroup?.addEventListener("click", (event: MouseEvent) => {
     const button = (event.target as HTMLElement).closest<HTMLButtonElement>(".radio-btn");

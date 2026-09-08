@@ -18884,9 +18884,6 @@
       chatgptDeleteChatField: document.querySelector("#chatgptDeleteChatField"),
       chatgptDeleteChat: document.querySelector("#chatgptDeleteChat"),
       chatgptDeleteChatStatus: document.querySelector("#chatgptDeleteChatStatus"),
-      chatgptVisibleBrowserField: document.querySelector("#chatgptVisibleBrowserField"),
-      chatgptVisibleBrowser: document.querySelector("#chatgptVisibleBrowser"),
-      chatgptVisibleBrowserStatus: document.querySelector("#chatgptVisibleBrowserStatus"),
       chatgptBrowserField: document.querySelector("#chatgptBrowserField"),
       chatgptBrowserGroup: document.querySelector("#chatgptBrowserGroup"),
       chatgptBrowser: document.querySelector("#chatgptBrowser"),
@@ -19767,19 +19764,12 @@
       els9.chatgptDeleteChatField.style.display = isChatGPT ? "" : "none";
       els9.chatgptDeleteChatField.classList.toggle("hidden", !isChatGPT);
     }
-    if (els9.chatgptVisibleBrowserField) {
-      els9.chatgptVisibleBrowserField.style.display = isChatGPT ? "" : "none";
-      els9.chatgptVisibleBrowserField.classList.toggle("hidden", !isChatGPT);
-    }
     if (els9.chatgptBrowserField) {
       els9.chatgptBrowserField.style.display = isChatGPT ? "" : "none";
       els9.chatgptBrowserField.classList.toggle("hidden", !isChatGPT);
     }
     if (isChatGPT && typeof methods.restoreChatGPTDeleteChatState === "function") {
       methods.restoreChatGPTDeleteChatState();
-    }
-    if (isChatGPT && typeof methods.restoreChatGPTVisibleBrowserState === "function") {
-      methods.restoreChatGPTVisibleBrowserState();
     }
     if (isChatGPT && typeof methods.restoreChatGPTBrowserState === "function") {
       methods.restoreChatGPTBrowserState();

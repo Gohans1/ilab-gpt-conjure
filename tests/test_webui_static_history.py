@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import unittest
 from pathlib import Path
 import re
@@ -355,7 +356,9 @@ class WebUIStaticHistoryTests(unittest.TestCase):
               process.stdout.write(JSON.stringify({{ calls, afterWrongName, afterWrongSize, finalPending: historyImportResumePending }}));
             }})();
         """)
-        esbuild = Path("node_modules/.bin/esbuild")
+        esbuild = Path("node_modules/.bin/esbuild.cmd" if os.name == "nt" else "node_modules/.bin/esbuild")
+        if not esbuild.exists() or shutil.which("node") is None:
+            self.skipTest("esbuild and node are required for history resume pending chooser test")
         compiled = subprocess.run(
             [str(esbuild), "--loader=ts", "--format=esm", "--target=es2020"],
             input=harness,
@@ -1709,7 +1712,7 @@ class WebUIStaticHistoryTests(unittest.TestCase):
         self.assertIn('class="history-filter-heading-icon"', html)
         self.assertIn('data-i18n-attr="aria-label:history.resizeFilters"', html)
         self.assertIn('data-i18n-attr="aria-label:history.resizeDetail"', html)
-        self.assertIn('/static/styles.css?v=runtime-789', html)
+        self.assertIn('/static/styles.css?v=runtime-790', html)
         self.assertIn('/static/history.js?v=history-114', html)
         self.assertRegex(styles, r"\.history-page\s*\{[^}]*height:\s*100dvh")
         self.assertRegex(styles, r"\.history-page\s*\{[^}]*overflow:\s*hidden")

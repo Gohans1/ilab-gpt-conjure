@@ -458,6 +458,9 @@ def _prepare_generation_submission(
         if hasattr(plan, "command") and hasattr(plan.command, "parameters"):
             plan.command.parameters["chatgpt.visible_browser"] = bool(visible_browser)
         request_payload["visible_browser"] = bool(visible_browser)
+    if browser is None and effective_api_provider_id:
+        prov = ctx.api_settings.provider_settings(effective_api_provider_id)
+        browser = prov.get("browser")
     if browser:
         params["chatgpt.browser"] = str(browser).strip()
         if hasattr(plan, "command") and hasattr(plan.command, "parameters"):

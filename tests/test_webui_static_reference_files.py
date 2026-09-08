@@ -351,12 +351,12 @@ class ReferenceFileFrontendContractTests(unittest.TestCase):
         index = (ROOT / "codex_image/webui/static/index.html").read_text(encoding="utf-8")
         history = (ROOT / "codex_image/webui/static/history.html").read_text(encoding="utf-8")
         worker = (ROOT / "codex_image/webui/static/service-worker.js").read_text(encoding="utf-8")
-        self.assertIn("runtime-789", index)
-        self.assertIn("runtime-789", history)
+        self.assertIn("runtime-790", index)
+        self.assertIn("runtime-790", history)
         self.assertIn("history-114", history)
-        self.assertIn('ilab-conjure-shell-v269', worker)
-        self.assertIn('/static/app.js?v=runtime-789', worker)
-        self.assertIn('/static/styles.css?v=runtime-789', worker)
+        self.assertIn('ilab-conjure-shell-v270', worker)
+        self.assertIn('/static/app.js?v=runtime-790', worker)
+        self.assertIn('/static/styles.css?v=runtime-790', worker)
 
     def test_design_system_documents_shared_input_rail_and_filename_summary_tiles(self) -> None:
         design_path = ROOT / "DESIGN.md"

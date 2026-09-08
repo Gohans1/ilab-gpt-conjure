@@ -420,6 +420,7 @@ describe("auth-helper: runtime alert helpers", () => {
         filter: (opt: any) => ({
           last: () => ({
             isVisible: async () => true,
+            textContent: async () => "Too many requests. Please try again later.",
             locator: (btnSel: string) => ({
               filter: (btnOpt: any) => ({
                 last: () => ({
@@ -437,6 +438,30 @@ describe("auth-helper: runtime alert helpers", () => {
 
     await expect(throwIfChatGptRateLimitDialog(fakePage)).rejects.toThrow("ChatGPT báo lỗi giới hạn tần suất");
     expect(ackClicked).toBe(true);
+  });
+
+  test("throwIfChatGptRateLimitDialog ném lỗi cụ thể khi chạm giới hạn tạo ảnh hàng ngày", async () => {
+    const fakePage = {
+      isClosed: () => false,
+      locator: (sel: string) => ({
+        filter: (opt: any) => ({
+          last: () => ({
+            isVisible: async () => true,
+            textContent: async () => "You've reached your image creation limit for today. Upgrade to Plus or try again tomorrow.",
+            locator: (btnSel: string) => ({
+              filter: (btnOpt: any) => ({
+                last: () => ({
+                  isVisible: async () => true,
+                  click: async () => {},
+                }),
+              }),
+            }),
+          }),
+        }),
+      }),
+    } as any;
+
+    await expect(throwIfChatGptRateLimitDialog(fakePage)).rejects.toThrow("chạm giới hạn tạo ảnh trong ngày của gói Free");
   });
 
   test("throwIfChatGptRateLimitDialog bỏ qua an toàn khi không có modal rate limit", async () => {

@@ -461,9 +461,6 @@
       chatgptDeleteChatField: document.querySelector("#chatgptDeleteChatField"),
       chatgptDeleteChat: document.querySelector("#chatgptDeleteChat"),
       chatgptDeleteChatStatus: document.querySelector("#chatgptDeleteChatStatus"),
-      chatgptVisibleBrowserField: document.querySelector("#chatgptVisibleBrowserField"),
-      chatgptVisibleBrowser: document.querySelector("#chatgptVisibleBrowser"),
-      chatgptVisibleBrowserStatus: document.querySelector("#chatgptVisibleBrowserStatus"),
       chatgptBrowserField: document.querySelector("#chatgptBrowserField"),
       chatgptBrowserGroup: document.querySelector("#chatgptBrowserGroup"),
       chatgptBrowser: document.querySelector("#chatgptBrowser"),
@@ -36309,19 +36306,12 @@ ${hint}` : hint;
       els44.chatgptDeleteChatField.style.display = isChatGPT ? "" : "none";
       els44.chatgptDeleteChatField.classList.toggle("hidden", !isChatGPT);
     }
-    if (els44.chatgptVisibleBrowserField) {
-      els44.chatgptVisibleBrowserField.style.display = isChatGPT ? "" : "none";
-      els44.chatgptVisibleBrowserField.classList.toggle("hidden", !isChatGPT);
-    }
     if (els44.chatgptBrowserField) {
       els44.chatgptBrowserField.style.display = isChatGPT ? "" : "none";
       els44.chatgptBrowserField.classList.toggle("hidden", !isChatGPT);
     }
     if (isChatGPT && typeof methods.restoreChatGPTDeleteChatState === "function") {
       methods.restoreChatGPTDeleteChatState();
-    }
-    if (isChatGPT && typeof methods.restoreChatGPTVisibleBrowserState === "function") {
-      methods.restoreChatGPTVisibleBrowserState();
     }
     if (isChatGPT && typeof methods.restoreChatGPTBrowserState === "function") {
       methods.restoreChatGPTBrowserState();
@@ -46702,7 +46692,6 @@ ${galleryText}`;
     }
     if (isChatGPTWebProvider()) {
       params["chatgpt.delete_chat_after_gen"] = Boolean(els25.chatgptDeleteChat?.checked ?? true);
-      params["chatgpt.visible_browser"] = Boolean(els25.chatgptVisibleBrowser?.checked ?? false);
       params["chatgpt.browser"] = currentChatGPTBrowser();
     }
     const presetMatch = findPresetForSize(params.size);
@@ -47222,7 +47211,6 @@ ${galleryText}`;
   var formControlsInitialized = false;
   var formControlEventsBound = false;
   var CHATGPT_DELETE_CHAT_STORAGE_KEY = "codex-image-chatgpt-delete-chat";
-  var CHATGPT_VISIBLE_BROWSER_STORAGE_KEY = "codex-image-chatgpt-visible-browser";
   var CHATGPT_BROWSER_STORAGE_KEY = "codex-image-chatgpt-browser";
   function syncChatGPTBrowserState(browser) {
     const current = browser || (els27.chatgptBrowser?.value === "chrome" ? "chrome" : "edge");
@@ -47277,13 +47265,6 @@ ${galleryText}`;
     }
   }
   function syncChatGPTVisibleBrowserState() {
-    if (!els27.chatgptVisibleBrowser) return;
-    const isChecked = Boolean(els27.chatgptVisibleBrowser.checked);
-    if (els27.chatgptVisibleBrowserStatus) {
-      els27.chatgptVisibleBrowserStatus.textContent = translate(
-        isChecked ? "output.chatgptVisibleBrowserToggle" : "output.chatgptVisibleBrowserToggleOff"
-      );
-    }
   }
   function activeChatGPTProvider() {
     const providerId = state18.selectedProviderId || state18.apiSettings?.active_provider_id;
@@ -47301,14 +47282,6 @@ ${galleryText}`;
     syncChatGPTDeleteChatState();
   }
   function restoreChatGPTVisibleBrowserState() {
-    if (!els27.chatgptVisibleBrowser) return;
-    const provider = activeChatGPTProvider();
-    const providerSetting = typeof provider?.visible_browser === "boolean" ? provider.visible_browser : null;
-    const saved = localStorage.getItem(CHATGPT_VISIBLE_BROWSER_STORAGE_KEY);
-    const enabled = providerSetting !== null ? providerSetting : saved !== null ? saved === "true" : false;
-    els27.chatgptVisibleBrowser.checked = enabled;
-    localStorage.setItem(CHATGPT_VISIBLE_BROWSER_STORAGE_KEY, String(enabled));
-    syncChatGPTVisibleBrowserState();
   }
   function persistChatGPTDeleteChatState() {
     if (!els27.chatgptDeleteChat) return;
@@ -47334,30 +47307,12 @@ ${galleryText}`;
     }
   }
   function persistChatGPTVisibleBrowserState() {
-    if (!els27.chatgptVisibleBrowser) return;
-    const enabled = Boolean(els27.chatgptVisibleBrowser.checked);
-    localStorage.setItem(CHATGPT_VISIBLE_BROWSER_STORAGE_KEY, String(enabled));
-    syncChatGPTVisibleBrowserState();
-    const provider = activeChatGPTProvider();
-    if (provider && state18.apiSettings?.providers) {
-      const target = state18.apiSettings.providers.find((p) => p.id === provider.id);
-      if (target && target.visible_browser !== enabled) {
-        target.visible_browser = enabled;
-        const methods = getLegacyBridge().methods;
-        if (typeof methods?.persistApiSettings === "function") {
-          methods.persistApiSettings();
-        }
-        if (typeof methods?.queueApiSettingsAutosave === "function") {
-          methods.queueApiSettingsAutosave();
-        }
-      }
-    }
   }
   function currentChatGPTDeleteChatEnabled() {
     return Boolean(els27.chatgptDeleteChat?.checked ?? true);
   }
   function currentChatGPTVisibleBrowserEnabled() {
-    return Boolean(els27.chatgptVisibleBrowser?.checked ?? false);
+    return true;
   }
   function syncRunButtonLabel2() {
     if (!els27.runButton || state18.runTimerId) return;
@@ -47369,7 +47324,6 @@ ${galleryText}`;
     if (formControlEventsBound) return;
     formControlEventsBound = true;
     restoreChatGPTDeleteChatState();
-    restoreChatGPTVisibleBrowserState();
     restoreChatGPTBrowserState();
     const handleChatGPTDeleteChatChange = () => {
       persistChatGPTDeleteChatState();
@@ -47377,12 +47331,6 @@ ${galleryText}`;
     };
     els27.chatgptDeleteChat?.addEventListener("input", handleChatGPTDeleteChatChange);
     els27.chatgptDeleteChat?.addEventListener("change", handleChatGPTDeleteChatChange);
-    const handleChatGPTVisibleBrowserChange = () => {
-      persistChatGPTVisibleBrowserState();
-      updateRequestPreview10();
-    };
-    els27.chatgptVisibleBrowser?.addEventListener("input", handleChatGPTVisibleBrowserChange);
-    els27.chatgptVisibleBrowser?.addEventListener("change", handleChatGPTVisibleBrowserChange);
     els27.chatgptBrowserGroup?.addEventListener("click", (event) => {
       const button = event.target.closest(".radio-btn");
       if (!button) return;
@@ -48151,6 +48099,20 @@ ${galleryText}`;
         "gpt.output_compression",
         params.output_compression,
         request.output_compression
+      ),
+      chatgpt_browser: preferredParameter(
+        parameters,
+        "chatgpt.browser",
+        params["chatgpt.browser"],
+        params.browser,
+        request.browser
+      ),
+      chatgpt_delete_chat: preferredParameter(
+        parameters,
+        "chatgpt.delete_chat_after_gen",
+        params["chatgpt.delete_chat_after_gen"],
+        params.delete_chat_after_gen,
+        request.delete_chat_after_gen
       )
     };
     return Object.fromEntries(Object.entries(values).filter(([, value]) => value !== void 0 && value !== null));
@@ -51420,6 +51382,14 @@ ${galleryText}`;
     [els33.quality, els33.outputFormat, els33.moderation].forEach((element2) => {
       element2?.dispatchEvent(new Event("change"));
     });
+    if (output.chatgpt_browser) {
+      const b = String(output.chatgpt_browser).toLowerCase() === "chrome" ? "chrome" : "edge";
+      persistChatGPTBrowserState(b);
+    }
+    if (output.chatgpt_delete_chat !== void 0 && els33.chatgptDeleteChat) {
+      els33.chatgptDeleteChat.checked = Boolean(output.chatgpt_delete_chat);
+      persistChatGPTDeleteChatState();
+    }
     updateQuantity2();
     syncRadioButtons2(els33.nInput);
     updateCompression2();
@@ -51480,7 +51450,6 @@ ${galleryText}`;
     }
     if (isChatGPTWebProvider()) {
       payload2.delete_chat_after_gen = Boolean(els33.chatgptDeleteChat?.checked ?? true);
-      payload2.visible_browser = Boolean(els33.chatgptVisibleBrowser?.checked ?? false);
       payload2.browser = currentChatGPTBrowser();
     }
     return payload2;
@@ -51572,9 +51541,6 @@ ${galleryText}`;
     }
     if (els33.chatgptDeleteChat && isChatGPTWebProvider()) {
       form.append("delete_chat_after_gen", String(Boolean(els33.chatgptDeleteChat.checked)));
-    }
-    if (els33.chatgptVisibleBrowser && isChatGPTWebProvider()) {
-      form.append("visible_browser", String(Boolean(els33.chatgptVisibleBrowser.checked)));
     }
     if (els33.chatgptBrowser && isChatGPTWebProvider()) {
       form.append("browser", currentChatGPTBrowser());

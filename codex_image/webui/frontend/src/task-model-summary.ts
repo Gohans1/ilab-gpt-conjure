@@ -68,6 +68,20 @@ export function taskOutputControlValues(task: unknown): Record<string, unknown> 
       params.output_compression,
       request.output_compression,
     ),
+    chatgpt_browser: preferredParameter(
+      parameters,
+      "chatgpt.browser",
+      params["chatgpt.browser"],
+      params.browser,
+      request.browser,
+    ),
+    chatgpt_delete_chat: preferredParameter(
+      parameters,
+      "chatgpt.delete_chat_after_gen",
+      params["chatgpt.delete_chat_after_gen"],
+      params.delete_chat_after_gen,
+      request.delete_chat_after_gen,
+    ),
   };
   return Object.fromEntries(Object.entries(values).filter(([, value]) => value !== undefined && value !== null));
 }

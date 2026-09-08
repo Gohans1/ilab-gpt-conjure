@@ -181,16 +181,21 @@ export async function throwIfChatGptRateLimitDialog(page: Page): Promise<void> {
   if (page.isClosed()) return;
   const rateLimitModal = page
     .locator(
-      '[role="dialog"]:not([aria-hidden="true"]):not([data-state="closed"])'
+      '[role="dialog"]:not([aria-hidden="true"]):not([data-state="closed"]), [role="alertdialog"]:not([aria-hidden="true"]):not([data-state="closed"]), [role="alert"]'
     )
     .filter({
       hasText:
-        /Too many requests|quá nhiều yêu cầu|quá nhiều request|gửi yêu cầu quá nhanh|太多要求|太多请求|リクエストが多すぎます/i,
+        /Too many requests|quá nhiều yêu cầu|quá nhiều request|gửi yêu cầu quá nhanh|image creation limit|giới hạn tạo hình ảnh|giới hạn tạo ảnh|limit for image creation|reached your limit|hit the limit|try again tomorrow|thử lại sau|upgrade to plus|nâng cấp lên plus|太多要求|太多请求|リクエストが多すぎます/i,
     })
     .last();
 
   const isVisible = await rateLimitModal.isVisible().catch(() => false);
   if (!isVisible) return;
+
+  const modalText =
+    typeof rateLimitModal.textContent === "function"
+      ? (await rateLimitModal.textContent().catch(() => "")) || ""
+      : "";
 
   // Cố gắng bấm nút Acknowledge để giải phóng DOM modal
   const ackBtn = rateLimitModal
@@ -199,6 +204,16 @@ export async function throwIfChatGptRateLimitDialog(page: Page): Promise<void> {
     .last();
   if (await ackBtn.isVisible().catch(() => false)) {
     await ackBtn.click({ timeout: 2000 }).catch(() => {});
+  }
+
+  if (
+    /image creation limit|giới hạn tạo hình ảnh|giới hạn tạo ảnh|limit for image creation|reached your limit|hit the limit/i.test(
+      modalText
+    )
+  ) {
+    throw new Error(
+      "Tài khoản ChatGPT đã chạm giới hạn tạo ảnh trong ngày của gói Free (Image Creation Limit). Vui lòng thử lại sau hoặc nâng cấp Plus."
+    );
   }
 
   throw new Error("ChatGPT báo lỗi giới hạn tần suất (Rate limit / Too many requests). Vui lòng thử lại sau vài phút.");
@@ -294,6 +309,9 @@ export function removeTemporaryChromeTabSessions(profileDir: string): void {
   }
 }
 
+const DISALLOWED_STORAGE_KEYS =
+  /(conversationDrafts|conversation-history|snorlax-history|pinned-items|integrityStateReconciliation|lastPageLoadDate|statsig\.session_id|^draft|^composer)/i;
+
 export function sanitizeBrowserLoginStorageState(state: any): any {
   return {
     cookies: (state?.cookies || [])
@@ -307,7 +325,9 @@ export function sanitizeBrowserLoginStorageState(state: any): any {
       .filter((origin: any) => origin?.origin === "https://chatgpt.com")
       .map((origin: any) => ({
         origin: origin.origin,
-        localStorage: (origin?.localStorage || []).map((item: any) => ({ ...item })),
+        localStorage: (origin?.localStorage || [])
+          .filter((item: any) => !DISALLOWED_STORAGE_KEYS.test(item?.name || ""))
+          .map((item: any) => ({ ...item })),
       })),
   };
 }
@@ -408,6 +428,11 @@ export async function handleLogin(
   const browserDisplayName = actualBrowser === "edge" ? "Microsoft Edge" : "Google Chrome";
 
   try {
+    // Giữ cookie phiên khi người dùng đóng cửa sổ; chỉ cấu hình profile tạm mới tạo.
+    atomicWriteFile(
+      join(tempProfileDir, "Default", "Preferences"),
+      JSON.stringify({ session: { restore_on_startup: 1 } })
+    );
     console.log(`🔑 [Login Mode] Đang mở trình duyệt ${browserDisplayName} nguyên bản để bạn đăng nhập ChatGPT...`);
     console.log(`👉 Đường dẫn đăng nhập: ${CHATGPT_LOGIN_URL}`);
     console.log("👉 Vui lòng đăng nhập tài khoản ChatGPT của bạn trên cửa sổ này.");
@@ -420,6 +445,8 @@ export async function handleLogin(
       "--no-first-run",
       "--no-default-browser-check",
       "--disable-background-mode",
+      "--disable-sync",
+      "--restore-last-session",
       "--disable-features=AutoDeElevate,ProfilePickerOnStartup",
       "--do-not-de-elevate",
       "--start-maximized",
@@ -564,9 +591,9 @@ export async function handleLogin(
           chromiumSandbox: true,
           offline: true,
           serviceWorkers: "block",
+          // Giữ chế độ automation mặc định ở bước offline để Windows không tự khởi động lại browser và mất pipe.
           ignoreDefaultArgs: [
             "--no-sandbox",
-            "--enable-automation",
             "--password-store=basic",
             "--use-mock-keychain",
           ],

@@ -475,7 +475,7 @@ export async function generateImage(prompt: string, options: GenerateOptions = {
 
   const shouldDeleteChat = resolveDeleteChatOption(options.deleteChatAfterGen);
   const session: BrowserSession = await getBrowserSession({
-    headless: options.headless,
+    headless: options.headless ?? false,
     browser: options.browser,
   });
 
@@ -713,44 +713,60 @@ export async function generateImage(prompt: string, options: GenerateOptions = {
     }, SELECTORS.generatedImage);
 
     console.log(`[3/5] Đang nhập prompt: "${prompt}"...`);
-    await composer.focus();
+    await page.bringToFront().catch(() => {});
+    await composer.click({ force: true }).catch(() => {});
+    await page.keyboard.press("ControlOrMeta+A").catch(() => {});
+    await page.keyboard.press("Backspace").catch(() => {});
+
     const inserted = await composer.evaluate(insertPlainTextIntoComposer, prompt).catch(() => false);
     if (!inserted) {
       try {
-        await composer.fill(prompt);
-      } catch {
         await page.keyboard.insertText(prompt);
+      } catch {
+        await composer.fill(prompt);
       }
     }
+    await composer
+      .evaluate((el) => {
+        el.dispatchEvent(new Event("input", { bubbles: true }));
+      })
+      .catch(() => {});
 
     // Lưu URL trước khi gửi prompt và reset ID hội thoại mới phát hiện
     // Tránh xoá nhầm các đoạn chat cũ từ sidebar hoặc trang tải ban đầu
     initialUrl = page.url();
     detectedConversationId = null;
 
-    // Gửi prompt: Playwright click tự động chờ nút enabled (actionability wait)
+    // Gửi prompt: Luôn luôn đợi nút Send chuyển sang trạng thái ENABLED cho MỌI request (cả text-only lẫn image)
     await page.waitForTimeout(400);
     const sendBtn = page.locator(SELECTORS.sendButton).first();
-    const sendTimeout = inputImages.length > 0 ? 15_000 : 5_000;
+    const sendTimeout = inputImages.length > 0 ? 20_000 : 10_000;
     try {
       await sendBtn.waitFor({ state: "visible", timeout: sendTimeout });
-      if (inputImages.length > 0) {
-        await page
-          .waitForFunction(
-            (sel) => {
-              const btn = document.querySelector(sel);
-              return btn && !btn.hasAttribute("disabled") && btn.getAttribute("aria-disabled") !== "true";
-            },
-            SELECTORS.sendButton,
-            { timeout: 15_000 }
-          )
-          .catch(() => {});
-      }
+      // BẮT BUỘC: Đợi nút Send hết disabled và aria-disabled !== "true"
+      await page.waitForFunction(
+        (sel) => {
+          const btn = document.querySelector(sel);
+          return Boolean(btn && !btn.hasAttribute("disabled") && btn.getAttribute("aria-disabled") !== "true");
+        },
+        SELECTORS.sendButton,
+        { timeout: sendTimeout }
+      );
       await sendBtn.click({ timeout: 5_000 });
     } catch {
       await throwIfChatGptSessionFailureAlert(page);
       await throwIfChatGptRateLimitDialog(page);
-      await composer.press("Enter");
+      // Fallback: Thử bấm phím Enter và kích hoạt click DOM trực tiếp nếu Playwright actionability bị nghẽn
+      await composer.focus().catch(() => {});
+      await composer.press("Enter").catch(() => {});
+      await page
+        .evaluate((sel) => {
+          const btn = document.querySelector<HTMLElement>(sel);
+          if (btn && !btn.hasAttribute("disabled") && btn.getAttribute("aria-disabled") !== "true") {
+            btn.click();
+          }
+        }, SELECTORS.sendButton)
+        .catch(() => {});
     }
 
     // Xác nhận prompt đã được gửi đi thành công (stop button xuất hiện hoặc composer được xoá trống hoặc có user turn)

@@ -149,12 +149,13 @@ export function closeBrowserGracefully(profileDir?: string, pid?: number): void 
     try {
       const systemRoot = process.env.SystemRoot || process.env.SYSTEMROOT || "C:\\Windows";
       const powershell = join(systemRoot, "System32", "WindowsPowerShell", "v1.0", "powershell.exe");
-      let script = "";
+      const parts: string[] = [];
       if (typeof pid === "number" && Number.isInteger(pid) && pid > 0) {
-        script = `Get-Process -Id ${pid} -ErrorAction SilentlyContinue | ForEach-Object { try { $_.CloseMainWindow() | Out-Null } catch {} }`;
-      } else if (profileDir && profileDir.trim()) {
+        parts.push(`Get-Process -Id ${pid} -ErrorAction SilentlyContinue | ForEach-Object { try { $_.CloseMainWindow() | Out-Null } catch {} }`);
+      }
+      if (profileDir && profileDir.trim()) {
         const normalized = profileDir.replace(/[/\\]+/g, "\\").replace(/'/g, "''");
-        script = `
+        parts.push(`
 $pattern = [regex]::Escape('${normalized}');
 Get-CimInstance Win32_Process -Filter "Name = 'chrome.exe' or Name = 'msedge.exe'" |
   Where-Object { $_.CommandLine -and ($_.CommandLine -match $pattern) } |
@@ -164,9 +165,10 @@ Get-CimInstance Win32_Process -Filter "Name = 'chrome.exe' or Name = 'msedge.exe
       try { $p.CloseMainWindow() | Out-Null } catch {}
     }
   }
-`.trim();
+`.trim());
       }
-      if (!script) return;
+      if (parts.length === 0) return;
+      const script = parts.join("\n");
       const b64 = Buffer.from(script, "utf16le").toString("base64");
       spawn(powershell, ["-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-EncodedCommand", b64], {
         stdio: "ignore",
@@ -192,8 +194,16 @@ export function cleanupStaleLocks(profileDir: string): void {
 export function isBrowserProfileLockedByFs(profileDir: string): boolean {
   if (!profileDir || !existsSync(profileDir)) return false;
   if (process.platform === "win32") {
-    for (const lockName of ["lockfile", "SingletonLock"]) {
-      const lockPath = join(profileDir, lockName);
+    const candidateFiles = [
+      "lockfile",
+      "SingletonLock",
+      "Local State",
+      join("Default", "Network", "Cookies"),
+      join("Default", "Web Data"),
+      join("Default", "Preferences"),
+    ];
+    for (const relPath of candidateFiles) {
+      const lockPath = join(profileDir, relPath);
       if (existsSync(lockPath)) {
         try {
           const fd = openSync(lockPath, "r+");
@@ -299,7 +309,8 @@ export async function getBrowserSession(options: BrowserOptions = {}): Promise<B
     );
   }
 
-  const headless = options.headless ?? true;
+  // Mặc định luôn luôn hiển thị cửa sổ trình duyệt (headless: false) để chống Cloudflare Turnstile WAF chặn 500
+  const headless = options.headless ?? false;
   const instanceTag = `--chatgpt-bridge-instance-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
   const browser = await chromium.launch({

@@ -349,6 +349,9 @@ export function enqueueTask<T>(task: () => Promise<T>, signal?: AbortSignal): Pr
         } catch (err) {
           settled = true;
           reject(err);
+        } finally {
+          // Settle delay giữa các lượt liên tiếp để Windows OS dọn sạch tiến trình browser cũ và ChatGPT backend ổn định phiên
+          await new Promise((r) => setTimeout(r, 1500));
         }
       })
       .catch(() => {});

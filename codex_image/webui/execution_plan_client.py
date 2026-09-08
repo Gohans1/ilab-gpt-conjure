@@ -60,17 +60,14 @@ class _LegacyClientAdapter:
             or "bridge" in str(getattr(self.client, "base_url", "")).lower()
             or "chatgpt" in str(getattr(self.client, "base_url", "")).lower()
         )
-        if delete_chat_after_gen is not None and (
-            is_batch_bridge or hasattr(self.client, "generations_url")
-        ):
-            common["delete_chat_after_gen"] = bool(delete_chat_after_gen)
-        if visible_browser is not None and (
-            is_batch_bridge or hasattr(self.client, "generations_url")
-        ):
-            common["visible_browser"] = bool(visible_browser)
-        browser = params.get("chatgpt.browser") or params.get("browser")
-        if browser and (is_batch_bridge or hasattr(self.client, "generations_url")):
-            common["browser"] = str(browser)
+        if is_batch_bridge:
+            if delete_chat_after_gen is not None:
+                common["delete_chat_after_gen"] = bool(delete_chat_after_gen)
+            if visible_browser is not None:
+                common["visible_browser"] = bool(visible_browser)
+            browser = params.get("chatgpt.browser") or params.get("browser")
+            if browser:
+                common["browser"] = str(browser)
 
         try:
             if command.operation == "edit":
