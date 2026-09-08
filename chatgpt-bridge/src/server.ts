@@ -6,8 +6,8 @@ import { generateImage, sizeToAspectRatio } from "./generator.js";
 import { handleLogin, notifyLoginContinuation } from "./auth-helper.js";
 import { clearSessionVerified, isSessionCached } from "./check-session.js";
 import { cleanupActiveBrowsers } from "./browser.js";
-import { detectImageExtension, findBrowserCandidates, getAvailableBrowsers } from "./config.js";
-export { detectImageExtension };
+import { detectImageExtension, findBrowserCandidates, getAvailableBrowsers, normalizeBrowserChoice } from "./config.js";
+export { detectImageExtension, normalizeBrowserChoice };
 
 export interface ParsedImageRequest {
   prompt: string;
@@ -255,7 +255,7 @@ export async function parseImageRequest(req: Request): Promise<ParsedImageReques
       }
     }
 
-    const browser = typeof browserRaw === "string" ? browserRaw.trim().toLowerCase() : undefined;
+    const browser = normalizeBrowserChoice(typeof browserRaw === "string" ? browserRaw : undefined);
 
     return {
       prompt,
@@ -548,12 +548,7 @@ export async function handleRequest(req: Request): Promise<Response> {
         }
       }
       if (browserParam) {
-        const clean = browserParam.trim().toLowerCase().replace(/\.exe$/, "").replace(/[\s\-_]+/g, "");
-        if (clean === "edge" || clean === "msedge" || clean === "microsoftedge") {
-          preferredBrowser = "edge";
-        } else if (clean === "chrome" || clean === "googlechrome" || clean === "chromium") {
-          preferredBrowser = "chrome";
-        }
+        preferredBrowser = normalizeBrowserChoice(browserParam);
       }
     } catch {}
 

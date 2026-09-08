@@ -133,6 +133,16 @@ function isExecutableFile(p: string): boolean {
   }
 }
 
+export function normalizeBrowserChoice(raw?: string | null): "chrome" | "edge" | undefined {
+  if (!raw || typeof raw !== "string") return undefined;
+  const prefWithoutExt = raw.trim().toLowerCase().replace(/\.exe$/, "");
+  const prefBase = prefWithoutExt.split(/[/\\]/).pop() || prefWithoutExt;
+  const clean = prefBase.replace(/[\s\-_]+/g, "");
+  if (clean === "edge" || clean === "msedge" || clean === "microsoftedge") return "edge";
+  if (clean === "chrome" || clean === "googlechrome" || clean === "chromium") return "chrome";
+  return undefined;
+}
+
 export function findBrowserCandidates(preferredBrowser?: "chrome" | "edge" | string): BrowserCandidatesResult {
   const cleanEnvPath = (val?: string) => (val ? val.trim().replace(/^["'](.*)["']$/, "$1").trim() : "");
   const localAppData = process.platform === "win32" && process.env.LOCALAPPDATA ? process.env.LOCALAPPDATA : "";
@@ -188,12 +198,17 @@ export function findBrowserCandidates(preferredBrowser?: "chrome" | "edge" | str
     chrome: chromeCandidates.length > 0,
   };
 
-  const rawPref = (preferredBrowser || process.env.CHATGPT_BROWSER || "").toLowerCase().trim();
-  const prefWithoutExt = rawPref.replace(/\.exe$/, "");
-  const prefBase = prefWithoutExt.split(/[/\\]/).pop() || prefWithoutExt;
-  const cleanPref = prefBase.replace(/[\s\-_]+/g, "");
-  const isExplicitEdge = cleanPref === "edge" || cleanPref === "msedge" || cleanPref === "microsoftedge";
-  const isExplicitChrome = cleanPref === "chrome" || cleanPref === "googlechrome" || cleanPref === "chromium";
+  const explicitChoice = normalizeBrowserChoice(preferredBrowser || process.env.CHATGPT_BROWSER);
+  const isExplicitEdge = explicitChoice === "edge";
+  const isExplicitChrome = explicitChoice === "chrome";
+
+  if (preferredBrowser && isExecutableFile(preferredBrowser)) {
+    if (isExplicitEdge && !edgeCandidates.includes(preferredBrowser)) {
+      edgeCandidates.unshift(preferredBrowser);
+    } else if (isExplicitChrome && !chromeCandidates.includes(preferredBrowser)) {
+      chromeCandidates.unshift(preferredBrowser);
+    }
+  }
 
   if (isExplicitEdge) {
     const fallbackUsed = edgeCandidates.length === 0 && chromeCandidates.length > 0;

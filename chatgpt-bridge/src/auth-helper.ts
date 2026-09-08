@@ -6,6 +6,7 @@ import { chromium, type BrowserContext, type Page } from "playwright-core";
 import {
   atomicWriteFile,
   CHATGPT_LOGIN_URL,
+  CHATGPT_TEMPORARY_CHAT_URL,
   findBrowserCandidates,
   getSafeShortPath,
   SELECTORS,
@@ -485,6 +486,8 @@ export async function handleLogin(
       JSON.stringify({ session: { restore_on_startup: 1 } })
     );
 
+    const overallDeadline = Date.now() + timeoutMs;
+
     for (let candidateIdx = 0; candidateIdx < candidatesToTry.length; candidateIdx++) {
       const candidate = candidatesToTry[candidateIdx];
       activeCandidate = candidate;
@@ -519,6 +522,7 @@ export async function handleLogin(
       ];
 
       const startTime = Date.now();
+      const candidateTimeout = Math.max(overallDeadline - Date.now(), 15_000);
       let timer: ReturnType<typeof setTimeout> | undefined;
 
       try {
@@ -542,7 +546,7 @@ export async function handleLogin(
                 }
               } catch {}
               rejectExit(new Error("Quá thời gian chờ đăng nhập ChatGPT (5 phút). Đã tự động đóng trình duyệt."));
-            }, timeoutMs);
+            }, candidateTimeout);
 
             loginBrowser.once("error", (err: any) => {
               if (timer) clearTimeout(timer);
@@ -656,7 +660,7 @@ export async function handleLogin(
           }
           console.log("ℹ️ Cửa sổ trình duyệt đang mở. Đang chờ bạn đăng nhập hoặc bấm [Hoàn tất đăng nhập]...");
           let delegatedAttempts = 0;
-          const pollDeadline = startTime + timeoutMs;
+          const pollDeadline = Math.min(startTime + candidateTimeout, overallDeadline);
           while (Date.now() < pollDeadline && !continuationRequested) {
             await Promise.race([
               continuationPromise,
@@ -839,7 +843,7 @@ export async function handleLogin(
       })
     );
     const page = context.pages()[0] ?? (await context.newPage());
-    await page.goto("https://chatgpt.com/?temporary-chat=true", {
+    await page.goto(CHATGPT_TEMPORARY_CHAT_URL, {
       waitUntil: "domcontentloaded",
       timeout: 15_000,
     });

@@ -52,7 +52,7 @@ export function unregisterActiveBrowserPid(pid: number): void {
 }
 
 export function killProcessTree(pid: number): void {
-  if (!Number.isInteger(pid) || pid <= 0 || pid === process.pid) return;
+  if (!Number.isInteger(pid) || pid <= 0 || pid === process.pid || (process.ppid && pid === process.ppid)) return;
   try {
     process.kill(pid, 0);
   } catch {
@@ -107,7 +107,7 @@ $pattern = if ('${normalized}') { [regex]::Escape('${normalized}') } else { '--c
 Get-CimInstance Win32_Process -Filter "Name = 'chrome.exe' or Name = 'msedge.exe' or Name = 'chromium.exe'" |
   Where-Object { $_.CommandLine -and ($_.CommandLine -match $pattern) } |
   ForEach-Object {
-    & "taskkill.exe" /PID $_.ProcessId /T /F 2>$null
+    & "$env:SystemRoot\\System32\\taskkill.exe" /PID $_.ProcessId /T /F 2>$null
     if ($LASTEXITCODE -ne 0) {
       Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue
     }
@@ -189,7 +189,7 @@ $escapedTag = [regex]::Escape('${safeTag}');
 Get-CimInstance Win32_Process -Filter "Name = 'chrome.exe' or Name = 'msedge.exe' or Name = 'chromium.exe'" |
   Where-Object { $_.CommandLine -and $_.CommandLine -match $escapedTag } |
   ForEach-Object {
-    & "taskkill.exe" /PID $_.ProcessId /T /F 2>$null
+    & "$env:SystemRoot\\System32\\taskkill.exe" /PID $_.ProcessId /T /F 2>$null
     if ($LASTEXITCODE -ne 0) {
       Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue
     }
