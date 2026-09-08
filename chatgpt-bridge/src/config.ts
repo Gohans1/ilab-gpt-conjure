@@ -126,7 +126,8 @@ export function getAvailableBrowsers(): { edge: boolean; chrome: boolean } {
 function isExecutableFile(p: string): boolean {
   if (!p) return false;
   try {
-    return statSync(p).isFile();
+    const st = statSync(p);
+    return st.isFile() && st.size > 0;
   } catch {
     return false;
   }
@@ -188,8 +189,9 @@ export function findBrowserCandidates(preferredBrowser?: "chrome" | "edge" | str
   };
 
   const pref = (preferredBrowser || process.env.CHATGPT_BROWSER || "").toLowerCase().trim().replace(/\.exe$/, "");
-  const isExplicitEdge = pref === "edge" || pref === "msedge";
-  const isExplicitChrome = pref === "chrome" || pref === "google-chrome" || pref === "chromium";
+  const cleanPref = pref.replace(/[\s\-_]+/g, "");
+  const isExplicitEdge = cleanPref === "edge" || cleanPref === "msedge" || cleanPref === "microsoftedge";
+  const isExplicitChrome = cleanPref === "chrome" || cleanPref === "googlechrome" || cleanPref === "chromium";
 
   if (isExplicitEdge) {
     const fallbackUsed = edgeCandidates.length === 0 && chromeCandidates.length > 0;
@@ -225,7 +227,7 @@ export function findBrowserCandidates(preferredBrowser?: "chrome" | "edge" | str
   const actualBrowser = hasEdge ? "edge" : (hasChrome ? "chrome" : "edge");
   return {
     primary: hasEdge ? edgeCandidates : chromeCandidates,
-    fallback: hasEdge ? chromeCandidates : [],
+    fallback: hasEdge ? chromeCandidates : edgeCandidates,
     selectedBrowser: actualBrowser,
     actualBrowser,
     fallbackUsed: false,

@@ -47333,7 +47333,7 @@ ${galleryText}`;
     els27.chatgptDeleteChat?.addEventListener("change", handleChatGPTDeleteChatChange);
     els27.chatgptBrowserGroup?.addEventListener("click", (event) => {
       const button = event.target.closest(".radio-btn");
-      if (!button) return;
+      if (!button || button.disabled || button.classList.contains("disabled")) return;
       const browser = button.getAttribute("data-browser") === "edge" ? "edge" : "chrome";
       persistChatGPTBrowserState(browser);
       updateRequestPreview10();

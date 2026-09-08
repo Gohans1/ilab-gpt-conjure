@@ -41,6 +41,24 @@ export function isValidConversationId(id: string | null | undefined): boolean {
   return UUID_CONV_REGEX.test(id);
 }
 
+export const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+export async function safePageDelay(page: any, ms: number): Promise<void> {
+  if (page && typeof page.isClosed === "function" && page.isClosed()) {
+    return;
+  }
+  if (page && typeof page.waitForTimeout === "function") {
+    try {
+      await page.waitForTimeout(ms);
+      return;
+    } catch {}
+  }
+  if (page && typeof page.isClosed === "function" && page.isClosed()) {
+    return;
+  }
+  await delay(ms);
+}
+
 export async function raceWithAbort<T>(promise: Promise<T>, signal?: AbortSignal): Promise<T> {
   if (!signal) return promise;
   if (signal.aborted) {
@@ -200,7 +218,7 @@ export async function attachImagesToChatGPT(
   const uploading = page.locator(SELECTORS.attachmentUploading).first();
   await uploading.waitFor({ state: "detached", timeout: 30_000 }).catch(() => {});
 
-  await page.waitForTimeout(settleMs);
+  await safePageDelay(page, settleMs);
 }
 
 
@@ -865,7 +883,7 @@ export async function generateImage(prompt: string, options: GenerateOptions = {
 
     if (inputImages.length > 0) {
       // Đợi 2s cho React hydrate xong và cắm event listener vào thẻ input file
-      await page.waitForTimeout(2_000);
+      await safePageDelay(page, 2_000);
       console.log(`[2.5/5] Đang nạp ${inputImages.length} ảnh tham chiếu vào DOM...`);
       await attachImagesToChatGPT(page, inputImages);
     }
@@ -916,7 +934,7 @@ export async function generateImage(prompt: string, options: GenerateOptions = {
     detectedConversationId = null;
 
     // Gửi prompt: Luôn luôn đợi nút Send chuyển sang trạng thái ENABLED cho MỌI request (cả text-only lẫn image)
-    await page.waitForTimeout(400);
+    await safePageDelay(page, 400);
     const sendBtn = page.locator(SELECTORS.sendButton).first();
     const sendTimeout = inputImages.length > 0 ? 20_000 : 10_000;
     try {
@@ -948,7 +966,7 @@ export async function generateImage(prompt: string, options: GenerateOptions = {
     }
 
     // Đợi 1500ms cho ChatGPT nhận lệnh và bắt đầu streaming
-    await page.waitForTimeout(1500);
+    await safePageDelay(page, 1500);
 
     // Đợi nút Stop xuất hiện biểu thị ChatGPT đã bắt đầu xử lý request
     await page.locator(SELECTORS.stopButton).first().waitFor({ state: "visible", timeout: 15_000 }).catch(() => {});
@@ -1001,10 +1019,10 @@ export async function generateImage(prompt: string, options: GenerateOptions = {
         consecutiveObservationFaults = 0;
       } catch (evalErr: any) {
         consecutiveObservationFaults++;
-        if (consecutiveObservationFaults > 5) {
+        if ((typeof page.isClosed === "function" && page.isClosed()) || consecutiveObservationFaults > 5) {
           throw evalErr;
         }
-        await page.waitForTimeout(600);
+        await delay(600);
         continue;
       }
 
@@ -1070,7 +1088,7 @@ export async function generateImage(prompt: string, options: GenerateOptions = {
       if (turnEval.isComplete) {
         success = true;
         // Đợi 500ms cho các thẻ DOM render hoàn tất
-        await page.waitForTimeout(500);
+        await safePageDelay(page, 500);
         break;
       }
 
@@ -1108,7 +1126,7 @@ export async function generateImage(prompt: string, options: GenerateOptions = {
             `⚠️ [Bridge] Hết thời gian chờ bất động (${idleTimeoutMs / 1000}s) nhưng đã tạo được ${newImages.length} ảnh mới. Trả về ảnh đã có cho client thay vì huỷ toàn bộ.`
           );
           success = true;
-          await page.waitForTimeout(1000);
+          await safePageDelay(page, 1000);
           break;
         }
         if (!snapshotCaptured) {
@@ -1120,7 +1138,7 @@ export async function generateImage(prompt: string, options: GenerateOptions = {
         );
       }
 
-      await page.waitForTimeout(400);
+      await delay(400);
     }
 
     if (!success) {

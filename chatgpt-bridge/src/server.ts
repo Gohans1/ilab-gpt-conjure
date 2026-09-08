@@ -537,16 +537,22 @@ export async function handleRequest(req: Request): Promise<Response> {
 
     let preferredBrowser: "chrome" | "edge" | undefined;
     try {
+      const url = new URL(req.url);
+      let browserParam = url.searchParams.get("browser") || "";
       const contentType = req.headers.get("content-type") || "";
       if (contentType.includes("application/json")) {
         const body = (await req.json().catch(() => ({}))) as any;
-        if (body && typeof body.browser === "string") {
-          const raw = body.browser.trim().toLowerCase().replace(/\.exe$/, "");
-          if (raw === "edge" || raw === "msedge") {
-            preferredBrowser = "edge";
-          } else if (raw === "chrome" || raw === "google-chrome" || raw === "chromium") {
-            preferredBrowser = "chrome";
-          }
+        const rawBrowser = body?.browser ?? body?.browser_type;
+        if (typeof rawBrowser === "string") {
+          browserParam = rawBrowser;
+        }
+      }
+      if (browserParam) {
+        const clean = browserParam.trim().toLowerCase().replace(/\.exe$/, "").replace(/[\s\-_]+/g, "");
+        if (clean === "edge" || clean === "msedge" || clean === "microsoftedge") {
+          preferredBrowser = "edge";
+        } else if (clean === "chrome" || clean === "googlechrome" || clean === "chromium") {
+          preferredBrowser = "chrome";
         }
       }
     } catch {}

@@ -53,6 +53,11 @@ export function unregisterActiveBrowserPid(pid: number): void {
 
 export function killProcessTree(pid: number): void {
   if (!Number.isInteger(pid) || pid <= 0 || pid === process.pid) return;
+  try {
+    process.kill(pid, 0);
+  } catch {
+    return;
+  }
   if (process.platform === "win32") {
     try {
       const systemRoot = process.env.SystemRoot || process.env.SYSTEMROOT || "C:\\Windows";
@@ -99,9 +104,14 @@ export function killOrphanBrowsers(profileDir?: string, force = false): void {
       const normalized = profileDir ? profileDir.replace(/[/\\]+/g, "\\").replace(/'/g, "''") : "";
       const script = `
 $pattern = if ('${normalized}') { [regex]::Escape('${normalized}') } else { '--chatgpt-bridge-instance' };
-Get-CimInstance Win32_Process -Filter "Name = 'chrome.exe' or Name = 'msedge.exe'" |
+Get-CimInstance Win32_Process -Filter "Name = 'chrome.exe' or Name = 'msedge.exe' or Name = 'chromium.exe'" |
   Where-Object { $_.CommandLine -and ($_.CommandLine -match $pattern) } |
-  ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
+  ForEach-Object {
+    & "taskkill.exe" /PID $_.ProcessId /T /F 2>$null
+    if ($LASTEXITCODE -ne 0) {
+      Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue
+    }
+  }
 `.trim();
       const b64 = Buffer.from(script, "utf16le").toString("base64");
       spawnSync(powershell, ["-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-EncodedCommand", b64], {
@@ -132,7 +142,7 @@ export async function findBrowserPidsByTagAsync(tag: string): Promise<number[]> 
       const systemRoot = process.env.SystemRoot || process.env.SYSTEMROOT || "C:\\Windows";
       const powershell = join(systemRoot, "System32", "WindowsPowerShell", "v1.0", "powershell.exe");
       const safeTag = tag.replace(/[/\\]+/g, "\\").replace(/'/g, "''");
-      const script = `Get-CimInstance Win32_Process -Filter "Name = 'chrome.exe' or Name = 'msedge.exe'" | Where-Object { $_.CommandLine -and $_.CommandLine -match [regex]::Escape('${safeTag}') } | Select-Object -ExpandProperty ProcessId`;
+      const script = `Get-CimInstance Win32_Process -Filter "Name = 'chrome.exe' or Name = 'msedge.exe' or Name = 'chromium.exe'" | Where-Object { $_.CommandLine -and $_.CommandLine -match [regex]::Escape('${safeTag}') } | Select-Object -ExpandProperty ProcessId`;
       const b64 = Buffer.from(script, "utf16le").toString("base64");
       const child = spawn(powershell, ["-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-EncodedCommand", b64], {
         stdio: ["ignore", "pipe", "ignore"],
@@ -176,7 +186,7 @@ export async function killOrphanBrowsersByTagAsync(tag: string): Promise<void> {
         const safeTag = tag.replace(/[/\\]+/g, "\\").replace(/'/g, "''");
         const script = `
 $escapedTag = [regex]::Escape('${safeTag}');
-Get-CimInstance Win32_Process -Filter "Name = 'chrome.exe' or Name = 'msedge.exe'" |
+Get-CimInstance Win32_Process -Filter "Name = 'chrome.exe' or Name = 'msedge.exe' or Name = 'chromium.exe'" |
   Where-Object { $_.CommandLine -and $_.CommandLine -match $escapedTag } |
   ForEach-Object {
     & "taskkill.exe" /PID $_.ProcessId /T /F 2>$null
@@ -234,7 +244,7 @@ export function closeBrowserGracefully(profileDir?: string, pid?: number): void 
         const normalized = profileDir.replace(/[/\\]+/g, "\\").replace(/'/g, "''");
         parts.push(`
 $pattern = [regex]::Escape('${normalized}');
-Get-CimInstance Win32_Process -Filter "Name = 'chrome.exe' or Name = 'msedge.exe'" |
+Get-CimInstance Win32_Process -Filter "Name = 'chrome.exe' or Name = 'msedge.exe' or Name = 'chromium.exe'" |
   Where-Object { $_.CommandLine -and ($_.CommandLine -match $pattern) } |
   ForEach-Object {
     $p = Get-Process -Id $_.ProcessId -ErrorAction SilentlyContinue
@@ -257,6 +267,9 @@ Get-CimInstance Win32_Process -Filter "Name = 'chrome.exe' or Name = 'msedge.exe
           proc.kill();
         } catch {}
       }, 4000);
+      if (typeof watchdog.unref === "function") {
+        watchdog.unref();
+      }
       proc.once("exit", () => clearTimeout(watchdog));
       proc.once("error", () => clearTimeout(watchdog));
     } catch {}
@@ -316,7 +329,7 @@ export async function isBrowserProfileInUseAsync(profileDir: string, altProfileD
       const patterns = checkDirs.map((d) => d.replace(/[/\\]+/g, "\\").replace(/'/g, "''"));
       const script = `
 $patterns = @(${patterns.map((p) => `'${p}'`).join(",")});
-$found = Get-CimInstance Win32_Process -Filter "Name = 'chrome.exe' or Name = 'msedge.exe'" |
+$found = Get-CimInstance Win32_Process -Filter "Name = 'chrome.exe' or Name = 'msedge.exe' or Name = 'chromium.exe'" |
   Where-Object {
     if (!$_.CommandLine) { return $false }
     foreach ($p in $patterns) {
@@ -383,7 +396,7 @@ if ($found) { exit 0 } else { exit 1 }
 
 export async function getBrowserSession(options: BrowserOptions = {}): Promise<BrowserSession> {
   const { primary, fallback, selectedBrowser, actualBrowser, fallbackUsed } = findBrowserCandidates(options.browser);
-  const executablePath = primary[0] || fallback[0];
+  let executablePath = primary[0] || fallback[0];
   if (!executablePath) {
     throw new Error(
       options.browser
@@ -407,19 +420,46 @@ export async function getBrowserSession(options: BrowserOptions = {}): Promise<B
     cleanupActiveBrowsers();
   }
 
-  const browser = await chromium.launch({
-    executablePath,
-    headless,
-    ignoreDefaultArgs: ["--enable-automation", "--password-store=basic", "--use-mock-keychain"],
-    args: [
-      instanceTag,
-      "--chatgpt-bridge-instance",
-      "--disable-blink-features=AutomationControlled",
-      "--disable-background-mode",
-      "--no-first-run",
-      "--no-default-browser-check",
-    ],
-  });
+  const launchArgs = [
+    instanceTag,
+    "--chatgpt-bridge-instance",
+    "--disable-blink-features=AutomationControlled",
+    "--disable-background-mode",
+    "--no-first-run",
+    "--no-default-browser-check",
+    "--disable-features=AutoDeElevate,ProfilePickerOnStartup",
+    "--do-not-de-elevate",
+    "--disable-renderer-backgrounding",
+    "--disable-backgrounding-occluded-windows",
+    "--disable-dev-shm-usage",
+  ];
+  const ignoreDefaultArgs = ["--password-store=basic", "--use-mock-keychain"];
+
+  let browser: any;
+  try {
+    browser = await chromium.launch({
+      executablePath,
+      headless,
+      ignoreDefaultArgs,
+      args: launchArgs,
+    });
+  } catch (launchErr: any) {
+    if (!fallbackUsed && fallback[0] && fallback[0] !== executablePath) {
+      const fallbackTarget = actualBrowser === selectedBrowser ? (selectedBrowser === "edge" ? "chrome" : "edge") : actualBrowser;
+      console.warn(
+        `⚠️ [Browser Launch Retry] Khởi động trình duyệt '${selectedBrowser.toUpperCase()}' thất bại (${launchErr?.message || launchErr}). Đang thử fallback sang '${fallbackTarget.toUpperCase()}' (${fallback[0]})...`
+      );
+      executablePath = fallback[0];
+      browser = await chromium.launch({
+        executablePath,
+        headless,
+        ignoreDefaultArgs,
+        args: launchArgs,
+      });
+    } else {
+      throw launchErr;
+    }
+  }
 
   let isSessionClosed = false;
   let cleanupDone = false;

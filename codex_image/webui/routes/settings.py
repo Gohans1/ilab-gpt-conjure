@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import time
 from typing import Any
 
 import httpx
@@ -313,20 +314,34 @@ def register_settings_routes(app: FastAPI, ctx: WebUIContext) -> None:
             h["wake_queue_worker"]()
         return {"settings": ctx.api_settings.public_settings()}
 
+    _last_bridge_ok_time: float = 0.0
+    _last_bridge_data: dict[str, Any] = {}
+
     @app.get("/api/bridge/status")
     async def get_bridge_status() -> dict[str, Any]:
+        nonlocal _last_bridge_ok_time, _last_bridge_data
         bridge_url = "http://127.0.0.1:3000/auth/status"
         try:
             async with httpx.AsyncClient(timeout=5.0) as client:
                 resp = await client.get(bridge_url)
                 if resp.status_code == 200:
                     data = resp.json()
-                    return {
+                    status_payload = {
                         "running": True,
                         "logged_in": bool(data.get("logged_in")),
                         "is_logging_in": bool(data.get("is_logging_in")),
                         "available_browsers": data.get("available_browsers", {}),
                     }
+                    _last_bridge_ok_time = time.monotonic()
+                    _last_bridge_data = status_payload
+                    return status_payload
+                elif resp.status_code >= 500:
+                    _last_bridge_ok_time = 0.0
+                    return {"running": False, "logged_in": False, "is_logging_in": False, "available_browsers": {}}
+        except (httpx.ConnectTimeout, httpx.ReadTimeout, httpx.WriteTimeout, httpx.PoolTimeout):
+            # Nếu timeout thoáng qua do Bridge đang bận xử lý ảnh và vừa phản hồi trong 15s qua -> dùng cache
+            if _last_bridge_ok_time > 0 and (time.monotonic() - _last_bridge_ok_time < 15.0):
+                return _last_bridge_data
         except Exception:
             pass
         return {"running": False, "logged_in": False, "is_logging_in": False, "available_browsers": {}}
@@ -335,7 +350,7 @@ def register_settings_routes(app: FastAPI, ctx: WebUIContext) -> None:
     async def trigger_bridge_login(payload: dict[str, Any] | None = None) -> dict[str, Any]:
         bridge_url = "http://127.0.0.1:3000/auth/login"
         try:
-            async with httpx.AsyncClient(timeout=300.0) as client:
+            async with httpx.AsyncClient(timeout=315.0) as client:
                 resp = await client.post(bridge_url, json=payload or {})
                 return resp.json()
         except httpx.ConnectError:

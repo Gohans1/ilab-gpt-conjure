@@ -192,7 +192,7 @@ export function bindFormControlEvents(): void {
 
   els.chatgptBrowserGroup?.addEventListener("click", (event: MouseEvent) => {
     const button = (event.target as HTMLElement).closest<HTMLButtonElement>(".radio-btn");
-    if (!button) return;
+    if (!button || button.disabled || button.classList.contains("disabled")) return;
     const browser = button.getAttribute("data-browser") === "edge" ? "edge" : "chrome";
     persistChatGPTBrowserState(browser);
     updateRequestPreview();

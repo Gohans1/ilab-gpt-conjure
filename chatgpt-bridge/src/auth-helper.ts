@@ -1,5 +1,5 @@
 import { spawn } from "node:child_process";
-import { chmodSync, existsSync, mkdirSync, mkdtempSync, readdirSync, rmSync } from "node:fs";
+import { chmodSync, existsSync, mkdirSync, mkdtempSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { chromium, type BrowserContext, type Page } from "playwright-core";
@@ -417,6 +417,35 @@ export async function handleLogin(
     );
   }
 
+  const candidatesToTry: { path: string; browser: "edge" | "chrome"; isFallback: boolean }[] = [];
+  if (fallbackUsed) {
+    if (fallback[0]) {
+      candidatesToTry.push({
+        path: fallback[0],
+        browser: actualBrowser,
+        isFallback: true,
+      });
+    }
+  } else {
+    if (primary[0]) {
+      candidatesToTry.push({
+        path: primary[0],
+        browser: selectedBrowser,
+        isFallback: false,
+      });
+    }
+    if (fallback[0] && fallback[0] !== primary[0]) {
+      const fallbackTarget = (actualBrowser === selectedBrowser
+        ? selectedBrowser === "edge" ? "chrome" : "edge"
+        : actualBrowser) as "edge" | "chrome";
+      candidatesToTry.push({
+        path: fallback[0],
+        browser: fallbackTarget,
+        isFallback: true,
+      });
+    }
+  }
+
   // Khởi tạo profile tạm trong thư mục data của repo thay vì C:\Users\...\AppData\Local\Temp
   // Điều này tránh hoàn toàn các lỗi Chromium khi đường dẫn username chứa dấu cách (spaces).
   const loginProfilesBase = join(dirname(USER_DATA_DIR), "login-profiles");
@@ -434,8 +463,11 @@ export async function handleLogin(
   let loginBrowser: any = null;
   let activeBrowserPid: number | null = null;
   const offlineTrackedPids = new Set<number>();
+  let isOfflineExtractionClosed = false;
   let context: any = null;
   let continuationRequested = false;
+  let activeCandidate = candidatesToTry[0];
+  let failedOnEarlyExit = false;
 
   const continuationPromise = new Promise<void>((resolveContinuation) => {
     activeLoginContinuation = () => {
@@ -452,117 +484,213 @@ export async function handleLogin(
       join(tempProfileDir, "Default", "Preferences"),
       JSON.stringify({ session: { restore_on_startup: 1 } })
     );
-    console.log(`🔑 [Login Mode] Đang mở trình duyệt ${browserDisplayName} nguyên bản để bạn đăng nhập ChatGPT...`);
-    console.log(`👉 Đường dẫn đăng nhập: ${CHATGPT_LOGIN_URL}`);
-    console.log("👉 Vui lòng đăng nhập tài khoản ChatGPT của bạn trên cửa sổ này.");
-    console.log("💡 Sau khi đăng nhập xong và thấy giao diện ChatGPT, hãy ĐÓNG CỬA SỔ TRÌNH DUYỆT hoặc bấm [Hoàn tất đăng nhập] trên WebUI.");
 
-    // 1. Mở Chrome/Edge THUẦN CHỦNG (100% người thật, KHÔNG cờ automation, KHÔNG cổng debug)
-    const browserArgs = [
-      instanceTag,
-      "--chatgpt-bridge-instance",
-      `--user-data-dir=${safeProfileDir}`,
-      "--new-window",
-      "--no-first-run",
-      "--no-default-browser-check",
-      "--disable-background-mode",
-      "--disable-sync",
-      "--restore-last-session",
-      "--disable-features=AutoDeElevate,ProfilePickerOnStartup",
-      "--do-not-de-elevate",
-      "--start-maximized",
-      CHATGPT_LOGIN_URL,
-    ];
+    for (let candidateIdx = 0; candidateIdx < candidatesToTry.length; candidateIdx++) {
+      const candidate = candidatesToTry[candidateIdx];
+      activeCandidate = candidate;
+      const currentDisplayName = candidate.browser === "edge" ? "Microsoft Edge" : "Google Chrome";
 
-    loginBrowser = spawn(executablePath, browserArgs, {
-      stdio: "ignore",
-      windowsHide: false,
-    });
+      if (candidate.isFallback) {
+        console.warn(
+          `⚠️ [Browser Fallback] Sử dụng '${candidate.browser.toUpperCase()}' (${candidate.path}) để đăng nhập...`
+        );
+      }
 
-    if (loginBrowser?.pid) {
-      activeBrowserPid = loginBrowser.pid;
-      registerActiveBrowserPid(loginBrowser.pid);
-    }
+      console.log(`🔑 [Login Mode] Đang mở trình duyệt ${currentDisplayName} nguyên bản để bạn đăng nhập ChatGPT...`);
+      console.log(`👉 Đường dẫn đăng nhập: ${CHATGPT_LOGIN_URL}`);
+      console.log("👉 Vui lòng đăng nhập tài khoản ChatGPT của bạn trên cửa sổ này.");
+      console.log("💡 Sau khi đăng nhập xong và thấy giao diện ChatGPT, hãy ĐÓNG CỬA SỔ TRÌNH DUYỆT hoặc bấm [Hoàn tất đăng nhập] trên WebUI.");
 
-    const startTime = Date.now();
-    let timer: ReturnType<typeof setTimeout> | undefined;
+      // 1. Mở Chrome/Edge THUẦN CHỦNG (100% người thật, KHÔNG cờ automation, KHÔNG cổng debug)
+      const browserArgs = [
+        instanceTag,
+        "--chatgpt-bridge-instance",
+        `--user-data-dir=${safeProfileDir}`,
+        "--new-window",
+        "--no-first-run",
+        "--no-default-browser-check",
+        "--disable-background-mode",
+        "--disable-sync",
+        "--restore-last-session",
+        "--disable-features=AutoDeElevate,ProfilePickerOnStartup",
+        "--do-not-de-elevate",
+        "--start-maximized",
+        CHATGPT_LOGIN_URL,
+      ];
 
-    try {
-      await Promise.race([
-        continuationPromise,
-        new Promise<void>((resolveExit, rejectExit) => {
-          timer = setTimeout(() => {
-            try {
+      loginBrowser = spawn(candidate.path, browserArgs, {
+        stdio: "ignore",
+        windowsHide: false,
+      });
+
+      if (loginBrowser?.pid) {
+        activeBrowserPid = loginBrowser.pid;
+        registerActiveBrowserPid(loginBrowser.pid);
+      }
+
+      const startTime = Date.now();
+      let timer: ReturnType<typeof setTimeout> | undefined;
+
+      try {
+        await Promise.race([
+          continuationPromise,
+          new Promise<void>((resolveExit, rejectExit) => {
+            timer = setTimeout(() => {
+              try {
+                if (activeBrowserPid) {
+                  killProcessTree(activeBrowserPid);
+                }
+              } catch {}
+              rejectExit(new Error("Quá thời gian chờ đăng nhập ChatGPT (5 phút). Đã tự động đóng trình duyệt."));
+            }, timeoutMs);
+
+            loginBrowser.once("error", (err: any) => {
+              if (timer) clearTimeout(timer);
+              rejectExit(err);
+            });
+
+            loginBrowser.once("exit", (code: any, signal: any) => {
+              if (timer) clearTimeout(timer);
               if (activeBrowserPid) {
-                killProcessTree(activeBrowserPid);
+                unregisterActiveBrowserPid(activeBrowserPid);
+                activeBrowserPid = null;
               }
-            } catch {}
-            rejectExit(new Error("Quá thời gian chờ đăng nhập ChatGPT (5 phút). Đã tự động đóng trình duyệt."));
-          }, timeoutMs);
+              if (continuationRequested) {
+                resolveExit();
+                return;
+              }
+              if (signal) {
+                rejectExit(new Error(`Trình duyệt đăng nhập bị tắt bởi tín hiệu: ${signal}`));
+                return;
+              }
+              resolveExit();
+            });
+          }),
+        ]);
+      } finally {
+        if (timer) clearTimeout(timer);
+      }
 
-          loginBrowser.once("error", (err: any) => {
-            if (timer) clearTimeout(timer);
-            rejectExit(err);
-          });
-
-          loginBrowser.once("exit", (code: any, signal: any) => {
-            if (timer) clearTimeout(timer);
+      failedOnEarlyExit = false;
+      if (!continuationRequested) {
+        let inUse = false;
+        const isEarlyExit = Date.now() - startTime < 4000;
+        const maxAttempts = isEarlyExit ? 15 : 2;
+        for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+          if (await isBrowserProfileInUseAsync(safeProfileDir, tempProfileDir)) {
+            inUse = true;
+            break;
+          }
+          if (attempt < maxAttempts) {
+            await new Promise((r) => setTimeout(r, 600));
+          }
+        }
+        if (!inUse && isEarlyExit) {
+          failedOnEarlyExit = true;
+          if (candidateIdx < candidatesToTry.length - 1) {
+            const nextCandidate = candidatesToTry[candidateIdx + 1];
+            console.warn(
+              `⚠️ [Browser Login Fallback] Trình duyệt '${currentDisplayName}' bị đóng ngay khi vừa bật (hoặc bị chặn bởi tiến trình nền). Tự động thử lại với '${nextCandidate.browser === "edge" ? "Microsoft Edge" : "Google Chrome"}' (${nextCandidate.path})...`
+            );
             if (activeBrowserPid) {
               unregisterActiveBrowserPid(activeBrowserPid);
+              try { killProcessTree(activeBrowserPid); } catch {}
               activeBrowserPid = null;
             }
-            if (continuationRequested) {
-              resolveExit();
-              return;
-            }
-            if (signal) {
-              rejectExit(new Error(`Trình duyệt đăng nhập bị tắt bởi tín hiệu: ${signal}`));
-              return;
-            }
-            resolveExit();
-          });
-        }),
-      ]);
-    } finally {
-      if (timer) clearTimeout(timer);
-    }
-
-    let failedOnEarlyExit = false;
-    if (!continuationRequested) {
-      let inUse = false;
-      const isEarlyExit = Date.now() - startTime < 4000;
-      const maxAttempts = isEarlyExit ? 15 : 2;
-      for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-        if (await isBrowserProfileInUseAsync(safeProfileDir, tempProfileDir)) {
-          inUse = true;
-          break;
+            killOrphanBrowsers(safeProfileDir, true);
+            cleanupStaleLocks(safeProfileDir);
+            try {
+              removeTemporaryChromeTabSessions(safeProfileDir);
+              if (safeProfileDir !== tempProfileDir) {
+                removeTemporaryChromeTabSessions(tempProfileDir);
+              }
+            } catch {}
+            try {
+              const defaultDir = join(safeProfileDir, "Default");
+              mkdirSync(defaultDir, { recursive: true });
+              writeFileSync(join(defaultDir, "Preferences"), JSON.stringify({ session: { restore_on_startup: 1 } }));
+            } catch {}
+            await new Promise((r) => setTimeout(r, 600));
+            continue;
+          }
         }
-        if (attempt < maxAttempts) {
-          await new Promise((r) => setTimeout(r, 600));
-        }
-      }
-      if (!inUse && isEarlyExit) {
-        failedOnEarlyExit = true;
-      }
-      if (inUse) {
-        console.log("ℹ️ Cửa sổ trình duyệt đang mở. Đang chờ bạn đăng nhập hoặc bấm [Hoàn tất đăng nhập]...");
-        const pollDeadline = startTime + timeoutMs;
-        while (Date.now() < pollDeadline && !continuationRequested) {
-          await Promise.race([
-            continuationPromise,
-            new Promise((r) => setTimeout(r, 1500)),
-          ]);
-          if (continuationRequested) break;
-          if (!(await isBrowserProfileInUseAsync(safeProfileDir, tempProfileDir))) {
-            // Kiểm tra xác nhận lần 2 sau 800ms để tránh false-negative khi trang đang chuyển hướng
-            await new Promise((r) => setTimeout(r, 800));
+        if (inUse) {
+          if (instanceTag) {
+            try {
+              const delegatedPids = await findBrowserPidsByTagAsync(instanceTag);
+              for (const pid of delegatedPids) {
+                if (!isOfflineExtractionClosed) {
+                  offlineTrackedPids.add(pid);
+                  registerActiveBrowserPid(pid);
+                }
+              }
+              if (delegatedPids.length > 0 && !activeBrowserPid) {
+                activeBrowserPid = delegatedPids[0];
+              }
+            } catch {}
+          }
+          console.log("ℹ️ Cửa sổ trình duyệt đang mở. Đang chờ bạn đăng nhập hoặc bấm [Hoàn tất đăng nhập]...");
+          let delegatedAttempts = 0;
+          const pollDeadline = startTime + timeoutMs;
+          while (Date.now() < pollDeadline && !continuationRequested) {
+            await Promise.race([
+              continuationPromise,
+              new Promise((r) => setTimeout(r, 1500)),
+            ]);
+            if (continuationRequested) break;
+            if (instanceTag && !activeBrowserPid && delegatedAttempts < 3) {
+              delegatedAttempts++;
+              try {
+                const delegatedPids = await findBrowserPidsByTagAsync(instanceTag);
+                for (const pid of delegatedPids) {
+                  if (!isOfflineExtractionClosed) {
+                    offlineTrackedPids.add(pid);
+                    registerActiveBrowserPid(pid);
+                  }
+                }
+                if (delegatedPids.length > 0) {
+                  activeBrowserPid = delegatedPids[0];
+                }
+              } catch {}
+            }
             if (!(await isBrowserProfileInUseAsync(safeProfileDir, tempProfileDir))) {
-              // Người dùng đã thực sự đóng cửa sổ trình duyệt con
-              break;
+              // Kiểm tra xác nhận lần 2 sau 800ms để tránh false-negative khi trang đang chuyển hướng
+              await new Promise((r) => setTimeout(r, 800));
+              if (!(await isBrowserProfileInUseAsync(safeProfileDir, tempProfileDir))) {
+                // Người dùng đã thực sự đóng cửa sổ trình duyệt con
+                break;
+              }
             }
           }
         }
       }
+
+      break;
+    }
+
+    if (failedOnEarlyExit) {
+      if (activeBrowserPid) {
+        unregisterActiveBrowserPid(activeBrowserPid);
+        try {
+          killProcessTree(activeBrowserPid);
+        } catch {}
+        activeBrowserPid = null;
+      }
+      killOrphanBrowsers(safeProfileDir, true);
+      cleanupStaleLocks(safeProfileDir);
+      if (safeProfileDir !== tempProfileDir && existsSync(tempProfileDir)) {
+        killOrphanBrowsers(tempProfileDir, true);
+        cleanupStaleLocks(tempProfileDir);
+      }
+      const currentDisplayName = activeCandidate.browser === "edge" ? "Microsoft Edge" : "Google Chrome";
+      const available = findBrowserCandidates().availableBrowsers;
+      const otherBrowser = activeCandidate.browser === "edge" ? "chrome" : "edge";
+      const hasOther = available[otherBrowser];
+      const suggestedBrowser = otherBrowser === "chrome" ? "Google Chrome" : "Microsoft Edge";
+      const suggestion = hasOther
+        ? `Hãy thử chuyển Trình duyệt sang '${suggestedBrowser}' trên WebUI hoặc tắt tính năng 'Tiếp tục chạy các ứng dụng nền' trong Cài đặt của trình duyệt.`
+        : `Hãy tắt tính năng 'Tiếp tục chạy các ứng dụng nền' (Startup Boost / Background apps) trong Cài đặt của ${currentDisplayName}, hoặc cài đặt thêm trình duyệt ${suggestedBrowser}.`;
+      throw new Error(`Cửa sổ ${currentDisplayName} đã bị đóng ngay khi vừa bật (hoặc bị chặn bởi tiến trình nền). ${suggestion}`);
     }
 
     console.log("⏳ Đang đồng bộ và lưu phiên đăng nhập...");
@@ -624,7 +752,7 @@ export async function handleLogin(
     for (let attempt = 1; attempt <= 4; attempt++) {
       try {
         context = await chromium.launchPersistentContext(safeProfileDir, {
-          executablePath,
+          executablePath: activeCandidate.path,
           headless: true,
           chromiumSandbox: true,
           offline: true,
@@ -643,10 +771,20 @@ export async function handleLogin(
             "--no-default-browser-check",
             "--restore-last-session",
             "--chatgpt-bridge-instance",
+            "--disable-features=AutoDeElevate,ProfilePickerOnStartup",
+            "--do-not-de-elevate",
           ],
           timeout: 30_000,
         });
         findBrowserPidsByTagAsync(instanceTag).then((pids) => {
+          if (isOfflineExtractionClosed) {
+            for (const pid of pids) {
+              try {
+                killProcessTree(pid);
+              } catch {}
+            }
+            return;
+          }
           for (const pid of pids) {
             offlineTrackedPids.add(pid);
             registerActiveBrowserPid(pid);
@@ -687,9 +825,10 @@ export async function handleLogin(
 
     if (!hasValidToken) {
       if (failedOnEarlyExit) {
-        const suggestedBrowser = actualBrowser === "chrome" ? "Edge" : "Chrome";
+        const currentDisplayName = activeCandidate.browser === "edge" ? "Microsoft Edge" : "Google Chrome";
+        const suggestedBrowser = activeCandidate.browser === "chrome" ? "Edge" : "Chrome";
         throw new Error(
-          `Cửa sổ ${browserDisplayName} đã bị đóng ngay khi vừa bật (hoặc bị chặn bởi tiến trình nền). Hãy thử chuyển Trình duyệt sang '${suggestedBrowser}' trên WebUI hoặc tắt tính năng 'Tiếp tục chạy các ứng dụng nền' trong Cài đặt của trình duyệt.`
+          `Cửa sổ ${currentDisplayName} đã bị đóng ngay khi vừa bật (hoặc bị chặn bởi tiến trình nền). Hãy thử chuyển Trình duyệt sang '${suggestedBrowser}' trên WebUI hoặc tắt tính năng 'Tiếp tục chạy các ứng dụng nền' trong Cài đặt của trình duyệt.`
         );
       }
       throw new Error(
@@ -705,14 +844,15 @@ export async function handleLogin(
 
     return {
       ok: true,
-      actualBrowser,
+      actualBrowser: activeCandidate.browser,
       selectedBrowser,
-      fallbackUsed,
-      message: fallbackUsed
-        ? `Đăng nhập thành công với ${actualBrowser.toUpperCase()} (tự động chuyển từ ${selectedBrowser.toUpperCase()})!`
+      fallbackUsed: activeCandidate.isFallback,
+      message: activeCandidate.isFallback
+        ? `Đăng nhập thành công với ${activeCandidate.browser.toUpperCase()} (tự động chuyển từ ${selectedBrowser.toUpperCase()})!`
         : "Đăng nhập thành công!",
     };
   } finally {
+    isOfflineExtractionClosed = true;
     activeLoginContinuation = null;
     if (activeBrowserPid) {
       unregisterActiveBrowserPid(activeBrowserPid);
@@ -721,16 +861,19 @@ export async function handleLogin(
       } catch {}
       activeBrowserPid = null;
     }
-    for (const pid of offlineTrackedPids) {
-      unregisterActiveBrowserPid(pid);
-    }
-    offlineTrackedPids.clear();
     if (context) {
       await Promise.race([
         context.close().catch(() => {}),
         new Promise((r) => setTimeout(r, 5000)),
       ]);
     }
+    for (const pid of offlineTrackedPids) {
+      try {
+        killProcessTree(pid);
+      } catch {}
+      unregisterActiveBrowserPid(pid);
+    }
+    offlineTrackedPids.clear();
     await killOrphanBrowsersByTagAsync(instanceTag);
     if (isBrowserProfileLockedByFs(safeProfileDir)) {
       killOrphanBrowsers(safeProfileDir, true);

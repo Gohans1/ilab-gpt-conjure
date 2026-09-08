@@ -1765,7 +1765,7 @@
     </div>
 
     <div id="taskNotificationToastRegion" class="task-notification-toast-region" aria-live="polite"></div>
-    <script src="/static/app.js?v=runtime-790"></script>
+    <script src="/static/app.js?v=runtime-791"></script>
     <script>
       (() => {
         document.querySelectorAll(".radio-group").forEach((group) => {
@@ -1782,7 +1782,7 @@
 
           group.addEventListener("click", (event) => {
             const button = event.target.closest(".radio-btn");
-            if (!button) return;
+            if (!button || button.disabled || button.classList.contains("disabled")) return;
             select.value = button.getAttribute("data-val");
             select.dispatchEvent(new Event("input", { bubbles: true }));
             select.dispatchEvent(new Event("change", { bubbles: true }));
@@ -1850,6 +1850,7 @@
 
         let lastBridgeData = null;
         let consecutiveOfflineCount = 0;
+        let lastHealthyBridgeTime = 0;
         let activeFallbackNotice = "";
         let activeFallbackFrom = "";
 
@@ -1881,7 +1882,22 @@
             lastBridgeData = data;
             if (!data.running) {
               consecutiveOfflineCount++;
-              if (consecutiveOfflineCount >= 2) {
+              const queue = window.__codexImageWebUI?.state?.queue;
+              const tasks = window.__codexImageWebUI?.state?.tasks;
+              const hasActiveTasks = Boolean(
+                (queue?.running && queue.running.length > 0) ||
+                (queue?.waiting && queue.waiting.length > 0) ||
+                (Array.isArray(tasks) && tasks.some((t) => t.status === "running" || t.status === "in_progress"))
+              );
+              if (hasActiveTasks) {
+                consecutiveOfflineCount = 0;
+                lastHealthyBridgeTime = Date.now();
+                if (bannerText.innerHTML.includes("Chưa kết nối được cổng 3000")) {
+                  banner.style.display = "none";
+                }
+              }
+              const wasRecentlyHealthy = (Date.now() - lastHealthyBridgeTime) < 30000;
+              if (consecutiveOfflineCount >= 3 && !hasActiveTasks && !wasRecentlyHealthy) {
                 banner.style.display = "flex";
                 banner.className = "bridge-auth-banner";
                 bannerText.innerHTML = "<strong>ChatGPT Bridge:</strong> Chưa kết nối được cổng 3000. Hãy khởi động bằng Start-All.bat.";
@@ -1889,41 +1905,55 @@
                 if (loginDoneBtn) loginDoneBtn.style.display = "none";
               }
             } else {
+              lastHealthyBridgeTime = Date.now();
               consecutiveOfflineCount = 0;
+              const selected = getSelectedBrowser();
+              let fallbackSwitched = false;
+              let fallbackFrom = selected;
+              if (data.available_browsers) {
+                if (data.available_browsers[selected]) {
+                  activeFallbackNotice = "";
+                  activeFallbackFrom = "";
+                } else if (selected === "edge" && !data.available_browsers.edge && data.available_browsers.chrome) {
+                  fallbackSwitched = true;
+                  fallbackFrom = "edge";
+                  activeFallbackNotice = "tự động chuyển vì máy không có Edge";
+                  activeFallbackFrom = "edge";
+                  localStorage.setItem("codex-image-chatgpt-browser", "chrome");
+                  window.__codexImageWebUI?.methods?.persistChatGPTBrowserState?.("chrome");
+                } else if (selected === "chrome" && !data.available_browsers.chrome && data.available_browsers.edge) {
+                  fallbackSwitched = true;
+                  fallbackFrom = "chrome";
+                  activeFallbackNotice = "tự động chuyển vì máy không có Chrome";
+                  activeFallbackFrom = "chrome";
+                  localStorage.setItem("codex-image-chatgpt-browser", "edge");
+                  window.__codexImageWebUI?.methods?.persistChatGPTBrowserState?.("edge");
+                }
+
+                const edgeBtn = document.querySelector('#chatgptBrowserGroup .radio-btn[data-browser="edge"]');
+                const chromeBtn = document.querySelector('#chatgptBrowserGroup .radio-btn[data-browser="chrome"]');
+                if (edgeBtn) {
+                  edgeBtn.disabled = data.available_browsers.edge === false;
+                  edgeBtn.title = data.available_browsers.edge === false ? "Microsoft Edge chưa được cài đặt trên hệ thống" : "";
+                  edgeBtn.classList.toggle("disabled", data.available_browsers.edge === false);
+                }
+                if (chromeBtn) {
+                  chromeBtn.disabled = data.available_browsers.chrome === false;
+                  chromeBtn.title = data.available_browsers.chrome === false ? "Google Chrome chưa được cài đặt trên hệ thống" : "";
+                  chromeBtn.classList.toggle("disabled", data.available_browsers.chrome === false);
+                }
+              }
               if (!data.logged_in) {
                 banner.style.display = "flex";
                 banner.className = "bridge-auth-banner";
                 loginBtn.style.display = "inline-block";
-                const selected = getSelectedBrowser();
-                let fallbackSwitched = false;
-                let fallbackFrom = selected;
-                if (data.available_browsers) {
-                  if (data.available_browsers[selected]) {
-                    activeFallbackNotice = "";
-                    activeFallbackFrom = "";
-                  } else if (selected === "edge" && !data.available_browsers.edge && data.available_browsers.chrome) {
-                    fallbackSwitched = true;
-                    fallbackFrom = "edge";
-                    activeFallbackNotice = "tự động chuyển vì máy không có Edge";
-                    activeFallbackFrom = "edge";
-                    localStorage.setItem("codex-image-chatgpt-browser", "chrome");
-                    window.__codexImageWebUI?.methods?.persistChatGPTBrowserState?.("chrome");
-                  } else if (selected === "chrome" && !data.available_browsers.chrome && data.available_browsers.edge) {
-                    fallbackSwitched = true;
-                    fallbackFrom = "chrome";
-                    activeFallbackNotice = "tự động chuyển vì máy không có Chrome";
-                    activeFallbackFrom = "chrome";
-                    localStorage.setItem("codex-image-chatgpt-browser", "edge");
-                    window.__codexImageWebUI?.methods?.persistChatGPTBrowserState?.("edge");
-                  }
-                }
                 const currentSelected = getSelectedBrowser();
                 let bName = currentSelected === "edge" ? "Microsoft Edge" : "Google Chrome";
                 if (fallbackSwitched || activeFallbackNotice) {
                   const notice = activeFallbackNotice || (fallbackFrom === "edge" ? "tự động chuyển vì máy không có Edge" : "tự động chuyển vì máy không có Chrome");
                   bName += " (" + notice + ")";
                 }
-                if (data.available_browsers && !data.available_browsers.edge && !data.available_browsers.chrome) {
+                if (data.available_browsers && data.available_browsers.edge === false && data.available_browsers.chrome === false) {
                   bannerText.innerHTML = "<strong>ChatGPT Web:</strong> Không tìm thấy Microsoft Edge hoặc Google Chrome trên hệ thống. Vui lòng cài đặt trình duyệt để tiếp tục.";
                   loginBtn.disabled = true;
                   loginBtn.textContent = "❌ Thiếu trình duyệt";
