@@ -138,8 +138,16 @@ export function normalizeBrowserChoice(raw?: string | null): "chrome" | "edge" |
   const prefWithoutExt = raw.trim().toLowerCase().replace(/\.exe$/, "");
   const prefBase = prefWithoutExt.split(/[/\\]/).pop() || prefWithoutExt;
   const clean = prefBase.replace(/[\s\-_]+/g, "");
-  if (clean === "edge" || clean === "msedge" || clean === "microsoftedge") return "edge";
-  if (clean === "chrome" || clean === "googlechrome" || clean === "chromium") return "chrome";
+  if (clean.includes("edge")) return "edge";
+  if (
+    clean.includes("chrome") ||
+    clean.includes("chromium") ||
+    clean.includes("brave") ||
+    clean.includes("opera") ||
+    clean.includes("vivaldi")
+  ) {
+    return "chrome";
+  }
   return undefined;
 }
 
@@ -198,7 +206,10 @@ export function findBrowserCandidates(preferredBrowser?: "chrome" | "edge" | str
     chrome: chromeCandidates.length > 0,
   };
 
-  const explicitChoice = normalizeBrowserChoice(preferredBrowser || process.env.CHATGPT_BROWSER);
+  let explicitChoice = normalizeBrowserChoice(preferredBrowser || process.env.CHATGPT_BROWSER);
+  if (!explicitChoice && preferredBrowser && isExecutableFile(preferredBrowser)) {
+    explicitChoice = "chrome";
+  }
   const isExplicitEdge = explicitChoice === "edge";
   const isExplicitChrome = explicitChoice === "chrome";
 
@@ -207,6 +218,10 @@ export function findBrowserCandidates(preferredBrowser?: "chrome" | "edge" | str
       edgeCandidates.unshift(preferredBrowser);
     } else if (isExplicitChrome && !chromeCandidates.includes(preferredBrowser)) {
       chromeCandidates.unshift(preferredBrowser);
+    } else if (!isExplicitEdge && !isExplicitChrome) {
+      if (!chromeCandidates.includes(preferredBrowser)) {
+        chromeCandidates.unshift(preferredBrowser);
+      }
     }
   }
 

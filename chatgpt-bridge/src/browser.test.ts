@@ -12,9 +12,21 @@ import {
   killOrphanBrowsersByTagAsync,
   killProcessTree,
 } from "./browser.js";
-import { findBrowserCandidates } from "./config.js";
+import { findBrowserCandidates, normalizeBrowserChoice } from "./config.js";
 
 describe("browser helpers", () => {
+  test("normalizeBrowserChoice chuẩn hóa đúng các biến thể Edge, Chrome, Brave, Opera, Canary", () => {
+    expect(normalizeBrowserChoice("msedge")).toBe("edge");
+    expect(normalizeBrowserChoice("MicrosoftEdge.exe")).toBe("edge");
+    expect(normalizeBrowserChoice("edge-canary.exe")).toBe("edge");
+    expect(normalizeBrowserChoice("chrome")).toBe("chrome");
+    expect(normalizeBrowserChoice("Google Chrome.exe")).toBe("chrome");
+    expect(normalizeBrowserChoice("chromium-browser")).toBe("chrome");
+    expect(normalizeBrowserChoice("brave.exe")).toBe("chrome");
+    expect(normalizeBrowserChoice("opera.exe")).toBe("chrome");
+    expect(normalizeBrowserChoice("unknown-browser")).toBeUndefined();
+  });
+
   test("cleanupStaleLocks xóa đúng các file lock rác mà không gây crash", () => {
     const testDir = join(tmpdir(), "test-locks-" + Date.now());
     mkdirSync(testDir, { recursive: true });

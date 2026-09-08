@@ -504,8 +504,11 @@ export async function handleLogin(
       console.log("👉 Vui lòng đăng nhập tài khoản ChatGPT của bạn trên cửa sổ này.");
       console.log("💡 Sau khi đăng nhập xong và thấy giao diện ChatGPT, hãy ĐÓNG CỬA SỔ TRÌNH DUYỆT hoặc bấm [Hoàn tất đăng nhập] trên WebUI.");
 
+      const candidateTag = `${instanceTag}-c${candidateIdx}`;
+
       // 1. Mở Chrome/Edge THUẦN CHỦNG (100% người thật, KHÔNG cờ automation, KHÔNG cổng debug)
       const browserArgs = [
+        candidateTag,
         instanceTag,
         "--chatgpt-bridge-instance",
         `--user-data-dir=${safeProfileDir}`,
@@ -727,42 +730,33 @@ export async function handleLogin(
 
     console.log("⏳ Đang đồng bộ và lưu phiên đăng nhập...");
 
-    if (continuationRequested) {
-      // 1. Gửi tín hiệu đóng êm dịu (WM_CLOSE qua PowerShell trên Windows hoặc SIGTERM)
-      // để Chromium kịp thực hiện SQLite checkpoint từ WAL xuống đĩa
-      closeBrowserGracefully(safeProfileDir, activeBrowserPid ?? undefined);
-      if (safeProfileDir !== tempProfileDir) {
-        closeBrowserGracefully(tempProfileDir);
-      }
-
-      // Chờ Chromium tự đóng êm đẹp và nhả file lock (tối đa 5.0 giây)
-      const gracefulDeadline = Date.now() + 5000;
-      while (Date.now() < gracefulDeadline) {
-        if (!(await isBrowserProfileInUseAsync(safeProfileDir, tempProfileDir))) {
-          break;
-        }
-        await new Promise((r) => setTimeout(r, 300));
-      }
-
-      // 2. Nếu sau 5s vẫn còn tiến trình cứng đầu thì mới cưỡng chế dọn dẹp
-      if (activeBrowserPid) {
-        try {
-          killProcessTree(activeBrowserPid);
-        } catch {}
-      }
-      killOrphanBrowsers(safeProfileDir, true);
-      if (safeProfileDir !== tempProfileDir && existsSync(tempProfileDir)) {
-        killOrphanBrowsers(tempProfileDir, true);
-      }
-      await new Promise((r) => setTimeout(r, 400));
-    } else {
-      // Settle delay 800ms trên Windows để các tiến trình con Crashpad/GPU kịp đóng và nhả file lock
-      await new Promise((r) => setTimeout(r, 800));
-      killOrphanBrowsers(safeProfileDir, true);
-      if (safeProfileDir !== tempProfileDir && existsSync(tempProfileDir)) {
-        killOrphanBrowsers(tempProfileDir, true);
-      }
+    // 1. Gửi tín hiệu đóng êm dịu (WM_CLOSE qua PowerShell trên Windows hoặc SIGTERM)
+    // để Chromium kịp thực hiện SQLite checkpoint từ WAL xuống đĩa
+    closeBrowserGracefully(safeProfileDir, activeBrowserPid ?? undefined);
+    if (safeProfileDir !== tempProfileDir) {
+      closeBrowserGracefully(tempProfileDir);
     }
+
+    // Chờ Chromium tự đóng êm đẹp và nhả file lock (tối đa 5.0s nếu continuationRequested, 1.5s nếu timeout/exit)
+    const gracefulDeadline = Date.now() + (continuationRequested ? 5000 : 1500);
+    while (Date.now() < gracefulDeadline) {
+      if (!(await isBrowserProfileInUseAsync(safeProfileDir, tempProfileDir))) {
+        break;
+      }
+      await new Promise((r) => setTimeout(r, 300));
+    }
+
+    // 2. Cưỡng chế dọn dẹp các tiến trình còn sót lại
+    if (activeBrowserPid) {
+      try {
+        killProcessTree(activeBrowserPid);
+      } catch {}
+    }
+    killOrphanBrowsers(safeProfileDir, true);
+    if (safeProfileDir !== tempProfileDir && existsSync(tempProfileDir)) {
+      killOrphanBrowsers(tempProfileDir, true);
+    }
+    await new Promise((r) => setTimeout(r, 400));
 
     cleanupStaleLocks(safeProfileDir);
     removeTemporaryChromeTabSessions(safeProfileDir);
