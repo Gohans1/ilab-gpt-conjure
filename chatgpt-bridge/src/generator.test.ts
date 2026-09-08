@@ -3,10 +3,12 @@ import {
   attachImagesToChatGPT,
   deleteChatGPTConversation,
   inspectChatGPTPageState,
+  raceWithAbort,
   resolveDeleteChatOption,
   resolveInputImages,
   resolveTimeoutOptions,
   sizeToAspectRatio,
+  validateInputImage,
 } from "./generator.js";
 
 describe("resolveDeleteChatOption", () => {
@@ -116,6 +118,25 @@ describe("deleteChatGPTConversation", () => {
     const result = await deleteChatGPTConversation(mockPage, "test-conv-123", "Bearer test-token");
     expect(result.success).toBe(true);
     expect(result.status).toBe(200);
+  });
+
+  it("gửi kèm chatgpt-account-id header khi có accountId", async () => {
+    const mockPage: any = {
+      evaluate: async (fn: any, args: any) => {
+        expect(args.id).toBe("test-conv-123");
+        expect(args.auth).toBe("Bearer test-token");
+        expect(args.accountId).toBe("acc-xyz-999");
+        return { success: true, status: 200 };
+      },
+    };
+
+    const result = await deleteChatGPTConversation(
+      mockPage,
+      "test-conv-123",
+      "Bearer test-token",
+      "acc-xyz-999"
+    );
+    expect(result.success).toBe(true);
   });
 
   it("trả về lỗi an toàn khi server trả status không ok", async () => {
@@ -397,6 +418,29 @@ describe("inspectChatGPTPageState", () => {
     expect(state.errorMessage).toBeNull();
   });
 
+  it("bỏ qua dialog/modal đã đóng hoặc có aria-hidden / data-state='closed'", () => {
+    const mockDoc = {
+      querySelector: () => null,
+      querySelectorAll: (selector: string) => {
+        if (selector.includes("dialog")) {
+          return [
+            {
+              textContent: "Your session has expired. Please log in again.",
+              getAttribute: (attr: string) => (attr === "data-state" ? "closed" : null),
+              hasAttribute: (attr: string) => attr === "aria-hidden",
+              hidden: true,
+              style: { display: "none" },
+            },
+          ];
+        }
+        return [];
+      },
+    };
+
+    const state = inspectChatGPTPageState(mockDoc);
+    expect(state.errorMessage).toBeNull();
+  });
+
   it("không bị shimmer hoặc spinner ở sidebar làm ô nhiễm isActivelyLoading", () => {
     const lastTurn = {
       textContent: "Đang chờ tải...",
@@ -602,6 +646,61 @@ describe("attachImagesToChatGPT", () => {
 
     await expect(attachImagesToChatGPT(mockPage as any, ["C:/test.png"])).rejects.toThrow(
       "không hiển thị thumbnail"
+    );
+  });
+});
+
+describe("validateInputImage", () => {
+  it("chấp nhận file PNG hợp lệ", () => {
+    const pngPath = "./src/generator.ts"; // not a png, should fail
+    // Create a real temp png file
+    const tmpPng = "./temp_test_image.png";
+    const pngHeader = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 0, 0, 0, 0, 0]);
+    const { writeFileSync, rmSync } = require("node:fs");
+    writeFileSync(tmpPng, pngHeader);
+    try {
+      expect(() => validateInputImage(tmpPng)).not.toThrow();
+    } finally {
+      rmSync(tmpPng, { force: true });
+    }
+  });
+
+  it("ném lỗi khi file không tồn tại", () => {
+    expect(() => validateInputImage("./non_existent_file.png")).toThrow("Không tìm thấy file ảnh tham chiếu");
+  });
+
+  it("ném lỗi khi file không phải ảnh (sai magic bytes)", () => {
+    const tmpText = "./temp_test_text.txt";
+    const { writeFileSync, rmSync } = require("node:fs");
+    writeFileSync(tmpText, "This is not an image file format at all.");
+    try {
+      expect(() => validateInputImage(tmpText)).toThrow("không đúng định dạng hỗ trợ");
+    } finally {
+      rmSync(tmpText, { force: true });
+    }
+  });
+});
+
+describe("raceWithAbort", () => {
+  it("trả về kết quả bình thường khi không có signal", async () => {
+    const res = await raceWithAbort(Promise.resolve("hello"));
+    expect(res).toBe("hello");
+  });
+
+  it("ném lỗi ngay lập tức khi signal đã bị abort từ trước", async () => {
+    const controller = new AbortController();
+    controller.abort();
+    await expect(raceWithAbort(Promise.resolve("hello"), controller.signal)).rejects.toThrow(
+      "Quá trình sinh ảnh đã bị hủy bởi client"
+    );
+  });
+
+  it("hủy promise khi signal được kích hoạt giữa chừng", async () => {
+    const controller = new AbortController();
+    const hangingPromise = new Promise((resolve) => setTimeout(() => resolve("late"), 1000));
+    setTimeout(() => controller.abort(), 10);
+    await expect(raceWithAbort(hangingPromise, controller.signal)).rejects.toThrow(
+      "Quá trình sinh ảnh đã bị hủy bởi client"
     );
   });
 });

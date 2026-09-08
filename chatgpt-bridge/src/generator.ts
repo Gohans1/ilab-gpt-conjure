@@ -1,9 +1,12 @@
-import { existsSync } from "node:fs";
-import { CHATGPT_URL, SELECTORS } from "./config.js";
+import { closeSync, existsSync, openSync, readSync, statSync } from "node:fs";
+import type { Page } from "playwright-core";
+import { CHATGPT_URL, SELECTORS, detectImageExtension } from "./config.js";
 import { getBrowserSession, type BrowserOptions, type BrowserSession } from "./browser.js";
 import { extractAndSaveImages, type DownloadResult } from "./downloader.js";
 import {
+  allowedAuthUrl,
   checkIsLoggedIn,
+  dismissChatGptModalsAndOnboarding,
   dismissCookieBannerIfPresent,
   saveSanitizedStorageState,
   throwIfChatGptRateLimitDialog,
@@ -11,7 +14,50 @@ import {
 } from "./auth-helper.js";
 import { clearSessionVerified, isSessionCached } from "./check-session.js";
 
-import type { Page } from "playwright-core";
+export async function raceWithAbort<T>(promise: Promise<T>, signal?: AbortSignal): Promise<T> {
+  if (!signal) return promise;
+  if (signal.aborted) {
+    throw new Error("Quá trình sinh ảnh đã bị hủy bởi client (Client aborted request)");
+  }
+  return Promise.race([
+    promise,
+    new Promise<never>((_, reject) => {
+      signal.addEventListener(
+        "abort",
+        () => reject(new Error("Quá trình sinh ảnh đã bị hủy bởi client (Client aborted request)")),
+        { once: true }
+      );
+    }),
+  ]);
+}
+
+export function validateInputImage(filePath: string): void {
+  if (!existsSync(filePath)) {
+    throw new Error(`Không tìm thấy file ảnh tham chiếu: ${filePath}`);
+  }
+  const stat = statSync(filePath);
+  if (!stat.isFile()) {
+    throw new Error(`Đường dẫn ảnh tham chiếu không phải là file: ${filePath}`);
+  }
+  const MAX_IMAGE_SIZE = 20 * 1024 * 1024; // 20MB
+  if (stat.size > MAX_IMAGE_SIZE) {
+    throw new Error(`File ảnh tham chiếu vượt quá kích thước cho phép (tối đa 20MB): ${filePath}`);
+  }
+  if (stat.size < 12) {
+    throw new Error(`File ảnh tham chiếu không hợp lệ hoặc quá nhỏ: ${filePath}`);
+  }
+  const fd = openSync(filePath, "r");
+  const buf = Buffer.alloc(16);
+  try {
+    readSync(fd, buf, 0, 16, 0);
+  } finally {
+    closeSync(fd);
+  }
+  const ext = detectImageExtension(buf);
+  if (!ext) {
+    throw new Error(`File ảnh tham chiếu không đúng định dạng hỗ trợ (PNG, JPG, WEBP, GIF): ${filePath}`);
+  }
+}
 
 export interface GenerateOptions extends BrowserOptions {
   outputPath?: string;
@@ -117,7 +163,7 @@ export async function attachImagesToChatGPT(
   }
 
   // 3. Đợi thumbnail xuất hiện
-  const thumbnail = page.locator(SELECTORS.attachmentThumbnail).first();
+  const thumbnail = page.locator(`form ${SELECTORS.attachmentThumbnail}, ${SELECTORS.attachmentThumbnail}`).first();
   const hasThumb = await thumbnail.waitFor({ state: "attached", timeout: 20_000 }).then(() => true).catch(() => false);
   if (!hasThumb) {
     throw new Error("Giao diện ChatGPT không hiển thị thumbnail ảnh đính kèm sau khi nạp file.");
@@ -212,14 +258,29 @@ export interface ChatGPTPageState {
   isOnline: boolean;
   errorMessage: string | null;
   hasRegenerateBtn: boolean;
+  isGenerating?: boolean;
+  currentImages?: string[];
 }
 
 export function inspectChatGPTPageState(
-  doc?: any,
-  nav?: any
-): ChatGPTPageState {
-  const d = doc || (typeof document !== "undefined" ? document : null);
-  const n = nav || (typeof navigator !== "undefined" ? navigator : null);
+  docOrSelector?: any,
+  navOrDoc?: any,
+  imageSelector?: string
+): ChatGPTPageState & { currentImages?: string[] } {
+  let d: any;
+  let n: any;
+  let selector: string | undefined;
+
+  if (typeof docOrSelector === "string") {
+    selector = docOrSelector;
+    d = typeof document !== "undefined" ? document : null;
+    n = typeof navigator !== "undefined" ? navigator : null;
+  } else {
+    d = docOrSelector || (typeof document !== "undefined" ? document : null);
+    n = navOrDoc || (typeof navigator !== "undefined" ? navigator : null);
+    selector = imageSelector;
+  }
+
   if (!d) {
     return {
       isActivelyLoading: false,
@@ -228,6 +289,8 @@ export function inspectChatGPTPageState(
       isOnline: true,
       errorMessage: null,
       hasRegenerateBtn: false,
+      isGenerating: false,
+      currentImages: [],
     };
   }
 
@@ -235,7 +298,7 @@ export function inspectChatGPTPageState(
 
   // Chỉ truy vấn đúng vai trò của assistant, loại bỏ .markdown tự do để tránh tóm nhầm tin nhắn của user
   const nodes = Array.from(
-    d.querySelectorAll('[data-message-author-role="assistant"]')
+    d.querySelectorAll?.('[data-message-author-role="assistant"]') || []
   );
   const last: any = nodes.length > 0 ? nodes[nodes.length - 1] : null;
   const text = (last?.textContent || "").trim();
@@ -260,17 +323,30 @@ export function inspectChatGPTPageState(
   // 2. Kiểm tra xem lượt chat cuối có widget / container ảnh hay không (đồng bộ đầy đủ với CDN và định dạng ảnh của ChatGPT)
   const hasImageWidget = lastTurn
     ? lastTurn.querySelector?.(
-        'div[data-testid*="image"], div[data-testid*="dalle"], div[class*="image-generation"], img[src*="estuary"], img[src*="files.oaiusercontent.com"], img[alt*="Generated image"], img[src*="oaidalleapiprodscus"], canvas'
+        'div[data-testid*="image"], div[data-testid*="dalle"], div[class*="image-generation"], img[src*="estuary"], img[src*="files.oaiusercontent.com"], img[alt*="Generated image"], img[src*="oaidallea"], canvas'
       ) !== null
     : false;
 
   // 3. Tìm banner / thông báo lỗi đỏ từ ChatGPT
   let errorMessage: string | null = null;
 
-  // 3.1 Kiểm tra modal / alert dialog toàn cục (ví dụ: Session expired, Quota, Rate limit)
-  const modalDialog = d.querySelector?.('[role="dialog"], [role="alertdialog"]');
-  if (modalDialog) {
-    const modalText = ((modalDialog as any).textContent || "").trim();
+  // 3.1 Kiểm tra modal / alert dialog toàn cục (chỉ bắt dialog đang mở/hiển thị, không bắt dialog ẩn/đóng)
+  const modalDialogs = Array.from(
+    d.querySelectorAll?.(
+      '[role="dialog"]:not([aria-hidden="true"]):not([data-state="closed"]), [role="alertdialog"]:not([aria-hidden="true"]):not([data-state="closed"])'
+    ) || []
+  ) as HTMLElement[];
+  const activeDialog = modalDialogs.find((dialog) => {
+    if ((dialog as any).hidden) return false;
+    if (typeof (dialog as any).checkVisibility === "function") {
+      return (dialog as any).checkVisibility();
+    }
+    const style = (dialog as any).style;
+    if (style && (style.display === "none" || style.visibility === "hidden")) return false;
+    return true;
+  });
+  if (activeDialog) {
+    const modalText = ((activeDialog as any).textContent || "").trim();
     if (
       /session has expired|your session has expired|工作階段已過期|会话已过期|phiên đăng nhập đã hết hạn/i.test(
         modalText
@@ -284,13 +360,23 @@ export function inspectChatGPTPageState(
     }
   }
 
-  // 3.2 Tìm banner lỗi trong turn hiện tại (giới hạn trong turn hiện tại để không bắt nhầm lỗi cũ)
+  // 3.2 Tìm banner lỗi trong turn hiện tại hoặc composer (giới hạn để không bắt nhầm lỗi từ các turn cũ)
   if (!errorMessage) {
     const errorScope = lastTurn || mainChat || d;
-    const errorNodes = Array.from(
+    const candidateNodes: Element[] = Array.from(
       errorScope.querySelectorAll?.('[role="alert"], [class*="error"], [class*="danger"], .text-red-500') || []
     );
-    for (const el of errorNodes) {
+    if (lastTurn && mainChat) {
+      const composerArea = d.querySelector?.('form, [data-testid="composer"]');
+      if (composerArea && composerArea !== errorScope) {
+        candidateNodes.push(
+          ...Array.from(
+            composerArea.querySelectorAll?.('[role="alert"], [class*="error"], [class*="danger"], .text-red-500') || []
+          )
+        );
+      }
+    }
+    for (const el of candidateNodes) {
       const t = ((el as any).textContent || "").trim();
       if (
         t.includes("Something went wrong") ||
@@ -329,7 +415,20 @@ export function inspectChatGPTPageState(
       })
     : false;
 
-  return { isActivelyLoading, hasImageWidget, text, isOnline, errorMessage, hasRegenerateBtn };
+  const isGenerating =
+    mainChat.querySelector?.(
+      'form [aria-label*="Stop"], form [data-testid="stop-button"], [data-testid="stop-button"]'
+    ) !== null;
+
+  let currentImages: string[] = [];
+  if (selector) {
+    currentImages = Array.from(d.querySelectorAll(selector))
+      .filter((img: any) => !img.closest?.('[data-message-author-role="user"]') && !img.closest?.("form"))
+      .map((img: any) => img.src || img.getAttribute?.("src") || "")
+      .filter((src: string) => src.startsWith("http") || src.startsWith("blob:") || src.startsWith("data:"));
+  }
+
+  return { isActivelyLoading, hasImageWidget, text, isOnline, errorMessage, hasRegenerateBtn, isGenerating, currentImages };
 }
 
 export async function generateImage(prompt: string, options: GenerateOptions = {}): Promise<DownloadResult[]> {
@@ -345,17 +444,23 @@ export async function generateImage(prompt: string, options: GenerateOptions = {
 
   const inputImages = resolveInputImages(options.inputImages);
   for (const imgPath of inputImages) {
-    if (!existsSync(imgPath)) {
-      throw new Error(`Không tìm thấy file ảnh tham chiếu: ${imgPath}`);
-    }
+    validateInputImage(imgPath);
   }
 
+  const shouldDeleteChat = resolveDeleteChatOption(options.deleteChatAfterGen);
   const session: BrowserSession = await getBrowserSession({
     headless: options.headless,
   });
 
+  let abortedByClient = false;
   const abortHandler = () => {
-    session.close().catch(() => {});
+    abortedByClient = true;
+    // Thử click nút Stop nếu ChatGPT đang sinh dở để dừng tiến trình phía server OpenAI
+    session.page
+      .locator('button[aria-label*="Stop"], button[data-testid="stop-button"]')
+      .first()
+      .click()
+      .catch(() => {});
   };
   if (options.signal) {
     options.signal.addEventListener("abort", abortHandler, { once: true });
@@ -364,7 +469,48 @@ export async function generateImage(prompt: string, options: GenerateOptions = {
   try {
     const page = session.page;
     let capturedAuthHeader: string | null = null;
+    let capturedAccountId: string | null = null;
     let detectedConversationId: string | null = null;
+    let sessionRedirectError: string | null = null;
+    let initialUrl = "";
+
+    const cleanupConversation = async () => {
+      if (!shouldDeleteChat) return;
+      if (page.isClosed()) return;
+      try {
+        let targetConvId = detectedConversationId;
+        if (!targetConvId) {
+          const urlMatch = page.url().match(/\/c\/([a-zA-Z0-9_-]+)/);
+          targetConvId = urlMatch?.[1] || null;
+        }
+
+        if (targetConvId) {
+          console.log(`🧹 Đang dọn dẹp (xóa) phiên chat trên ChatGPT (ID: ${targetConvId})...`);
+          const deleteResult = await deleteChatGPTConversation(
+            page,
+            targetConvId,
+            capturedAuthHeader,
+            capturedAccountId
+          );
+          if (deleteResult.success) {
+            console.log(`✅ Đã xóa chat ${targetConvId} thành công khỏi ChatGPT!`);
+          } else if (deleteResult.status === 404) {
+            console.log(`ℹ️ Phiên chat ${targetConvId} không tồn tại hoặc đã được xóa trước đó.`);
+          } else {
+            console.warn(
+              `⚠️ Không thể xóa chat ${targetConvId} (HTTP ${deleteResult.status ?? "unknown"}${
+                deleteResult.error ? `: ${deleteResult.error}` : ""
+              })`
+            );
+          }
+        } else {
+          console.log("ℹ️ Không tìm thấy ID đoạn chat trên URL để xóa.");
+        }
+      } catch (delErr) {
+        console.warn("⚠️ Gặp lỗi khi dọn dẹp chat:", delErr instanceof Error ? delErr.message : delErr);
+      }
+    };
+
     const requestListener = (req: any) => {
       try {
         const urlStr = req.url();
@@ -380,13 +526,19 @@ export async function generateImage(prompt: string, options: GenerateOptions = {
           if (auth && !capturedAuthHeader) {
             capturedAuthHeader = auth;
           }
-          const match = parsed.pathname.match(/^\/backend-api\/conversation\/([a-zA-Z0-9_-]+)$/);
+          const accountId = req.headers()["chatgpt-account-id"];
+          if (accountId && !capturedAccountId) {
+            capturedAccountId = accountId;
+          }
+          const match = parsed.pathname.match(/^\/backend-api\/conversation\/([a-zA-Z0-9_-]+)(?:\/|$)/);
           if (match && !detectedConversationId) {
             detectedConversationId = match[1];
           }
         }
       } catch {}
     };
+
+    let cloudflareChallengeError: string | null = null;
 
     const responseListener = (res: any) => {
       try {
@@ -398,8 +550,15 @@ export async function generateImage(prompt: string, options: GenerateOptions = {
           return;
         }
         if (parsed.origin !== "https://chatgpt.com") return;
+
+        // Phát hiện Cloudflare challenge (403 + cf-mitigated: challenge)
+        if (res.status() === 403 && res.headers?.()["cf-mitigated"] === "challenge") {
+          cloudflareChallengeError =
+            "ChatGPT bị chặn bởi Cloudflare WAF/Turnstile (cf-mitigated: challenge). Vui lòng thử lại sau hoặc đăng nhập lại qua trình duyệt thật.";
+        }
+
         if (parsed.pathname.startsWith("/backend-api/conversation")) {
-          const match = parsed.pathname.match(/^\/backend-api\/conversation\/([a-zA-Z0-9_-]+)$/);
+          const match = parsed.pathname.match(/^\/backend-api\/conversation\/([a-zA-Z0-9_-]+)(?:\/|$)/);
           if (match && !detectedConversationId) {
             detectedConversationId = match[1];
           }
@@ -409,41 +568,107 @@ export async function generateImage(prompt: string, options: GenerateOptions = {
 
     page.on("request", requestListener);
     page.on("response", responseListener);
+    page.on("framenavigated", (frame: any) => {
+      try {
+        if (frame === page.mainFrame()) {
+          const currentUrl = frame.url();
+          if (allowedAuthUrl(currentUrl)) {
+            clearSessionVerified(false);
+            sessionRedirectError =
+              "Phiên đăng nhập ChatGPT đã hết hạn (bị chuyển hướng về trang đăng nhập). Vui lòng đăng nhập lại!";
+          }
+          const match = currentUrl.match(/\/c\/([a-zA-Z0-9_-]+)/);
+          if (match && !detectedConversationId) {
+            detectedConversationId = match[1];
+          }
+        }
+      } catch {}
+    });
 
-    if (options.signal?.aborted) {
-      throw new Error("Quá trình sinh ảnh đã bị hủy bởi client (Client aborted request)");
-    }
+    let runError: any = null;
+    let results: DownloadResult[] = [];
+    let sessionStateSaved = false;
 
-    console.log(`[1/5] Đang mở ChatGPT Web (${CHATGPT_URL})...`);
-    await page.goto(CHATGPT_URL, { waitUntil: "domcontentloaded", timeout: 60_000 });
+    try {
+      if (options.signal?.aborted) {
+        throw new Error("Quá trình sinh ảnh đã bị hủy bởi client (Client aborted request)");
+      }
 
-    if (options.signal?.aborted) {
-      throw new Error("Quá trình sinh ảnh đã bị hủy bởi client (Client aborted request)");
-    }
-
-    await dismissCookieBannerIfPresent(page);
-
-    // Kiểm tra trạng thái đăng nhập dương tính
-    const loggedIn = await checkIsLoggedIn(page);
-
-    if (!loggedIn) {
-      clearSessionVerified(false);
-      throw new Error(
-        "Phiên đăng nhập ChatGPT chưa có hoặc đã hết hạn. Vui lòng chạy 'chatgpt-image --login' hoặc bấm [🔑 Đăng nhập ChatGPT] trên WebUI để đăng nhập lại!"
+      // Lưu ý quan trọng: ChatGPT Web KHÔNG hỗ trợ tạo ảnh trong Temporary Chat (?temporary-chat=true).
+      // Luôn truy cập CHATGPT_URL thông thường để đảm bảo công cụ vẽ ảnh khả dụng 100%.
+      // Nếu bật deleteChatAfterGen, phiên chat sẽ được dọn dẹp an toàn qua API sau khi tải ảnh xong.
+      const targetUrl = CHATGPT_URL;
+      console.log(`[1/5] Đang mở ChatGPT Web (${targetUrl})...`);
+      await raceWithAbort(
+        page.goto(targetUrl, { waitUntil: "domcontentloaded", timeout: 60_000 }),
+        options.signal
       );
-    }
+      initialUrl = page.url();
 
-    await throwIfChatGptSessionFailureAlert(page);
-    await throwIfChatGptRateLimitDialog(page);
+      // 1. Kiểm tra session redirect / hết hạn phiên trước
+      if (sessionRedirectError || allowedAuthUrl(page.url())) {
+        clearSessionVerified(false);
+        throw new Error(
+          sessionRedirectError ||
+            "Phiên đăng nhập ChatGPT đã hết hạn (bị chuyển hướng về trang đăng nhập). Vui lòng đăng nhập lại!"
+        );
+      }
 
-    if (options.signal?.aborted) {
-      throw new Error("Quá trình sinh ảnh đã bị hủy bởi client (Client aborted request)");
-    }
+      // 2. Kiểm tra Cloudflare WAF / Turnstile challenge ngay lập tức (fail-fast <500ms)
+      const pageTitle = await page.title().catch(() => "");
+      const isCloudflareChallenge =
+        Boolean(cloudflareChallengeError) ||
+        pageTitle.includes("Just a moment...") ||
+        pageTitle.includes("Attention Required") ||
+        (await page
+          .locator('#challenge-running, #challenge-stage, #challenge-form, .cf-turnstile, iframe[src*="cloudflare"]')
+          .first()
+          .isVisible()
+          .catch(() => false));
 
-    // Đợi ô nhập liệu hiển thị
-    console.log("[2/5] Đang đợi ô soạn thảo prompt sẵn sàng...");
-    const composer = page.locator(SELECTORS.composer).first();
-    await composer.waitFor({ state: "visible", timeout: 30_000 });
+      if (isCloudflareChallenge) {
+        throw new Error(
+          cloudflareChallengeError ||
+            "ChatGPT bị chặn bởi Cloudflare WAF/Turnstile. Vui lòng thử lại sau hoặc đăng nhập lại qua trình duyệt thật."
+        );
+      }
+
+      // 3. Kiểm tra Origin an toàn (sau khi đã loại trừ session redirect hợp lệ)
+      if (new URL(page.url()).origin !== "https://chatgpt.com") {
+        throw new Error(`Chuyển hướng đến nguồn không an toàn hoặc không xác định: ${page.url()}`);
+      }
+
+      if (options.signal?.aborted) {
+        throw new Error("Quá trình sinh ảnh đã bị hủy bởi client (Client aborted request)");
+      }
+
+      await dismissCookieBannerIfPresent(page);
+      await dismissChatGptModalsAndOnboarding(page);
+
+      // Kiểm tra trạng thái đăng nhập dương tính
+      const loggedIn = await checkIsLoggedIn(page);
+
+      if (!loggedIn) {
+        clearSessionVerified(false);
+        throw new Error(
+          "Phiên đăng nhập ChatGPT chưa có hoặc đã hết hạn. Vui lòng chạy 'chatgpt-image --login' hoặc bấm [🔑 Đăng nhập ChatGPT] trên WebUI để đăng nhập lại!"
+        );
+      }
+
+      await throwIfChatGptSessionFailureAlert(page);
+      await throwIfChatGptRateLimitDialog(page);
+
+      if (options.signal?.aborted) {
+        throw new Error("Quá trình sinh ảnh đã bị hủy bởi client (Client aborted request)");
+      }
+
+      // Đợi ô nhập liệu hiển thị
+      console.log("[2/5] Đang đợi ô soạn thảo prompt sẵn sàng...");
+      const composer = page.locator(SELECTORS.composer).first();
+      await raceWithAbort(
+        composer.waitFor({ state: "visible", timeout: 30_000 }),
+        options.signal
+      );
 
     if (inputImages.length > 0) {
       // Đợi 2s cho React hydrate xong và cắm event listener vào thẻ input file
@@ -471,16 +696,59 @@ export async function generateImage(prompt: string, options: GenerateOptions = {
       }
     }
 
-    // Reset ID hội thoại trước khi gửi để tránh vô tình xoá nhầm các chat cũ từ sidebar hoặc lần tải trang ban đầu
+    // Lưu URL trước khi gửi prompt và reset ID hội thoại mới phát hiện
+    // Tránh xoá nhầm các đoạn chat cũ từ sidebar hoặc trang tải ban đầu
+    initialUrl = page.url();
     detectedConversationId = null;
 
     // Gửi prompt: Playwright click tự động chờ nút enabled (actionability wait)
     await page.waitForTimeout(400);
     const sendBtn = page.locator(SELECTORS.sendButton).first();
+    const sendTimeout = inputImages.length > 0 ? 15_000 : 5_000;
     try {
-      await sendBtn.click({ timeout: 4_000 });
+      await sendBtn.waitFor({ state: "visible", timeout: sendTimeout });
+      if (inputImages.length > 0) {
+        await page
+          .waitForFunction(
+            (sel) => {
+              const btn = document.querySelector(sel);
+              return btn && !btn.hasAttribute("disabled") && btn.getAttribute("aria-disabled") !== "true";
+            },
+            SELECTORS.sendButton,
+            { timeout: 15_000 }
+          )
+          .catch(() => {});
+      }
+      await sendBtn.click({ timeout: 5_000 });
     } catch {
+      await throwIfChatGptSessionFailureAlert(page);
+      await throwIfChatGptRateLimitDialog(page);
       await composer.press("Enter");
+    }
+
+    // Xác nhận prompt đã được gửi đi thành công (stop button xuất hiện hoặc composer được xoá trống hoặc có user turn)
+    const promptSubmitted = await page
+      .waitForFunction(
+        () => {
+          const stop = document.querySelector('button[aria-label*="Stop"], button[data-testid="stop-button"]');
+          if (stop) return true;
+          const composer = document.querySelector(
+            '#prompt-textarea, [data-testid="prompt-textarea"], [contenteditable="true"][data-lexical-editor="true"], div[contenteditable="true"]'
+          );
+          if (composer && (composer.textContent?.trim() === "" || !composer.textContent)) return true;
+          const userTurn = document.querySelector('[data-message-author-role="user"]');
+          return Boolean(userTurn);
+        },
+        undefined,
+        { timeout: 15_000 }
+      )
+      .then(() => true)
+      .catch(() => false);
+
+    if (!promptSubmitted) {
+      await throwIfChatGptSessionFailureAlert(page);
+      await throwIfChatGptRateLimitDialog(page);
+      throw new Error("Không thể gửi prompt vào ChatGPT (nút Gửi và phím Enter đều không kích hoạt được lượt sinh mới).");
     }
 
     console.log("[4/5] Prompt đã gửi! Đang chờ ChatGPT Images sinh ảnh (theo dõi trạng thái hoạt động)...");
@@ -499,18 +767,48 @@ export async function generateImage(prompt: string, options: GenerateOptions = {
     let success = false;
     const knownSet = new Set(initialUrls);
     const knownKeys = new Set(initialUrls.map(extractImageKey));
+    let consecutiveObservationFaults = 0;
 
     while (Date.now() - startTime < maxTimeoutMs) {
-      if (options.signal?.aborted) {
+      if (abortedByClient || options.signal?.aborted) {
         throw new Error("Quá trình sinh ảnh đã bị hủy bởi client (Client aborted request)");
       }
 
-      const currentImages = await page.evaluate((selector) => {
-        return Array.from(document.querySelectorAll<HTMLImageElement>(selector))
-          .filter((img) => !img.closest('[data-message-author-role="user"]') && !img.closest("form"))
-          .map((img) => img.src || img.getAttribute("src") || "")
-          .filter((src) => src.startsWith("http") || src.startsWith("blob:") || src.startsWith("data:"));
-      }, SELECTORS.generatedImage);
+      if (cloudflareChallengeError) {
+        throw new Error(cloudflareChallengeError);
+      }
+
+      if (sessionRedirectError) {
+        throw new Error(sessionRedirectError);
+      }
+      if (allowedAuthUrl(page.url())) {
+        clearSessionVerified(false);
+        throw new Error(
+          "Phiên đăng nhập ChatGPT đã hết hạn (bị chuyển hướng về trang đăng nhập). Vui lòng đăng nhập lại!"
+        );
+      }
+
+      if (!detectedConversationId && initialUrl && page.url() !== initialUrl) {
+        const match = page.url().match(/\/c\/([a-zA-Z0-9_-]+)/);
+        if (match?.[1]) {
+          detectedConversationId = match[1];
+        }
+      }
+
+      let pageState: ChatGPTPageState & { currentImages?: string[] };
+      try {
+        pageState = await page.evaluate(inspectChatGPTPageState, SELECTORS.generatedImage);
+        consecutiveObservationFaults = 0;
+      } catch (evalErr: any) {
+        consecutiveObservationFaults++;
+        if (consecutiveObservationFaults > 5) {
+          throw evalErr;
+        }
+        await page.waitForTimeout(600);
+        continue;
+      }
+
+      const currentImages = pageState.currentImages || [];
 
       const currentKeyMap = new Map<string, string>();
       for (const src of currentImages) {
@@ -523,9 +821,7 @@ export async function generateImage(prompt: string, options: GenerateOptions = {
         (src) => !knownSet.has(src) && !knownKeys.has(extractImageKey(src))
       );
       const hasNewImages = newImages.length > 0;
-      const isGenerating = await page.locator(SELECTORS.stopButton).first().isVisible().catch(() => false);
-
-      const pageState = await page.evaluate(inspectChatGPTPageState);
+      const isGenerating = Boolean(pageState.isGenerating);
 
       // Fail-fast mạng: Trình duyệt mất kết nối Internet
       if (!pageState.isOnline) {
@@ -559,10 +855,11 @@ export async function generateImage(prompt: string, options: GenerateOptions = {
       }
 
       // Điều kiện hoàn tất: Đã đủ số lượng ảnh mong đợi HOẶC ChatGPT đã thực sự dừng sinh hoàn toàn
+      const isGeneratingOrLoading = isGenerating || pageState.isActivelyLoading;
       const isCompleteBatch = newImages.length >= expectedCount;
-      const isAssistantTurnFinished = !isGenerating && !pageState.isActivelyLoading && pageState.hasRegenerateBtn;
+      const isAssistantTurnFinished = !isGeneratingOrLoading && pageState.hasRegenerateBtn;
 
-      if (hasNewImages && (isCompleteBatch || isAssistantTurnFinished)) {
+      if (hasNewImages && ((!isGeneratingOrLoading && isCompleteBatch) || isAssistantTurnFinished)) {
         success = true;
         // Đợi 1000ms cho các thẻ DOM render hoàn tất
         await page.waitForTimeout(1000);
@@ -618,72 +915,70 @@ export async function generateImage(prompt: string, options: GenerateOptions = {
       throw new Error(`Quá thời gian chờ tối đa (${maxTimeoutMs / 1000}s) nhưng không thấy ảnh mới được sinh ra.`);
     }
 
+    // Đồng bộ session state ngay khi turn thành công để lưu trữ token đã xoay vòng
+    try {
+      await saveSanitizedStorageState(session.context);
+      sessionStateSaved = true;
+    } catch {}
+
     // Tải và lưu toàn bộ ảnh về đĩa
     const defaultOut = `./output/image_${Date.now()}.png`;
     const targetOut = options.outputPath || defaultOut;
     console.log(`[5/5] Đã phát hiện ảnh mới! Đang trích xuất ảnh...`);
 
-    const results = await extractAndSaveImages(page, SELECTORS.generatedImage, targetOut, {
+    results = await extractAndSaveImages(page, SELECTORS.generatedImage, targetOut, {
       knownUrls: initialUrls,
       skipDiskWrite: options.skipDiskWrite,
     });
-
-    // Tự động dọn dẹp (xóa) phiên chat vừa tạo trên ChatGPT nếu được bật (mặc định bật)
-    const shouldDeleteChat = resolveDeleteChatOption(options.deleteChatAfterGen);
-
-    if (shouldDeleteChat) {
-      try {
-        const urlMatch = page.url().match(/\/c\/([a-zA-Z0-9_-]+)/);
-        const targetConvId = urlMatch?.[1] || detectedConversationId;
-
-        if (targetConvId) {
-          console.log(`🧹 Đang dọn dẹp (xóa) phiên chat vừa tạo trên ChatGPT (ID: ${targetConvId})...`);
-          const deleteResult = await deleteChatGPTConversation(page, targetConvId, capturedAuthHeader);
-          if (deleteResult.success) {
-            console.log(`✅ Đã xóa chat ${targetConvId} thành công khỏi ChatGPT!`);
-          } else {
-            console.warn(
-              `⚠️ Không thể xóa chat ${targetConvId} (HTTP ${deleteResult.status ?? "unknown"}${
-                deleteResult.error ? `: ${deleteResult.error}` : ""
-              })`
-            );
-          }
-        } else {
-          console.log("ℹ️ Không tìm thấy ID đoạn chat trên URL để xóa.");
-        }
-      } catch (delErr) {
-        console.warn("⚠️ Gặp lỗi khi dọn dẹp chat:", delErr instanceof Error ? delErr.message : delErr);
-      }
-    } else {
-      console.log("ℹ️ Giữ lại đoạn chat trên ChatGPT Web theo tùy chọn của người dùng.");
-    }
-
-    try {
-      await saveSanitizedStorageState(session.context);
-    } catch {}
-
-    return results;
-  } finally {
-    if (options.signal) {
-      options.signal.removeEventListener("abort", abortHandler);
-    }
-    await session.close();
+  } catch (err) {
+    runError = err;
   }
+
+  if (shouldDeleteChat) {
+    await cleanupConversation();
+  } else {
+    console.log("ℹ️ Giữ lại đoạn chat trên ChatGPT Web theo tùy chọn của người dùng.");
+  }
+
+  if (runError) {
+    if (options.signal?.aborted) {
+      throw new Error("Quá trình sinh ảnh đã bị hủy bởi client (Client aborted request)");
+    }
+    throw runError;
+  }
+
+  return results;
+} finally {
+  try {
+    if (!runError && !sessionStateSaved && !sessionRedirectError && !session.page.isClosed()) {
+      await saveSanitizedStorageState(session.context);
+      sessionStateSaved = true;
+    }
+  } catch {}
+  if (options.signal) {
+    options.signal.removeEventListener("abort", abortHandler);
+  }
+  await session.close();
+}
 }
 
 export async function deleteChatGPTConversation(
   page: Page,
   conversationId: string,
-  authHeader?: string | null
+  authHeader?: string | null,
+  accountId?: string | null
 ): Promise<{ success: boolean; status?: number; error?: string }> {
   if (!conversationId || !/^[a-zA-Z0-9_-]+$/.test(conversationId)) {
     return { success: false, error: "ID đoạn chat không hợp lệ (Invalid conversation ID format)" };
   }
   try {
     const result = await page.evaluate(
-      async ({ id, auth }: { id: string; auth: string | null }) => {
+      async ({ id, auth, accountId }: { id: string; auth: string | null; accountId: string | null }) => {
         let timer: any;
         try {
+          if (location.origin !== "https://chatgpt.com") {
+            return { success: false, error: "Invalid execution origin (Must be https://chatgpt.com)" };
+          }
           const controller = new AbortController();
           timer = setTimeout(() => controller.abort(), 5000);
           const headers: Record<string, string> = {
@@ -706,9 +1001,14 @@ export async function deleteChatGPTConversation(
             } catch {}
           }
 
+          if (accountId) {
+            headers["chatgpt-account-id"] = accountId;
+          }
+
           const res = await fetch(`/backend-api/conversation/${id}`, {
             method: "PATCH",
             headers,
+            credentials: "include",
             body: JSON.stringify({ is_visible: false }),
             signal: controller.signal,
           });
@@ -720,7 +1020,7 @@ export async function deleteChatGPTConversation(
           if (timer) clearTimeout(timer);
         }
       },
-      { id: conversationId, auth: authHeader || null }
+      { id: conversationId, auth: authHeader || null, accountId: accountId || null }
     );
     return result;
   } catch (err) {

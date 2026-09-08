@@ -1,7 +1,7 @@
 import { spawn } from "node:child_process";
-import { mkdtempSync, rmSync } from "node:fs";
+import { chmodSync, mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 import { chromium, type BrowserContext, type Page } from "playwright-core";
 import { atomicWriteFile, CHATGPT_LOGIN_URL, findBrowserCandidates, SELECTORS, STORAGE_STATE_PATH } from "./config.js";
 import {
@@ -27,7 +27,7 @@ export async function dismissCookieBannerIfPresent(page: Page): Promise<void> {
   try {
     const bannerBtn = page
       .locator(
-        'button:has-text("Accept all"), button:has-text("Chấp nhận tất cả"), button:has-text("Accept all cookies"), button#onetrust-accept-btn-handler'
+        'button:has-text("Accept all"), button:has-text("Chấp nhận tất cả"), button:has-text("Accept all cookies"), button#onetrust-accept-btn-handler, button#onetrust-reject-all-handler'
       )
       .first();
 
@@ -36,6 +36,34 @@ export async function dismissCookieBannerIfPresent(page: Page): Promise<void> {
       await bannerBtn.click({ timeout: 1000 }).catch(() => {});
     }
   } catch {}
+}
+
+export async function dismissChatGptModalsAndOnboarding(page: Page): Promise<boolean> {
+  if (page.isClosed()) return false;
+  try {
+    const dialog = page
+      .locator('[role="dialog"]')
+      .filter({
+        hasText: /Not in history|Memory off|Welcome to ChatGPT|What's new|Có gì mới|Tiếp tục|Continue|Stay logged out/i,
+      })
+      .last();
+
+    if (await dialog.isVisible().catch(() => false)) {
+      const actionBtn = dialog
+        .locator("button")
+        .filter({
+          hasText: /^(Continue|Got it|Done|Tiếp tục|Đã hiểu|Đóng|OK|Stay logged out)$/i,
+        })
+        .last();
+
+      if (await actionBtn.isVisible().catch(() => false)) {
+        await actionBtn.click({ timeout: 2000 }).catch(() => {});
+        await dialog.waitFor({ state: "hidden", timeout: 5000 }).catch(() => {});
+        return true;
+      }
+    }
+  } catch {}
+  return false;
 }
 
 export function allowedAuthUrl(value: string): boolean {
@@ -113,7 +141,9 @@ export async function checkSessionEndpoint(page: Page): Promise<boolean> {
 export async function throwIfChatGptSessionFailureAlert(page: Page): Promise<void> {
   if (page.isClosed()) return;
   const expiredAlert = page
-    .locator('[role="alert"], [role="dialog"]')
+    .locator(
+      '[role="alert"]:not([aria-hidden="true"]), [role="dialog"]:not([aria-hidden="true"]):not([data-state="closed"])'
+    )
     .filter({
       hasText:
         /Your session has expired|Phiên làm việc đã hết hạn|Phiên đăng nhập đã hết hạn|你的工作階段已過期|您的工作階段已過期|你的会话已过期|您的会话已过期/i,
@@ -127,7 +157,7 @@ export async function throwIfChatGptSessionFailureAlert(page: Page): Promise<voi
   }
 
   const subFailure = page
-    .locator('[role="alert"]')
+    .locator('[role="alert"]:not([aria-hidden="true"])')
     .filter({ hasText: /Failed to load subscription/i })
     .last();
   if (await subFailure.isVisible().catch(() => false)) {
@@ -138,7 +168,9 @@ export async function throwIfChatGptSessionFailureAlert(page: Page): Promise<voi
 export async function throwIfChatGptRateLimitDialog(page: Page): Promise<void> {
   if (page.isClosed()) return;
   const rateLimitModal = page
-    .locator('[role="dialog"]')
+    .locator(
+      '[role="dialog"]:not([aria-hidden="true"]):not([data-state="closed"])'
+    )
     .filter({
       hasText:
         /Too many requests|quá nhiều yêu cầu|quá nhiều request|gửi yêu cầu quá nhanh|太多要求|太多请求|リクエストが多すぎます/i,
@@ -165,8 +197,16 @@ export async function checkIsLoggedIn(page: Page): Promise<boolean> {
   try {
     const start = Date.now();
     let loginBtnSeenCount = 0;
+    let lastSessionCheckTime = 0;
     while (Date.now() - start < 30_000) {
       if (page.isClosed()) return false;
+
+      // Fail-fast nếu đã bị chuyển hướng sang trang đăng nhập (auth0, login, etc.)
+      const currentUrl = typeof page.url === "function" ? page.url() : "";
+      if (currentUrl && allowedAuthUrl(currentUrl)) {
+        clearSessionVerified(false);
+        return false;
+      }
 
       const isLoginBtnVisible = await page
         .locator(SELECTORS.loginButton)
@@ -176,46 +216,48 @@ export async function checkIsLoggedIn(page: Page): Promise<boolean> {
 
       if (isLoginBtnVisible) {
         loginBtnSeenCount++;
-        // Fail-fast: Nếu nút đăng nhập hiển thị liên tiếp >= 2 lần (~1.2s)
-        if (loginBtnSeenCount >= 2) {
+        // Fail-fast: Nếu nút đăng nhập hiển thị liên tiếp >= 4 lần (~2.5s)
+        if (loginBtnSeenCount >= 4) {
           const cookies = await page
             .context()
             .cookies(["https://chatgpt.com", "https://auth0.openai.com", "https://auth.openai.com", "https://openai.com"])
             .catch(() => []);
-          const hasValidCookie = cookies.some(isSessionCookieValid);
+          const hasValidCookie = hasValidSessionToken(cookies);
           if (!hasValidCookie) {
+            clearSessionVerified(false);
             return false;
           }
           // Cookie có trên client nhưng nút Login vẫn hiện -> kiểm tra server session xem đã bị revoke chưa
           const hasActiveSession = await checkSessionEndpoint(page);
           if (!hasActiveSession) {
+            clearSessionVerified(false);
             return false;
           }
           return true;
         }
       } else {
         loginBtnSeenCount = 0;
-        const cookies = await page
-          .context()
-          .cookies(["https://chatgpt.com", "https://auth0.openai.com", "https://auth.openai.com", "https://openai.com"])
-          .catch(() => []);
-        const hasValidCookie = cookies.some(isSessionCookieValid);
 
-        if (hasValidCookie) {
-          const hasProfileBtn = await page
-            .locator(
-              '[data-testid="user-menu-button"], [data-testid="profile-button"], button[aria-label*="Account" i], button[aria-label*="Profile" i]'
-            )
-            .first()
-            .isVisible()
-            .catch(() => false);
+        // 1. DOM ground truth: Nút profile / avatar tài khoản người dùng đang hiển thị
+        const hasProfileBtn = await page
+          .locator(
+            '[data-testid="user-menu-button"], [data-testid="profile-button"], button[aria-label*="Account" i], button[aria-label*="Profile" i]'
+          )
+          .first()
+          .isVisible()
+          .catch(() => false);
 
-          if (hasProfileBtn) {
+        if (hasProfileBtn) {
+          return true;
+        }
+
+        // 2. Server session endpoint (throttle 2000ms để tránh bão request khi trang đang tải)
+        if (Date.now() - lastSessionCheckTime >= 2000) {
+          lastSessionCheckTime = Date.now();
+          const hasActiveSession = await checkSessionEndpoint(page);
+          if (hasActiveSession) {
             return true;
           }
-
-          const hasActiveSession = await checkSessionEndpoint(page);
-          if (hasActiveSession) return true;
         }
       }
 
@@ -242,18 +284,18 @@ export function removeTemporaryChromeTabSessions(profileDir: string): void {
 
 export function sanitizeBrowserLoginStorageState(state: any): any {
   return {
-    cookies: (state.cookies || [])
+    cookies: (state?.cookies || [])
       .filter(
         (cookie: any) =>
           !Object.prototype.hasOwnProperty.call(cookie, "partitionKey") &&
-          allowedLoginStorageHost((cookie.domain || "").replace(/^\.+/, ""))
+          allowedLoginStorageHost((cookie?.domain || "").replace(/^\.+/, ""))
       )
       .map((cookie: any) => ({ ...cookie })),
-    origins: (state.origins || [])
+    origins: (state?.origins || [])
       .filter((origin: any) => origin?.origin === "https://chatgpt.com")
       .map((origin: any) => ({
         origin: origin.origin,
-        localStorage: (origin.localStorage || []).map((item: any) => ({ ...item })),
+        localStorage: (origin?.localStorage || []).map((item: any) => ({ ...item })),
       })),
   };
 }
@@ -268,7 +310,11 @@ export async function saveSanitizedStorageState(
     const hasValidToken = hasValidSessionToken(sanitized.cookies || []);
     if (hasValidToken) {
       atomicWriteFile(targetPath, JSON.stringify(sanitized, null, 2));
-      if (targetPath === STORAGE_STATE_PATH) {
+      const isDefaultTarget =
+        process.platform === "win32"
+          ? resolve(targetPath).toLowerCase() === resolve(STORAGE_STATE_PATH).toLowerCase()
+          : resolve(targetPath) === resolve(STORAGE_STATE_PATH);
+      if (isDefaultTarget) {
         markSessionVerified();
       }
       return true;
@@ -285,6 +331,9 @@ export async function handleLogin(timeoutMs: number = 300_000): Promise<void> {
   }
 
   const tempProfileDir = mkdtempSync(join(tmpdir(), "chatgpt-login-profile-"));
+  try {
+    chmodSync(tempProfileDir, 0o700);
+  } catch {}
   let loginBrowser: any = null;
   let context: any = null;
 
@@ -347,7 +396,7 @@ export async function handleLogin(timeoutMs: number = 300_000): Promise<void> {
 
     // Settle delay 800ms trên Windows để các tiến trình con Crashpad/GPU kịp đóng và nhả file lock
     await new Promise((r) => setTimeout(r, 800));
-    killOrphanBrowsers(tempProfileDir);
+    killOrphanBrowsers(tempProfileDir, true);
     cleanupStaleLocks(tempProfileDir);
     removeTemporaryChromeTabSessions(tempProfileDir);
 
@@ -373,13 +422,14 @@ export async function handleLogin(timeoutMs: number = 300_000): Promise<void> {
             "--no-first-run",
             "--no-default-browser-check",
             "--restore-last-session",
+            "--chatgpt-bridge-instance",
           ],
           timeout: 30_000,
         });
         break;
       } catch (e) {
         if (attempt === 3) throw e;
-        killOrphanBrowsers(tempProfileDir);
+        killOrphanBrowsers(tempProfileDir, true);
         cleanupStaleLocks(tempProfileDir);
         await new Promise((r) => setTimeout(r, 500));
       }
@@ -387,7 +437,7 @@ export async function handleLogin(timeoutMs: number = 300_000): Promise<void> {
 
     // Chặn mọi kết nối mạng ra ngoài để bảo mật tuyệt đối và không kích hoạt bot detection
     await context.setOffline(true);
-    await context.route("**/*", (route: any) =>
+    await context.route("**/*", (route) =>
       route.fulfill({
         status: 200,
         contentType: "text/html",
@@ -397,8 +447,11 @@ export async function handleLogin(timeoutMs: number = 300_000): Promise<void> {
     const page = context.pages()[0] ?? (await context.newPage());
     await page.goto("https://chatgpt.com/?temporary-chat=true", {
       waitUntil: "domcontentloaded",
-      timeout: 10_000,
-    }).catch(() => {});
+      timeout: 15_000,
+    });
+    if (new URL(page.url()).origin !== "https://chatgpt.com") {
+      throw new Error("Trích xuất phiên đăng nhập ngoại tuyến không đạt được nguồn gốc chatgpt.com");
+    }
 
     const rawState = await context.storageState();
     const state = sanitizeBrowserLoginStorageState(rawState);

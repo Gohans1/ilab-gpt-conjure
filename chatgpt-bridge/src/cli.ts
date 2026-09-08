@@ -2,10 +2,9 @@
 import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { generateImage } from "./generator.js";
-import { cleanupActiveBrowsers, killOrphanBrowsers } from "./browser.js";
+import { cleanupActiveBrowsers } from "./browser.js";
 import { handleLogin } from "./auth-helper.js";
 import { isSessionCached } from "./check-session.js";
-import { USER_DATA_DIR } from "./config.js";
 
 function printHelp(): void {
   console.log(`
@@ -129,7 +128,6 @@ if (import.meta.main) {
   const cleanup = () => {
     try {
       cleanupActiveBrowsers();
-      killOrphanBrowsers(USER_DATA_DIR, true);
     } catch {}
     process.exit(0);
   };

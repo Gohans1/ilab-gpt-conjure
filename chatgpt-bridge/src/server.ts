@@ -5,8 +5,9 @@ import crypto from "node:crypto";
 import { generateImage, sizeToAspectRatio } from "./generator.js";
 import { handleLogin } from "./auth-helper.js";
 import { clearSessionVerified, isSessionCached } from "./check-session.js";
-import { cleanupActiveBrowsers, killOrphanBrowsers } from "./browser.js";
-import { USER_DATA_DIR } from "./config.js";
+import { cleanupActiveBrowsers } from "./browser.js";
+import { detectImageExtension } from "./config.js";
+export { detectImageExtension };
 
 export interface ParsedImageRequest {
   prompt: string;
@@ -55,25 +56,6 @@ function isValidLocalImage(filePath: string): boolean {
   }
 }
 
-export function detectImageExtension(buf: Buffer): string | null {
-  if (buf.length >= 4 && buf[0] === 0x89 && buf[1] === 0x50 && buf[2] === 0x4e && buf[3] === 0x47) {
-    return ".png";
-  }
-  if (buf.length >= 3 && buf[0] === 0xff && buf[1] === 0xd8 && buf[2] === 0xff) {
-    return ".jpg";
-  }
-  if (buf.length >= 4 && buf[0] === 0x47 && buf[1] === 0x49 && buf[2] === 0x46) {
-    return ".gif";
-  }
-  if (
-    buf.length >= 12 &&
-    buf.toString("ascii", 0, 4) === "RIFF" &&
-    buf.toString("ascii", 8, 12) === "WEBP"
-  ) {
-    return ".webp";
-  }
-  return null;
-}
 
 export async function parseImageRequest(req: Request): Promise<ParsedImageRequest> {
   const contentType = req.headers.get("content-type") || "";
@@ -332,17 +314,33 @@ let isLoginQueued = false;
 let isLoggingIn = false;
 
 export function enqueueTask<T>(task: () => Promise<T>, signal?: AbortSignal): Promise<T> {
+  if (signal?.aborted) {
+    return Promise.reject(new Error("Yêu cầu đã bị hủy bởi client trước khi thực thi (Client aborted request)"));
+  }
   return new Promise<T>((resolve, reject) => {
+    let settled = false;
+    const onAbort = () => {
+      if (!settled) {
+        settled = true;
+        reject(new Error("Yêu cầu đã bị hủy bởi client trước khi thực thi (Client aborted request)"));
+      }
+    };
+    if (signal) {
+      signal.addEventListener("abort", onAbort, { once: true });
+    }
+
     taskQueue = taskQueue
       .then(async () => {
-        if (signal?.aborted) {
-          reject(new Error("Yêu cầu đã bị hủy bởi client trước khi thực thi (Client aborted request)"));
-          return;
+        if (signal) {
+          signal.removeEventListener("abort", onAbort);
         }
+        if (settled || signal?.aborted) return;
         try {
           const result = await task();
+          settled = true;
           resolve(result);
         } catch (err) {
+          settled = true;
           reject(err);
         }
       })
@@ -701,6 +699,7 @@ export async function handleRequest(req: Request): Promise<Response> {
           const ext = detectImageExtension(head);
           if (ext === ".jpg" || ext === ".jpeg") mime = "image/jpeg";
           else if (ext === ".webp") mime = "image/webp";
+          else if (ext === ".gif") mime = "image/gif";
         } catch {}
         return {
           b64_json: item.base64,
@@ -720,9 +719,11 @@ export async function handleRequest(req: Request): Promise<Response> {
       const errorMsg = err instanceof Error ? err.message : String(err);
       console.error("❌ [Bridge] Lỗi khi tạo ảnh:", errorMsg);
 
+      const isTextRefusal = errorMsg.startsWith("ChatGPT không tạo ảnh mà trả lời bằng văn bản:");
       const isAuthError =
-        errorMsg.includes("Phiên đăng nhập") ||
-        /session has expired|log in again|unauthorized/i.test(errorMsg);
+        !isTextRefusal &&
+        (errorMsg.includes("Phiên đăng nhập") ||
+          /session has expired|Your session has expired|log in again|chưa có hoặc đã hết hạn/i.test(errorMsg));
       const status = isAuthError ? 401 : 500;
       if (status === 401) {
         clearSessionVerified(false);
@@ -755,7 +756,11 @@ export function startServer(port: number = PORT, hostname: string = HOSTNAME) {
   console.log("=================================================");
   console.log(`🚀 ChatGPT Image Local Bridge Server đã sẵn sàng!`);
   console.log(`📡 URL lắng nghe: http://${hostname}:${port}`);
-  console.log(`🔑 Yêu cầu Token: Bearer ${REQUIRED_API_KEY}`);
+  const maskedKey =
+    REQUIRED_API_KEY === "sk-local"
+      ? REQUIRED_API_KEY
+      : `${REQUIRED_API_KEY.slice(0, 5)}...${REQUIRED_API_KEY.slice(-4)}`;
+  console.log(`🔑 Yêu cầu Token: Bearer ${maskedKey}`);
   console.log(`🔌 OpenAI Base URL cho iLab CONJURE: http://${hostname}:${port}/v1`);
   console.log(`📌 Endpoints:`);
   console.log(`   - Generations: http://${hostname}:${port}/v1/images/generations`);
@@ -765,16 +770,12 @@ export function startServer(port: number = PORT, hostname: string = HOSTNAME) {
 }
 
 if (import.meta.main) {
-  // Dọn dẹp trình duyệt mồ côi khi server khởi động
-  killOrphanBrowsers(USER_DATA_DIR, true);
-
   let isCleaned = false;
   const cleanup = () => {
     if (isCleaned) return;
     isCleaned = true;
     try {
       cleanupActiveBrowsers();
-      killOrphanBrowsers(USER_DATA_DIR, true);
     } catch {}
     process.exit(0);
   };
@@ -786,7 +787,6 @@ if (import.meta.main) {
       isCleaned = true;
       try {
         cleanupActiveBrowsers();
-        killOrphanBrowsers(USER_DATA_DIR, true);
       } catch {}
     }
   });

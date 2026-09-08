@@ -61,6 +61,9 @@ export function atomicWriteFile(path: string, data: string | Uint8Array): void {
 }
 
 export const CHATGPT_URL = "https://chatgpt.com/";
+// Lưu ý: ChatGPT Web KHÔNG hỗ trợ công cụ vẽ ảnh (DALL-E / Imagen) trên Temporary Chat (?temporary-chat=true).
+// Luôn sử dụng CHATGPT_URL chính để sinh ảnh và dọn dẹp bằng API xóa hội thoại nếu cần xóa.
+export const CHATGPT_TEMPORARY_CHAT_URL = "https://chatgpt.com/?temporary-chat=true";
 export const CHATGPT_LOGIN_URL = "https://chatgpt.com/auth/login";
 
 export function findBrowserCandidates(): { primary: string[]; fallback: string[] } {
@@ -121,13 +124,33 @@ export const USER_DATA_DIR = resolveProfileDir();
 export const STORAGE_STATE_PATH = join(USER_DATA_DIR, "storage-state.json");
 
 export const SELECTORS = {
-  composer: '#prompt-textarea, div[contenteditable="true"], [data-testid="prompt-textarea"]',
+  composer: '#prompt-textarea, [data-testid="prompt-textarea"], [contenteditable="true"][data-lexical-editor="true"], div[contenteditable="true"]',
   sendButton: '[data-testid="send-button"]',
   stopButton: '[data-testid="stop-button"]',
-  generatedImage: '[data-message-author-role="assistant"] img[src*="backend-api/estuary"], [data-message-author-role="assistant"] img[src*="files.oaiusercontent.com"], [data-message-author-role="assistant"] img[alt*="Generated image"], [data-message-author-role="assistant"] img[src*="oaidalleapiprodscus"], [data-testid*="conversation-turn"] [data-message-author-role="assistant"] img, img[src*="backend-api/estuary"]',
-  loginButton: 'button[data-testid="login-button"], a[href*="/auth/login"], button:has-text("Log in"), button:has-text("Đăng nhập"), a:has-text("Log in"), a:has-text("Đăng nhập")',
+  generatedImage: '[data-message-author-role="assistant"] img[src*="backend-api/estuary"], [data-message-author-role="assistant"] img[src*="files.oaiusercontent.com"], [data-message-author-role="assistant"] img[alt*="Generated image"], [data-message-author-role="assistant"] img[src*="oaidallea"], [data-testid*="conversation-turn"] [data-message-author-role="assistant"] img, img[src*="backend-api/estuary"]',
+  loginButton: 'button[data-testid="login-button"], a[href*="/auth/login"], button:has-text("Log in"), button:has-text("Đăng nhập"), button:has-text("ログイン"), button:has-text("登录"), a:has-text("Log in"), a:has-text("Đăng nhập")',
   fileInput: 'input#upload-photos[type="file"], input#upload-files[type="file"], input[type="file"]',
   attachButton: 'button[data-testid*="plus"], button[data-testid*="attach"], button[aria-label*="Add files" i], button[aria-label*="Attach" i]',
   attachmentThumbnail: 'form img[src^="blob:"], form button[aria-label*="Remove file" i], button[aria-label*="Remove file" i], form button[aria-label*="Remove" i], [data-testid*="attachment"], [data-testid*="file-pill"], [class*="attachment"], [class*="file-item"]',
   attachmentUploading: 'form [data-testid*="upload-progress"], form [aria-label*="Uploading" i], [data-testid*="attachment"] .animate-spin, form .animate-spin',
 };
+
+export function detectImageExtension(buf: Buffer | Uint8Array): string | null {
+  if (buf.length >= 4 && buf[0] === 0x89 && buf[1] === 0x50 && buf[2] === 0x4e && buf[3] === 0x47) {
+    return ".png";
+  }
+  if (buf.length >= 3 && buf[0] === 0xff && buf[1] === 0xd8 && buf[2] === 0xff) {
+    return ".jpg";
+  }
+  if (buf.length >= 4 && buf[0] === 0x47 && buf[1] === 0x49 && buf[2] === 0x46) {
+    return ".gif";
+  }
+  if (
+    buf.length >= 12 &&
+    Buffer.from(buf).toString("ascii", 0, 4) === "RIFF" &&
+    Buffer.from(buf).toString("ascii", 8, 12) === "WEBP"
+  ) {
+    return ".webp";
+  }
+  return null;
+}

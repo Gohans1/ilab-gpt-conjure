@@ -325,6 +325,16 @@ describe("handleRequest validation", () => {
     expect(json.error?.type).toBe("authentication_error");
   });
 
+  it("không xem văn bản từ chối (refusal text) có chữ unauthorized là lỗi 401 hết hạn phiên", async () => {
+    const refusalMsg = 'ChatGPT không tạo ảnh mà trả lời bằng văn bản: "I am unauthorized to generate copyrighted characters."';
+    const isTextRefusal = refusalMsg.startsWith("ChatGPT không tạo ảnh mà trả lời bằng văn bản:");
+    const isAuthError =
+      !isTextRefusal &&
+      (refusalMsg.includes("Phiên đăng nhập") ||
+        /session has expired|Your session has expired|log in again|chưa có hoặc đã hết hạn/i.test(refusalMsg));
+    expect(isAuthError).toBe(false);
+  });
+
   it("trả về 405 Method Not Allowed khi gửi request không phải POST tới images endpoint", async () => {
     const req = new Request("http://127.0.0.1:3000/v1/images/generations", {
       method: "GET",
@@ -567,5 +577,26 @@ describe("enqueueTask", () => {
     await expect(enqueueTask(async () => 999, controller.signal)).rejects.toThrow(
       "Yêu cầu đã bị hủy bởi client trước khi thực thi"
     );
+  });
+
+  it("reject ngay lập tức khi đang đứng đợi trong hàng sau một task đang chạy dài hạn", async () => {
+    let task1Running = true;
+    const task1 = enqueueTask(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 200));
+      task1Running = false;
+      return "task1_done";
+    });
+
+    const controller = new AbortController();
+    const task2Promise = enqueueTask(async () => "task2_done", controller.signal);
+
+    expect(task1Running).toBe(true);
+    controller.abort();
+
+    await expect(task2Promise).rejects.toThrow(
+      "Yêu cầu đã bị hủy bởi client trước khi thực thi"
+    );
+
+    await task1;
   });
 });

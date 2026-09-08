@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { atomicWriteFile, STORAGE_STATE_PATH, USER_DATA_DIR } from "./config.js";
 
@@ -9,11 +9,7 @@ export function getSessionVerifiedMarkerPath(): string {
 export function markSessionVerified(): void {
   try {
     atomicWriteFile(getSessionVerifiedMarkerPath(), new Date().toISOString());
-  } catch {
-    try {
-      writeFileSync(getSessionVerifiedMarkerPath(), new Date().toISOString(), "utf-8");
-    } catch {}
-  }
+  } catch {}
 }
 
 export function clearSessionVerified(deleteStorage: boolean = false): void {
@@ -28,8 +24,6 @@ export function clearSessionVerified(deleteStorage: boolean = false): void {
 }
 
 export const AUTH_PROVIDER_HOSTS = new Set([
-  "chatgpt.com",
-  "openai.com",
   "auth.openai.com",
   "auth0.openai.com",
   "login.openai.com",
@@ -91,10 +85,19 @@ export function isSessionCookieValid(cookie: {
     cookie.name.startsWith("authjs.session-token.");
 
   if (!isTargetName) return false;
-  if (!cookie.value || typeof cookie.value !== "string" || cookie.value.length < 20 || cookie.value === "deleted") return false;
+  const isTailChunk = /\.\d+$/.test(cookie.name) && !cookie.name.endsWith(".0");
+  const minLength = isTailChunk ? 1 : 20;
+  if (!cookie.value || typeof cookie.value !== "string" || cookie.value.length < minLength || cookie.value === "deleted") return false;
   const d = cookie.domain ? cookie.domain.replace(/^\.+/, "").toLowerCase() : "";
   if (d && !allowedLoginStorageHost(d)) return false;
-  if (typeof cookie.expires === "number" && cookie.expires > 0 && cookie.expires <= Date.now() / 1000) return false;
+  const EXPIRY_LEEWAY_SECONDS = 30;
+  if (
+    typeof cookie.expires === "number" &&
+    cookie.expires > 0 &&
+    cookie.expires <= Date.now() / 1000 + EXPIRY_LEEWAY_SECONDS
+  ) {
+    return false;
+  }
   return true;
 }
 
@@ -110,30 +113,58 @@ export function hasValidSessionToken(cookies: any[]): boolean {
 
   for (const base of baseNames) {
     // 1. Kiểm tra cookie đơn không chunk
-    const singleCookie = cookies.find((c: any) => c?.name === base);
-    if (singleCookie && isSessionCookieValid(singleCookie)) {
+    if (
+      cookies.some((c: any) => {
+        if (c?.name !== base || !isSessionCookieValid(c)) return false;
+        const domain = (c.domain || "chatgpt.com").replace(/^\.+/, "").toLowerCase();
+        return allowedLoginStorageHost(domain);
+      })
+    ) {
       return true;
     }
 
     // 2. Kiểm tra dạng chunked (.0, .1, ...)
-    // Yêu cầu bắt buộc: chunk .0 phải tồn tại và hợp lệ
-    const chunk0 = cookies.find((c: any) => c?.name === `${base}.0`);
-    if (chunk0 && isSessionCookieValid(chunk0)) {
-      const chunkRegex = new RegExp(`^${base.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\.\\d+$`);
-      const allChunks = cookies.filter((c: any) => typeof c?.name === "string" && chunkRegex.test(c.name));
-      // NextAuth khi phân mảnh cookie luôn tạo ít nhất 2 chunks (.0 và .1)
-      if (allChunks.length >= 2) {
-        const anyChunkInvalid = allChunks.some((c: any) => {
-          if (!c.value || c.value === "deleted" || c.value.length < 10) return true;
-          if (typeof c.expires === "number" && c.expires > 0 && c.expires <= Date.now() / 1000) return true;
-          const d = c.domain ? c.domain.replace(/^\.+/, "").toLowerCase() : "";
-          if (d && !allowedLoginStorageHost(d)) return true;
-          return false;
-        });
+    // Gom nhóm chunk theo domain và kiểm tra chuỗi liên tục bắt đầu từ 0
+    const chunkPrefix = `${base}.`;
+    const validChunksByDomain = new Map<string, Map<number, any>>();
+    const allEncounteredChunksByDomain = new Map<string, Set<number>>();
 
-        if (!anyChunkInvalid) {
-          return true;
+    for (const c of cookies) {
+      if (typeof c?.name === "string" && c.name.startsWith(chunkPrefix)) {
+        const idxStr = c.name.slice(chunkPrefix.length);
+        if (/^\d+$/.test(idxStr)) {
+          const idx = parseInt(idxStr, 10);
+          const domain = (c.domain || "chatgpt.com").replace(/^\.+/, "").toLowerCase();
+          if (allowedLoginStorageHost(domain)) {
+            const val = typeof c?.value === "string" ? c.value.trim() : "";
+            if (val && val !== "deleted") {
+              if (!allEncounteredChunksByDomain.has(domain)) {
+                allEncounteredChunksByDomain.set(domain, new Set<number>());
+              }
+              allEncounteredChunksByDomain.get(domain)!.add(idx);
+
+              if (isSessionCookieValid(c)) {
+                if (!validChunksByDomain.has(domain)) {
+                  validChunksByDomain.set(domain, new Map<number, any>());
+                }
+                validChunksByDomain.get(domain)!.set(idx, c);
+              }
+            }
+          }
         }
+      }
+    }
+
+    for (const [domain, chunkMap] of validChunksByDomain) {
+      const encountered = allEncounteredChunksByDomain.get(domain);
+      let count = 0;
+      while (chunkMap.has(count)) {
+        count++;
+      }
+      // Phải có ít nhất 2 chunks (.0 và .1) tạo thành chuỗi liên tục bắt đầu từ 0
+      // VÀ toàn bộ các chunk tồn tại trong cookie jar đều phải hợp lệ và nằm trọn vẹn trong chuỗi
+      if (count >= 2 && encountered && count === chunkMap.size && chunkMap.size === encountered.size) {
+        return true;
       }
     }
   }
@@ -174,7 +205,7 @@ export function isSessionCached(): boolean {
     clearSessionVerified(false);
     return false;
   } catch {
-    clearSessionVerified(false);
+    // Lỗi đọc đĩa tạm thời hoặc JSON parse hỏng -> Trả về false mà không xoá nhầm marker đã lưu
     return false;
   }
 }

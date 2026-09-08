@@ -14,6 +14,47 @@ export interface ExtractOptions {
   skipDiskWrite?: boolean;
 }
 
+export function isAllowedImageUrl(url: string): boolean {
+  if (url.startsWith("blob:")) return true;
+  if (/^data:image\/(png|jpeg|jpg|webp|gif);base64,/i.test(url)) return true;
+  try {
+    const u = new URL(url);
+    if (u.protocol !== "https:") return false;
+    return (
+      u.hostname === "chatgpt.com" ||
+      u.hostname.endsWith(".chatgpt.com") ||
+      u.hostname === "openai.com" ||
+      u.hostname.endsWith(".openai.com") ||
+      u.hostname === "oaiusercontent.com" ||
+      u.hostname.endsWith(".oaiusercontent.com") ||
+      u.hostname === "oaidalleapiprodscus.blob.core.windows.net" ||
+      /^oaidallea(pi)?prod[a-z0-9]+\.blob\.core\.windows\.net$/.test(u.hostname)
+    );
+  } catch {
+    return false;
+  }
+}
+
+export function rewriteEstuaryUrl(src: string): string {
+  try {
+    const u = new URL(src);
+    if (u.pathname.includes("backend-api/estuary")) {
+      u.searchParams.set("p", "fs");
+      return u.toString();
+    }
+  } catch {}
+  return src;
+}
+
+export function resolveOutputFilePath(baseOutputPath: string, index: number, totalCount: number): string {
+  const parsed = parse(baseOutputPath);
+  const defaultExt = parsed.ext || ".png";
+  const parentDir = dirname(baseOutputPath);
+  return totalCount === 1
+    ? (parsed.ext ? baseOutputPath : `${baseOutputPath}${defaultExt}`)
+    : join(parentDir, `${parsed.name}_${index}${defaultExt}`);
+}
+
 export async function extractAndSaveImages(
   page: Page,
   imageSelector: string,
@@ -67,15 +108,50 @@ export async function extractAndSaveImages(
       Array.from(fileMap.values()).map(async (url) => {
         try {
           if (url.startsWith("data:")) {
-            const parts = url.split(",");
-            return { base64: parts[1], url: "data-uri" };
+            if (!/^data:image\/(png|jpeg|jpg|webp|gif);base64,/i.test(url)) {
+              return { error: `Disallowed data URI format: only raster images are accepted`, url };
+            }
+            const commaIndex = url.indexOf(",");
+            const base64 = commaIndex !== -1 ? url.slice(commaIndex + 1) : "";
+            return { base64, url: "data-uri" };
           }
 
-          const response = await fetch(url, {
-            mode: "cors",
-            credentials: "include",
-            signal: AbortSignal.timeout(15_000),
-          });
+          if (!url.startsWith("blob:")) {
+            try {
+              const u = new URL(url);
+              if (u.protocol !== "https:") {
+                throw new Error(`Insecure image protocol: ${u.protocol}`);
+              }
+              const isAllowed =
+                u.hostname === "chatgpt.com" ||
+                u.hostname.endsWith(".chatgpt.com") ||
+                u.hostname === "openai.com" ||
+                u.hostname.endsWith(".openai.com") ||
+                u.hostname === "oaiusercontent.com" ||
+                u.hostname.endsWith(".oaiusercontent.com") ||
+                u.hostname === "oaidalleapiprodscus.blob.core.windows.net" ||
+                /^oaidallea(pi)?prod[a-z0-9]+\.blob\.core\.windows\.net$/.test(u.hostname);
+              if (!isAllowed) {
+                throw new Error(`Untrusted image CDN host: ${u.hostname}`);
+              }
+            } catch (e: any) {
+              throw new Error(e?.message || `Invalid image URL: ${url}`);
+            }
+          }
+
+          const isBlob = url.startsWith("blob:");
+          let isSameOrigin = false;
+          try {
+            isSameOrigin = !isBlob && new URL(url, location.origin).origin === location.origin;
+          } catch {}
+          const fetchOptions: RequestInit = isBlob
+            ? { signal: AbortSignal.timeout(15_000) }
+            : {
+                mode: "cors",
+                credentials: isSameOrigin ? "include" : "same-origin",
+                signal: AbortSignal.timeout(15_000),
+              };
+          const response = await fetch(url, fetchOptions);
           if (!response.ok) {
             throw new Error(`Fetch failed: ${response.status}`);
           }
@@ -110,20 +186,19 @@ export async function extractAndSaveImages(
     mkdirSync(parentDir, { recursive: true });
   }
 
-  const parsed = parse(baseOutputPath);
   const downloadedResults: DownloadResult[] = [];
+  const validItems = extractedList.filter((item) => !item.error && !!item.base64);
 
-  for (let i = 0; i < extractedList.length; i++) {
-    const item = extractedList[i];
+  for (const item of extractedList) {
     if (item.error || !item.base64) {
       console.warn(`⚠️ Bỏ qua 1 ảnh do lỗi tải: ${item.error || "Rỗng"} (${item.url})`);
-      continue;
     }
+  }
 
-    const buffer = Buffer.from(item.base64, "base64");
-    const filePath = extractedList.length === 1
-      ? baseOutputPath
-      : join(parentDir, `${parsed.name}_${i + 1}${parsed.ext || ".png"}`);
+  for (let i = 0; i < validItems.length; i++) {
+    const item = validItems[i];
+    const buffer = Buffer.from(item.base64!, "base64");
+    const filePath = resolveOutputFilePath(baseOutputPath, i + 1, validItems.length);
 
     if (!skipDiskWrite) {
       writeFileSync(filePath, buffer);
@@ -133,7 +208,7 @@ export async function extractAndSaveImages(
       filePath,
       sizeBytes: buffer.length,
       url: item.url,
-      base64: item.base64,
+      base64: item.base64!,
     });
   }
 
