@@ -464,6 +464,9 @@
       chatgptVisibleBrowserField: document.querySelector("#chatgptVisibleBrowserField"),
       chatgptVisibleBrowser: document.querySelector("#chatgptVisibleBrowser"),
       chatgptVisibleBrowserStatus: document.querySelector("#chatgptVisibleBrowserStatus"),
+      chatgptBrowserField: document.querySelector("#chatgptBrowserField"),
+      chatgptBrowserGroup: document.querySelector("#chatgptBrowserGroup"),
+      chatgptBrowser: document.querySelector("#chatgptBrowser"),
       promptFidelityField: document.querySelector("#promptFidelityField"),
       promptFidelity: document.querySelector("#promptFidelity"),
       apiDirectSettingsNotice: document.querySelector("#apiDirectSettingsNotice"),
@@ -1158,6 +1161,9 @@
     "output.chatgptVisibleBrowserToggle": "On",
     "output.chatgptVisibleBrowserToggleOff": "Off",
     "output.chatgptVisibleBrowserTitle": "Show Chrome browser window during image generation",
+    "output.chatgptBrowser": "Browser",
+    "output.chatgptBrowserChrome": "Chrome",
+    "output.chatgptBrowserEdge": "Edge",
     "output.promptMode": "Prompt handling",
     "output.modeOriginal": "Original",
     "output.modeStrict": "Faithful",
@@ -13825,6 +13831,9 @@
     "output.chatgptVisibleBrowserToggle": "B\u1EADt",
     "output.chatgptVisibleBrowserToggleOff": "T\u1EAFt",
     "output.chatgptVisibleBrowserTitle": "Hi\u1EC3n th\u1ECB c\u1EEDa s\u1ED5 tr\xECnh duy\u1EC7t Chrome \u0111\u1EC3 theo d\xF5i qu\xE1 tr\xECnh t\u1EA1o \u1EA3nh",
+    "output.chatgptBrowser": "Tr\xECnh duy\u1EC7t",
+    "output.chatgptBrowserChrome": "Chrome",
+    "output.chatgptBrowserEdge": "Edge",
     "output.promptMode": "Ch\u1EBF \u0111\u1ED9 l\u1EDDi nh\u1EAFc",
     "output.modeOriginal": "B\u1EA3n g\u1ED1c",
     "output.modeStrict": "Gi\u1EEF s\xE1t l\u1EDDi nh\u1EAFc",
@@ -15161,6 +15170,9 @@
     "output.chatgptVisibleBrowserToggle": "\u5F00\u542F",
     "output.chatgptVisibleBrowserToggleOff": "\u5173\u95ED",
     "output.chatgptVisibleBrowserTitle": "\u5728\u751F\u6210\u56FE\u50CF\u65F6\u663E\u793A Chrome \u6D4F\u89C8\u5668\u7A97\u53E3",
+    "output.chatgptBrowser": "\u6D4F\u89C8\u5668",
+    "output.chatgptBrowserChrome": "Chrome",
+    "output.chatgptBrowserEdge": "Edge",
     "output.promptMode": "\u63D0\u793A\u8BCD\u5904\u7406",
     "output.modeOriginal": "\u539F\u6587",
     "output.modeStrict": "\u4FDD\u771F",
@@ -17766,6 +17778,9 @@
     "output.chatgptVisibleBrowserToggle": "\u958B\u555F",
     "output.chatgptVisibleBrowserToggleOff": "\u95DC\u9589",
     "output.chatgptVisibleBrowserTitle": "\u5728\u751F\u6210\u5F71\u50CF\u6642\u986F\u793A Chrome \u700F\u89BD\u5668\u8996\u7A97",
+    "output.chatgptBrowser": "\u700F\u89BD\u5668",
+    "output.chatgptBrowserChrome": "Chrome",
+    "output.chatgptBrowserEdge": "Edge",
     "output.promptMode": "\u63D0\u793A\u8A5E\u8655\u7406",
     "output.modeOriginal": "\u539F\u6587",
     "output.modeStrict": "\u4FDD\u771F",
@@ -36298,11 +36313,18 @@ ${hint}` : hint;
       els44.chatgptVisibleBrowserField.style.display = isChatGPT ? "" : "none";
       els44.chatgptVisibleBrowserField.classList.toggle("hidden", !isChatGPT);
     }
+    if (els44.chatgptBrowserField) {
+      els44.chatgptBrowserField.style.display = isChatGPT ? "" : "none";
+      els44.chatgptBrowserField.classList.toggle("hidden", !isChatGPT);
+    }
     if (isChatGPT && typeof methods.restoreChatGPTDeleteChatState === "function") {
       methods.restoreChatGPTDeleteChatState();
     }
     if (isChatGPT && typeof methods.restoreChatGPTVisibleBrowserState === "function") {
       methods.restoreChatGPTVisibleBrowserState();
+    }
+    if (isChatGPT && typeof methods.restoreChatGPTBrowserState === "function") {
+      methods.restoreChatGPTBrowserState();
     }
     if (els44.webSearchField) {
       els44.webSearchField.style.display = isChatGPT ? "none" : "";
@@ -39117,6 +39139,7 @@ ${hint}` : hint;
       icon_emoji: String(provider.icon_emoji || "").trim(),
       delete_chat_after_gen: typeof provider.delete_chat_after_gen === "boolean" ? provider.delete_chat_after_gen : true,
       visible_browser: typeof provider.visible_browser === "boolean" ? provider.visible_browser : false,
+      browser: provider.browser === "chrome" ? "chrome" : "edge",
       default_model_ids: Array.isArray(provider.default_model_ids) ? provider.default_model_ids.map((value) => String(value || "").trim()).filter(Boolean) : []
     };
   }
@@ -39505,7 +39528,8 @@ ${hint}` : hint;
           api_key_set: provider.api_key_set,
           api_key_masked: provider.api_key_masked,
           delete_chat_after_gen: provider.delete_chat_after_gen,
-          visible_browser: provider.visible_browser
+          visible_browser: provider.visible_browser,
+          browser: provider.browser
         }))
       }));
     } catch {
@@ -40139,7 +40163,8 @@ ${hint}` : hint;
           concurrency: provider.concurrency,
           bindings: provider.bindings,
           delete_chat_after_gen: provider.delete_chat_after_gen !== false,
-          visible_browser: Boolean(provider.visible_browser)
+          visible_browser: Boolean(provider.visible_browser),
+          browser: provider.browser || "edge"
         };
         if (provider.api_key || !provider.api_key_set) item.api_key = provider.api_key;
         if (!provider.api_key && provider.api_key_source_provider_id) {
@@ -46678,6 +46703,7 @@ ${galleryText}`;
     if (isChatGPTWebProvider()) {
       params["chatgpt.delete_chat_after_gen"] = Boolean(els25.chatgptDeleteChat?.checked ?? true);
       params["chatgpt.visible_browser"] = Boolean(els25.chatgptVisibleBrowser?.checked ?? false);
+      params["chatgpt.browser"] = currentChatGPTBrowser();
     }
     const presetMatch = findPresetForSize(params.size);
     if (presetMatch) {
@@ -47197,6 +47223,50 @@ ${galleryText}`;
   var formControlEventsBound = false;
   var CHATGPT_DELETE_CHAT_STORAGE_KEY = "codex-image-chatgpt-delete-chat";
   var CHATGPT_VISIBLE_BROWSER_STORAGE_KEY = "codex-image-chatgpt-visible-browser";
+  var CHATGPT_BROWSER_STORAGE_KEY = "codex-image-chatgpt-browser";
+  function syncChatGPTBrowserState(browser) {
+    const current = browser || (els27.chatgptBrowser?.value === "chrome" ? "chrome" : "edge");
+    if (els27.chatgptBrowser) {
+      els27.chatgptBrowser.value = current;
+    }
+    if (els27.chatgptBrowserGroup) {
+      const buttons = els27.chatgptBrowserGroup.querySelectorAll(".radio-btn");
+      buttons.forEach((btn) => {
+        const active = (btn.getAttribute("data-browser") || "edge") === current;
+        btn.classList.toggle("active", active);
+        btn.setAttribute("aria-pressed", String(active));
+      });
+    }
+  }
+  function restoreChatGPTBrowserState() {
+    const provider = activeChatGPTProvider();
+    const providerSetting = typeof provider?.browser === "string" ? provider.browser.toLowerCase() : null;
+    const saved = localStorage.getItem(CHATGPT_BROWSER_STORAGE_KEY);
+    const browser = providerSetting === "chrome" || saved === "chrome" ? "chrome" : "edge";
+    syncChatGPTBrowserState(browser);
+    localStorage.setItem(CHATGPT_BROWSER_STORAGE_KEY, browser);
+  }
+  function persistChatGPTBrowserState(browser) {
+    localStorage.setItem(CHATGPT_BROWSER_STORAGE_KEY, browser);
+    syncChatGPTBrowserState(browser);
+    const provider = activeChatGPTProvider();
+    if (provider && state18.apiSettings?.providers) {
+      const target = state18.apiSettings.providers.find((p) => p.id === provider.id);
+      if (target && target.browser !== browser) {
+        target.browser = browser;
+        const methods = getLegacyBridge().methods;
+        if (typeof methods?.persistApiSettings === "function") {
+          methods.persistApiSettings();
+        }
+        if (typeof methods?.queueApiSettingsAutosave === "function") {
+          methods.queueApiSettingsAutosave();
+        }
+      }
+    }
+  }
+  function currentChatGPTBrowser() {
+    return els27.chatgptBrowser?.value === "chrome" ? "chrome" : "edge";
+  }
   function syncChatGPTDeleteChatState() {
     if (!els27.chatgptDeleteChat) return;
     const isChecked = Boolean(els27.chatgptDeleteChat.checked);
@@ -47300,6 +47370,7 @@ ${galleryText}`;
     formControlEventsBound = true;
     restoreChatGPTDeleteChatState();
     restoreChatGPTVisibleBrowserState();
+    restoreChatGPTBrowserState();
     const handleChatGPTDeleteChatChange = () => {
       persistChatGPTDeleteChatState();
       updateRequestPreview10();
@@ -47312,6 +47383,13 @@ ${galleryText}`;
     };
     els27.chatgptVisibleBrowser?.addEventListener("input", handleChatGPTVisibleBrowserChange);
     els27.chatgptVisibleBrowser?.addEventListener("change", handleChatGPTVisibleBrowserChange);
+    els27.chatgptBrowserGroup?.addEventListener("click", (event) => {
+      const button = event.target.closest(".radio-btn");
+      if (!button) return;
+      const browser = button.getAttribute("data-browser") === "edge" ? "edge" : "chrome";
+      persistChatGPTBrowserState(browser);
+      updateRequestPreview10();
+    });
     document.querySelectorAll("[data-mode]").forEach((button) => {
       button.addEventListener("click", () => setMode4(button.dataset.mode));
     });
@@ -47425,6 +47503,10 @@ ${galleryText}`;
       restoreChatGPTVisibleBrowserState,
       persistChatGPTVisibleBrowserState,
       currentChatGPTVisibleBrowserEnabled,
+      syncChatGPTBrowserState,
+      restoreChatGPTBrowserState,
+      persistChatGPTBrowserState,
+      currentChatGPTBrowser,
       setMode: setMode4,
       syncRunButtonLabel: syncRunButtonLabel2,
       updateQuantity,
@@ -51399,6 +51481,7 @@ ${galleryText}`;
     if (isChatGPTWebProvider()) {
       payload2.delete_chat_after_gen = Boolean(els33.chatgptDeleteChat?.checked ?? true);
       payload2.visible_browser = Boolean(els33.chatgptVisibleBrowser?.checked ?? false);
+      payload2.browser = currentChatGPTBrowser();
     }
     return payload2;
   }
@@ -51492,6 +51575,9 @@ ${galleryText}`;
     }
     if (els33.chatgptVisibleBrowser && isChatGPTWebProvider()) {
       form.append("visible_browser", String(Boolean(els33.chatgptVisibleBrowser.checked)));
+    }
+    if (els33.chatgptBrowser && isChatGPTWebProvider()) {
+      form.append("browser", currentChatGPTBrowser());
     }
     galleries.forEach((source) => form.append("gallery_image_ids", source.id));
     assets.forEach((source) => form.append("reference_asset_ids", source.id));

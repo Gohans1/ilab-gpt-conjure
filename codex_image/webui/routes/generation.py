@@ -282,6 +282,7 @@ def _prepare_generation_submission(
     reference_file_inputs: list[ResponsesInputFile],
     delete_chat_after_gen: bool | None = None,
     visible_browser: bool | None = None,
+    browser: str | None = None,
 ) -> PreparedGenerationSubmission:
     h = ctx.route_helpers
     compression = _normalize_compression(output_format, output_compression)
@@ -457,6 +458,11 @@ def _prepare_generation_submission(
         if hasattr(plan, "command") and hasattr(plan.command, "parameters"):
             plan.command.parameters["chatgpt.visible_browser"] = bool(visible_browser)
         request_payload["visible_browser"] = bool(visible_browser)
+    if browser:
+        params["chatgpt.browser"] = str(browser).strip()
+        if hasattr(plan, "command") and hasattr(plan.command, "parameters"):
+            plan.command.parameters["chatgpt.browser"] = str(browser).strip()
+        request_payload["browser"] = str(browser).strip()
     return PreparedGenerationSubmission(
         plan=plan,
         request_payload=request_payload,
@@ -821,6 +827,7 @@ def register_generation_routes(app: FastAPI, ctx: WebUIContext) -> None:
         reference_files: list[UploadFile] | None = File(None),
         delete_chat_after_gen: bool | None = Form(None),
         visible_browser: bool | None = Form(None),
+        browser: str | None = Form(None),
     ) -> dict[str, Any]:
         explicit_form_fields = frozenset(str(key) for key in (await request.form()).keys())
         auth_source = _request_auth_source(ctx, provider_id)
@@ -928,6 +935,7 @@ def register_generation_routes(app: FastAPI, ctx: WebUIContext) -> None:
             reference_file_inputs=list(prepared_reference_files.response_inputs),
             delete_chat_after_gen=delete_chat_after_gen,
             visible_browser=visible_browser,
+            browser=browser,
         )
 
         reference_assets = _commit_reference_assets(
@@ -995,6 +1003,7 @@ def register_generation_routes(app: FastAPI, ctx: WebUIContext) -> None:
         reference_files: list[UploadFile] | None = File(None),
         delete_chat_after_gen: bool | None = Form(None),
         visible_browser: bool | None = Form(None),
+        browser: str | None = Form(None),
     ) -> dict[str, Any]:
         explicit_form_fields = frozenset(str(key) for key in (await request.form()).keys())
         auth_source = _request_auth_source(ctx, provider_id)
@@ -1119,6 +1128,7 @@ def register_generation_routes(app: FastAPI, ctx: WebUIContext) -> None:
             reference_file_inputs=list(prepared_reference_files.response_inputs),
             delete_chat_after_gen=delete_chat_after_gen,
             visible_browser=visible_browser,
+            browser=browser,
         )
 
         reference_assets = _commit_reference_assets(

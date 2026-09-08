@@ -22,6 +22,7 @@ inputs/
 output/
 outputs/
 data/chatgpt-profile/
+data/login-profiles/
 data/logs/
 data/webui-outputs/
 data/webui-inputs/

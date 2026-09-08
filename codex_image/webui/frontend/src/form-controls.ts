@@ -52,6 +52,55 @@ let formControlsInitialized = false;
 let formControlEventsBound = false;
 const CHATGPT_DELETE_CHAT_STORAGE_KEY = "codex-image-chatgpt-delete-chat";
 const CHATGPT_VISIBLE_BROWSER_STORAGE_KEY = "codex-image-chatgpt-visible-browser";
+const CHATGPT_BROWSER_STORAGE_KEY = "codex-image-chatgpt-browser";
+
+export function syncChatGPTBrowserState(browser?: "chrome" | "edge"): void {
+  const current = browser || (els.chatgptBrowser?.value === "chrome" ? "chrome" : "edge");
+  if (els.chatgptBrowser) {
+    els.chatgptBrowser.value = current;
+  }
+  if (els.chatgptBrowserGroup) {
+    const buttons = els.chatgptBrowserGroup.querySelectorAll(".radio-btn");
+    buttons.forEach((btn: Element) => {
+      const active = (btn.getAttribute("data-browser") || "edge") === current;
+      btn.classList.toggle("active", active);
+      btn.setAttribute("aria-pressed", String(active));
+    });
+  }
+}
+
+export function restoreChatGPTBrowserState(): void {
+  const provider = activeChatGPTProvider();
+  const providerSetting = typeof provider?.browser === "string" ? provider.browser.toLowerCase() : null;
+  const saved = localStorage.getItem(CHATGPT_BROWSER_STORAGE_KEY);
+  const browser: "chrome" | "edge" =
+    (providerSetting === "chrome" || saved === "chrome") ? "chrome" : "edge";
+  syncChatGPTBrowserState(browser);
+  localStorage.setItem(CHATGPT_BROWSER_STORAGE_KEY, browser);
+}
+
+export function persistChatGPTBrowserState(browser: "chrome" | "edge"): void {
+  localStorage.setItem(CHATGPT_BROWSER_STORAGE_KEY, browser);
+  syncChatGPTBrowserState(browser);
+  const provider = activeChatGPTProvider();
+  if (provider && state.apiSettings?.providers) {
+    const target = state.apiSettings.providers.find((p: any) => p.id === provider.id);
+    if (target && target.browser !== browser) {
+      target.browser = browser;
+      const methods = getLegacyBridge().methods;
+      if (typeof methods?.persistApiSettings === "function") {
+        methods.persistApiSettings();
+      }
+      if (typeof methods?.queueApiSettingsAutosave === "function") {
+        methods.queueApiSettingsAutosave();
+      }
+    }
+  }
+}
+
+export function currentChatGPTBrowser(): "chrome" | "edge" {
+  return els.chatgptBrowser?.value === "chrome" ? "chrome" : "edge";
+}
 
 export function syncChatGPTDeleteChatState(): void {
   if (!els.chatgptDeleteChat) return;
@@ -170,6 +219,7 @@ export function bindFormControlEvents(): void {
 
   restoreChatGPTDeleteChatState();
   restoreChatGPTVisibleBrowserState();
+  restoreChatGPTBrowserState();
   const handleChatGPTDeleteChatChange = () => {
     persistChatGPTDeleteChatState();
     updateRequestPreview();
@@ -183,6 +233,14 @@ export function bindFormControlEvents(): void {
   };
   els.chatgptVisibleBrowser?.addEventListener("input", handleChatGPTVisibleBrowserChange);
   els.chatgptVisibleBrowser?.addEventListener("change", handleChatGPTVisibleBrowserChange);
+
+  els.chatgptBrowserGroup?.addEventListener("click", (event: MouseEvent) => {
+    const button = (event.target as HTMLElement).closest<HTMLButtonElement>(".radio-btn");
+    if (!button) return;
+    const browser = button.getAttribute("data-browser") === "edge" ? "edge" : "chrome";
+    persistChatGPTBrowserState(browser);
+    updateRequestPreview();
+  });
 
   document.querySelectorAll("[data-mode]").forEach((button: any) => {
     button.addEventListener("click", () => setMode(button.dataset.mode));
@@ -302,6 +360,10 @@ export function initFormControlsFeature(): void {
     restoreChatGPTVisibleBrowserState,
     persistChatGPTVisibleBrowserState,
     currentChatGPTVisibleBrowserEnabled,
+    syncChatGPTBrowserState,
+    restoreChatGPTBrowserState,
+    persistChatGPTBrowserState,
+    currentChatGPTBrowser,
     setMode,
     syncRunButtonLabel,
     updateQuantity,

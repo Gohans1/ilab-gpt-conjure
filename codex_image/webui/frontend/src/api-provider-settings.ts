@@ -104,6 +104,7 @@ export function normalizeApiProvider(provider: any = {}, index: any = 0): any {
     icon_emoji: String(provider.icon_emoji || "").trim(),
     delete_chat_after_gen: typeof provider.delete_chat_after_gen === "boolean" ? provider.delete_chat_after_gen : true,
     visible_browser: typeof provider.visible_browser === "boolean" ? provider.visible_browser : false,
+    browser: (provider.browser === "chrome" ? "chrome" : "edge") as "chrome" | "edge",
     default_model_ids: Array.isArray(provider.default_model_ids)
       ? provider.default_model_ids.map((value: any) => String(value || "").trim()).filter(Boolean)
       : [],
@@ -539,6 +540,7 @@ export function persistApiSettings(): void {
         api_key_masked: provider.api_key_masked,
         delete_chat_after_gen: provider.delete_chat_after_gen,
         visible_browser: provider.visible_browser,
+        browser: provider.browser,
       })),
     }));
   } catch {
@@ -1240,6 +1242,7 @@ export async function saveApiSettings(options: any = {}): Promise<boolean> {
         bindings: provider.bindings,
         delete_chat_after_gen: provider.delete_chat_after_gen !== false,
         visible_browser: Boolean(provider.visible_browser),
+        browser: provider.browser || "edge",
       };
       if (provider.api_key || !provider.api_key_set) item.api_key = provider.api_key;
       if (!provider.api_key && provider.api_key_source_provider_id) {

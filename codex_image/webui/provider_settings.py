@@ -92,6 +92,8 @@ def migrate_legacy_provider(raw: Mapping[str, Any]) -> dict[str, Any]:
         provider["delete_chat_after_gen"] = bool(raw.get("delete_chat_after_gen"))
     if "visible_browser" in raw and raw.get("visible_browser") is not None:
         provider["visible_browser"] = bool(raw.get("visible_browser"))
+    if "browser" in raw and raw.get("browser") is not None:
+        provider["browser"] = str(raw.get("browser")).strip().lower()
     return provider
 
 
@@ -444,6 +446,7 @@ class ProviderSettings(StoreLockMixin):
             "images_concurrency",
             "delete_chat_after_gen",
             "visible_browser",
+            "browser",
         }
         if not legacy_provider_fields.intersection(payload):
             return candidate
@@ -471,6 +474,10 @@ class ProviderSettings(StoreLockMixin):
                 provider["delete_chat_after_gen"] = bool(payload.get("delete_chat_after_gen"))
             if "visible_browser" in payload:
                 provider["visible_browser"] = bool(payload.get("visible_browser"))
+            if "browser" in payload:
+                browser_val = str(payload.get("browser") or "").strip().lower()
+                if browser_val in {"chrome", "edge"}:
+                    provider["browser"] = browser_val
             if "image_model" in payload or "api_mode" in payload:
                 gpt_binding = next(
                     (

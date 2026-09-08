@@ -476,6 +476,7 @@ export async function generateImage(prompt: string, options: GenerateOptions = {
   const shouldDeleteChat = resolveDeleteChatOption(options.deleteChatAfterGen);
   const session: BrowserSession = await getBrowserSession({
     headless: options.headless,
+    browser: options.browser,
   });
 
   let abortedByClient = false;

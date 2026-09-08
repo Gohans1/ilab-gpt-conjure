@@ -4,6 +4,7 @@ import { currentApiImageModel, currentApiImagesConcurrency, currentApiMode, curr
 import { currentMainModel } from "./main-model-combobox";
 import { currentQuantity } from "./output-controls";
 import { isChatGPTWebProvider } from "./provider-selection";
+import { currentChatGPTBrowser } from "./form-controls";
 import { translate } from "./i18n";
 
 export const DEFAULT_RESOLUTION = "standard";
@@ -212,6 +213,7 @@ export function currentTaskParams(): any {
   if (isChatGPTWebProvider()) {
     params["chatgpt.delete_chat_after_gen"] = Boolean(els.chatgptDeleteChat?.checked ?? true);
     params["chatgpt.visible_browser"] = Boolean(els.chatgptVisibleBrowser?.checked ?? false);
+    params["chatgpt.browser"] = currentChatGPTBrowser();
   }
   const presetMatch = findPresetForSize(params.size);
   if (presetMatch) {

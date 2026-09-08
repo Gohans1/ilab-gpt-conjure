@@ -68,6 +68,9 @@ class _LegacyClientAdapter:
             is_batch_bridge or hasattr(self.client, "generations_url")
         ):
             common["visible_browser"] = bool(visible_browser)
+        browser = params.get("chatgpt.browser") or params.get("browser")
+        if browser and (is_batch_bridge or hasattr(self.client, "generations_url")):
+            common["browser"] = str(browser)
 
         try:
             if command.operation == "edit":

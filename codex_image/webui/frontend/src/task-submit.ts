@@ -1,6 +1,7 @@
 import { getLegacyBridge } from "./state";
 import { currentLocaleCode, translate } from "./i18n";
 import { selectedProviderBinding, isChatGPTWebProvider } from "./provider-selection";
+import { currentChatGPTBrowser } from "./form-controls";
 import { appendCanonicalGenerationFields, currentGenerationSelection } from "./generation-request";
 import { taskOutputControlValues } from "./task-model-summary";
 
@@ -221,6 +222,7 @@ function buildPreviewRequest() {
   if (isChatGPTWebProvider()) {
     payload.delete_chat_after_gen = Boolean(els.chatgptDeleteChat?.checked ?? true);
     payload.visible_browser = Boolean(els.chatgptVisibleBrowser?.checked ?? false);
+    payload.browser = currentChatGPTBrowser();
   }
   return payload;
 }
@@ -318,6 +320,9 @@ async function runTask() {
   }
   if (els.chatgptVisibleBrowser && isChatGPTWebProvider()) {
     form.append("visible_browser", String(Boolean(els.chatgptVisibleBrowser.checked)));
+  }
+  if (els.chatgptBrowser && isChatGPTWebProvider()) {
+    form.append("browser", currentChatGPTBrowser());
   }
   galleries.forEach((source: any) => form.append("gallery_image_ids", source.id));
   assets.forEach((source: any) => form.append("reference_asset_ids", source.id));

@@ -525,6 +525,9 @@
           <button id="chatgptBridgeLoginButton" class="primary-button text-sm" type="button" style="margin-left: 12px; cursor: pointer; padding: 6px 14px; font-weight: bold; border-radius: 6px;">
             🔑 Đăng nhập ChatGPT
           </button>
+          <button id="chatgptBridgeLoginDoneButton" class="ghost-button text-sm" type="button" style="display: none; margin-left: 8px; cursor: pointer; padding: 6px 14px; font-weight: bold; border-radius: 6px; border: 1px solid #3b82f6; color: #60a5fa;">
+            ✅ Hoàn tất đăng nhập
+          </button>
         </div>
 
         <!-- Dashboard Workspace -->
@@ -957,6 +960,14 @@
                       <span class="chatgpt-delete-chat-toggle-track" aria-hidden="true"></span>
                       <span id="chatgptVisibleBrowserStatus" class="chatgpt-delete-chat-toggle-text" data-i18n="output.chatgptVisibleBrowserToggleOff">关闭</span>
                     </label>
+                  </div>
+                  <div id="chatgptBrowserField" class="field chatgpt-browser-field" style="display: none;">
+                    <span data-i18n="output.chatgptBrowser">Trình duyệt</span>
+                    <div class="radio-group" id="chatgptBrowserGroup" role="group" aria-label="Trình duyệt" data-i18n-attr="aria-label:output.chatgptBrowser">
+                      <button class="radio-btn active" data-browser="edge" type="button" data-i18n="output.chatgptBrowserEdge">Edge</button>
+                      <button class="radio-btn" data-browser="chrome" type="button" data-i18n="output.chatgptBrowserChrome">Chrome</button>
+                    </div>
+                    <input type="hidden" id="chatgptBrowser" value="edge" />
                   </div>
                   <span data-i18n="output.ratio">比例</span>
                   <div class="radio-group ratio-group" id="ratioGroup" role="group" aria-label="比例" data-i18n-attr="aria-label:output.ratio">
@@ -1797,9 +1808,16 @@
         const banner = document.getElementById("chatgptBridgeBanner");
         const bannerText = document.getElementById("chatgptBridgeBannerText");
         const loginBtn = document.getElementById("chatgptBridgeLoginButton");
+        const loginDoneBtn = document.getElementById("chatgptBridgeLoginDoneButton");
         const providerSelect = document.getElementById("generationProviderSelect");
 
         let isChecking = false;
+
+        function getSelectedBrowser() {
+          const el = document.getElementById("chatgptBrowser");
+          const saved = localStorage.getItem("codex-image-chatgpt-browser");
+          return (el?.value || saved) === "chrome" ? "chrome" : "edge";
+        }
 
         function isChatGPTProvider(settings) {
           if (!settings) return false;
@@ -1866,24 +1884,30 @@
               banner.className = "bridge-auth-banner";
               bannerText.innerHTML = "<strong>ChatGPT Bridge:</strong> Chưa kết nối được cổng 3000. Hãy khởi động bằng Start-All.bat.";
               loginBtn.style.display = "none";
+              if (loginDoneBtn) loginDoneBtn.style.display = "none";
             } else if (!data.logged_in) {
               banner.style.display = "flex";
               banner.className = "bridge-auth-banner";
               loginBtn.style.display = "inline-block";
               if (data.is_logging_in) {
-                bannerText.innerHTML = "<strong>ChatGPT Web:</strong> Trình duyệt Chrome/Edge đang mở. Vui lòng đăng nhập trên cửa sổ đó. Khi xong cửa sổ sẽ tự đóng lại.";
+                const bName = getSelectedBrowser() === "edge" ? "Microsoft Edge" : "Google Chrome";
+                bannerText.innerHTML = "<strong>ChatGPT Web:</strong> Trình duyệt " + bName + " đang mở. Vui lòng đăng nhập trên cửa sổ đó. Khi xong bạn có thể đóng cửa sổ hoặc bấm [Hoàn tất đăng nhập].";
                 loginBtn.disabled = true;
-                loginBtn.textContent = "⏳ Đang chờ đăng nhập trên trình duyệt...";
+                loginBtn.textContent = "⏳ Đang chờ đăng nhập...";
+                if (loginDoneBtn) loginDoneBtn.style.display = "inline-block";
               } else {
                 bannerText.innerHTML = "<strong>ChatGPT Web Free:</strong> Chưa phát hiện phiên đăng nhập. Bạn cần đăng nhập 1 lần để sử dụng.";
                 loginBtn.disabled = false;
                 loginBtn.textContent = "🔑 Đăng nhập ChatGPT";
+                if (loginDoneBtn) loginDoneBtn.style.display = "none";
               }
             } else {
               banner.style.display = "none";
+              if (loginDoneBtn) loginDoneBtn.style.display = "none";
             }
           } catch {
             banner.style.display = "none";
+            if (loginDoneBtn) loginDoneBtn.style.display = "none";
           } finally {
             isChecking = false;
           }
@@ -1893,6 +1917,7 @@
           banner.className = "bridge-auth-banner success";
           bannerText.innerHTML = "<strong>ChatGPT Web:</strong> 🎉 Đăng nhập thành công! Phiên đã được lưu.";
           loginBtn.style.display = "none";
+          if (loginDoneBtn) loginDoneBtn.style.display = "none";
           setTimeout(() => {
             banner.className = "bridge-auth-banner";
             banner.style.display = "none";
@@ -1901,11 +1926,22 @@
 
         if (loginBtn) {
           loginBtn.addEventListener("click", async () => {
+            const browser = getSelectedBrowser();
             loginBtn.disabled = true;
             loginBtn.textContent = "⏳ Đang mở trình duyệt...";
-            bannerText.innerHTML = "<strong>ChatGPT Web:</strong> Trình duyệt Chrome/Edge đang mở. Vui lòng đăng nhập trên cửa sổ đó. Khi xong cửa sổ sẽ tự đóng lại.";
+            if (loginDoneBtn) {
+              loginDoneBtn.style.display = "inline-block";
+              loginDoneBtn.disabled = false;
+              loginDoneBtn.textContent = "✅ Hoàn tất đăng nhập";
+            }
+            const bName = browser === "edge" ? "Microsoft Edge" : "Google Chrome";
+            bannerText.innerHTML = "<strong>ChatGPT Web:</strong> Trình duyệt " + bName + " đang mở. Vui lòng đăng nhập trên cửa sổ đó. Khi xong bạn có thể đóng cửa sổ hoặc bấm [Hoàn tất đăng nhập].";
             try {
-              const res = await fetch("/api/bridge/login", { method: "POST" });
+              const res = await fetch("/api/bridge/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ browser }),
+              });
               const result = await res.json();
               if (result.ok) {
                 showLoginSuccess();
@@ -1913,11 +1949,38 @@
                 alert("Lỗi khi đăng nhập: " + (result.detail || result.error || result.message || "Không rõ"));
                 loginBtn.disabled = false;
                 loginBtn.textContent = "🔑 Đăng nhập ChatGPT";
+                if (loginDoneBtn) loginDoneBtn.style.display = "none";
               }
             } catch (err) {
-              alert("Không thể kết nối tới server bridge: " + err);
-              loginBtn.disabled = false;
-              loginBtn.textContent = "🔑 Đăng nhập ChatGPT";
+              const status = await checkBridgeStatus();
+              if (!status?.is_logging_in) {
+                alert("Không thể kết nối tới server bridge: " + err);
+                loginBtn.disabled = false;
+                loginBtn.textContent = "🔑 Đăng nhập ChatGPT";
+                if (loginDoneBtn) loginDoneBtn.style.display = "none";
+              }
+            }
+          });
+        }
+
+        if (loginDoneBtn) {
+          loginDoneBtn.addEventListener("click", async () => {
+            loginDoneBtn.disabled = true;
+            loginDoneBtn.textContent = "⏳ Đang hoàn tất...";
+            try {
+              const res = await fetch("/api/bridge/login-done", { method: "POST" });
+              const result = await res.json();
+              if (result.ok) {
+                setTimeout(checkBridgeStatus, 1200);
+              } else {
+                alert("Không thể gửi tín hiệu: " + (result.detail || result.error || result.message || "Không rõ"));
+                loginDoneBtn.disabled = false;
+                loginDoneBtn.textContent = "✅ Hoàn tất đăng nhập";
+              }
+            } catch (err) {
+              alert("Lỗi kết nối: " + err);
+              loginDoneBtn.disabled = false;
+              loginDoneBtn.textContent = "✅ Hoàn tất đăng nhập";
             }
           });
         }

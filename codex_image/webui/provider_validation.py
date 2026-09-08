@@ -215,6 +215,12 @@ def _validate_provider(raw: Mapping[str, Any], *, index: int) -> dict[str, Any]:
         if not isinstance(visible_browser, bool):
             raise ValueError("invalid_visible_browser")
         provider["visible_browser"] = visible_browser
+    browser = raw.get("browser")
+    if browser is not None:
+        browser_val = str(browser).strip().lower()
+        if browser_val not in {"chrome", "edge"}:
+            raise ValueError("invalid_browser")
+        provider["browser"] = browser_val
     return provider
 
 

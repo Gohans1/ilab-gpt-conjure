@@ -713,6 +713,44 @@ class WebUISettingsTests(unittest.TestCase):
         self.assertEqual(invalid.status_code, 200)
         self.assertEqual(invalid.json()["settings"]["codex_mode"], "images")
         self.assertEqual(persisted["codex_mode"], "images")
+
+    def test_api_settings_persist_chatgpt_browser_selection(self) -> None:
+        from codex_image.webui.app import create_app
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            api_settings_path = root / "api-settings.json"
+            api_settings_path.write_text(
+                json.dumps(
+                    {
+                        "base_url": "http://127.0.0.1:8765/v1",
+                        "active_provider_id": "chatgpt-web",
+                        "browser": "chrome",
+                    }
+                ),
+                encoding="utf-8",
+            )
+            app = create_app(
+                output_root=root / "tasks",
+                auth_settings_path=root / "auth-settings.json",
+                api_settings_path=api_settings_path,
+                auto_start_queue=False,
+            )
+            client = TestClient(app)
+
+            saved = client.patch(
+                "/api/api-settings",
+                json={
+                    "browser": "edge",
+                },
+            )
+            reported = client.get("/api/api-settings").json()["settings"]
+            persisted = json.loads(api_settings_path.read_text(encoding="utf-8"))
+
+        self.assertEqual(saved.status_code, 200)
+        self.assertEqual(reported["providers"][0]["browser"], "edge")
+        self.assertEqual(persisted["providers"][0]["browser"], "edge")
+
     def test_api_settings_support_multiple_providers_and_legacy_shape(self) -> None:
         from codex_image.webui.app import create_app
 

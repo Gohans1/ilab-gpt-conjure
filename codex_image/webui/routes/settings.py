@@ -331,11 +331,11 @@ def register_settings_routes(app: FastAPI, ctx: WebUIContext) -> None:
         return {"running": False, "logged_in": False, "is_logging_in": False}
 
     @app.post("/api/bridge/login")
-    async def trigger_bridge_login() -> dict[str, Any]:
+    async def trigger_bridge_login(payload: dict[str, Any] | None = None) -> dict[str, Any]:
         bridge_url = "http://127.0.0.1:3000/auth/login"
         try:
             async with httpx.AsyncClient(timeout=300.0) as client:
-                resp = await client.post(bridge_url)
+                resp = await client.post(bridge_url, json=payload or {})
                 return resp.json()
         except httpx.ConnectError:
             raise HTTPException(
@@ -353,4 +353,20 @@ def register_settings_routes(app: FastAPI, ctx: WebUIContext) -> None:
             except Exception:
                 pass
             raise HTTPException(status_code=500, detail=str(exc))
+
+    @app.post("/api/bridge/login-done")
+    async def trigger_bridge_login_done() -> dict[str, Any]:
+        bridge_url = "http://127.0.0.1:3000/auth/login-done"
+        try:
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                resp = await client.post(bridge_url)
+                return resp.json()
+        except httpx.ConnectError:
+            raise HTTPException(
+                status_code=502,
+                detail="ChatGPT Bridge chưa chạy tại cổng 3000.",
+            )
+        except Exception as exc:
+            raise HTTPException(status_code=500, detail=str(exc))
+
 

@@ -1,9 +1,17 @@
 import { spawn } from "node:child_process";
-import { chmodSync, mkdtempSync, rmSync } from "node:fs";
+import { chmodSync, existsSync, mkdirSync, mkdtempSync, readdirSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join, resolve } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { chromium, type BrowserContext, type Page } from "playwright-core";
-import { atomicWriteFile, CHATGPT_LOGIN_URL, findBrowserCandidates, SELECTORS, STORAGE_STATE_PATH } from "./config.js";
+import {
+  atomicWriteFile,
+  CHATGPT_LOGIN_URL,
+  findBrowserCandidates,
+  getSafeShortPath,
+  SELECTORS,
+  STORAGE_STATE_PATH,
+  USER_DATA_DIR,
+} from "./config.js";
 import {
   AUTH_PROVIDER_HOSTS,
   allowedLoginStorageHost,
@@ -14,6 +22,10 @@ import {
 } from "./check-session.js";
 import {
   cleanupStaleLocks,
+  closeBrowserGracefully,
+  isBrowserProfileInUse,
+  isBrowserProfileInUseAsync,
+  isBrowserProfileLockedByFs,
   killOrphanBrowsers,
   killProcessTree,
   registerActiveBrowserPid,
@@ -323,88 +335,230 @@ export async function saveSanitizedStorageState(
   return false;
 }
 
-export async function handleLogin(timeoutMs: number = 300_000): Promise<void> {
-  const { primary, fallback } = findBrowserCandidates();
+let activeLoginContinuation: (() => void) | null = null;
+
+export function notifyLoginContinuation(): boolean {
+  if (activeLoginContinuation) {
+    const notify = activeLoginContinuation;
+    activeLoginContinuation = null;
+    notify();
+    return true;
+  }
+  return false;
+}
+
+export function cleanupOrphanLoginProfiles(): void {
+  try {
+    const loginProfilesBase = join(dirname(USER_DATA_DIR), "login-profiles");
+    if (!existsSync(loginProfilesBase)) return;
+    const entries = readdirSync(loginProfilesBase);
+    for (const entry of entries) {
+      if (entry.startsWith("login-")) {
+        const dir = join(loginProfilesBase, entry);
+        try {
+          if (!isBrowserProfileLockedByFs(dir)) {
+            rmSync(dir, { recursive: true, force: true });
+          }
+        } catch {}
+      }
+    }
+  } catch {}
+}
+
+export async function handleLogin(
+  timeoutMs: number = 300_000,
+  preferredBrowser?: "chrome" | "edge" | string
+): Promise<void> {
+  const { primary, fallback, selectedBrowser } = findBrowserCandidates(preferredBrowser);
   const executablePath = primary[0] || fallback[0];
   if (!executablePath) {
-    throw new Error("Không tìm thấy Google Chrome hoặc Microsoft Edge trên máy.");
+    throw new Error(
+      preferredBrowser
+        ? `Không tìm thấy trình duyệt ${preferredBrowser.toUpperCase()} trên hệ thống.`
+        : "Không tìm thấy Google Chrome hoặc Microsoft Edge trên máy."
+    );
   }
 
-  const tempProfileDir = mkdtempSync(join(tmpdir(), "chatgpt-login-profile-"));
+  // Khởi tạo profile tạm trong thư mục data của repo thay vì C:\Users\...\AppData\Local\Temp
+  // Điều này tránh hoàn toàn các lỗi Chromium khi đường dẫn username chứa dấu cách (spaces).
+  const loginProfilesBase = join(dirname(USER_DATA_DIR), "login-profiles");
+  mkdirSync(loginProfilesBase, { recursive: true, mode: 0o700 });
+  cleanupOrphanLoginProfiles();
+  const tempProfileDir = mkdtempSync(join(loginProfilesBase, "login-"));
+  const safeProfileDir = getSafeShortPath(tempProfileDir);
   try {
     chmodSync(tempProfileDir, 0o700);
+    if (safeProfileDir !== tempProfileDir) {
+      chmodSync(safeProfileDir, 0o700);
+    }
   } catch {}
+
   let loginBrowser: any = null;
   let context: any = null;
+  let continuationRequested = false;
+
+  const continuationPromise = new Promise<void>((resolveContinuation) => {
+    activeLoginContinuation = () => {
+      continuationRequested = true;
+      resolveContinuation();
+    };
+  });
+
+  const actualBrowser = executablePath.toLowerCase().includes("msedge") ? "edge" : "chrome";
+  const browserDisplayName = actualBrowser === "edge" ? "Microsoft Edge" : "Google Chrome";
 
   try {
-    console.log("🔑 [Login Mode] Đang mở trình duyệt Chrome nguyên bản để bạn đăng nhập ChatGPT...");
+    console.log(`🔑 [Login Mode] Đang mở trình duyệt ${browserDisplayName} nguyên bản để bạn đăng nhập ChatGPT...`);
     console.log(`👉 Đường dẫn đăng nhập: ${CHATGPT_LOGIN_URL}`);
     console.log("👉 Vui lòng đăng nhập tài khoản ChatGPT của bạn trên cửa sổ này.");
-    console.log("💡 Sau khi đăng nhập xong và thấy giao diện ChatGPT, hãy ĐÓNG CỬA SỔ TRÌNH DUYỆT LẠI.");
+    console.log("💡 Sau khi đăng nhập xong và thấy giao diện ChatGPT, hãy ĐÓNG CỬA SỔ TRÌNH DUYỆT hoặc bấm [Hoàn tất đăng nhập] trên WebUI.");
 
-    // 1. Mở Chrome THUẦN CHỦNG (100% người thật, KHÔNG cờ automation, KHÔNG cổng debug)
-    loginBrowser = spawn(
-      executablePath,
-      [
-        `--user-data-dir=${tempProfileDir}`,
-        "--new-window",
-        "--disable-background-mode",
-        "--no-first-run",
-        "--no-default-browser-check",
-        CHATGPT_LOGIN_URL,
-      ],
-      { stdio: "ignore" }
-    );
+    // 1. Mở Chrome/Edge THUẦN CHỦNG (100% người thật, KHÔNG cờ automation, KHÔNG cổng debug)
+    const browserArgs = [
+      `--user-data-dir=${safeProfileDir}`,
+      "--new-window",
+      "--no-first-run",
+      "--no-default-browser-check",
+      "--disable-background-mode",
+      "--disable-features=AutoDeElevate,ProfilePickerOnStartup",
+      "--do-not-de-elevate",
+      "--start-maximized",
+      CHATGPT_LOGIN_URL,
+    ];
+
+    loginBrowser = spawn(executablePath, browserArgs, {
+      stdio: "ignore",
+      windowsHide: false,
+    });
 
     if (loginBrowser?.pid) {
       registerActiveBrowserPid(loginBrowser.pid);
     }
 
+    const startTime = Date.now();
+    let earlyExitDetected = false;
     let timer: ReturnType<typeof setTimeout> | undefined;
-    try {
-      await new Promise<void>((resolveExit, rejectExit) => {
-        timer = setTimeout(() => {
-          try {
-            if (loginBrowser?.pid) {
-              killProcessTree(loginBrowser.pid);
-            }
-          } catch {}
-          rejectExit(new Error("Quá thời gian chờ đăng nhập ChatGPT (5 phút). Đã tự động đóng trình duyệt."));
-        }, timeoutMs);
 
-        loginBrowser.once("error", (err: any) => {
-          if (timer) clearTimeout(timer);
-          rejectExit(err);
-        });
-        loginBrowser.once("exit", (code: any, signal: any) => {
-          if (timer) clearTimeout(timer);
-          if (signal) {
-            rejectExit(new Error(`Trình duyệt đăng nhập bị tắt bởi tín hiệu: ${signal}`));
-          } else {
-            // Không reject nếu code !== 0 khi user bấm X trên Windows
-            // Bước trích xuất và xác thực storageState tiếp theo là nguồn kiểm chứng chính xác nhất
+    try {
+      await Promise.race([
+        continuationPromise,
+        new Promise<void>((resolveExit, rejectExit) => {
+          timer = setTimeout(() => {
+            try {
+              if (loginBrowser?.pid) {
+                killProcessTree(loginBrowser.pid);
+              }
+            } catch {}
+            rejectExit(new Error("Quá thời gian chờ đăng nhập ChatGPT (5 phút). Đã tự động đóng trình duyệt."));
+          }, timeoutMs);
+
+          loginBrowser.once("error", (err: any) => {
+            if (timer) clearTimeout(timer);
+            rejectExit(err);
+          });
+
+          loginBrowser.once("exit", (code: any, signal: any) => {
+            if (timer) clearTimeout(timer);
+            if (loginBrowser?.pid) {
+              unregisterActiveBrowserPid(loginBrowser.pid);
+            }
+            if (continuationRequested) {
+              resolveExit();
+              return;
+            }
+            if (signal) {
+              rejectExit(new Error(`Trình duyệt đăng nhập bị tắt bởi tín hiệu: ${signal}`));
+              return;
+            }
             resolveExit();
-          }
-        });
-      });
+          });
+        }),
+      ]);
     } finally {
       if (timer) clearTimeout(timer);
     }
 
+    // Khi tiến trình launcher exit mà chưa nhận tín hiệu hoàn tất (continuation):
+    // Nếu launcher exit rất nhanh (< 4000ms), có thể do cơ chế de-elevation trên Windows khiến process cha thoát ngay.
+    // Thử kiểm tra tiến trình con có đang chạy profile không (thử 6 lần nếu exit sớm, 1 lần nếu đã chạy lâu).
+    if (!continuationRequested) {
+      let inUse = false;
+      const isEarlyExit = Date.now() - startTime < 4000;
+      const maxAttempts = isEarlyExit ? 6 : 1;
+      for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+        if (await isBrowserProfileInUseAsync(safeProfileDir)) {
+          inUse = true;
+          break;
+        }
+        if (attempt < maxAttempts) {
+          await new Promise((r) => setTimeout(r, 500));
+        }
+      }
+      if (inUse) {
+        console.log("ℹ️ Cửa sổ trình duyệt đang mở. Đang chờ bạn đăng nhập hoặc bấm [Hoàn tất đăng nhập]...");
+        const pollDeadline = startTime + timeoutMs;
+        while (Date.now() < pollDeadline && !continuationRequested) {
+          await Promise.race([
+            continuationPromise,
+            new Promise((r) => setTimeout(r, 1500)),
+          ]);
+          if (continuationRequested) break;
+          if (!(await isBrowserProfileInUseAsync(safeProfileDir))) {
+            // Người dùng đã đóng cửa sổ trình duyệt con
+            break;
+          }
+        }
+      }
+    }
+
     console.log("⏳ Đang đồng bộ và lưu phiên đăng nhập...");
 
-    // Settle delay 800ms trên Windows để các tiến trình con Crashpad/GPU kịp đóng và nhả file lock
-    await new Promise((r) => setTimeout(r, 800));
-    killOrphanBrowsers(tempProfileDir, true);
-    cleanupStaleLocks(tempProfileDir);
-    removeTemporaryChromeTabSessions(tempProfileDir);
+    if (continuationRequested) {
+      // 1. Gửi tín hiệu đóng êm dịu (WM_CLOSE qua PowerShell trên Windows hoặc SIGTERM)
+      // để Chromium kịp thực hiện SQLite checkpoint từ WAL xuống đĩa
+      closeBrowserGracefully(safeProfileDir, loginBrowser?.pid);
 
-    // 2. Chrome đã tắt, mọi cookie đã được flush sạch vào tempProfileDir.
-    // Dùng Playwright mở chớp nhoáng tempProfileDir để trích xuất storageState trong chế độ hoàn toàn OFFLINE
+      // Chờ Chromium tự đóng êm đẹp và nhả file lock (tối đa 2.5 giây)
+      const gracefulDeadline = Date.now() + 2500;
+      while (Date.now() < gracefulDeadline) {
+        if (!(await isBrowserProfileInUseAsync(safeProfileDir))) {
+          break;
+        }
+        await new Promise((r) => setTimeout(r, 300));
+      }
+
+      // 2. Nếu sau 2.5s vẫn còn tiến trình cứng đầu thì mới cưỡng chế dọn dẹp
+      if (loginBrowser?.pid) {
+        try {
+          killProcessTree(loginBrowser.pid);
+        } catch {}
+      }
+      killOrphanBrowsers(safeProfileDir, true);
+      if (safeProfileDir !== tempProfileDir && existsSync(tempProfileDir)) {
+        killOrphanBrowsers(tempProfileDir, true);
+      }
+      await new Promise((r) => setTimeout(r, 300));
+    } else {
+      // Settle delay 600ms trên Windows để các tiến trình con Crashpad/GPU kịp đóng và nhả file lock
+      await new Promise((r) => setTimeout(r, 600));
+      killOrphanBrowsers(safeProfileDir, true);
+      if (safeProfileDir !== tempProfileDir && existsSync(tempProfileDir)) {
+        killOrphanBrowsers(tempProfileDir, true);
+      }
+    }
+
+    cleanupStaleLocks(safeProfileDir);
+    removeTemporaryChromeTabSessions(safeProfileDir);
+    if (safeProfileDir !== tempProfileDir && existsSync(tempProfileDir)) {
+      cleanupStaleLocks(tempProfileDir);
+      removeTemporaryChromeTabSessions(tempProfileDir);
+    }
+
+    // 2. Trình duyệt đã tắt, mọi cookie đã được flush sạch vào safeProfileDir.
+    // Dùng Playwright mở chớp nhoáng safeProfileDir để trích xuất storageState trong chế độ hoàn toàn OFFLINE
     for (let attempt = 1; attempt <= 3; attempt++) {
       try {
-        context = await chromium.launchPersistentContext(tempProfileDir, {
+        context = await chromium.launchPersistentContext(safeProfileDir, {
           executablePath,
           headless: true,
           chromiumSandbox: true,
@@ -429,7 +583,9 @@ export async function handleLogin(timeoutMs: number = 300_000): Promise<void> {
         break;
       } catch (e) {
         if (attempt === 3) throw e;
+        killOrphanBrowsers(safeProfileDir, true);
         killOrphanBrowsers(tempProfileDir, true);
+        cleanupStaleLocks(safeProfileDir);
         cleanupStaleLocks(tempProfileDir);
         await new Promise((r) => setTimeout(r, 500));
       }
@@ -458,6 +614,12 @@ export async function handleLogin(timeoutMs: number = 300_000): Promise<void> {
     const hasValidToken = hasValidSessionToken(state.cookies || []);
 
     if (!hasValidToken) {
+      const isTooFast = Date.now() - startTime < 4000;
+      if (isTooFast) {
+        throw new Error(
+          `Cửa sổ ${browserDisplayName} đã bị đóng ngay khi vừa bật (hoặc bị chặn bởi tiến trình nền). Hãy thử chuyển Trình duyệt sang '${selectedBrowser === "chrome" ? "Edge" : "Chrome"}' trên WebUI hoặc tắt tính năng 'Tiếp tục chạy các ứng dụng nền khi Google Chrome đóng' trong Cài đặt Chrome.`
+        );
+      }
       throw new Error(
         "Chưa phát hiện phiên đăng nhập hợp lệ. Vui lòng thử đăng nhập lại và đợi trang ChatGPT tải xong trước khi đóng trình duyệt."
       );
@@ -469,6 +631,7 @@ export async function handleLogin(timeoutMs: number = 300_000): Promise<void> {
     console.log("\n🎉 Đăng nhập thành công! Phiên đăng nhập đã được lưu vĩnh viễn vào storage-state.json.");
     console.log("Bây giờ bạn có thể tạo ảnh bình thường qua WebUI hoặc CLI!");
   } finally {
+    activeLoginContinuation = null;
     if (loginBrowser?.pid) {
       unregisterActiveBrowserPid(loginBrowser.pid);
       try {
@@ -481,13 +644,17 @@ export async function handleLogin(timeoutMs: number = 300_000): Promise<void> {
         new Promise((r) => setTimeout(r, 5000)),
       ]);
     }
-    killOrphanBrowsers(tempProfileDir, true);
+    killOrphanBrowsers(safeProfileDir, true);
+    if (safeProfileDir !== tempProfileDir) {
+      killOrphanBrowsers(tempProfileDir, true);
+    }
     for (let i = 0; i < 5; i++) {
       try {
         rmSync(tempProfileDir, { recursive: true, force: true });
         break;
       } catch {
         if (i >= 2) {
+          killOrphanBrowsers(safeProfileDir, true);
           killOrphanBrowsers(tempProfileDir, true);
         }
         await new Promise((r) => setTimeout(r, 200));

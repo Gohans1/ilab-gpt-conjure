@@ -59,6 +59,7 @@ def build_openai_images_payload(
     output_compression: int | None = None,
     delete_chat_after_gen: bool | None = None,
     visible_browser: bool | None = None,
+    browser: str | None = None,
     n: int = 1,
 ) -> dict[str, Any]:
     image_model = str(model or default_model or DEFAULT_IMAGE_MODEL).strip() or DEFAULT_IMAGE_MODEL
@@ -86,6 +87,8 @@ def build_openai_images_payload(
         payload["delete_chat_after_gen"] = delete_chat_after_gen
     if visible_browser is not None:
         payload["visible_browser"] = visible_browser
+    if browser:
+        payload["browser"] = browser
     if images:
         payload["images"] = [{"image_url": image_url} for image_url in images]
     if mask_image:
@@ -165,6 +168,7 @@ class OpenAIImagesImageClient:
         debug_sse_path: str | PathLike[str] | None = None,
         delete_chat_after_gen: bool | None = None,
         visible_browser: bool | None = None,
+        browser: str | None = None,
     ) -> ImageResult:
         return self.generate_images(
             prompt=prompt,
@@ -182,6 +186,7 @@ class OpenAIImagesImageClient:
             debug_sse_path=debug_sse_path,
             delete_chat_after_gen=delete_chat_after_gen,
             visible_browser=visible_browser,
+            browser=browser,
             n=1,
         )[0]
 
@@ -203,6 +208,7 @@ class OpenAIImagesImageClient:
         debug_sse_path: str | PathLike[str] | None = None,
         delete_chat_after_gen: bool | None = None,
         visible_browser: bool | None = None,
+        browser: str | None = None,
         n: int = 1,
     ) -> list[ImageResult]:
         del partial_images, debug_sse_path
@@ -222,6 +228,7 @@ class OpenAIImagesImageClient:
             output_compression=output_compression,
             delete_chat_after_gen=delete_chat_after_gen,
             visible_browser=visible_browser,
+            browser=browser,
             n=n,
         )
         return self._request_and_parse_many(payload)
@@ -246,6 +253,7 @@ class OpenAIImagesImageClient:
         debug_sse_path: str | PathLike[str] | None = None,
         delete_chat_after_gen: bool | None = None,
         visible_browser: bool | None = None,
+        browser: str | None = None,
     ) -> ImageResult:
         return self.edit_images(
             prompt=prompt,
@@ -265,6 +273,7 @@ class OpenAIImagesImageClient:
             debug_sse_path=debug_sse_path,
             delete_chat_after_gen=delete_chat_after_gen,
             visible_browser=visible_browser,
+            browser=browser,
             n=1,
         )[0]
 
@@ -288,6 +297,7 @@ class OpenAIImagesImageClient:
         debug_sse_path: str | PathLike[str] | None = None,
         delete_chat_after_gen: bool | None = None,
         visible_browser: bool | None = None,
+        browser: str | None = None,
         n: int = 1,
     ) -> list[ImageResult]:
         del partial_images, debug_sse_path
@@ -311,6 +321,7 @@ class OpenAIImagesImageClient:
             output_compression=output_compression,
             delete_chat_after_gen=delete_chat_after_gen,
             visible_browser=visible_browser,
+            browser=browser,
             n=n,
         )
         return self._request_and_parse_many(payload)
@@ -334,6 +345,7 @@ class OpenAIImagesImageClient:
         output_compression: int | None = None,
         delete_chat_after_gen: bool | None = None,
         visible_browser: bool | None = None,
+        browser: str | None = None,
         n: int = 1,
     ) -> dict[str, Any]:
         del main_model
@@ -343,7 +355,7 @@ class OpenAIImagesImageClient:
             background=background, output_format=output_format,
             input_fidelity=input_fidelity, moderation=moderation,
             output_compression=output_compression, delete_chat_after_gen=delete_chat_after_gen,
-            visible_browser=visible_browser, n=n,
+            visible_browser=visible_browser, browser=browser, n=n,
         )
 
     def _request_and_parse(self, payload: dict[str, Any]) -> ImageResult:

@@ -617,6 +617,9 @@
     "output.chatgptVisibleBrowserToggle": "On",
     "output.chatgptVisibleBrowserToggleOff": "Off",
     "output.chatgptVisibleBrowserTitle": "Show Chrome browser window during image generation",
+    "output.chatgptBrowser": "Browser",
+    "output.chatgptBrowserChrome": "Chrome",
+    "output.chatgptBrowserEdge": "Edge",
     "output.promptMode": "Prompt handling",
     "output.modeOriginal": "Original",
     "output.modeStrict": "Faithful",
@@ -13284,6 +13287,9 @@
     "output.chatgptVisibleBrowserToggle": "B\u1EADt",
     "output.chatgptVisibleBrowserToggleOff": "T\u1EAFt",
     "output.chatgptVisibleBrowserTitle": "Hi\u1EC3n th\u1ECB c\u1EEDa s\u1ED5 tr\xECnh duy\u1EC7t Chrome \u0111\u1EC3 theo d\xF5i qu\xE1 tr\xECnh t\u1EA1o \u1EA3nh",
+    "output.chatgptBrowser": "Tr\xECnh duy\u1EC7t",
+    "output.chatgptBrowserChrome": "Chrome",
+    "output.chatgptBrowserEdge": "Edge",
     "output.promptMode": "Ch\u1EBF \u0111\u1ED9 l\u1EDDi nh\u1EAFc",
     "output.modeOriginal": "B\u1EA3n g\u1ED1c",
     "output.modeStrict": "Gi\u1EEF s\xE1t l\u1EDDi nh\u1EAFc",
@@ -14620,6 +14626,9 @@
     "output.chatgptVisibleBrowserToggle": "\u5F00\u542F",
     "output.chatgptVisibleBrowserToggleOff": "\u5173\u95ED",
     "output.chatgptVisibleBrowserTitle": "\u5728\u751F\u6210\u56FE\u50CF\u65F6\u663E\u793A Chrome \u6D4F\u89C8\u5668\u7A97\u53E3",
+    "output.chatgptBrowser": "\u6D4F\u89C8\u5668",
+    "output.chatgptBrowserChrome": "Chrome",
+    "output.chatgptBrowserEdge": "Edge",
     "output.promptMode": "\u63D0\u793A\u8BCD\u5904\u7406",
     "output.modeOriginal": "\u539F\u6587",
     "output.modeStrict": "\u4FDD\u771F",
@@ -17225,6 +17234,9 @@
     "output.chatgptVisibleBrowserToggle": "\u958B\u555F",
     "output.chatgptVisibleBrowserToggleOff": "\u95DC\u9589",
     "output.chatgptVisibleBrowserTitle": "\u5728\u751F\u6210\u5F71\u50CF\u6642\u986F\u793A Chrome \u700F\u89BD\u5668\u8996\u7A97",
+    "output.chatgptBrowser": "\u700F\u89BD\u5668",
+    "output.chatgptBrowserChrome": "Chrome",
+    "output.chatgptBrowserEdge": "Edge",
     "output.promptMode": "\u63D0\u793A\u8A5E\u8655\u7406",
     "output.modeOriginal": "\u539F\u6587",
     "output.modeStrict": "\u4FDD\u771F",
@@ -18875,6 +18887,9 @@
       chatgptVisibleBrowserField: document.querySelector("#chatgptVisibleBrowserField"),
       chatgptVisibleBrowser: document.querySelector("#chatgptVisibleBrowser"),
       chatgptVisibleBrowserStatus: document.querySelector("#chatgptVisibleBrowserStatus"),
+      chatgptBrowserField: document.querySelector("#chatgptBrowserField"),
+      chatgptBrowserGroup: document.querySelector("#chatgptBrowserGroup"),
+      chatgptBrowser: document.querySelector("#chatgptBrowser"),
       promptFidelityField: document.querySelector("#promptFidelityField"),
       promptFidelity: document.querySelector("#promptFidelity"),
       apiDirectSettingsNotice: document.querySelector("#apiDirectSettingsNotice"),
@@ -19756,11 +19771,18 @@
       els9.chatgptVisibleBrowserField.style.display = isChatGPT ? "" : "none";
       els9.chatgptVisibleBrowserField.classList.toggle("hidden", !isChatGPT);
     }
+    if (els9.chatgptBrowserField) {
+      els9.chatgptBrowserField.style.display = isChatGPT ? "" : "none";
+      els9.chatgptBrowserField.classList.toggle("hidden", !isChatGPT);
+    }
     if (isChatGPT && typeof methods.restoreChatGPTDeleteChatState === "function") {
       methods.restoreChatGPTDeleteChatState();
     }
     if (isChatGPT && typeof methods.restoreChatGPTVisibleBrowserState === "function") {
       methods.restoreChatGPTVisibleBrowserState();
+    }
+    if (isChatGPT && typeof methods.restoreChatGPTBrowserState === "function") {
+      methods.restoreChatGPTBrowserState();
     }
     if (els9.webSearchField) {
       els9.webSearchField.style.display = isChatGPT ? "none" : "";
@@ -22437,6 +22459,7 @@
       icon_emoji: String(provider.icon_emoji || "").trim(),
       delete_chat_after_gen: typeof provider.delete_chat_after_gen === "boolean" ? provider.delete_chat_after_gen : true,
       visible_browser: typeof provider.visible_browser === "boolean" ? provider.visible_browser : false,
+      browser: provider.browser === "chrome" ? "chrome" : "edge",
       default_model_ids: Array.isArray(provider.default_model_ids) ? provider.default_model_ids.map((value) => String(value || "").trim()).filter(Boolean) : []
     };
   }
@@ -22825,7 +22848,8 @@
           api_key_set: provider.api_key_set,
           api_key_masked: provider.api_key_masked,
           delete_chat_after_gen: provider.delete_chat_after_gen,
-          visible_browser: provider.visible_browser
+          visible_browser: provider.visible_browser,
+          browser: provider.browser
         }))
       }));
     } catch {
@@ -23459,7 +23483,8 @@
           concurrency: provider.concurrency,
           bindings: provider.bindings,
           delete_chat_after_gen: provider.delete_chat_after_gen !== false,
-          visible_browser: Boolean(provider.visible_browser)
+          visible_browser: Boolean(provider.visible_browser),
+          browser: provider.browser || "edge"
         };
         if (provider.api_key || !provider.api_key_set) item.api_key = provider.api_key;
         if (!provider.api_key && provider.api_key_source_provider_id) {

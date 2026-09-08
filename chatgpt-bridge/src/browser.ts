@@ -1,5 +1,5 @@
-import { existsSync, readFileSync, rmSync } from "node:fs";
-import { spawnSync } from "node:child_process";
+import { closeSync, existsSync, openSync, readFileSync, rmSync } from "node:fs";
+import { spawn, spawnSync } from "node:child_process";
 import { join } from "node:path";
 import { chromium, type Browser, type BrowserContext, type Page } from "playwright-core";
 import { findBrowserCandidates, STORAGE_STATE_PATH } from "./config.js";
@@ -13,6 +13,7 @@ export interface BrowserSession {
 
 export interface BrowserOptions {
   headless?: boolean;
+  browser?: "chrome" | "edge" | string;
 }
 
 const activeBrowserPids = new Set<number>();
@@ -142,6 +143,43 @@ Get-CimInstance Win32_Process -Filter "Name = 'chrome.exe' or Name = 'msedge.exe
   }
 }
 
+export function closeBrowserGracefully(profileDir?: string, pid?: number): void {
+  if (!profileDir && !pid) return;
+  if (process.platform === "win32") {
+    try {
+      const systemRoot = process.env.SystemRoot || process.env.SYSTEMROOT || "C:\\Windows";
+      const powershell = join(systemRoot, "System32", "WindowsPowerShell", "v1.0", "powershell.exe");
+      let script = "";
+      if (typeof pid === "number" && Number.isInteger(pid) && pid > 0) {
+        script = `Get-Process -Id ${pid} -ErrorAction SilentlyContinue | ForEach-Object { try { $_.CloseMainWindow() | Out-Null } catch {} }`;
+      } else if (profileDir && profileDir.trim()) {
+        const normalized = profileDir.replace(/[/\\]+/g, "\\").replace(/'/g, "''");
+        script = `
+$pattern = [regex]::Escape('${normalized}');
+Get-CimInstance Win32_Process -Filter "Name = 'chrome.exe' or Name = 'msedge.exe'" |
+  Where-Object { $_.CommandLine -and ($_.CommandLine -match $pattern) } |
+  ForEach-Object {
+    $p = Get-Process -Id $_.ProcessId -ErrorAction SilentlyContinue
+    if ($p) {
+      try { $p.CloseMainWindow() | Out-Null } catch {}
+    }
+  }
+`.trim();
+      }
+      if (!script) return;
+      const b64 = Buffer.from(script, "utf16le").toString("base64");
+      spawn(powershell, ["-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-EncodedCommand", b64], {
+        stdio: "ignore",
+        windowsHide: true,
+      });
+    } catch {}
+  } else if (pid) {
+    try {
+      process.kill(pid, "SIGTERM");
+    } catch {}
+  }
+}
+
 export function cleanupStaleLocks(profileDir: string): void {
   const locks = ["SingletonLock", "SingletonCookie", "SingletonSocket", "lockfile"];
   for (const name of locks) {
@@ -151,13 +189,113 @@ export function cleanupStaleLocks(profileDir: string): void {
   }
 }
 
+export function isBrowserProfileLockedByFs(profileDir: string): boolean {
+  if (!profileDir || !existsSync(profileDir)) return false;
+  if (process.platform === "win32") {
+    for (const lockName of ["lockfile", "SingletonLock"]) {
+      const lockPath = join(profileDir, lockName);
+      if (existsSync(lockPath)) {
+        try {
+          const fd = openSync(lockPath, "r+");
+          closeSync(fd);
+        } catch (err: any) {
+          if (err?.code === "EBUSY" || err?.code === "EPERM" || err?.code === "EACCES") {
+            return true;
+          }
+        }
+      }
+    }
+  }
+  return false;
+}
+
+export function isBrowserProfileInUse(profileDir: string): boolean {
+  if (!profileDir || !existsSync(profileDir)) return false;
+  return isBrowserProfileLockedByFs(profileDir);
+}
+
+export async function isBrowserProfileInUseAsync(profileDir: string): Promise<boolean> {
+  if (!profileDir || !existsSync(profileDir)) return false;
+
+  // 1. Fast path: check file lock directly (0.01ms, 0% CPU, non-blocking)
+  if (isBrowserProfileLockedByFs(profileDir)) {
+    return true;
+  }
+
+  // 2. Fallback: check running processes asynchronously so Bun event loop is NEVER blocked
+  if (process.platform === "win32") {
+    try {
+      const systemRoot = process.env.SystemRoot || process.env.SYSTEMROOT || "C:\\Windows";
+      const powershell = join(systemRoot, "System32", "WindowsPowerShell", "v1.0", "powershell.exe");
+      const normalized = profileDir.replace(/[/\\]+/g, "\\").replace(/'/g, "''");
+      const script = `
+$pattern = [regex]::Escape('${normalized}');
+$found = Get-CimInstance Win32_Process -Filter "Name = 'chrome.exe' or Name = 'msedge.exe'" |
+  Where-Object { $_.CommandLine -and ($_.CommandLine -match $pattern) } |
+  Select-Object -First 1
+if ($found) { exit 0 } else { exit 1 }
+`.trim();
+      const b64 = Buffer.from(script, "utf16le").toString("base64");
+      const proc = spawn(powershell, ["-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-EncodedCommand", b64], {
+        stdio: "ignore",
+        windowsHide: true,
+      });
+
+      return await new Promise<boolean>((resolve) => {
+        const timer = setTimeout(() => {
+          try {
+            proc.kill();
+          } catch {}
+          resolve(false);
+        }, 3000);
+
+        proc.once("error", () => {
+          clearTimeout(timer);
+          resolve(false);
+        });
+        proc.once("exit", (code) => {
+          clearTimeout(timer);
+          resolve(code === 0);
+        });
+      });
+    } catch {
+      return false;
+    }
+  } else {
+    try {
+      const escaped = profileDir.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const proc = spawn("pgrep", ["-f", escaped], { stdio: "ignore" });
+      return await new Promise<boolean>((resolve) => {
+        const timer = setTimeout(() => {
+          try {
+            proc.kill();
+          } catch {}
+          resolve(false);
+        }, 3000);
+        proc.once("error", () => {
+          clearTimeout(timer);
+          resolve(false);
+        });
+        proc.once("exit", (code) => {
+          clearTimeout(timer);
+          resolve(code === 0);
+        });
+      });
+    } catch {
+      return false;
+    }
+  }
+}
+
 
 export async function getBrowserSession(options: BrowserOptions = {}): Promise<BrowserSession> {
-  const { primary, fallback } = findBrowserCandidates();
+  const { primary, fallback, selectedBrowser } = findBrowserCandidates(options.browser);
   const executablePath = primary[0] || fallback[0];
   if (!executablePath) {
     throw new Error(
-      "Không tìm thấy Google Chrome hoặc Microsoft Edge trên hệ thống. Vui lòng cài đặt Google Chrome / Microsoft Edge hoặc chỉ định biến môi trường CHROME_PATH."
+      options.browser
+        ? `Không tìm thấy trình duyệt ${options.browser.toUpperCase()} trên hệ thống. Vui lòng cài đặt hoặc chọn trình duyệt khác.`
+        : "Không tìm thấy Google Chrome hoặc Microsoft Edge trên hệ thống. Vui lòng cài đặt Google Chrome / Microsoft Edge hoặc chỉ định biến môi trường CHROME_PATH."
     );
   }
 

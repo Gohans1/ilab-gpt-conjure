@@ -8,6 +8,7 @@ import {
   rmSync,
   writeFileSync,
 } from "node:fs";
+import { spawnSync } from "node:child_process";
 import { homedir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import crypto from "node:crypto";
@@ -66,16 +67,58 @@ export const CHATGPT_URL = "https://chatgpt.com/";
 export const CHATGPT_TEMPORARY_CHAT_URL = "https://chatgpt.com/?temporary-chat=true";
 export const CHATGPT_LOGIN_URL = "https://chatgpt.com/auth/login";
 
-export function findBrowserCandidates(): { primary: string[]; fallback: string[] } {
+export function getSafeShortPath(targetPath: string): string {
+  if (process.platform !== "win32" || !targetPath.includes(" ")) {
+    return targetPath;
+  }
+  try {
+    const systemRoot = process.env.SystemRoot || process.env.SYSTEMROOT || "C:\\Windows";
+    const powershell = join(systemRoot, "System32", "WindowsPowerShell", "v1.0", "powershell.exe");
+    const escaped = targetPath.replace(/'/g, "''");
+    const result = spawnSync(
+      powershell,
+      [
+        "-NoProfile",
+        "-NonInteractive",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-Command",
+        `$f = (New-Object -ComObject Scripting.FileSystemObject).GetFolder('${escaped}'); if ($f) { $f.ShortPath } else { '${escaped}' }`,
+      ],
+      { encoding: "utf8", timeout: 3000, windowsHide: true }
+    );
+    const shortPath = (result.stdout || "").trim();
+    if (shortPath && !shortPath.includes(" ") && existsSync(shortPath)) {
+      return shortPath;
+    }
+  } catch {}
+  return targetPath;
+}
+
+export function findBrowserCandidates(preferredBrowser?: "chrome" | "edge" | string): {
+  primary: string[];
+  fallback: string[];
+  selectedBrowser: "chrome" | "edge";
+} {
   const localAppData = process.platform === "win32" && process.env.LOCALAPPDATA ? process.env.LOCALAPPDATA : "";
-  const primaryCandidates = Array.from(
+  const progFiles =
+    process.platform === "win32" && process.env.ProgramFiles ? process.env.ProgramFiles : "C:\\Program Files";
+  const progFilesX86 =
+    process.platform === "win32" && process.env["ProgramFiles(x86)"]
+      ? process.env["ProgramFiles(x86)"]
+      : "C:\\Program Files (x86)";
+
+  const chromeCandidates = Array.from(
     new Set(
       [
         process.env.CHROME_PATH || "",
-        // Windows
+        // Windows dynamic env paths
+        join(progFiles, "Google\\Chrome\\Application\\chrome.exe"),
+        join(progFilesX86, "Google\\Chrome\\Application\\chrome.exe"),
+        localAppData ? join(localAppData, "Google\\Chrome\\Application\\chrome.exe") : "",
+        // Windows standard hardcoded
         "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
         "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe",
-        localAppData ? join(localAppData, "Google\\Chrome\\Application\\chrome.exe") : "",
         // macOS
         "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
         // Linux
@@ -86,14 +129,17 @@ export function findBrowserCandidates(): { primary: string[]; fallback: string[]
     )
   );
 
-  const fallbackCandidates = Array.from(
+  const edgeCandidates = Array.from(
     new Set(
       [
         process.env.EDGE_PATH || "",
-        // Windows
+        // Windows dynamic env paths
+        join(progFiles, "Microsoft\\Edge\\Application\\msedge.exe"),
+        join(progFilesX86, "Microsoft\\Edge\\Application\\msedge.exe"),
+        localAppData ? join(localAppData, "Microsoft\\Edge\\Application\\msedge.exe") : "",
+        // Windows standard hardcoded
         "C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe",
         "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
-        localAppData ? join(localAppData, "Microsoft\\Edge\\Application\\msedge.exe") : "",
         // macOS
         "/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge",
         // Linux
@@ -102,7 +148,32 @@ export function findBrowserCandidates(): { primary: string[]; fallback: string[]
     )
   );
 
-  return { primary: primaryCandidates, fallback: fallbackCandidates };
+  const pref = (preferredBrowser || process.env.CHATGPT_BROWSER || "").toLowerCase().trim();
+  const isExplicitEdge = pref === "edge" || pref === "msedge";
+  const isExplicitChrome = pref === "chrome" || pref === "google-chrome";
+
+  if (isExplicitEdge) {
+    return {
+      primary: edgeCandidates,
+      fallback: chromeCandidates,
+      selectedBrowser: "edge",
+    };
+  }
+
+  if (isExplicitChrome) {
+    return {
+      primary: chromeCandidates,
+      fallback: edgeCandidates,
+      selectedBrowser: "chrome",
+    };
+  }
+
+  // Mặc định khi không chỉ định: ưu tiên Edge nếu có (chuẩn Windows), nếu không thì dùng Chrome
+  return {
+    primary: edgeCandidates.length > 0 ? edgeCandidates : chromeCandidates,
+    fallback: edgeCandidates.length > 0 ? chromeCandidates : [],
+    selectedBrowser: edgeCandidates.length > 0 ? "edge" : (chromeCandidates.length > 0 ? "chrome" : "edge"),
+  };
 }
 
 function resolveProfileDir(): string {

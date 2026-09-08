@@ -90,6 +90,29 @@ describe("parseImageRequest", () => {
     expect(parsed.headless).toBe(false);
   });
 
+  it("phân tích đúng browser từ JSON và multipart/form-data request", async () => {
+    const reqJson = new Request("http://127.0.0.1:3000/v1/images/generations", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        prompt: "A neon city",
+        browser: "edge",
+      }),
+    });
+    const parsedJson = await parseImageRequest(reqJson);
+    expect(parsedJson.browser).toBe("edge");
+
+    const formData = new FormData();
+    formData.append("prompt", "A cyberpunk cat");
+    formData.append("browser", "chrome");
+    const reqForm = new Request("http://127.0.0.1:3000/v1/images/generations", {
+      method: "POST",
+      body: formData,
+    });
+    const parsedForm = await parseImageRequest(reqForm);
+    expect(parsedForm.browser).toBe("chrome");
+  });
+
   it("phân tích đúng JSON request có base64 image và dọn dẹp sạch cả thư mục tạm", async () => {
     const fakeBase64Png = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
     const req = new Request("http://127.0.0.1:3000/v1/images/edits", {
@@ -562,6 +585,36 @@ describe("CORS & Origin Security (REQ-06)", () => {
     expect(res.status).toBe(403);
     const json: any = await res.json();
     expect(json.error).toContain("Forbidden");
+  });
+
+  it("cho phép gọi /auth/login-done từ local origin và trả về JSON hợp lệ", async () => {
+    const req = new Request("http://127.0.0.1:3000/auth/login-done", {
+      method: "POST",
+      headers: { Origin: "http://127.0.0.1:8000" },
+    });
+    const res = await handleRequest(req);
+    expect(res.status).toBe(200);
+    const json: any = await res.json();
+    expect(json.ok).toBe(true);
+    expect(typeof json.notified).toBe("boolean");
+  });
+
+  it("chặn đứng 403 khi gọi /auth/login-done từ cross-site", async () => {
+    const req = new Request("http://127.0.0.1:3000/auth/login-done", {
+      method: "POST",
+      headers: { "Sec-Fetch-Site": "cross-site" },
+    });
+    const res = await handleRequest(req);
+    expect(res.status).toBe(403);
+  });
+
+  it("trả về 405 Method Not Allowed khi gọi GET /auth/login-done", async () => {
+    const req = new Request("http://127.0.0.1:3000/auth/login-done", {
+      method: "GET",
+      headers: { Origin: "http://127.0.0.1:8000" },
+    });
+    const res = await handleRequest(req);
+    expect(res.status).toBe(405);
   });
 });
 

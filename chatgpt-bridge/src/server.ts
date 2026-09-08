@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join, resolve, sep } from "node:path";
 import crypto from "node:crypto";
 import { generateImage, sizeToAspectRatio } from "./generator.js";
-import { handleLogin } from "./auth-helper.js";
+import { handleLogin, notifyLoginContinuation } from "./auth-helper.js";
 import { clearSessionVerified, isSessionCached } from "./check-session.js";
 import { cleanupActiveBrowsers } from "./browser.js";
 import { detectImageExtension } from "./config.js";
@@ -15,6 +15,7 @@ export interface ParsedImageRequest {
   aspectRatioOrSize?: string;
   deleteChatAfterGen?: boolean;
   headless?: boolean;
+  browser?: "chrome" | "edge" | string;
   customTimeout?: number;
   idleTimeout?: number;
   tempFilesToClean: string[];
@@ -68,6 +69,7 @@ export async function parseImageRequest(req: Request): Promise<ParsedImageReques
   let deleteChatRaw: any;
   let headlessRaw: any;
   let visibleBrowserRaw: any;
+  let browserRaw: any;
   let customTimeout: number | undefined;
   let idleTimeout: number | undefined;
 
@@ -91,6 +93,7 @@ export async function parseImageRequest(req: Request): Promise<ParsedImageReques
       deleteChatRaw = formData.get("delete_chat_after_gen") ?? formData.get("deleteChatAfterGen");
       headlessRaw = formData.get("headless");
       visibleBrowserRaw = formData.get("visible_browser") ?? formData.get("visibleBrowser");
+      browserRaw = formData.get("browser") ?? formData.get("browser_type");
 
       const timeoutRaw = formData.get("timeout") ?? formData.get("max_timeout") ?? formData.get("timeout_ms");
       if (timeoutRaw) {
@@ -140,6 +143,7 @@ export async function parseImageRequest(req: Request): Promise<ParsedImageReques
       deleteChatRaw = body.delete_chat_after_gen ?? body.deleteChatAfterGen;
       headlessRaw = body.headless;
       visibleBrowserRaw = body.visible_browser ?? body.visibleBrowser;
+      browserRaw = body.browser ?? body.browser_type;
 
       customTimeout =
         typeof body.max_timeout === "number"
@@ -251,12 +255,15 @@ export async function parseImageRequest(req: Request): Promise<ParsedImageReques
       }
     }
 
+    const browser = typeof browserRaw === "string" ? browserRaw.trim().toLowerCase() : undefined;
+
     return {
       prompt,
       n,
       aspectRatioOrSize,
       deleteChatAfterGen,
       headless,
+      browser,
       customTimeout,
       idleTimeout,
       tempFilesToClean,
@@ -519,13 +526,25 @@ export async function handleRequest(req: Request): Promise<Response> {
         { headers: corsHeaders }
       );
     }
+
+    let preferredBrowser: "chrome" | "edge" | undefined;
+    try {
+      const contentType = req.headers.get("content-type") || "";
+      if (contentType.includes("application/json")) {
+        const body = (await req.json().catch(() => ({}))) as any;
+        if (body && typeof body.browser === "string") {
+          preferredBrowser = body.browser.toLowerCase().includes("edge") ? "edge" : "chrome";
+        }
+      }
+    } catch {}
+
     isLoginQueued = true;
     try {
       await enqueueTask(async () => {
         isLoggingIn = true;
         try {
-          console.log("🔑 [Bridge] Nhận yêu cầu mở trình duyệt đăng nhập từ WebUI...");
-          await handleLogin();
+          console.log(`🔑 [Bridge] Nhận yêu cầu mở trình duyệt ${preferredBrowser || "mặc định"} đăng nhập từ WebUI...`);
+          await handleLogin(300_000, preferredBrowser);
         } finally {
           isLoggingIn = false;
         }
@@ -541,6 +560,30 @@ export async function handleRequest(req: Request): Promise<Response> {
     } finally {
       isLoginQueued = false;
     }
+  }
+
+  // Continuation trigger endpoint: /auth/login-done
+  if (pathname === "/auth/login-done" || pathname === "/api/auth/login-done") {
+    const origin = req.headers.get("origin");
+    const secFetchSite = req.headers.get("sec-fetch-site");
+    if ((origin && !isAllowedOrigin(origin)) || origin === "null" || secFetchSite === "cross-site") {
+      return Response.json(
+        { error: "Forbidden: Cross-site or sandboxed request rejected" },
+        { status: 403, headers: corsHeaders }
+      );
+    }
+    if (req.method !== "POST") {
+      return Response.json({ error: "Method not allowed" }, { status: 405, headers: corsHeaders });
+    }
+    const notified = notifyLoginContinuation();
+    return Response.json(
+      {
+        ok: true,
+        notified,
+        message: notified ? "Đã gửi tín hiệu hoàn tất đăng nhập." : "Không có phiên đăng nhập nào đang chờ.",
+      },
+      { headers: corsHeaders }
+    );
   }
 
   // OpenAI Models list
@@ -677,6 +720,7 @@ export async function handleRequest(req: Request): Promise<Response> {
         () =>
           generateImage(generationPrompt, {
             headless,
+            browser: parsed.browser,
             timeoutMs: parsed.customTimeout,
             idleTimeoutMs: parsed.idleTimeout,
             deleteChatAfterGen: parsed.deleteChatAfterGen,
