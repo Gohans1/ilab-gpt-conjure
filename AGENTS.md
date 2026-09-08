@@ -13,7 +13,7 @@
 - 
 
 ## Chatgpt.com web imagen behavior
-- 1 lần req tạo ảnh trên web có thể tạo nhiều ảnh 1 lúc, và nó sẽ không trả lần lượt mà sẽ trả 1 cục ảnh
+- ChatGPT Web sinh ảnh theo turn trò chuyện, nó có thể tạo NHIỀU ảnh trong 1 turn trả lời, và nó sẽ không trả lần lượt mà sẽ trả 1 cục ảnh
 - nó có thể trả về text thay vì ảnh vì những lí do như: safety strict; prompt sai
 - nó có thể trả về cả text và cả (một hoặc nhiều) ảnh
 - nó có thể trả về một hoặc nhiều ảnh cùng lúc và không trả về text (expect behavior)

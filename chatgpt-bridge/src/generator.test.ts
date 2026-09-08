@@ -1,13 +1,16 @@
 import { describe, expect, it } from "bun:test";
 import {
   attachImagesToChatGPT,
+  captureDiagnosticSnapshot,
   deleteChatGPTConversation,
+  evaluateTurnCompletion,
   inspectChatGPTPageState,
   isValidConversationId,
   raceWithAbort,
   resolveDeleteChatOption,
   resolveInputImages,
   resolveTimeoutOptions,
+  shouldSkipConversationDeletion,
   sizeToAspectRatio,
   validateInputImage,
 } from "./generator.js";
@@ -408,6 +411,32 @@ describe("inspectChatGPTPageState", () => {
     expect(state.hasRegenerateBtn).toBe(true);
   });
 
+  it("nhận diện đúng completionAction khi xuất hiện copy-turn-action-button ở lượt cuối", () => {
+    const lastTurn = {
+      querySelector: (sel: string) => (sel.includes("copy-turn-action-button") ? {} : null),
+      querySelectorAll: () => [],
+    };
+    const lastMessage = {
+      textContent: "Turn hoàn tất",
+      closest: (sel: string) => (sel.includes("article") ? lastTurn : null),
+      querySelector: () => null,
+      querySelectorAll: () => [],
+    };
+
+    const mockDoc = {
+      querySelector: () => null,
+      querySelectorAll: (selector: string) => {
+        if (selector.includes("assistant")) {
+          return [lastMessage];
+        }
+        return [];
+      },
+    };
+
+    const state = inspectChatGPTPageState(mockDoc);
+    expect(state.hasCompletionAction).toBe(true);
+  });
+
   it("không bị ảnh cũ ở turn trước làm ô nhiễm hasImageWidget ở turn cuối", () => {
     const oldTurn = {
       querySelector: (sel: string) => (sel.includes("image") ? {} : null),
@@ -788,6 +817,207 @@ describe("raceWithAbort", () => {
     await expect(raceWithAbort(hangingPromise, controller.signal)).rejects.toThrow(
       "Quá trình sinh ảnh đã bị hủy bởi client"
     );
+  });
+});
+
+describe("shouldSkipConversationDeletion", () => {
+  it("bỏ qua xóa khi lượt sinh bị lỗi và không có ảnh nào được tạo (để user kiểm tra)", () => {
+    const res = shouldSkipConversationDeletion("00000000-0000-0000-0000-000000000001", null, true, 0);
+    expect(res.shouldSkip).toBe(true);
+    expect(res.reason).toBe("error_no_results");
+  });
+
+  it("bỏ qua xóa khi targetConvId trùng với initialConvId (chống xóa chat cũ của user)", () => {
+    const res = shouldSkipConversationDeletion(
+      "00000000-0000-0000-0000-000000000001",
+      "00000000-0000-0000-0000-000000000001",
+      false,
+      1
+    );
+    expect(res.shouldSkip).toBe(true);
+    expect(res.reason).toBe("pre_existing_chat");
+  });
+
+  it("bỏ qua xóa khi không có targetConvId hợp lệ", () => {
+    const res = shouldSkipConversationDeletion(null, null, false, 1);
+    expect(res.shouldSkip).toBe(true);
+    expect(res.reason).toBe("no_valid_id");
+  });
+
+  it("cho phép xóa khi là phiên chat mới được tạo (targetConvId khác initialConvId)", () => {
+    const res = shouldSkipConversationDeletion(
+      "00000000-0000-0000-0000-000000000002",
+      "00000000-0000-0000-0000-000000000001",
+      false,
+      1
+    );
+    expect(res.shouldSkip).toBe(false);
+    expect(res.reason).toBe(null);
+  });
+
+  it("cho phép xóa khi initialConvId là null và có targetConvId mới sinh thành công", () => {
+    const res = shouldSkipConversationDeletion(
+      "00000000-0000-0000-0000-000000000002",
+      null,
+      false,
+      1
+    );
+    expect(res.shouldSkip).toBe(false);
+    expect(res.reason).toBe(null);
+  });
+});
+
+describe("evaluateTurnCompletion", () => {
+  it("hoàn tất ngay khi đã đủ số ảnh kỳ vọng (expectedCount) và không còn đang tải", () => {
+    const evalRes = evaluateTurnCompletion({
+      newImagesCount: 2,
+      expectedCount: 2,
+      isGeneratingOrLoading: false,
+      hasFinishedSignal: false,
+      quietStartTime: 0,
+    });
+    expect(evalRes.isComplete).toBe(true);
+  });
+
+  it("hoàn tất ngay khi có tín hiệu nút Copy / Regenerate dù chỉ mới có 1 ảnh (n=2 nhưng ChatGPT trả 1 ảnh)", () => {
+    const evalRes = evaluateTurnCompletion({
+      newImagesCount: 1,
+      expectedCount: 2,
+      isGeneratingOrLoading: false,
+      hasFinishedSignal: true,
+      quietStartTime: 0,
+    });
+    expect(evalRes.isComplete).toBe(true);
+  });
+
+  it("kích hoạt bộ đếm Settle Grace khi có ảnh và không còn loading", () => {
+    const baseTime = 1000000;
+    const evalRes = evaluateTurnCompletion({
+      newImagesCount: 1,
+      expectedCount: 2,
+      isGeneratingOrLoading: false,
+      hasFinishedSignal: false,
+      quietStartTime: 0,
+      currentTime: baseTime,
+    });
+    expect(evalRes.isComplete).toBe(false);
+    expect(evalRes.isSettled).toBe(false);
+    expect(evalRes.nextQuietStartTime).toBe(baseTime);
+  });
+
+  it("hoàn tất sau khi trạng thái yên tĩnh duy trì đủ 2.0s (Settle Grace)", () => {
+    const startTime = 1000000;
+    const evalRes = evaluateTurnCompletion({
+      newImagesCount: 1,
+      expectedCount: 2,
+      isGeneratingOrLoading: false,
+      hasFinishedSignal: false,
+      quietStartTime: startTime,
+      currentTime: startTime + 2100,
+    });
+    expect(evalRes.isComplete).toBe(true);
+    expect(evalRes.isSettled).toBe(true);
+  });
+
+  it("reset bộ đếm Settle Grace khi ChatGPT tiếp tục loading / generating", () => {
+    const evalRes = evaluateTurnCompletion({
+      newImagesCount: 1,
+      expectedCount: 2,
+      isGeneratingOrLoading: true,
+      hasFinishedSignal: false,
+      quietStartTime: 1000000,
+      currentTime: 1001000,
+    });
+    expect(evalRes.isComplete).toBe(false);
+    expect(evalRes.isSettled).toBe(false);
+    expect(evalRes.nextQuietStartTime).toBe(0);
+  });
+});
+
+describe("inspectChatGPTPageState baseline turns protection", () => {
+  it("bỏ qua đánh giá lastTurn nếu số lượng assistant turn không vượt quá baseline", () => {
+    const fakeDoc: any = {
+      querySelectorAll: (sel: string) => {
+        if (sel.includes('[data-message-author-role="assistant"]')) {
+          return [
+            {
+              textContent: "Đoạn chat cũ của turn trước",
+              closest: () => ({
+                textContent: "Đoạn chat cũ của turn trước",
+                querySelector: (subSel: string) => {
+                  if (subSel.includes("copy-turn-action-button")) return {};
+                  return null;
+                },
+                querySelectorAll: () => [],
+              }),
+            },
+          ];
+        }
+        return [];
+      },
+      querySelector: () => null,
+    };
+
+    // Khi baseline = 1 (trước khi gửi prompt đã có sẵn 1 turn)
+    const state = inspectChatGPTPageState(fakeDoc, null, undefined, 1);
+    expect(state.text).toBe("");
+    expect(state.hasCompletionAction).toBe(false);
+    expect(state.hasRegenerateBtn).toBe(false);
+    expect(state.hasImageWidget).toBe(false);
+  });
+
+  it("đánh giá đúng turn mới khi xuất hiện assistant turn vượt quá baseline", () => {
+    const fakeDoc: any = {
+      querySelectorAll: (sel: string) => {
+        if (sel.includes('[data-message-author-role="assistant"]')) {
+          return [
+            { textContent: "Turn cũ" },
+            {
+              textContent: "Turn mới vừa sinh",
+              closest: () => ({
+                textContent: "Turn mới vừa sinh",
+                querySelector: (subSel: string) => {
+                  if (subSel.includes("copy-turn-action-button")) return {};
+                  return null;
+                },
+                querySelectorAll: () => [],
+              }),
+            },
+          ];
+        }
+        return [];
+      },
+      querySelector: () => null,
+    };
+
+    // Baseline = 1, hiện tại có 2 turn -> đánh giá turn mới!
+    const state = inspectChatGPTPageState(fakeDoc, null, undefined, 1);
+    expect(state.text).toBe("Turn mới vừa sinh");
+    expect(state.hasCompletionAction).toBe(true);
+  });
+});
+
+describe("captureDiagnosticSnapshot", () => {
+  it("bỏ qua an toàn và không throw khi page là null hoặc đã đóng", async () => {
+    await expect(captureDiagnosticSnapshot(null as any)).resolves.toBeUndefined();
+
+    const mockClosedPage: any = {
+      isClosed: () => true,
+    };
+    await expect(captureDiagnosticSnapshot(mockClosedPage)).resolves.toBeUndefined();
+  });
+
+  it("không làm sập tiến trình khi screenshot hoặc evaluate bị reject", async () => {
+    const mockCrashingPage: any = {
+      isClosed: () => false,
+      screenshot: async () => {
+        throw new Error("Target crashed");
+      },
+      evaluate: async () => {
+        throw new Error("Execution context destroyed");
+      },
+    };
+    await expect(captureDiagnosticSnapshot(mockCrashingPage)).resolves.toBeUndefined();
   });
 });
 

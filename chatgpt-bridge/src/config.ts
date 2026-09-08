@@ -6,6 +6,7 @@ import {
   openSync,
   renameSync,
   rmSync,
+  statSync,
   writeFileSync,
 } from "node:fs";
 import { spawnSync } from "node:child_process";
@@ -95,11 +96,44 @@ export function getSafeShortPath(targetPath: string): string {
   return targetPath;
 }
 
-export function findBrowserCandidates(preferredBrowser?: "chrome" | "edge" | string): {
+export interface BrowserCandidatesResult {
   primary: string[];
   fallback: string[];
   selectedBrowser: "chrome" | "edge";
-} {
+  actualBrowser: "chrome" | "edge";
+  fallbackUsed: boolean;
+  preferredBrowser?: "chrome" | "edge";
+  availableBrowsers: {
+    edge: boolean;
+    chrome: boolean;
+  };
+}
+
+let cachedAvailableBrowsers: { edge: boolean; chrome: boolean; expires: number } | null = null;
+export function getAvailableBrowsers(): { edge: boolean; chrome: boolean } {
+  const now = Date.now();
+  if (!cachedAvailableBrowsers || now > cachedAvailableBrowsers.expires) {
+    const res = findBrowserCandidates();
+    cachedAvailableBrowsers = {
+      edge: res.availableBrowsers.edge,
+      chrome: res.availableBrowsers.chrome,
+      expires: now + 30_000,
+    };
+  }
+  return { edge: cachedAvailableBrowsers.edge, chrome: cachedAvailableBrowsers.chrome };
+}
+
+function isExecutableFile(p: string): boolean {
+  if (!p) return false;
+  try {
+    return statSync(p).isFile();
+  } catch {
+    return false;
+  }
+}
+
+export function findBrowserCandidates(preferredBrowser?: "chrome" | "edge" | string): BrowserCandidatesResult {
+  const cleanEnvPath = (val?: string) => (val ? val.trim().replace(/^["'](.*)["']$/, "$1").trim() : "");
   const localAppData = process.platform === "win32" && process.env.LOCALAPPDATA ? process.env.LOCALAPPDATA : "";
   const progFiles =
     process.platform === "win32" && process.env.ProgramFiles ? process.env.ProgramFiles : "C:\\Program Files";
@@ -111,7 +145,7 @@ export function findBrowserCandidates(preferredBrowser?: "chrome" | "edge" | str
   const chromeCandidates = Array.from(
     new Set(
       [
-        process.env.CHROME_PATH || "",
+        cleanEnvPath(process.env.CHROME_PATH),
         // Windows dynamic env paths
         join(progFiles, "Google\\Chrome\\Application\\chrome.exe"),
         join(progFilesX86, "Google\\Chrome\\Application\\chrome.exe"),
@@ -125,14 +159,14 @@ export function findBrowserCandidates(preferredBrowser?: "chrome" | "edge" | str
         "/usr/bin/google-chrome",
         "/usr/bin/chromium",
         "/usr/bin/chromium-browser",
-      ].filter((p) => Boolean(p && existsSync(p)))
+      ].filter(isExecutableFile)
     )
   );
 
   const edgeCandidates = Array.from(
     new Set(
       [
-        process.env.EDGE_PATH || "",
+        cleanEnvPath(process.env.EDGE_PATH),
         // Windows dynamic env paths
         join(progFiles, "Microsoft\\Edge\\Application\\msedge.exe"),
         join(progFilesX86, "Microsoft\\Edge\\Application\\msedge.exe"),
@@ -144,35 +178,59 @@ export function findBrowserCandidates(preferredBrowser?: "chrome" | "edge" | str
         "/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge",
         // Linux
         "/usr/bin/microsoft-edge",
-      ].filter((p) => Boolean(p && existsSync(p)))
+      ].filter(isExecutableFile)
     )
   );
 
-  const pref = (preferredBrowser || process.env.CHATGPT_BROWSER || "").toLowerCase().trim();
+  const availableBrowsers = {
+    edge: edgeCandidates.length > 0,
+    chrome: chromeCandidates.length > 0,
+  };
+
+  const pref = (preferredBrowser || process.env.CHATGPT_BROWSER || "").toLowerCase().trim().replace(/\.exe$/, "");
   const isExplicitEdge = pref === "edge" || pref === "msedge";
-  const isExplicitChrome = pref === "chrome" || pref === "google-chrome";
+  const isExplicitChrome = pref === "chrome" || pref === "google-chrome" || pref === "chromium";
 
   if (isExplicitEdge) {
+    const fallbackUsed = edgeCandidates.length === 0 && chromeCandidates.length > 0;
+    const actualBrowser = edgeCandidates.length > 0 ? "edge" : (chromeCandidates.length > 0 ? "chrome" : "edge");
     return {
       primary: edgeCandidates,
       fallback: chromeCandidates,
       selectedBrowser: "edge",
+      actualBrowser,
+      fallbackUsed,
+      preferredBrowser: "edge",
+      availableBrowsers,
     };
   }
 
   if (isExplicitChrome) {
+    const fallbackUsed = chromeCandidates.length === 0 && edgeCandidates.length > 0;
+    const actualBrowser = chromeCandidates.length > 0 ? "chrome" : (edgeCandidates.length > 0 ? "edge" : "chrome");
     return {
       primary: chromeCandidates,
       fallback: edgeCandidates,
       selectedBrowser: "chrome",
+      actualBrowser,
+      fallbackUsed,
+      preferredBrowser: "chrome",
+      availableBrowsers,
     };
   }
 
   // Mặc định khi không chỉ định: ưu tiên Edge nếu có (chuẩn Windows), nếu không thì dùng Chrome
+  const hasEdge = edgeCandidates.length > 0;
+  const hasChrome = chromeCandidates.length > 0;
+  const actualBrowser = hasEdge ? "edge" : (hasChrome ? "chrome" : "edge");
   return {
-    primary: edgeCandidates.length > 0 ? edgeCandidates : chromeCandidates,
-    fallback: edgeCandidates.length > 0 ? chromeCandidates : [],
-    selectedBrowser: edgeCandidates.length > 0 ? "edge" : (chromeCandidates.length > 0 ? "chrome" : "edge"),
+    primary: hasEdge ? edgeCandidates : chromeCandidates,
+    fallback: hasEdge ? chromeCandidates : [],
+    selectedBrowser: actualBrowser,
+    actualBrowser,
+    fallbackUsed: false,
+    preferredBrowser: actualBrowser,
+    availableBrowsers,
   };
 }
 
@@ -197,13 +255,48 @@ export const STORAGE_STATE_PATH = join(USER_DATA_DIR, "storage-state.json");
 export const SELECTORS = {
   composer: '#prompt-textarea, [data-testid="prompt-textarea"], [contenteditable="true"][data-lexical-editor="true"], div[contenteditable="true"]',
   sendButton: '[data-testid="send-button"]',
-  stopButton: '[data-testid="stop-button"]',
+  stopButton: 'form [aria-label*="Stop" i], button[aria-label*="Stop" i], form [data-testid="stop-button"], [data-testid="stop-button"]',
+  completionAction: 'button[data-testid="copy-turn-action-button"], button[data-testid="good-response"], button[data-testid="bad-response"]',
+  regenerateButton: 'button[data-testid*="regenerate"], button[data-testid*="refresh"], button[data-testid*="retry"], button[aria-label*="Regenerate" i], button[aria-label*="Try again" i], button[aria-label*="Retry" i]',
   generatedImage: '[data-message-author-role="assistant"] img[src*="backend-api/estuary"], [data-message-author-role="assistant"] img[src*="files.oaiusercontent.com"], [data-message-author-role="assistant"] img[alt*="Generated image"], [data-message-author-role="assistant"] img[src*="oaidallea"], [data-testid*="conversation-turn"] [data-message-author-role="assistant"] img, img[src*="backend-api/estuary"]',
   loginButton: 'button[data-testid="login-button"], a[href*="/auth/login"], button:has-text("Log in"), button:has-text("Đăng nhập"), button:has-text("ログイン"), button:has-text("登录"), a:has-text("Log in"), a:has-text("Đăng nhập")',
   fileInput: 'input#upload-photos[type="file"], input#upload-files[type="file"], input[type="file"]',
   attachButton: 'button[data-testid*="plus"], button[data-testid*="attach"], button[aria-label*="Add files" i], button[aria-label*="Attach" i]',
   attachmentThumbnail: 'form img[src^="blob:"], form button[aria-label*="Remove file" i], button[aria-label*="Remove file" i], form button[aria-label*="Remove" i], [data-testid*="attachment"], [data-testid*="file-pill"], [class*="attachment"], [class*="file-item"]',
   attachmentUploading: 'form [data-testid*="upload-progress"], form [aria-label*="Uploading" i], [data-testid*="attachment"] .animate-spin, form .animate-spin',
+  assistantTurn: '[data-message-author-role="assistant"], [data-testid^="conversation-turn-"]',
+  userTurn: '[data-message-author-role="user"]',
+};
+
+/**
+ * Danh mục selector tham khảo (Bookmark) từ dự án miuuyy/codex-chatgpt-web.
+ * Lưu trữ dự phòng cho các tính năng Text / Reasoning / Model Switching trong tương lai.
+ */
+export const CODEX_REFERENCE_SELECTORS = {
+  effortControl: [
+    'button[aria-haspopup="menu"][data-tone="neutral"]',
+    'button[data-testid="model-switcher-dropdown-button"][aria-haspopup="menu"]',
+  ].join(", "),
+  effortMenu: [
+    '[data-testid="composer-intelligence-picker-content"]:has([role="menuitemradio"], [data-model-reasoning-effort-slider])',
+    '[role="menu"]:has([role="menuitemradio"], [data-model-reasoning-effort-slider])',
+    '[role="group"]:has([role="menuitemradio"], [data-model-reasoning-effort-slider])',
+  ].join(", "),
+  effortItem: '[role="menuitemradio"]',
+  effortSliderContainer: '[data-model-reasoning-effort-slider]',
+  effortSlider: '[data-model-reasoning-effort-slider] [role="slider"]',
+  modelSwitcher: 'button[data-testid="model-switcher-dropdown-button"]',
+  copyAction: 'button[data-testid="copy-turn-action-button"]',
+  assistantTurn: [
+    '[data-testid^="conversation-turn-"][data-turn="assistant"]',
+    '[data-testid^="conversation-turn-"][data-message-author-role="assistant"]',
+    '[data-testid^="conversation-turn-"]:has([data-message-author-role="assistant"])',
+  ].join(", "),
+  userTurn: [
+    '[data-testid^="conversation-turn-"][data-turn="user"]',
+    '[data-testid^="conversation-turn-"][data-message-author-role="user"]',
+    '[data-testid^="conversation-turn-"]:has([data-message-author-role="user"])',
+  ].join(", "),
 };
 
 export function detectImageExtension(buf: Buffer | Uint8Array): string | null {
