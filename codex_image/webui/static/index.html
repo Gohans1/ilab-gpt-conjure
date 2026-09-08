@@ -1848,6 +1848,11 @@
           );
         }
 
+        let lastBridgeData = null;
+        let consecutiveOfflineCount = 0;
+        let activeFallbackNotice = "";
+        let activeFallbackFrom = "";
+
         async function checkBridgeStatus() {
           if (isChecking || !banner || !bannerText || !loginBtn) return;
           if (document.visibilityState === "hidden") return;
@@ -1862,6 +1867,7 @@
 
             if (!isChatGPTProvider(settings)) {
               banner.style.display = "none";
+              consecutiveOfflineCount = 0;
               return;
             }
 
@@ -1872,49 +1878,91 @@
             }
 
             const data = bridgeRes;
+            lastBridgeData = data;
             if (!data.running) {
-              banner.style.display = "flex";
-              banner.className = "bridge-auth-banner";
-              bannerText.innerHTML = "<strong>ChatGPT Bridge:</strong> Chưa kết nối được cổng 3000. Hãy khởi động bằng Start-All.bat.";
-              loginBtn.style.display = "none";
-              if (loginDoneBtn) loginDoneBtn.style.display = "none";
-            } else if (!data.logged_in) {
-              banner.style.display = "flex";
-              banner.className = "bridge-auth-banner";
-              loginBtn.style.display = "inline-block";
-              if (data.is_logging_in) {
-                const bName = getSelectedBrowser() === "edge" ? "Microsoft Edge" : "Google Chrome";
-                bannerText.innerHTML = "<strong>ChatGPT Web:</strong> Trình duyệt " + bName + " đang mở. Vui lòng đăng nhập trên cửa sổ đó. Khi xong bạn có thể đóng cửa sổ hoặc bấm [Hoàn tất đăng nhập].";
-                loginBtn.disabled = true;
-                loginBtn.textContent = "⏳ Đang chờ đăng nhập...";
-                if (loginDoneBtn) loginDoneBtn.style.display = "inline-block";
-              } else {
-                bannerText.innerHTML = "<strong>ChatGPT Web Free:</strong> Chưa phát hiện phiên đăng nhập. Bạn cần đăng nhập 1 lần để sử dụng.";
-                loginBtn.disabled = false;
-                loginBtn.textContent = "🔑 Đăng nhập ChatGPT";
+              consecutiveOfflineCount++;
+              if (consecutiveOfflineCount >= 2) {
+                banner.style.display = "flex";
+                banner.className = "bridge-auth-banner";
+                bannerText.innerHTML = "<strong>ChatGPT Bridge:</strong> Chưa kết nối được cổng 3000. Hãy khởi động bằng Start-All.bat.";
+                loginBtn.style.display = "none";
                 if (loginDoneBtn) loginDoneBtn.style.display = "none";
               }
             } else {
-              banner.style.display = "none";
-              if (loginDoneBtn) loginDoneBtn.style.display = "none";
+              consecutiveOfflineCount = 0;
+              if (!data.logged_in) {
+                banner.style.display = "flex";
+                banner.className = "bridge-auth-banner";
+                loginBtn.style.display = "inline-block";
+                const selected = getSelectedBrowser();
+                let fallbackSwitched = false;
+                let fallbackFrom = selected;
+                if (data.available_browsers) {
+                  if (data.available_browsers[selected]) {
+                    activeFallbackNotice = "";
+                    activeFallbackFrom = "";
+                  } else if (selected === "edge" && !data.available_browsers.edge && data.available_browsers.chrome) {
+                    fallbackSwitched = true;
+                    fallbackFrom = "edge";
+                    activeFallbackNotice = "tự động chuyển vì máy không có Edge";
+                    activeFallbackFrom = "edge";
+                    localStorage.setItem("codex-image-chatgpt-browser", "chrome");
+                    window.__codexImageWebUI?.methods?.persistChatGPTBrowserState?.("chrome");
+                  } else if (selected === "chrome" && !data.available_browsers.chrome && data.available_browsers.edge) {
+                    fallbackSwitched = true;
+                    fallbackFrom = "chrome";
+                    activeFallbackNotice = "tự động chuyển vì máy không có Chrome";
+                    activeFallbackFrom = "chrome";
+                    localStorage.setItem("codex-image-chatgpt-browser", "edge");
+                    window.__codexImageWebUI?.methods?.persistChatGPTBrowserState?.("edge");
+                  }
+                }
+                const currentSelected = getSelectedBrowser();
+                let bName = currentSelected === "edge" ? "Microsoft Edge" : "Google Chrome";
+                if (fallbackSwitched || activeFallbackNotice) {
+                  const notice = activeFallbackNotice || (fallbackFrom === "edge" ? "tự động chuyển vì máy không có Edge" : "tự động chuyển vì máy không có Chrome");
+                  bName += " (" + notice + ")";
+                }
+                if (data.available_browsers && !data.available_browsers.edge && !data.available_browsers.chrome) {
+                  bannerText.innerHTML = "<strong>ChatGPT Web:</strong> Không tìm thấy Microsoft Edge hoặc Google Chrome trên hệ thống. Vui lòng cài đặt trình duyệt để tiếp tục.";
+                  loginBtn.disabled = true;
+                  loginBtn.textContent = "❌ Thiếu trình duyệt";
+                  if (loginDoneBtn) loginDoneBtn.style.display = "none";
+                } else if (data.is_logging_in) {
+                  bannerText.innerHTML = "<strong>ChatGPT Web:</strong> Trình duyệt " + bName + " đang mở. Vui lòng đăng nhập trên cửa sổ đó. Khi xong bạn có thể đóng cửa sổ hoặc bấm [Hoàn tất đăng nhập].";
+                  loginBtn.disabled = true;
+                  loginBtn.textContent = "⏳ Đang chờ đăng nhập...";
+                  if (loginDoneBtn) loginDoneBtn.style.display = "inline-block";
+                } else {
+                  bannerText.innerHTML = "<strong>ChatGPT Web:</strong> Chưa phát hiện phiên đăng nhập. Bạn cần đăng nhập 1 lần để sử dụng.";
+                  loginBtn.disabled = false;
+                  loginBtn.textContent = "🔑 Đăng nhập ChatGPT";
+                  if (loginDoneBtn) loginDoneBtn.style.display = "none";
+                }
+              } else {
+                banner.style.display = "none";
+                if (loginDoneBtn) loginDoneBtn.style.display = "none";
+              }
             }
+            return data;
           } catch {
             banner.style.display = "none";
             if (loginDoneBtn) loginDoneBtn.style.display = "none";
+            return { running: false, is_logging_in: false };
           } finally {
             isChecking = false;
           }
         }
 
-        function showLoginSuccess() {
+        function showLoginSuccess(customMsg) {
           banner.className = "bridge-auth-banner success";
-          bannerText.innerHTML = "<strong>ChatGPT Web:</strong> 🎉 Đăng nhập thành công! Phiên đã được lưu.";
+          bannerText.innerHTML = "<strong>ChatGPT Web:</strong> " + (customMsg || "🎉 Đăng nhập thành công! Phiên đã được lưu.");
           loginBtn.style.display = "none";
           if (loginDoneBtn) loginDoneBtn.style.display = "none";
           setTimeout(() => {
             banner.className = "bridge-auth-banner";
             banner.style.display = "none";
-          }, 4000);
+          }, 5000);
         }
 
         if (loginBtn) {
@@ -1927,7 +1975,16 @@
               loginDoneBtn.disabled = false;
               loginDoneBtn.textContent = "✅ Hoàn tất đăng nhập";
             }
-            const bName = browser === "edge" ? "Microsoft Edge" : "Google Chrome";
+            let bName = browser === "edge" ? "Microsoft Edge" : "Google Chrome";
+            if (activeFallbackNotice) {
+              bName += " (" + activeFallbackNotice + ")";
+            } else if (lastBridgeData?.available_browsers) {
+              if (browser === "edge" && !lastBridgeData.available_browsers.edge && lastBridgeData.available_browsers.chrome) {
+                bName = "Google Chrome (tự động chuyển từ Edge)";
+              } else if (browser === "chrome" && !lastBridgeData.available_browsers.chrome && lastBridgeData.available_browsers.edge) {
+                bName = "Microsoft Edge (tự động chuyển từ Chrome)";
+              }
+            }
             bannerText.innerHTML = "<strong>ChatGPT Web:</strong> Trình duyệt " + bName + " đang mở. Vui lòng đăng nhập trên cửa sổ đó. Khi xong bạn có thể đóng cửa sổ hoặc bấm [Hoàn tất đăng nhập].";
             try {
               const res = await fetch("/api/bridge/login", {
@@ -1937,11 +1994,29 @@
               });
               const result = await res.json();
               if (result.ok) {
-                showLoginSuccess();
+                const isFallback = Boolean(result.fallback_used || activeFallbackNotice);
+                const actual = result.actual_browser || browser;
+                const actualName = actual === "edge" ? "Microsoft Edge" : "Google Chrome";
+                const prev = (result.selected_browser !== result.actual_browser && result.selected_browser)
+                  ? result.selected_browser
+                  : (activeFallbackFrom || (actual === "edge" ? "chrome" : "edge"));
+                const prevName = prev === "edge" ? "Microsoft Edge" : "Google Chrome";
+                if (isFallback && actualName !== prevName) {
+                  localStorage.setItem("codex-image-chatgpt-browser", actual);
+                  window.__codexImageWebUI?.methods?.persistChatGPTBrowserState?.(actual);
+                  showLoginSuccess(
+                    `🎉 Đăng nhập thành công! Hệ thống đã phát hiện máy không có ${prevName} và tự động chuyển sang ${actualName}.`
+                  );
+                } else {
+                  showLoginSuccess();
+                }
+                activeFallbackNotice = "";
+                activeFallbackFrom = "";
               } else {
                 alert("Lỗi khi đăng nhập: " + (result.detail || result.error || result.message || "Không rõ"));
                 loginBtn.disabled = false;
                 loginBtn.textContent = "🔑 Đăng nhập ChatGPT";
+                bannerText.innerHTML = "<strong>ChatGPT Web:</strong> Chưa phát hiện phiên đăng nhập. Bạn cần đăng nhập 1 lần để sử dụng.";
                 if (loginDoneBtn) loginDoneBtn.style.display = "none";
               }
             } catch (err) {
@@ -1950,6 +2025,7 @@
                 alert("Không thể kết nối tới server bridge: " + err);
                 loginBtn.disabled = false;
                 loginBtn.textContent = "🔑 Đăng nhập ChatGPT";
+                bannerText.innerHTML = "<strong>ChatGPT Web:</strong> Chưa phát hiện phiên đăng nhập. Bạn cần đăng nhập 1 lần để sử dụng.";
                 if (loginDoneBtn) loginDoneBtn.style.display = "none";
               }
             }

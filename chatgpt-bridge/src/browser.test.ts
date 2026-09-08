@@ -2,7 +2,16 @@ import { describe, expect, test } from "bun:test";
 import { existsSync, writeFileSync, mkdirSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { cleanupActiveBrowsers, cleanupStaleLocks, getActiveBrowserPids, killOrphanBrowsers, killProcessTree } from "./browser.js";
+import {
+  cleanupActiveBrowsers,
+  cleanupStaleLocks,
+  findBrowserPidsByTagAsync,
+  getActiveBrowserPids,
+  killOrphanBrowsers,
+  killOrphanBrowsersByTag,
+  killOrphanBrowsersByTagAsync,
+  killProcessTree,
+} from "./browser.js";
 import { findBrowserCandidates } from "./config.js";
 
 describe("browser helpers", () => {
@@ -57,5 +66,18 @@ describe("browser helpers", () => {
     const mockBrowser: any = { close: async () => {} };
     const pid = mockBrowser.process?.()?.pid;
     expect(pid).toBeUndefined();
+  });
+
+  test("findBrowserPidsByTagAsync và killOrphanBrowsersByTagAsync hoạt động an toàn với tag giả lập", async () => {
+    const fakeTag = "--chatgpt-bridge-instance-fake-test-123456";
+    const pids = await findBrowserPidsByTagAsync(fakeTag);
+    expect(Array.isArray(pids)).toBe(true);
+    expect(pids.length).toBe(0);
+
+    await expect(killOrphanBrowsersByTagAsync(fakeTag)).resolves.toBeUndefined();
+
+    expect(() => {
+      killOrphanBrowsersByTag(fakeTag);
+    }).not.toThrow();
   });
 });

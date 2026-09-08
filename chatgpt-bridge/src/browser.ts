@@ -52,10 +52,20 @@ export function unregisterActiveBrowserPid(pid: number): void {
 }
 
 export function killProcessTree(pid: number): void {
-  if (!Number.isInteger(pid) || pid <= 0) return;
+  if (!Number.isInteger(pid) || pid <= 0 || pid === process.pid) return;
   if (process.platform === "win32") {
     try {
       const systemRoot = process.env.SystemRoot || process.env.SYSTEMROOT || "C:\\Windows";
+      const tasklist = join(systemRoot, "System32", "tasklist.exe");
+      const check = spawnSync(tasklist, ["/FI", `PID eq ${pid}`, "/FO", "CSV", "/NH"], {
+        encoding: "utf8",
+        windowsHide: true,
+        timeout: 2000,
+      });
+      const line = (check.stdout || "").toLowerCase();
+      if (!line.includes("chrome.exe") && !line.includes("msedge.exe") && !line.includes("chromium.exe")) {
+        return;
+      }
       const taskkill = join(systemRoot, "System32", "taskkill.exe");
       spawnSync(taskkill, ["/PID", String(pid), "/T", "/F"], {
         stdio: "ignore",
@@ -115,32 +125,99 @@ Get-CimInstance Win32_Process -Filter "Name = 'chrome.exe' or Name = 'msedge.exe
   }
 }
 
-export function killOrphanBrowsersByTag(tag: string): void {
-  if (!tag || !tag.startsWith("--chatgpt-bridge-instance")) return;
-  if (process.platform === "win32") {
+export async function findBrowserPidsByTagAsync(tag: string): Promise<number[]> {
+  if (!tag || process.platform !== "win32") return [];
+  return new Promise<number[]>((resolve) => {
     try {
       const systemRoot = process.env.SystemRoot || process.env.SYSTEMROOT || "C:\\Windows";
       const powershell = join(systemRoot, "System32", "WindowsPowerShell", "v1.0", "powershell.exe");
       const safeTag = tag.replace(/[/\\]+/g, "\\").replace(/'/g, "''");
-      const script = `
+      const script = `Get-CimInstance Win32_Process -Filter "Name = 'chrome.exe' or Name = 'msedge.exe'" | Where-Object { $_.CommandLine -and $_.CommandLine -match [regex]::Escape('${safeTag}') } | Select-Object -ExpandProperty ProcessId`;
+      const b64 = Buffer.from(script, "utf16le").toString("base64");
+      const child = spawn(powershell, ["-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-EncodedCommand", b64], {
+        stdio: ["ignore", "pipe", "ignore"],
+        windowsHide: true,
+      });
+      let out = "";
+      child.stdout?.on("data", (d) => {
+        out += d.toString();
+      });
+      const timer = setTimeout(() => {
+        try {
+          child.kill();
+        } catch {}
+        resolve([]);
+      }, 4000);
+      child.on("close", () => {
+        clearTimeout(timer);
+        const pids = out
+          .split(/\r?\n/)
+          .map((s) => parseInt(s.trim(), 10))
+          .filter((n) => Number.isInteger(n) && n > 0);
+        resolve(pids);
+      });
+      child.on("error", () => {
+        clearTimeout(timer);
+        resolve([]);
+      });
+    } catch {
+      resolve([]);
+    }
+  });
+}
+
+export async function killOrphanBrowsersByTagAsync(tag: string): Promise<void> {
+  if (!tag || !tag.startsWith("--chatgpt-bridge-instance")) return;
+  if (process.platform === "win32") {
+    return new Promise<void>((resolve) => {
+      try {
+        const systemRoot = process.env.SystemRoot || process.env.SYSTEMROOT || "C:\\Windows";
+        const powershell = join(systemRoot, "System32", "WindowsPowerShell", "v1.0", "powershell.exe");
+        const safeTag = tag.replace(/[/\\]+/g, "\\").replace(/'/g, "''");
+        const script = `
 $escapedTag = [regex]::Escape('${safeTag}');
 Get-CimInstance Win32_Process -Filter "Name = 'chrome.exe' or Name = 'msedge.exe'" |
   Where-Object { $_.CommandLine -and $_.CommandLine -match $escapedTag } |
-  ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
+  ForEach-Object {
+    & "taskkill.exe" /PID $_.ProcessId /T /F 2>$null
+    if ($LASTEXITCODE -ne 0) {
+      Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue
+    }
+  }
 `.trim();
-      const b64 = Buffer.from(script, "utf16le").toString("base64");
-      spawnSync(powershell, ["-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-EncodedCommand", b64], {
-        stdio: "ignore",
-        windowsHide: true,
-        timeout: 5000,
-      });
-    } catch {}
+        const b64 = Buffer.from(script, "utf16le").toString("base64");
+        const child = spawn(powershell, ["-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-EncodedCommand", b64], {
+          stdio: "ignore",
+          windowsHide: true,
+        });
+        const timer = setTimeout(() => {
+          try {
+            child.kill();
+          } catch {}
+          resolve();
+        }, 5000);
+        child.on("close", () => {
+          clearTimeout(timer);
+          resolve();
+        });
+        child.on("error", () => {
+          clearTimeout(timer);
+          resolve();
+        });
+      } catch {
+        resolve();
+      }
+    });
   } else {
     try {
       const escaped = tag.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-      spawnSync("pkill", ["-f", escaped], { stdio: "ignore" });
+      spawn("pkill", ["-f", escaped], { stdio: "ignore" }).unref();
     } catch {}
   }
+}
+
+export function killOrphanBrowsersByTag(tag: string): void {
+  killOrphanBrowsersByTagAsync(tag).catch(() => {});
 }
 
 export function closeBrowserGracefully(profileDir?: string, pid?: number): void {
@@ -170,10 +247,18 @@ Get-CimInstance Win32_Process -Filter "Name = 'chrome.exe' or Name = 'msedge.exe
       if (parts.length === 0) return;
       const script = parts.join("\n");
       const b64 = Buffer.from(script, "utf16le").toString("base64");
-      spawn(powershell, ["-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-EncodedCommand", b64], {
+      const proc = spawn(powershell, ["-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-EncodedCommand", b64], {
         stdio: "ignore",
         windowsHide: true,
       });
+      proc.unref();
+      const watchdog = setTimeout(() => {
+        try {
+          proc.kill();
+        } catch {}
+      }, 4000);
+      proc.once("exit", () => clearTimeout(watchdog));
+      proc.once("error", () => clearTimeout(watchdog));
     } catch {}
   } else if (pid) {
     try {
@@ -194,14 +279,7 @@ export function cleanupStaleLocks(profileDir: string): void {
 export function isBrowserProfileLockedByFs(profileDir: string): boolean {
   if (!profileDir || !existsSync(profileDir)) return false;
   if (process.platform === "win32") {
-    const candidateFiles = [
-      "lockfile",
-      "SingletonLock",
-      "Local State",
-      join("Default", "Network", "Cookies"),
-      join("Default", "Web Data"),
-      join("Default", "Preferences"),
-    ];
+    const candidateFiles = ["lockfile", "SingletonLock"];
     for (const relPath of candidateFiles) {
       const lockPath = join(profileDir, relPath);
       if (existsSync(lockPath)) {
@@ -219,16 +297,13 @@ export function isBrowserProfileLockedByFs(profileDir: string): boolean {
   return false;
 }
 
-export function isBrowserProfileInUse(profileDir: string): boolean {
-  if (!profileDir || !existsSync(profileDir)) return false;
-  return isBrowserProfileLockedByFs(profileDir);
-}
-
-export async function isBrowserProfileInUseAsync(profileDir: string): Promise<boolean> {
-  if (!profileDir || !existsSync(profileDir)) return false;
+export async function isBrowserProfileInUseAsync(profileDir: string, altProfileDir?: string): Promise<boolean> {
+  const hasPrimary = Boolean(profileDir && existsSync(profileDir));
+  const hasAlt = Boolean(altProfileDir && existsSync(altProfileDir));
+  if (!hasPrimary && !hasAlt) return false;
 
   // 1. Fast path: check file lock directly (0.01ms, 0% CPU, non-blocking)
-  if (isBrowserProfileLockedByFs(profileDir)) {
+  if (isBrowserProfileLockedByFs(profileDir) || (altProfileDir && isBrowserProfileLockedByFs(altProfileDir))) {
     return true;
   }
 
@@ -237,11 +312,18 @@ export async function isBrowserProfileInUseAsync(profileDir: string): Promise<bo
     try {
       const systemRoot = process.env.SystemRoot || process.env.SYSTEMROOT || "C:\\Windows";
       const powershell = join(systemRoot, "System32", "WindowsPowerShell", "v1.0", "powershell.exe");
-      const normalized = profileDir.replace(/[/\\]+/g, "\\").replace(/'/g, "''");
+      const checkDirs = Array.from(new Set([profileDir, altProfileDir].filter(Boolean) as string[]));
+      const patterns = checkDirs.map((d) => d.replace(/[/\\]+/g, "\\").replace(/'/g, "''"));
       const script = `
-$pattern = [regex]::Escape('${normalized}');
+$patterns = @(${patterns.map((p) => `'${p}'`).join(",")});
 $found = Get-CimInstance Win32_Process -Filter "Name = 'chrome.exe' or Name = 'msedge.exe'" |
-  Where-Object { $_.CommandLine -and ($_.CommandLine -match $pattern) } |
+  Where-Object {
+    if (!$_.CommandLine) { return $false }
+    foreach ($p in $patterns) {
+      if ($_.CommandLine -match [regex]::Escape($p)) { return $true }
+    }
+    return $false
+  } |
   Select-Object -First 1
 if ($found) { exit 0 } else { exit 1 }
 `.trim();
@@ -273,7 +355,8 @@ if ($found) { exit 0 } else { exit 1 }
     }
   } else {
     try {
-      const escaped = profileDir.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const checkDirs = [profileDir, altProfileDir].filter(Boolean) as string[];
+      const escaped = checkDirs.map((d) => d.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|");
       const proc = spawn("pgrep", ["-f", escaped], { stdio: "ignore" });
       return await new Promise<boolean>((resolve) => {
         const timer = setTimeout(() => {
@@ -299,19 +382,30 @@ if ($found) { exit 0 } else { exit 1 }
 
 
 export async function getBrowserSession(options: BrowserOptions = {}): Promise<BrowserSession> {
-  const { primary, fallback, selectedBrowser } = findBrowserCandidates(options.browser);
+  const { primary, fallback, selectedBrowser, actualBrowser, fallbackUsed } = findBrowserCandidates(options.browser);
   const executablePath = primary[0] || fallback[0];
   if (!executablePath) {
     throw new Error(
       options.browser
-        ? `Không tìm thấy trình duyệt ${options.browser.toUpperCase()} trên hệ thống. Vui lòng cài đặt hoặc chọn trình duyệt khác.`
+        ? `Không tìm thấy trình duyệt ${options.browser.toUpperCase()} (và cả trình duyệt dự phòng) trên hệ thống. Vui lòng cài đặt Google Chrome hoặc Microsoft Edge.`
         : "Không tìm thấy Google Chrome hoặc Microsoft Edge trên hệ thống. Vui lòng cài đặt Google Chrome / Microsoft Edge hoặc chỉ định biến môi trường CHROME_PATH."
+    );
+  }
+
+  if (fallbackUsed) {
+    console.warn(
+      `⚠️ [Browser Fallback] Trình duyệt '${selectedBrowser.toUpperCase()}' không khả dụng trên hệ thống. Tự động chuyển sang '${actualBrowser.toUpperCase()}' (${executablePath}).`
     );
   }
 
   // Mặc định luôn luôn hiển thị cửa sổ trình duyệt (headless: false) để chống Cloudflare Turnstile WAF chặn 500
   const headless = options.headless ?? false;
   const instanceTag = `--chatgpt-bridge-instance-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
+  // Pre-flight cleanup: chỉ dọn dẹp nếu có PIDs mồ côi đã đăng ký mà không thuộc session active nào
+  if (activeBrowsers.size === 0 && getActiveBrowserPids().length > 0) {
+    cleanupActiveBrowsers();
+  }
 
   const browser = await chromium.launch({
     executablePath,
@@ -327,20 +421,42 @@ export async function getBrowserSession(options: BrowserOptions = {}): Promise<B
     ],
   });
 
-  const browserPid =
-    (browser as any).process?.()?.pid ??
-    (browser as any)._delegate?._process?.pid ??
-    (browser as any)._connection?._transport?._process?.pid;
-  if (browserPid) {
-    registerActiveBrowserPid(browserPid);
-  }
+  let isSessionClosed = false;
+  let cleanupDone = false;
+  const trackedPids = new Set<number>();
+
+  const triggerCleanup = async () => {
+    if (cleanupDone) return;
+    cleanupDone = true;
+    isSessionClosed = true;
+
+    activeBrowsers.delete(browser);
+    for (const pid of trackedPids) {
+      killProcessTree(pid);
+      unregisterActiveBrowserPid(pid);
+    }
+    await killOrphanBrowsersByTagAsync(instanceTag);
+  };
+
+  findBrowserPidsByTagAsync(instanceTag).then((pids) => {
+    if (isSessionClosed || !browser.isConnected()) {
+      // Session đã kết thúc hoặc browser đã ngắt kết nối trước khi tìm xong PID.
+      // Diệt ngay lập tức các PID vừa tìm được để chống rò rỉ Zombie PID vào bộ nhớ.
+      for (const pid of pids) {
+        killProcessTree(pid);
+      }
+      return;
+    }
+    for (const pid of pids) {
+      trackedPids.add(pid);
+      registerActiveBrowserPid(pid);
+    }
+  }).catch(() => {});
 
   activeBrowsers.add(browser);
   browser.on("disconnected", () => {
-    activeBrowsers.delete(browser);
-    if (browserPid) {
-      unregisterActiveBrowserPid(browserPid);
-    }
+    isSessionClosed = true;
+    triggerCleanup().catch(() => {});
   });
 
   try {
@@ -372,8 +488,8 @@ export async function getBrowserSession(options: BrowserOptions = {}): Promise<B
       page,
       close: () =>
         (closePromise ??= (async () => {
+          isSessionClosed = true;
           let timer: any;
-          let timedOut = false;
           try {
             await Promise.race([
               (async () => {
@@ -381,50 +497,18 @@ export async function getBrowserSession(options: BrowserOptions = {}): Promise<B
                 await browser.close().catch(() => {});
               })(),
               new Promise((resolve) => {
-                timer = setTimeout(() => {
-                  timedOut = true;
-                  resolve(null);
-                }, 5000);
+                timer = setTimeout(resolve, 3000);
               }),
             ]);
             if (timer) clearTimeout(timer);
-            if (timedOut) {
-              if (browserPid) {
-                killProcessTree(browserPid);
-              } else {
-                killOrphanBrowsersByTag(instanceTag);
-              }
-            }
-          } finally {
-            activeBrowsers.delete(browser);
-            if (browserPid) {
-              unregisterActiveBrowserPid(browserPid);
-            }
-          }
+          } catch {}
+
+          await triggerCleanup();
         })()),
     };
   } catch (err) {
-    activeBrowsers.delete(browser);
-    if (browserPid) {
-      unregisterActiveBrowserPid(browserPid);
-      killProcessTree(browserPid);
-    } else {
-      let timer: any;
-      let timedOut = false;
-      await Promise.race([
-        browser.close().catch(() => {}),
-        new Promise((resolve) => {
-          timer = setTimeout(() => {
-            timedOut = true;
-            resolve(null);
-          }, 3000);
-        }),
-      ]);
-      if (timer) clearTimeout(timer);
-      if (timedOut) {
-        killOrphanBrowsersByTag(instanceTag);
-      }
-    }
+    await triggerCleanup();
+    await browser.close().catch(() => {});
     throw err;
   }
 }

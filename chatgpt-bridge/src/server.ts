@@ -6,7 +6,7 @@ import { generateImage, sizeToAspectRatio } from "./generator.js";
 import { handleLogin, notifyLoginContinuation } from "./auth-helper.js";
 import { clearSessionVerified, isSessionCached } from "./check-session.js";
 import { cleanupActiveBrowsers } from "./browser.js";
-import { detectImageExtension } from "./config.js";
+import { detectImageExtension, findBrowserCandidates, getAvailableBrowsers } from "./config.js";
 export { detectImageExtension };
 
 export interface ParsedImageRequest {
@@ -351,7 +351,7 @@ export function enqueueTask<T>(task: () => Promise<T>, signal?: AbortSignal): Pr
           reject(err);
         } finally {
           // Settle delay giữa các lượt liên tiếp để Windows OS dọn sạch tiến trình browser cũ và ChatGPT backend ổn định phiên
-          await new Promise((r) => setTimeout(r, 1500));
+          await new Promise((r) => setTimeout(r, 500));
         }
       })
       .catch(() => {});
@@ -505,7 +505,12 @@ export async function handleRequest(req: Request): Promise<Response> {
   if (pathname === "/auth/status" || pathname === "/api/auth/status") {
     const loggedIn = isSessionCached();
     return Response.json(
-      { status: "ok", logged_in: loggedIn, is_logging_in: isLoggingIn || isLoginQueued },
+      {
+        status: "ok",
+        logged_in: loggedIn,
+        is_logging_in: isLoggingIn || isLoginQueued,
+        available_browsers: getAvailableBrowsers(),
+      },
       { headers: corsHeaders }
     );
   }
@@ -536,23 +541,38 @@ export async function handleRequest(req: Request): Promise<Response> {
       if (contentType.includes("application/json")) {
         const body = (await req.json().catch(() => ({}))) as any;
         if (body && typeof body.browser === "string") {
-          preferredBrowser = body.browser.toLowerCase().includes("edge") ? "edge" : "chrome";
+          const raw = body.browser.trim().toLowerCase().replace(/\.exe$/, "");
+          if (raw === "edge" || raw === "msedge") {
+            preferredBrowser = "edge";
+          } else if (raw === "chrome" || raw === "google-chrome" || raw === "chromium") {
+            preferredBrowser = "chrome";
+          }
         }
       }
     } catch {}
 
     isLoginQueued = true;
     try {
+      let loginResult: any = null;
       await enqueueTask(async () => {
         isLoggingIn = true;
         try {
           console.log(`🔑 [Bridge] Nhận yêu cầu mở trình duyệt ${preferredBrowser || "mặc định"} đăng nhập từ WebUI...`);
-          await handleLogin(300_000, preferredBrowser);
+          loginResult = await handleLogin(300_000, preferredBrowser);
         } finally {
           isLoggingIn = false;
         }
       });
-      return Response.json({ ok: true, message: "Đăng nhập thành công!" }, { headers: corsHeaders });
+      return Response.json(
+        {
+          ok: true,
+          message: loginResult?.message || "Đăng nhập thành công!",
+          actual_browser: loginResult?.actualBrowser,
+          selected_browser: loginResult?.selectedBrowser,
+          fallback_used: Boolean(loginResult?.fallbackUsed),
+        },
+        { headers: corsHeaders }
+      );
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       console.error("❌ [Bridge] Lỗi khi đăng nhập:", msg);

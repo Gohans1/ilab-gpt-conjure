@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import re
 import time
 from typing import Any, AsyncContextManager, Callable
 
@@ -642,8 +643,16 @@ async def _execute_stored_task(
         completed_output_numbers.add(extra_output_number)
 
     if not results and any(record.get("status") == "failed" for record in output_records):
-        failure_messages = [str(record.get("error") or "") for record in output_records if record.get("status") == "failed"]
-        raise RuntimeError("; ".join(message for message in failure_messages if message) or "All outputs failed")
+        failure_messages: list[str] = []
+        for record in output_records:
+            if record.get("status") == "failed":
+                err = str(record.get("error") or "").strip()
+                if err:
+                    if "Image request timed out after" in err:
+                        err = re.sub(r"Image request failed after [\d.]+s", "Image request failed", err)
+                    failure_messages.append(err)
+        unique_messages = list(dict.fromkeys(failure_messages))
+        raise RuntimeError("; ".join(unique_messages) or "All outputs failed")
 
     return _finalize_generated_task(
         storage,

@@ -616,6 +616,20 @@ describe("CORS & Origin Security (REQ-06)", () => {
     const res = await handleRequest(req);
     expect(res.status).toBe(405);
   });
+
+  it("trả về thông tin available_browsers trên endpoint GET /auth/status", async () => {
+    const req = new Request("http://127.0.0.1:3000/auth/status", {
+      method: "GET",
+      headers: { Origin: "http://127.0.0.1:8000" },
+    });
+    const res = await handleRequest(req);
+    expect(res.status).toBe(200);
+    const json: any = await res.json();
+    expect(json.status).toBe("ok");
+    expect(json.available_browsers).toBeDefined();
+    expect(typeof json.available_browsers.chrome).toBe("boolean");
+    expect(typeof json.available_browsers.edge).toBe("boolean");
+  });
 });
 
 describe("enqueueTask", () => {

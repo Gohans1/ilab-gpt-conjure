@@ -317,7 +317,7 @@ def register_settings_routes(app: FastAPI, ctx: WebUIContext) -> None:
     async def get_bridge_status() -> dict[str, Any]:
         bridge_url = "http://127.0.0.1:3000/auth/status"
         try:
-            async with httpx.AsyncClient(timeout=1.5) as client:
+            async with httpx.AsyncClient(timeout=5.0) as client:
                 resp = await client.get(bridge_url)
                 if resp.status_code == 200:
                     data = resp.json()
@@ -325,10 +325,11 @@ def register_settings_routes(app: FastAPI, ctx: WebUIContext) -> None:
                         "running": True,
                         "logged_in": bool(data.get("logged_in")),
                         "is_logging_in": bool(data.get("is_logging_in")),
+                        "available_browsers": data.get("available_browsers", {}),
                     }
         except Exception:
             pass
-        return {"running": False, "logged_in": False, "is_logging_in": False}
+        return {"running": False, "logged_in": False, "is_logging_in": False, "available_browsers": {}}
 
     @app.post("/api/bridge/login")
     async def trigger_bridge_login(payload: dict[str, Any] | None = None) -> dict[str, Any]:
