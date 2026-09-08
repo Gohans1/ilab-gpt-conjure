@@ -437,28 +437,33 @@ export async function getBrowserSession(options: BrowserOptions = {}): Promise<B
 
   let browser: any;
   try {
-    browser = await chromium.launch({
-      executablePath,
-      headless,
-      ignoreDefaultArgs,
-      args: launchArgs,
-    });
-  } catch (launchErr: any) {
-    if (!fallbackUsed && fallback[0] && fallback[0] !== executablePath) {
-      const fallbackTarget = actualBrowser === selectedBrowser ? (selectedBrowser === "edge" ? "chrome" : "edge") : actualBrowser;
-      console.warn(
-        `⚠️ [Browser Launch Retry] Khởi động trình duyệt '${selectedBrowser.toUpperCase()}' thất bại (${launchErr?.message || launchErr}). Đang thử fallback sang '${fallbackTarget.toUpperCase()}' (${fallback[0]})...`
-      );
-      executablePath = fallback[0];
+    try {
       browser = await chromium.launch({
         executablePath,
         headless,
         ignoreDefaultArgs,
         args: launchArgs,
       });
-    } else {
-      throw launchErr;
+    } catch (launchErr: any) {
+      if (!fallbackUsed && fallback[0] && fallback[0] !== executablePath) {
+        const fallbackTarget = actualBrowser === selectedBrowser ? (selectedBrowser === "edge" ? "chrome" : "edge") : actualBrowser;
+        console.warn(
+          `⚠️ [Browser Launch Retry] Khởi động trình duyệt '${selectedBrowser.toUpperCase()}' thất bại (${launchErr?.message || launchErr}). Đang thử fallback sang '${fallbackTarget.toUpperCase()}' (${fallback[0]})...`
+        );
+        executablePath = fallback[0];
+        browser = await chromium.launch({
+          executablePath,
+          headless,
+          ignoreDefaultArgs,
+          args: launchArgs,
+        });
+      } else {
+        throw launchErr;
+      }
     }
+  } catch (finalLaunchErr: any) {
+    await killOrphanBrowsersByTagAsync(instanceTag);
+    throw finalLaunchErr;
   }
 
   let isSessionClosed = false;

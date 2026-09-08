@@ -518,20 +518,20 @@ export async function handleLogin(
         CHATGPT_LOGIN_URL,
       ];
 
-      loginBrowser = spawn(candidate.path, browserArgs, {
-        stdio: "ignore",
-        windowsHide: false,
-      });
-
-      if (loginBrowser?.pid) {
-        activeBrowserPid = loginBrowser.pid;
-        registerActiveBrowserPid(loginBrowser.pid);
-      }
-
       const startTime = Date.now();
       let timer: ReturnType<typeof setTimeout> | undefined;
 
       try {
+        loginBrowser = spawn(candidate.path, browserArgs, {
+          stdio: "ignore",
+          windowsHide: false,
+        });
+
+        if (loginBrowser?.pid) {
+          activeBrowserPid = loginBrowser.pid;
+          registerActiveBrowserPid(loginBrowser.pid);
+        }
+
         await Promise.race([
           continuationPromise,
           new Promise<void>((resolveExit, rejectExit) => {
@@ -567,6 +567,31 @@ export async function handleLogin(
             });
           }),
         ]);
+      } catch (launchErr: any) {
+        if (candidateIdx < candidatesToTry.length - 1) {
+          const nextCandidate = candidatesToTry[candidateIdx + 1];
+          console.warn(
+            `⚠️ [Browser Launch Error] Không thể khởi chạy '${currentDisplayName}' (${candidate.path}): ${launchErr?.message || launchErr}. Tự động thử lại với '${nextCandidate.browser === "edge" ? "Microsoft Edge" : "Google Chrome"}' (${nextCandidate.path})...`
+          );
+          if (activeBrowserPid) {
+            unregisterActiveBrowserPid(activeBrowserPid);
+            try {
+              killProcessTree(activeBrowserPid);
+            } catch {}
+            activeBrowserPid = null;
+          }
+          killOrphanBrowsers(safeProfileDir, true);
+          cleanupStaleLocks(safeProfileDir);
+          try {
+            removeTemporaryChromeTabSessions(safeProfileDir);
+            if (safeProfileDir !== tempProfileDir) {
+              removeTemporaryChromeTabSessions(tempProfileDir);
+            }
+          } catch {}
+          await new Promise((r) => setTimeout(r, 600));
+          continue;
+        }
+        throw launchErr;
       } finally {
         if (timer) clearTimeout(timer);
       }
@@ -824,13 +849,6 @@ export async function handleLogin(
     const hasValidToken = hasValidSessionToken(state.cookies || []);
 
     if (!hasValidToken) {
-      if (failedOnEarlyExit) {
-        const currentDisplayName = activeCandidate.browser === "edge" ? "Microsoft Edge" : "Google Chrome";
-        const suggestedBrowser = activeCandidate.browser === "chrome" ? "Edge" : "Chrome";
-        throw new Error(
-          `Cửa sổ ${currentDisplayName} đã bị đóng ngay khi vừa bật (hoặc bị chặn bởi tiến trình nền). Hãy thử chuyển Trình duyệt sang '${suggestedBrowser}' trên WebUI hoặc tắt tính năng 'Tiếp tục chạy các ứng dụng nền' trong Cài đặt của trình duyệt.`
-        );
-      }
       throw new Error(
         "Chưa phát hiện phiên đăng nhập hợp lệ. Vui lòng thử đăng nhập lại và đợi trang ChatGPT tải xong trước khi đóng trình duyệt."
       );

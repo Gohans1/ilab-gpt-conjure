@@ -1930,17 +1930,30 @@
                   window.__codexImageWebUI?.methods?.persistChatGPTBrowserState?.("edge");
                 }
 
+                const targetBrowser = selected === "edge" ? "chrome" : "edge";
+                if (fallbackSwitched) {
+                  const browserInput = document.getElementById("chatgptBrowser");
+                  if (browserInput) browserInput.value = targetBrowser;
+                }
                 const edgeBtn = document.querySelector('#chatgptBrowserGroup .radio-btn[data-browser="edge"]');
                 const chromeBtn = document.querySelector('#chatgptBrowserGroup .radio-btn[data-browser="chrome"]');
                 if (edgeBtn) {
                   edgeBtn.disabled = data.available_browsers.edge === false;
                   edgeBtn.title = data.available_browsers.edge === false ? "Microsoft Edge chưa được cài đặt trên hệ thống" : "";
                   edgeBtn.classList.toggle("disabled", data.available_browsers.edge === false);
+                  if (fallbackSwitched) {
+                    edgeBtn.classList.toggle("active", targetBrowser === "edge");
+                    edgeBtn.setAttribute("aria-pressed", String(targetBrowser === "edge"));
+                  }
                 }
                 if (chromeBtn) {
                   chromeBtn.disabled = data.available_browsers.chrome === false;
                   chromeBtn.title = data.available_browsers.chrome === false ? "Google Chrome chưa được cài đặt trên hệ thống" : "";
                   chromeBtn.classList.toggle("disabled", data.available_browsers.chrome === false);
+                  if (fallbackSwitched) {
+                    chromeBtn.classList.toggle("active", targetBrowser === "chrome");
+                    chromeBtn.setAttribute("aria-pressed", String(targetBrowser === "chrome"));
+                  }
                 }
               }
               if (!data.logged_in) {
@@ -1964,7 +1977,11 @@
                   loginBtn.textContent = "⏳ Đang chờ đăng nhập...";
                   if (loginDoneBtn) loginDoneBtn.style.display = "inline-block";
                 } else {
-                  bannerText.innerHTML = "<strong>ChatGPT Web:</strong> Chưa phát hiện phiên đăng nhập. Bạn cần đăng nhập 1 lần để sử dụng.";
+                  let idleMsg = "Chưa phát hiện phiên đăng nhập. Bạn cần đăng nhập 1 lần để sử dụng.";
+                  if (fallbackSwitched || activeFallbackNotice) {
+                    idleMsg = "Trình duyệt đã được tự động chuyển sang <strong>" + bName + "</strong>. " + idleMsg;
+                  }
+                  bannerText.innerHTML = "<strong>ChatGPT Web:</strong> " + idleMsg;
                   loginBtn.disabled = false;
                   loginBtn.textContent = "🔑 Đăng nhập ChatGPT";
                   if (loginDoneBtn) loginDoneBtn.style.display = "none";
@@ -2035,7 +2052,7 @@
                   localStorage.setItem("codex-image-chatgpt-browser", actual);
                   window.__codexImageWebUI?.methods?.persistChatGPTBrowserState?.(actual);
                   showLoginSuccess(
-                    `🎉 Đăng nhập thành công! Hệ thống đã phát hiện máy không có ${prevName} và tự động chuyển sang ${actualName}.`
+                    `🎉 Đăng nhập thành công! Hệ thống đã phát hiện ${prevName} không khả dụng hoặc không thể khởi chạy và tự động chuyển sang ${actualName}.`
                   );
                 } else {
                   showLoginSuccess();
