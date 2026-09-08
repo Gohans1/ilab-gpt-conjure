@@ -436,7 +436,7 @@ export async function handleLogin(
     }
     if (fallback[0] && fallback[0] !== primary[0]) {
       const fallbackTarget = (actualBrowser === selectedBrowser
-        ? selectedBrowser === "edge" ? "chrome" : "edge"
+        ? (selectedBrowser === "edge" ? "chrome" : "edge")
         : actualBrowser) as "edge" | "chrome";
       candidatesToTry.push({
         path: fallback[0],
@@ -712,10 +712,13 @@ export async function handleLogin(
       const otherBrowser = activeCandidate.browser === "edge" ? "chrome" : "edge";
       const hasOther = available[otherBrowser];
       const suggestedBrowser = otherBrowser === "chrome" ? "Google Chrome" : "Microsoft Edge";
-      const suggestion = hasOther
-        ? `Hãy thử chuyển Trình duyệt sang '${suggestedBrowser}' trên WebUI hoặc tắt tính năng 'Tiếp tục chạy các ứng dụng nền' trong Cài đặt của trình duyệt.`
-        : `Hãy tắt tính năng 'Tiếp tục chạy các ứng dụng nền' (Startup Boost / Background apps) trong Cài đặt của ${currentDisplayName}, hoặc cài đặt thêm trình duyệt ${suggestedBrowser}.`;
-      throw new Error(`Cửa sổ ${currentDisplayName} đã bị đóng ngay khi vừa bật (hoặc bị chặn bởi tiến trình nền). ${suggestion}`);
+      const allCandidatesTried = candidatesToTry.length > 1;
+      const suggestion = allCandidatesTried
+        ? "Cả Microsoft Edge và Google Chrome đều bị đóng ngay khi vừa bật (hoặc bị chặn bởi tiến trình nền). Hãy tắt tính năng 'Tiếp tục chạy các ứng dụng nền' (Startup Boost / Background apps) trong Cài đặt của trình duyệt."
+        : hasOther
+        ? `Cửa sổ ${currentDisplayName} đã bị đóng ngay khi vừa bật (hoặc bị chặn bởi tiến trình nền). Hãy thử chuyển Trình duyệt sang '${suggestedBrowser}' trên WebUI hoặc tắt tính năng 'Tiếp tục chạy các ứng dụng nền' trong Cài đặt của trình duyệt.`
+        : `Cửa sổ ${currentDisplayName} đã bị đóng ngay khi vừa bật (hoặc bị chặn bởi tiến trình nền). Hãy tắt tính năng 'Tiếp tục chạy các ứng dụng nền' (Startup Boost / Background apps) trong Cài đặt của ${currentDisplayName}, hoặc cài đặt thêm trình duyệt ${suggestedBrowser}.`;
+      throw new Error(suggestion);
     }
 
     console.log("⏳ Đang đồng bộ và lưu phiên đăng nhập...");

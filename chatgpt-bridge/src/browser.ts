@@ -450,6 +450,7 @@ export async function getBrowserSession(options: BrowserOptions = {}): Promise<B
         console.warn(
           `⚠️ [Browser Launch Retry] Khởi động trình duyệt '${selectedBrowser.toUpperCase()}' thất bại (${launchErr?.message || launchErr}). Đang thử fallback sang '${fallbackTarget.toUpperCase()}' (${fallback[0]})...`
         );
+        await killOrphanBrowsersByTagAsync(instanceTag);
         executablePath = fallback[0];
         browser = await chromium.launch({
           executablePath,

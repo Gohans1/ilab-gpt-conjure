@@ -188,8 +188,10 @@ export function findBrowserCandidates(preferredBrowser?: "chrome" | "edge" | str
     chrome: chromeCandidates.length > 0,
   };
 
-  const pref = (preferredBrowser || process.env.CHATGPT_BROWSER || "").toLowerCase().trim().replace(/\.exe$/, "");
-  const cleanPref = pref.replace(/[\s\-_]+/g, "");
+  const rawPref = (preferredBrowser || process.env.CHATGPT_BROWSER || "").toLowerCase().trim();
+  const prefWithoutExt = rawPref.replace(/\.exe$/, "");
+  const prefBase = prefWithoutExt.split(/[/\\]/).pop() || prefWithoutExt;
+  const cleanPref = prefBase.replace(/[\s\-_]+/g, "");
   const isExplicitEdge = cleanPref === "edge" || cleanPref === "msedge" || cleanPref === "microsoftedge";
   const isExplicitChrome = cleanPref === "chrome" || cleanPref === "googlechrome" || cleanPref === "chromium";
 

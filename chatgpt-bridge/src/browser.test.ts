@@ -42,6 +42,17 @@ describe("browser helpers", () => {
     expect(Array.isArray(candidates.fallback)).toBe(true);
   });
 
+  test("findBrowserCandidates phân tích đúng cả khi truyền đường dẫn exe đầy đủ", () => {
+    const chromeFullPath = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";
+    const edgeFullPath = "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe";
+
+    const chromeRes = findBrowserCandidates(chromeFullPath);
+    expect(chromeRes.selectedBrowser).toBe("chrome");
+
+    const edgeRes = findBrowserCandidates(edgeFullPath);
+    expect(edgeRes.selectedBrowser).toBe("edge");
+  });
+
   test("killOrphanBrowsers thực thi an toàn mà không throw lỗi kể cả khi force = true", () => {
     expect(() => killOrphanBrowsers("non-existent-profile-path")).not.toThrow();
     expect(() => killOrphanBrowsers("non-existent-profile-path", true)).not.toThrow();
