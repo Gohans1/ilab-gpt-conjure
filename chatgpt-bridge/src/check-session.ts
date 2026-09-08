@@ -29,6 +29,7 @@ export const AUTH_PROVIDER_HOSTS = new Set([
   "login.openai.com",
   "accounts.openai.com",
   "accounts.google.com",
+  "accounts.google.com.vn",
   "login.microsoftonline.com",
   "appleid.apple.com",
   "idmsa.apple.com",

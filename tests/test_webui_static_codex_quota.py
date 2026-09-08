@@ -148,11 +148,11 @@ class WebUIStaticCodexQuotaTests(unittest.TestCase):
             "codex_image/webui/static/styles/30-layout-top-nav-panels.css"
         ).read_text(encoding="utf-8")
 
-        self.assertIn("styles.css?v=runtime-784", index)
-        self.assertIn("app.js?v=runtime-784", index)
-        self.assertIn("styles.css?v=runtime-784", history)
-        self.assertIn("styles.css?v=runtime-784", service_worker)
-        self.assertIn("app.js?v=runtime-784", service_worker)
+        self.assertIn("styles.css?v=runtime-789", index)
+        self.assertIn("app.js?v=runtime-789", index)
+        self.assertIn("styles.css?v=runtime-789", history)
+        self.assertIn("styles.css?v=runtime-789", service_worker)
+        self.assertIn("app.js?v=runtime-789", service_worker)
         self.assertIn(".codex-quota[data-state=\"loading\"] .codex-quota-track::before", styles)
         self.assertIn("flex: 0 0 140px", styles)
 

@@ -369,6 +369,7 @@ describe("auth-helper: allowedLoginStorageHost & allowedAuthUrl", () => {
     expect(allowedAuthUrl("https://chatgpt.com/login")).toBe(true);
     expect(allowedAuthUrl("https://auth.openai.com/oauth/token")).toBe(true);
     expect(allowedAuthUrl("https://accounts.google.com/o/oauth2/v2/auth")).toBe(true);
+    expect(allowedAuthUrl("https://accounts.google.com.vn/accounts/SetSID")).toBe(true);
     expect(allowedAuthUrl("https://login.microsoftonline.com/common/oauth2")).toBe(true);
     expect(allowedAuthUrl("https://appleid.apple.com/auth/authorize")).toBe(true);
 

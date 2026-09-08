@@ -3,6 +3,7 @@ import {
   attachImagesToChatGPT,
   deleteChatGPTConversation,
   inspectChatGPTPageState,
+  isValidConversationId,
   raceWithAbort,
   resolveDeleteChatOption,
   resolveInputImages,
@@ -109,13 +110,31 @@ describe("deleteChatGPTConversation", () => {
   it("xóa chat thành công khi có authHeader", async () => {
     const mockPage: any = {
       evaluate: async (fn: any, args: any) => {
-        expect(args.id).toBe("test-conv-123");
+        expect(args.id).toBe("00000000-0000-0000-0000-000000000001");
         expect(args.auth).toBe("Bearer test-token");
         return { success: true, status: 200 };
       },
     };
 
-    const result = await deleteChatGPTConversation(mockPage, "test-conv-123", "Bearer test-token");
+    const result = await deleteChatGPTConversation(mockPage, "00000000-0000-0000-0000-000000000001", "Bearer test-token");
+    expect(result.success).toBe(true);
+    expect(result.status).toBe(200);
+  });
+
+  it("tự động trim khoảng trắng thừa ở đầu/cuối của conversationId hợp lệ", async () => {
+    const mockPage: any = {
+      evaluate: async (fn: any, args: any) => {
+        expect(args.id).toBe("00000000-0000-0000-0000-000000000001");
+        expect(args.auth).toBe("Bearer test-token");
+        return { success: true, status: 200 };
+      },
+    };
+
+    const result = await deleteChatGPTConversation(
+      mockPage,
+      "   00000000-0000-0000-0000-000000000001   ",
+      "Bearer test-token"
+    );
     expect(result.success).toBe(true);
     expect(result.status).toBe(200);
   });
@@ -123,7 +142,7 @@ describe("deleteChatGPTConversation", () => {
   it("gửi kèm chatgpt-account-id header khi có accountId", async () => {
     const mockPage: any = {
       evaluate: async (fn: any, args: any) => {
-        expect(args.id).toBe("test-conv-123");
+        expect(args.id).toBe("00000000-0000-0000-0000-000000000001");
         expect(args.auth).toBe("Bearer test-token");
         expect(args.accountId).toBe("acc-xyz-999");
         return { success: true, status: 200 };
@@ -132,7 +151,7 @@ describe("deleteChatGPTConversation", () => {
 
     const result = await deleteChatGPTConversation(
       mockPage,
-      "test-conv-123",
+      "00000000-0000-0000-0000-000000000001",
       "Bearer test-token",
       "acc-xyz-999"
     );
@@ -146,7 +165,7 @@ describe("deleteChatGPTConversation", () => {
       },
     };
 
-    const result = await deleteChatGPTConversation(mockPage, "non-existent-conv", null);
+    const result = await deleteChatGPTConversation(mockPage, "ffffffff-ffff-ffff-ffff-ffffffffffff", null);
     expect(result.success).toBe(false);
     expect(result.status).toBe(404);
   });
@@ -158,7 +177,7 @@ describe("deleteChatGPTConversation", () => {
       },
     };
 
-    const result = await deleteChatGPTConversation(mockPage, "test-conv", null);
+    const result = await deleteChatGPTConversation(mockPage, "00000000-0000-0000-0000-000000000002", null);
     expect(result.success).toBe(false);
     expect(result.error).toContain("Page context destroyed");
   });
@@ -168,6 +187,73 @@ describe("deleteChatGPTConversation", () => {
     const result = await deleteChatGPTConversation(mockPage, "../../bad-id", null);
     expect(result.success).toBe(false);
     expect(result.error).toContain("ID đoạn chat không hợp lệ");
+  });
+
+  it("từ chối các slug nội bộ của ChatGPT Web như 'web', 'WEB', 'gen_title', 'feedback'", async () => {
+    const mockPage: any = {};
+    for (const slug of ["web", "WEB", "gen_title", "feedback", "interpreter", "metadata"]) {
+      const res = await deleteChatGPTConversation(mockPage, slug, null);
+      expect(res.success).toBe(false);
+      expect(res.error).toContain("ID đoạn chat không hợp lệ");
+    }
+  });
+
+  it("bắt và trả về chi tiết lỗi khi máy chủ trả về lỗi", async () => {
+    const mockPage: any = {
+      evaluate: async () => {
+        return { success: false, status: 400, error: "Conversation not found" };
+      },
+    };
+
+    const result = await deleteChatGPTConversation(mockPage, "68a1f802-1234-4567-8901-abcdef123456", null);
+    expect(result.success).toBe(false);
+    expect(result.status).toBe(400);
+    expect(result.error).toBe("Conversation not found");
+  });
+});
+
+describe("isValidConversationId", () => {
+  it("trả về false với giá trị null, undefined, rỗng hoặc quá ngắn", () => {
+    expect(isValidConversationId(null)).toBe(false);
+    expect(isValidConversationId(undefined)).toBe(false);
+    expect(isValidConversationId("")).toBe(false);
+    expect(isValidConversationId("abc")).toBe(false);
+    expect(isValidConversationId("1234567")).toBe(false);
+  });
+
+  it("từ chối khoảng trắng ở bất kỳ vị trí nào (chống bypass)", () => {
+    expect(isValidConversationId("  68a1f802-1234-4567-8901-abcdef123456  ")).toBe(false);
+    expect(isValidConversationId("68a1f802 1234-4567-8901-abcdef123456")).toBe(false);
+    expect(isValidConversationId(" 68a1f802-1234-4567-8901-abcdef123456")).toBe(false);
+  });
+
+  it("trả về false với các slug định tuyến nội bộ hoặc từ ngữ thông thường", () => {
+    expect(isValidConversationId("web")).toBe(false);
+    expect(isValidConversationId("WEB")).toBe(false);
+    expect(isValidConversationId("init")).toBe(false);
+    expect(isValidConversationId("prepare")).toBe(false);
+    expect(isValidConversationId("share")).toBe(false);
+    expect(isValidConversationId("models")).toBe(false);
+    expect(isValidConversationId("conversation")).toBe(false);
+    expect(isValidConversationId("conversations")).toBe(false);
+    expect(isValidConversationId("gen_title")).toBe(false);
+    expect(isValidConversationId("feedback")).toBe(false);
+    expect(isValidConversationId("interpreter")).toBe(false);
+    expect(isValidConversationId("metadata")).toBe(false);
+    expect(isValidConversationId("temporary")).toBe(false);
+    expect(isValidConversationId("test-conv-123")).toBe(false);
+  });
+
+  it("trả về false với ký tự không an toàn hoặc injection", () => {
+    expect(isValidConversationId("../../bad-id")).toBe(false);
+    expect(isValidConversationId("conv?query=1")).toBe(false);
+    expect(isValidConversationId("id with space")).toBe(false);
+  });
+
+  it("trả về true với UUID chuẩn", () => {
+    expect(isValidConversationId("68a1f802-1234-4567-8901-abcdef123456")).toBe(true);
+    expect(isValidConversationId("68A1F802-1234-4567-8901-ABCDEF123456")).toBe(true);
+    expect(isValidConversationId("00000000-0000-0000-0000-000000000001")).toBe(true);
   });
 });
 

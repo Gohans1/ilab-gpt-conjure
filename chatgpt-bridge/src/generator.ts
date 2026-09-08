@@ -14,6 +14,32 @@ import {
 } from "./auth-helper.js";
 import { clearSessionVerified, isSessionCached } from "./check-session.js";
 
+export const UUID_CONV_REGEX = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+
+export const INVALID_CONVERSATION_SLUGS = new Set([
+  "web",
+  "init",
+  "prepare",
+  "share",
+  "models",
+  "anonymous",
+  "conversation",
+  "conversations",
+  "backend-api",
+  "gen_title",
+  "feedback",
+  "interpreter",
+  "metadata",
+  "temporary",
+]);
+
+export function isValidConversationId(id: string | null | undefined): boolean {
+  if (!id || typeof id !== "string") return false;
+  if (/\s/.test(id)) return false;
+  if (INVALID_CONVERSATION_SLUGS.has(id.toLowerCase())) return false;
+  return UUID_CONV_REGEX.test(id);
+}
+
 export async function raceWithAbort<T>(promise: Promise<T>, signal?: AbortSignal): Promise<T> {
   if (!signal) return promise;
   if (signal.aborted) {
@@ -478,10 +504,10 @@ export async function generateImage(prompt: string, options: GenerateOptions = {
       if (!shouldDeleteChat) return;
       if (page.isClosed()) return;
       try {
-        let targetConvId = detectedConversationId;
+        let targetConvId = isValidConversationId(detectedConversationId) ? detectedConversationId : null;
         if (!targetConvId) {
           const urlMatch = page.url().match(/\/c\/([a-zA-Z0-9_-]+)/);
-          targetConvId = urlMatch?.[1] || null;
+          targetConvId = urlMatch?.[1] && isValidConversationId(urlMatch[1]) ? urlMatch[1] : null;
         }
 
         if (targetConvId) {
@@ -504,7 +530,7 @@ export async function generateImage(prompt: string, options: GenerateOptions = {
             );
           }
         } else {
-          console.log("ℹ️ Không tìm thấy ID đoạn chat trên URL để xóa.");
+          console.log("ℹ️ Không tìm thấy ID đoạn chat hợp lệ trên URL để xóa.");
         }
       } catch (delErr) {
         console.warn("⚠️ Gặp lỗi khi dọn dẹp chat:", delErr instanceof Error ? delErr.message : delErr);
@@ -531,7 +557,7 @@ export async function generateImage(prompt: string, options: GenerateOptions = {
             capturedAccountId = accountId;
           }
           const match = parsed.pathname.match(/^\/backend-api\/conversation\/([a-zA-Z0-9_-]+)(?:\/|$)/);
-          if (match && !detectedConversationId) {
+          if (match && isValidConversationId(match[1]) && !detectedConversationId) {
             detectedConversationId = match[1];
           }
         }
@@ -559,7 +585,7 @@ export async function generateImage(prompt: string, options: GenerateOptions = {
 
         if (parsed.pathname.startsWith("/backend-api/conversation")) {
           const match = parsed.pathname.match(/^\/backend-api\/conversation\/([a-zA-Z0-9_-]+)(?:\/|$)/);
-          if (match && !detectedConversationId) {
+          if (match && isValidConversationId(match[1]) && !detectedConversationId) {
             detectedConversationId = match[1];
           }
         }
@@ -578,7 +604,7 @@ export async function generateImage(prompt: string, options: GenerateOptions = {
               "Phiên đăng nhập ChatGPT đã hết hạn (bị chuyển hướng về trang đăng nhập). Vui lòng đăng nhập lại!";
           }
           const match = currentUrl.match(/\/c\/([a-zA-Z0-9_-]+)/);
-          if (match && !detectedConversationId) {
+          if (match && isValidConversationId(match[1]) && !detectedConversationId) {
             detectedConversationId = match[1];
           }
         }
@@ -790,7 +816,7 @@ export async function generateImage(prompt: string, options: GenerateOptions = {
 
       if (!detectedConversationId && initialUrl && page.url() !== initialUrl) {
         const match = page.url().match(/\/c\/([a-zA-Z0-9_-]+)/);
-        if (match?.[1]) {
+        if (match?.[1] && isValidConversationId(match[1])) {
           detectedConversationId = match[1];
         }
       }
@@ -968,7 +994,8 @@ export async function deleteChatGPTConversation(
   authHeader?: string | null,
   accountId?: string | null
 ): Promise<{ success: boolean; status?: number; error?: string }> {
-  if (!conversationId || !/^[a-zA-Z0-9_-]+$/.test(conversationId)) {
+  const cleanId = typeof conversationId === "string" ? conversationId.trim() : "";
+  if (!isValidConversationId(cleanId)) {
     return { success: false, error: "ID đoạn chat không hợp lệ (Invalid conversation ID format)" };
   }
   try {
@@ -1013,14 +1040,32 @@ export async function deleteChatGPTConversation(
             signal: controller.signal,
           });
 
-          return { success: res.ok, status: res.status };
+          let errorDetail: string | undefined;
+          if (!res.ok) {
+            try {
+              const rawText = await res.text().catch(() => undefined);
+              if (rawText) {
+                try {
+                  const errJson = JSON.parse(rawText);
+                  const d = errJson?.detail;
+                  errorDetail = typeof d === "string" ? d : JSON.stringify(d ?? errJson);
+                } catch {
+                  errorDetail = rawText.slice(0, 500);
+                }
+              }
+            } catch {
+              errorDetail = undefined;
+            }
+          }
+
+          return { success: res.ok, status: res.status, error: errorDetail };
         } catch (err) {
           return { success: false, error: String(err) };
         } finally {
           if (timer) clearTimeout(timer);
         }
       },
-      { id: conversationId, auth: authHeader || null, accountId: accountId || null }
+      { id: cleanId, auth: authHeader || null, accountId: accountId || null }
     );
     return result;
   } catch (err) {
