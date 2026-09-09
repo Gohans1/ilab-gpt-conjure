@@ -92,24 +92,36 @@ export function killProcessTree(pid: number, isKnownBrowser: boolean = false): v
   }
 }
 
-export function killOrphanBrowsers(profileDir?: string, force = false): void {
-  const hasLock = profileDir
-    ? isBrowserProfileLockedByFs(profileDir) ||
-      ["SingletonLock", "lockfile", "SingletonCookie", "SingletonSocket"].some((f) =>
-        existsSync(join(profileDir, f))
+export function killOrphanBrowsers(profileDir?: string | string[], force = false): void {
+  const profileDirs = (Array.isArray(profileDir) ? profileDir : [profileDir]).filter(Boolean) as string[];
+  const hasLock = profileDirs.length > 0
+    ? profileDirs.some((dir) =>
+        isBrowserProfileLockedByFs(dir) ||
+        ["SingletonLock", "lockfile", "SingletonCookie", "SingletonSocket"].some((f) =>
+          existsSync(join(dir, f))
+        )
       )
     : false;
-  if (profileDir && !hasLock && !force) return;
+  if (profileDirs.length > 0 && !hasLock && !force) return;
 
   if (process.platform === "win32") {
     try {
       const systemRoot = process.env.SystemRoot || process.env.SYSTEMROOT || "C:\\Windows";
       const powershell = join(systemRoot, "System32", "WindowsPowerShell", "v1.0", "powershell.exe");
-      const normalized = profileDir ? profileDir.replace(/[/\\]+/g, "\\").replace(/'/g, "''") : "";
+      const normalizedList = profileDirs.map((d) => d.replace(/[/\\]+/g, "\\").replace(/'/g, "''"));
       const script = `
-$pattern = if ('${normalized}') { [regex]::Escape('${normalized}') } else { '--chatgpt-bridge-instance' };
+$patterns = @(${normalizedList.length > 0 ? normalizedList.map((p) => `'${p}'`).join(",") : "''"});
 Get-CimInstance Win32_Process -Filter "Name = 'chrome.exe' or Name = 'msedge.exe' or Name = 'chromium.exe'" |
-  Where-Object { $_.CommandLine -and ($_.CommandLine -match $pattern) } |
+  Where-Object {
+    if (!$_.CommandLine) { return $false }
+    if ($patterns.Count -gt 0 -and $patterns[0] -ne '') {
+      foreach ($p in $patterns) {
+        if ($_.CommandLine -match [regex]::Escape($p)) { return $true }
+      }
+      return $false
+    }
+    return $_.CommandLine -match '--chatgpt-bridge-instance'
+  } |
   ForEach-Object {
     & "$env:SystemRoot\\System32\\taskkill.exe" /PID $_.ProcessId /T /F 2>$null
     if ($LASTEXITCODE -ne 0) {
@@ -126,16 +138,88 @@ Get-CimInstance Win32_Process -Filter "Name = 'chrome.exe' or Name = 'msedge.exe
     } catch {}
   } else {
     try {
-      if (profileDir) {
-        const escaped = profileDir.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      if (profileDirs.length > 0) {
+        const escaped = profileDirs.map((d) => d.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|");
         spawnSync("pkill", ["-f", escaped], { stdio: "ignore" });
       } else {
         spawnSync("pkill", ["-f", "--chatgpt-bridge-instance"], { stdio: "ignore" });
       }
     } catch {}
   }
-  if (profileDir) {
-    cleanupStaleLocks(profileDir);
+  for (const dir of profileDirs) {
+    cleanupStaleLocks(dir);
+  }
+}
+
+export async function killOrphanBrowsersAsync(profileDir?: string | string[], force = false): Promise<void> {
+  const profileDirs = (Array.isArray(profileDir) ? profileDir : [profileDir]).filter(Boolean) as string[];
+  const hasLock = profileDirs.length > 0
+    ? profileDirs.some((dir) =>
+        isBrowserProfileLockedByFs(dir) ||
+        ["SingletonLock", "lockfile", "SingletonCookie", "SingletonSocket"].some((f) =>
+          existsSync(join(dir, f))
+        )
+      )
+    : false;
+  if (profileDirs.length > 0 && !hasLock && !force) return;
+
+  if (process.platform === "win32") {
+    try {
+      const systemRoot = process.env.SystemRoot || process.env.SYSTEMROOT || "C:\\Windows";
+      const powershell = join(systemRoot, "System32", "WindowsPowerShell", "v1.0", "powershell.exe");
+      const normalizedList = profileDirs.map((d) => d.replace(/[/\\]+/g, "\\").replace(/'/g, "''"));
+      const script = `
+$patterns = @(${normalizedList.length > 0 ? normalizedList.map((p) => `'${p}'`).join(",") : "''"});
+Get-CimInstance Win32_Process -Filter "Name = 'chrome.exe' or Name = 'msedge.exe' or Name = 'chromium.exe'" |
+  Where-Object {
+    if (!$_.CommandLine) { return $false }
+    if ($patterns.Count -gt 0 -and $patterns[0] -ne '') {
+      foreach ($p in $patterns) {
+        if ($_.CommandLine -match [regex]::Escape($p)) { return $true }
+      }
+      return $false
+    }
+    return $_.CommandLine -match '--chatgpt-bridge-instance'
+  } |
+  ForEach-Object {
+    & "$env:SystemRoot\\System32\\taskkill.exe" /PID $_.ProcessId /T /F 2>$null
+    if ($LASTEXITCODE -ne 0) {
+      Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue
+    }
+  }
+`.trim();
+      const b64 = Buffer.from(script, "utf16le").toString("base64");
+      const proc = spawn(powershell, ["-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-EncodedCommand", b64], {
+        stdio: "ignore",
+        windowsHide: true,
+      });
+      await new Promise<void>((resolve) => {
+        const timer = setTimeout(() => {
+          try { proc.kill(); } catch {}
+          resolve();
+        }, 5000);
+        proc.once("exit", () => {
+          clearTimeout(timer);
+          resolve();
+        });
+        proc.once("error", () => {
+          clearTimeout(timer);
+          resolve();
+        });
+      });
+    } catch {}
+  } else {
+    try {
+      if (profileDirs.length > 0) {
+        const escaped = profileDirs.map((d) => d.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|");
+        spawnSync("pkill", ["-f", escaped], { stdio: "ignore" });
+      } else {
+        spawnSync("pkill", ["-f", "--chatgpt-bridge-instance"], { stdio: "ignore" });
+      }
+    } catch {}
+  }
+  for (const dir of profileDirs) {
+    cleanupStaleLocks(dir);
   }
 }
 
@@ -234,7 +318,7 @@ export function killOrphanBrowsersByTag(tag: string): void {
   killOrphanBrowsersByTagAsync(tag).catch(() => {});
 }
 
-export function closeBrowserGracefully(profileDir?: string, pid?: number): void {
+export function closeBrowserGracefully(profileDir?: string | string[], pid?: number): void {
   if (!profileDir && !pid) return;
   if (process.platform === "win32") {
     try {
@@ -244,12 +328,19 @@ export function closeBrowserGracefully(profileDir?: string, pid?: number): void 
       if (typeof pid === "number" && Number.isInteger(pid) && pid > 0) {
         parts.push(`Get-Process -Id ${pid} -ErrorAction SilentlyContinue | ForEach-Object { try { $_.CloseMainWindow() | Out-Null } catch {} }`);
       }
-      if (profileDir && profileDir.trim()) {
-        const normalized = profileDir.replace(/[/\\]+/g, "\\").replace(/'/g, "''");
+      const profileDirs = (Array.isArray(profileDir) ? profileDir : [profileDir]).filter(Boolean) as string[];
+      if (profileDirs.length > 0) {
+        const patterns = profileDirs.map((d) => d.replace(/[/\\]+/g, "\\").replace(/'/g, "''"));
         parts.push(`
-$pattern = [regex]::Escape('${normalized}');
+$patterns = @(${patterns.map((p) => `'${p}'`).join(",")});
 Get-CimInstance Win32_Process -Filter "Name = 'chrome.exe' or Name = 'msedge.exe' or Name = 'chromium.exe'" |
-  Where-Object { $_.CommandLine -and ($_.CommandLine -match $pattern) } |
+  Where-Object {
+    if (!$_.CommandLine) { return $false }
+    foreach ($p in $patterns) {
+      if ($_.CommandLine -match [regex]::Escape($p)) { return $true }
+    }
+    return $false
+  } |
   ForEach-Object {
     $p = Get-Process -Id $_.ProcessId -ErrorAction SilentlyContinue
     if ($p) {

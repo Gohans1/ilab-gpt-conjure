@@ -28,6 +28,7 @@ import {
   isBrowserProfileInUseAsync,
   isBrowserProfileLockedByFs,
   killOrphanBrowsers,
+  killOrphanBrowsersAsync,
   killOrphanBrowsersByTag,
   killOrphanBrowsersByTagAsync,
   killProcessTree,
@@ -729,10 +730,7 @@ export async function handleLogin(
     }
 
     console.log("⏳ Đang đồng bộ và lưu phiên đăng nhập...");
-    closeBrowserGracefully(safeProfileDir, activeBrowserPid ?? undefined);
-    if (safeProfileDir !== tempProfileDir) {
-      closeBrowserGracefully(tempProfileDir);
-    }
+    closeBrowserGracefully([safeProfileDir, tempProfileDir], activeBrowserPid ?? undefined);
 
     // Chờ Chromium tự đóng êm đẹp và nhả file lock (tối đa 5.0s nếu continuationRequested, 4.0s nếu timeout/exit)
     const gracefulDeadline = Date.now() + (continuationRequested ? 5000 : 4000);
@@ -751,10 +749,7 @@ export async function handleLogin(
       unregisterActiveBrowserPid(activeBrowserPid);
       activeBrowserPid = null;
     }
-    killOrphanBrowsers(safeProfileDir, true);
-    if (safeProfileDir !== tempProfileDir && existsSync(tempProfileDir)) {
-      killOrphanBrowsers(tempProfileDir, true);
-    }
+    await killOrphanBrowsersAsync([safeProfileDir, tempProfileDir], true);
     await new Promise((r) => setTimeout(r, 400));
 
     // Chờ các file SQLite WAL và locks nhả hoàn toàn trước khi trích xuất
@@ -851,7 +846,7 @@ export async function handleLogin(
           }
 
           if (!cdpEndpoint && !lastExtractionError) {
-            lastExtractionError = new Error("CDP port file (DevToolsActivePort) was not created within deadline");
+            lastExtractionError = new Error("CDP port file (DevToolsActivePort) timed out and was not created within deadline");
           }
 
           if (cdpEndpoint) {
@@ -909,11 +904,13 @@ export async function handleLogin(
           cleanupStaleLocks(safeProfileDir);
 
           let isPolling = false;
+          let isPollingDisposed = false;
           const pidPollTimer = setInterval(() => {
-            if (isPolling) return;
+            if (isPolling || isPollingDisposed) return;
             isPolling = true;
             findBrowserPidsByTagAsync(attemptTag)
               .then((pids) => {
+                if (isPollingDisposed) return;
                 for (const pid of pids) {
                   attemptPids.add(pid);
                   offlineTrackedPids.add(pid);
@@ -973,6 +970,7 @@ export async function handleLogin(
               extractedStorageState = state;
             }
           } finally {
+            isPollingDisposed = true;
             clearInterval(pidPollTimer);
           }
         }
@@ -1006,14 +1004,7 @@ export async function handleLogin(
         break;
       }
 
-      killOrphanBrowsers(safeProfileDir, true);
-      if (safeProfileDir !== tempProfileDir && existsSync(tempProfileDir)) {
-        killOrphanBrowsers(tempProfileDir, true);
-      }
-      cleanupStaleLocks(safeProfileDir);
-      if (safeProfileDir !== tempProfileDir && existsSync(tempProfileDir)) {
-        cleanupStaleLocks(tempProfileDir);
-      }
+      await killOrphanBrowsersAsync([safeProfileDir, tempProfileDir], true);
       removeTemporaryChromeTabSessions(safeProfileDir);
       if (safeProfileDir !== tempProfileDir && existsSync(tempProfileDir)) {
         removeTemporaryChromeTabSessions(tempProfileDir);
@@ -1027,7 +1018,7 @@ export async function handleLogin(
           `⚠️ [Extraction Warning] Lần trích xuất phiên cuối cùng gặp lỗi: ${(lastExtractionError as any)?.message || lastExtractionError}`
         );
       }
-      const isTimeout = String(lastExtractionError || "").toLowerCase().includes("timeout");
+      const isTimeout = /(timeout|timed out|deadline)/i.test(String(lastExtractionError || ""));
       const errorMsg = isTimeout
         ? "Quá trình mở trình duyệt để trích xuất phiên đăng nhập bị treo (Timeout). Có thể tiến trình nền của trình duyệt chưa nhả file lock. Vui lòng đóng hết các cửa sổ trình duyệt và thử lại."
         : "Chưa phát hiện phiên đăng nhập hợp lệ. Vui lòng thử đăng nhập lại và đợi trang ChatGPT tải xong trước khi đóng trình duyệt.";
@@ -1076,11 +1067,8 @@ export async function handleLogin(
     }
     offlineTrackedPids.clear();
     await killOrphanBrowsersByTagAsync(instanceTag);
-    if (isBrowserProfileLockedByFs(safeProfileDir)) {
-      killOrphanBrowsers(safeProfileDir, true);
-    }
-    if (safeProfileDir !== tempProfileDir && existsSync(tempProfileDir) && isBrowserProfileLockedByFs(tempProfileDir)) {
-      killOrphanBrowsers(tempProfileDir, true);
+    if (isBrowserProfileLockedByFs(safeProfileDir) || (safeProfileDir !== tempProfileDir && existsSync(tempProfileDir) && isBrowserProfileLockedByFs(tempProfileDir))) {
+      await killOrphanBrowsersAsync([safeProfileDir, tempProfileDir], true);
     }
     for (let i = 0; i < 5; i++) {
       try {
@@ -1088,8 +1076,7 @@ export async function handleLogin(
         break;
       } catch {
         if (i >= 2) {
-          killOrphanBrowsers(safeProfileDir, true);
-          killOrphanBrowsers(tempProfileDir, true);
+          await killOrphanBrowsersAsync([safeProfileDir, tempProfileDir], true);
         }
         await new Promise((r) => setTimeout(r, 200));
       }

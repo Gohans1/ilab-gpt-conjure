@@ -57,45 +57,61 @@ describe("browser helpers", () => {
 
   test("isBrowserProfileLockedByFs phát hiện đúng trạng thái lock file", () => {
     const testDir = join(tmpdir(), "test-locked-fs-" + Date.now());
-    mkdirSync(join(testDir, "Default", "Network"), { recursive: true });
+    try {
+      mkdirSync(join(testDir, "Default", "Network"), { recursive: true });
 
-    // Khi chưa có file hoặc file không bị lock -> false
-    expect(isBrowserProfileLockedByFs(testDir)).toBe(false);
-
-    // Khi file có mặt và mở được bình thường -> false
-    const cookiesPath = join(testDir, "Default", "Network", "Cookies");
-    writeFileSync(cookiesPath, "dummy-sqlite-data");
-    expect(isBrowserProfileLockedByFs(testDir)).toBe(false);
-
-    // Khi file bị khóa quyền ghi (read-only) -> isBrowserProfileLockedByFs phát hiện ra lock (true trên Windows)
-    if (process.platform === "win32") {
-      chmodSync(cookiesPath, 0o444);
-      expect(isBrowserProfileLockedByFs(testDir)).toBe(true);
-
-      // Khi khôi phục quyền ghi -> false
-      chmodSync(cookiesPath, 0o666);
+      // Khi chưa có file hoặc file không bị lock -> false
       expect(isBrowserProfileLockedByFs(testDir)).toBe(false);
-    }
 
-    rmSync(testDir, { recursive: true, force: true });
+      // Khi file có mặt và mở được bình thường -> false
+      const cookiesPath = join(testDir, "Default", "Network", "Cookies");
+      writeFileSync(cookiesPath, "dummy-sqlite-data");
+      expect(isBrowserProfileLockedByFs(testDir)).toBe(false);
+
+      // Khi file bị khóa quyền ghi (read-only) -> isBrowserProfileLockedByFs phát hiện ra lock (true trên Windows)
+      if (process.platform === "win32") {
+        chmodSync(cookiesPath, 0o444);
+        expect(isBrowserProfileLockedByFs(testDir)).toBe(true);
+
+        // Khi khôi phục quyền ghi -> false
+        chmodSync(cookiesPath, 0o666);
+        expect(isBrowserProfileLockedByFs(testDir)).toBe(false);
+      } else {
+        const lockFile = join(testDir, "SingletonLock");
+        writeFileSync(lockFile, "dummy");
+        expect(isBrowserProfileLockedByFs(testDir)).toBe(true);
+        rmSync(lockFile, { force: true });
+        expect(isBrowserProfileLockedByFs(testDir)).toBe(false);
+      }
+    } finally {
+      rmSync(testDir, { recursive: true, force: true });
+    }
   });
 
   test("isBrowserProfileInUseAsync kiểm tra chính xác trạng thái thư mục profile", async () => {
     const testDir = join(tmpdir(), "test-in-use-fs-" + Date.now());
-    expect(await isBrowserProfileInUseAsync(testDir)).toBe(false);
-
-    mkdirSync(join(testDir, "Default", "Network"), { recursive: true });
-    const cookiesPath = join(testDir, "Default", "Network", "Cookies");
-    writeFileSync(cookiesPath, "dummy-sqlite-data");
-
-    if (process.platform === "win32") {
-      chmodSync(cookiesPath, 0o444);
-      expect(await isBrowserProfileInUseAsync(testDir)).toBe(true);
-      chmodSync(cookiesPath, 0o666);
+    try {
       expect(await isBrowserProfileInUseAsync(testDir)).toBe(false);
-    }
 
-    rmSync(testDir, { recursive: true, force: true });
+      mkdirSync(join(testDir, "Default", "Network"), { recursive: true });
+      const cookiesPath = join(testDir, "Default", "Network", "Cookies");
+      writeFileSync(cookiesPath, "dummy-sqlite-data");
+
+      if (process.platform === "win32") {
+        chmodSync(cookiesPath, 0o444);
+        expect(await isBrowserProfileInUseAsync(testDir)).toBe(true);
+        chmodSync(cookiesPath, 0o666);
+        expect(await isBrowserProfileInUseAsync(testDir)).toBe(false);
+      } else {
+        const lockFile = join(testDir, "SingletonLock");
+        writeFileSync(lockFile, "dummy");
+        expect(await isBrowserProfileInUseAsync(testDir)).toBe(true);
+        rmSync(lockFile, { force: true });
+        expect(await isBrowserProfileInUseAsync(testDir)).toBe(false);
+      }
+    } finally {
+      rmSync(testDir, { recursive: true, force: true });
+    }
   });
 
   test("findBrowserCandidates trả về cấu trúc primary và fallback", () => {
