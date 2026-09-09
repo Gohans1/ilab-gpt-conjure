@@ -252,7 +252,16 @@ export function sizeToAspectRatio(sizeOrRatio?: string | null): string | null {
       ["3:4", 3 / 4],
       ["3:2", 3 / 2],
       ["2:3", 2 / 3],
+      ["4:5", 4 / 5],
+      ["5:4", 5 / 4],
+      ["9:21", 9 / 21],
       ["21:9", 21 / 9],
+      ["1:2", 1 / 2],
+      ["2:1", 2 / 1],
+      ["1:4", 1 / 4],
+      ["4:1", 4 / 1],
+      ["1:8", 1 / 8],
+      ["8:1", 8 / 1],
     ];
 
     let bestMatch: string | null = null;

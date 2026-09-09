@@ -826,8 +826,9 @@ export async function handleLogin(
           }
 
           let cdpEndpoint: string | null = null;
-          const portDeadline = Date.now() + 6000;
+          const portDeadline = Date.now() + 8000;
           while (Date.now() < portDeadline) {
+            if (lastExtractionError) throw lastExtractionError;
             if (cdpChild.exitCode !== null || cdpChild.signalCode !== null) {
               throw new Error(`CDP browser process exited prematurely with code ${cdpChild.exitCode}`);
             }
@@ -837,10 +838,12 @@ export async function handleLogin(
                 const p = Number(lines[0]?.trim());
                 if (Number.isFinite(p) && p > 0) {
                   const wsPath = lines[1]?.trim() || "";
-                  cdpEndpoint = wsPath
-                    ? `ws://127.0.0.1:${p}${wsPath.startsWith("/") ? wsPath : `/${wsPath}`}`
-                    : `http://127.0.0.1:${p}`;
-                  break;
+                  if (wsPath || Date.now() > portDeadline - 1500) {
+                    cdpEndpoint = wsPath
+                      ? `ws://127.0.0.1:${p}${wsPath.startsWith("/") ? wsPath : `/${wsPath}`}`
+                      : `http://127.0.0.1:${p}`;
+                    break;
+                  }
                 }
               } catch {}
             }

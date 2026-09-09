@@ -66,13 +66,15 @@ describe("browser helpers", () => {
     writeFileSync(cookiesPath, "dummy-sqlite-data");
     expect(isBrowserProfileLockedByFs(testDir)).toBe(false);
 
-    // Khi file bị khóa quyền ghi (read-only) -> isBrowserProfileLockedByFs phát hiện ra lock (true)
-    chmodSync(cookiesPath, 0o444);
-    expect(isBrowserProfileLockedByFs(testDir)).toBe(true);
+    // Khi file bị khóa quyền ghi (read-only) -> isBrowserProfileLockedByFs phát hiện ra lock (true trên Windows)
+    if (process.platform === "win32") {
+      chmodSync(cookiesPath, 0o444);
+      expect(isBrowserProfileLockedByFs(testDir)).toBe(true);
 
-    // Khi khôi phục quyền ghi -> false
-    chmodSync(cookiesPath, 0o666);
-    expect(isBrowserProfileLockedByFs(testDir)).toBe(false);
+      // Khi khôi phục quyền ghi -> false
+      chmodSync(cookiesPath, 0o666);
+      expect(isBrowserProfileLockedByFs(testDir)).toBe(false);
+    }
 
     rmSync(testDir, { recursive: true, force: true });
   });
