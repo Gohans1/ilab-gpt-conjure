@@ -874,7 +874,7 @@ export async function handleLogin(
                 cdpSuccess = true;
               }
             } finally {
-              let closeTimer: any;
+              let closeTimer: ReturnType<typeof setTimeout> | undefined;
               await Promise.race([
                 cdpBrowser.close().catch(() => {}),
                 new Promise((r) => { closeTimer = setTimeout(r, 3000); }),
@@ -976,7 +976,7 @@ export async function handleLogin(
         lastExtractionError = e;
       } finally {
         if (context) {
-          let closeTimer: any;
+          let closeTimer: ReturnType<typeof setTimeout> | undefined;
           await Promise.race([
             context.close().catch(() => {}),
             new Promise((r) => { closeTimer = setTimeout(r, 3000); }),
@@ -992,8 +992,10 @@ export async function handleLogin(
           offlineTrackedPids.delete(pid);
         }
         attemptPids.clear();
-        // Cưỡng chế quét và diệt sạch mọi zombie theo tag dù PID có lấy được hay không!
-        await killOrphanBrowsersByTagAsync(attemptTag).catch(() => {});
+        // Cưỡng chế quét và diệt sạch mọi zombie theo tag dù PID có lấy được hay không (nếu thất bại)!
+        if (!cdpSuccess) {
+          await killOrphanBrowsersByTagAsync(attemptTag).catch(() => {});
+        }
       }
 
       if (extractedStorageState) {
@@ -1054,7 +1056,7 @@ export async function handleLogin(
       activeBrowserPid = null;
     }
     if (context) {
-      let outerTimer: any;
+      let outerTimer: ReturnType<typeof setTimeout> | undefined;
       await Promise.race([
         context.close().catch(() => {}),
         new Promise((r) => { outerTimer = setTimeout(r, 5000); }),
