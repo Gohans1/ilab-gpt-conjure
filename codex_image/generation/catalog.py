@@ -246,15 +246,15 @@ MODEL_MANIFESTS = (
                 control="select",
                 value_type="string",
                 default="1:1",
+                allowed_values=(),
                 full_width=True,
             ),
-            ParameterDefinition(
-                id="canvas.resolution",
-                label_key="canvas.resolution",
-                group="canvas",
-                control="select",
-                value_type="string",
-                default="standard",
+            _select(
+                "canvas.resolution",
+                "canvas.resolution",
+                "canvas",
+                "standard",
+                ("standard", "2k", "4k"),
             ),
             _select(
                 "gpt.quality",

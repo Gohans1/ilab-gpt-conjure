@@ -261,13 +261,30 @@ describe("isValidConversationId", () => {
 });
 
 describe("sizeToAspectRatio", () => {
-  it("giữ nguyên khi đầu vào đã là dạng tỷ lệ chuẩn X:Y", () => {
+  it("giữ nguyên khi đầu vào đã là dạng tỷ lệ chuẩn X:Y (kể cả số thập phân)", () => {
     expect(sizeToAspectRatio("16:9")).toBe("16:9");
     expect(sizeToAspectRatio("1:1")).toBe("1:1");
     expect(sizeToAspectRatio("9:16")).toBe("9:16");
     expect(sizeToAspectRatio("4:3")).toBe("4:3");
     expect(sizeToAspectRatio("3:4")).toBe("3:4");
     expect(sizeToAspectRatio("21:9")).toBe("21:9");
+    expect(sizeToAspectRatio("9:21")).toBe("9:21");
+    expect(sizeToAspectRatio("9:19.5")).toBe("9:19.5");
+    expect(sizeToAspectRatio("19.5:9")).toBe("19.5:9");
+    expect(sizeToAspectRatio(" 16 : 9 ")).toBe("16:9");
+  });
+
+  it("nhận diện chuẩn xác các tỷ lệ mở rộng 9:21, 21:9, 4:5, 5:4 từ pixel resolution presets", () => {
+    expect(sizeToAspectRatio("672x1568")).toBe("9:21");
+    expect(sizeToAspectRatio("1568x672")).toBe("21:9");
+    expect(sizeToAspectRatio("1152x2688")).toBe("9:21");
+    expect(sizeToAspectRatio("2688x1152")).toBe("21:9");
+    expect(sizeToAspectRatio("1632x3808")).toBe("9:21");
+    expect(sizeToAspectRatio("3808x1632")).toBe("21:9");
+    expect(sizeToAspectRatio("1024x1280")).toBe("4:5");
+    expect(sizeToAspectRatio("1280x1024")).toBe("5:4");
+    // Nhận diện chuẩn xác 9:19.5 từ màn hình 1080x2340 mà không bị nuốt nhầm thành 9:21
+    expect(sizeToAspectRatio("1080x2340")).toBe("9:19.5");
   });
 
   it("chuyển đổi kích thước pixel OpenAI/DALL-E sang dạng tỷ lệ chuẩn gọn gàng", () => {
@@ -1018,44 +1035,5 @@ describe("captureDiagnosticSnapshot", () => {
       },
     };
     await expect(captureDiagnosticSnapshot(mockCrashingPage)).resolves.toBeUndefined();
-  });
-});
-
-describe("sizeToAspectRatio", () => {
-  it("nhận diện chuẩn xác các kích thước tiêu chuẩn", () => {
-    expect(sizeToAspectRatio("1024x1024")).toBe("1:1");
-    expect(sizeToAspectRatio("1536x864")).toBe("16:9");
-    expect(sizeToAspectRatio("864x1536")).toBe("9:16");
-    expect(sizeToAspectRatio("1536x1152")).toBe("4:3");
-    expect(sizeToAspectRatio("1152x1536")).toBe("3:4");
-    expect(sizeToAspectRatio("1536x1024")).toBe("3:2");
-    expect(sizeToAspectRatio("1024x1536")).toBe("2:3");
-    expect(sizeToAspectRatio("1024x1280")).toBe("4:5");
-    expect(sizeToAspectRatio("1280x1024")).toBe("5:4");
-  });
-
-  it("nhận diện chuẩn xác 9:21 và 21:9 từ resolution presets mà không bị bóp méo", () => {
-    expect(sizeToAspectRatio("672x1568")).toBe("9:21");
-    expect(sizeToAspectRatio("1568x672")).toBe("21:9");
-    expect(sizeToAspectRatio("1152x2688")).toBe("9:21");
-    expect(sizeToAspectRatio("2688x1152")).toBe("21:9");
-    expect(sizeToAspectRatio("1632x3808")).toBe("9:21");
-    expect(sizeToAspectRatio("3808x1632")).toBe("21:9");
-  });
-
-  it("giữ nguyên chuỗi ratio hợp lệ dạng X:Y", () => {
-    expect(sizeToAspectRatio("9:21")).toBe("9:21");
-    expect(sizeToAspectRatio("21:9")).toBe("21:9");
-    expect(sizeToAspectRatio("16:9")).toBe("16:9");
-    expect(sizeToAspectRatio("1:1")).toBe("1:1");
-  });
-
-  it("trả về null khi input là none, auto hoặc không hợp lệ", () => {
-    expect(sizeToAspectRatio("none")).toBeNull();
-    expect(sizeToAspectRatio("None")).toBeNull();
-    expect(sizeToAspectRatio("auto")).toBeNull();
-    expect(sizeToAspectRatio("")).toBeNull();
-    expect(sizeToAspectRatio(null)).toBeNull();
-    expect(sizeToAspectRatio(undefined)).toBeNull();
   });
 });

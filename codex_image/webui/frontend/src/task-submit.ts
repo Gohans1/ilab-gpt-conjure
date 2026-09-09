@@ -146,7 +146,9 @@ export function applyTaskOutputParams(task: any): void {
     els.webSearch.dispatchEvent(new Event("input"));
   }
   if (params.model && els.model) els.model.value = params.model;
-  if (output.size) syncSizeControlsFromSize(output.size, (output.ratio || params.ratio) as string | undefined);
+  if (output.size || output.ratio || params.ratio) {
+    syncSizeControlsFromSize(output.size || "auto", (output.ratio || params.ratio) as string | undefined);
+  }
   if (output.n && els.nInput) {
     els.nInput.value = String(output.n);
   }
@@ -162,10 +164,6 @@ export function applyTaskOutputParams(task: any): void {
   if (output.chatgpt_browser) {
     const b = String(output.chatgpt_browser).toLowerCase() === "chrome" ? "chrome" : "edge";
     persistChatGPTBrowserState(b);
-  }
-  if (output.chatgpt_delete_chat !== undefined && els.chatgptDeleteChat) {
-    els.chatgptDeleteChat.checked = Boolean(output.chatgpt_delete_chat);
-    persistChatGPTDeleteChatState();
   }
   updateQuantity();
   syncRadioButtons(els.nInput);

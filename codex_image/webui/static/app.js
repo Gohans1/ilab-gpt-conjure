@@ -36898,6 +36898,12 @@ ${hint}` : hint;
         if (row && (typeof item !== "string" || !row.allowed_values.includes(item))) return false;
       }
     }
+    if (definition.id === "canvas.aspect_ratio" && typeof value === "string") {
+      const s = value.trim().toLowerCase();
+      if (s === "none" || s === "auto" || /^[1-9]\d*(?:\.\d+)?\s*:\s*[1-9]\d*(?:\.\d+)?$/.test(s)) {
+        return true;
+      }
+    }
     if (definition.allowed_values.length && !definition.allowed_values.includes(value)) return false;
     if (typeof value === "number") {
       if (definition.minimum !== null && value < definition.minimum) return false;
@@ -38174,6 +38180,20 @@ ${hint}` : hint;
     if (numericWidth === numericHeight) return "square";
     return numericWidth > numericHeight ? "landscape" : "portrait";
   }
+  function gcd(a, b) {
+    return b === 0 ? a : gcd(b, a % b);
+  }
+  function ratioFromDimensions(width, height) {
+    if (width <= 0 || height <= 0) return "1:1";
+    const divisor = gcd(Math.round(width), Math.round(height));
+    const rw = Math.round(width) / divisor;
+    const rh = Math.round(height) / divisor;
+    if (rw === 3 && rh === 7) return "9:21";
+    if (rw === 7 && rh === 3) return "21:9";
+    if (Math.abs(width / height - 9 / 19.5) < 0.01) return "9:19.5";
+    if (Math.abs(width / height - 19.5 / 9) < 0.01) return "19.5:9";
+    return `${rw}:${rh}`;
+  }
   function normalizeCustomDimension(value) {
     const rawValue = String(value ?? "").trim();
     if (!rawValue) return null;
@@ -38245,12 +38265,24 @@ ${hint}` : hint;
     const isCustomMode = Boolean(els13.customSizeToggle?.checked || els13.size?.value === "custom");
     if (isCustomMode) {
       const customRatio = currentCustomRatio();
+      const dimensions2 = String(params.size || "").split("x").map((value) => Number(value));
+      const dimW = dimensions2[0];
+      const dimH = dimensions2[1];
+      const hasValidDimensions = dimensions2.length === 2 && typeof dimW === "number" && typeof dimH === "number" && Number.isFinite(dimW) && Number.isFinite(dimH) && dimW > 0 && dimH > 0;
       if (customRatio) {
         params.ratio = customRatio;
+      } else {
+        const presetMatch = findPresetForSize(params.size);
+        if (presetMatch) {
+          params.ratio = presetMatch.ratio;
+        } else if (hasValidDimensions) {
+          params.ratio = ratioFromDimensions(dimW, dimH);
+        } else if (els13.ratio?.value && els13.ratio.value !== "None") {
+          params.ratio = els13.ratio.value;
+        }
       }
-      const dimensions2 = String(params.size || "").split("x").map((value) => Number(value));
-      if (dimensions2.length === 2 && dimensions2.every((value) => Number.isFinite(value) && value > 0)) {
-        params.orientation = orientationForDimensions(dimensions2[0], dimensions2[1]);
+      if (hasValidDimensions) {
+        params.orientation = orientationForDimensions(dimW, dimH);
       }
     } else {
       const presetMatch = findPresetForSize(params.size);
@@ -38363,7 +38395,7 @@ ${hint}` : hint;
     const numericWidth = Number(width);
     const numericHeight = Number(height);
     if (!Number.isFinite(numericWidth) || !Number.isFinite(numericHeight) || numericWidth <= 0 || numericHeight <= 0) return null;
-    function gcd(left, right) {
+    function gcd2(left, right) {
       let a = Math.round(Math.abs(left));
       let b = Math.round(Math.abs(right));
       while (b) {
@@ -38373,7 +38405,7 @@ ${hint}` : hint;
       }
       return a || 1;
     }
-    const divisor = gcd(numericWidth, numericHeight);
+    const divisor = gcd2(numericWidth, numericHeight);
     const reducedWidth = Math.round(numericWidth / divisor);
     const reducedHeight = Math.round(numericHeight / divisor);
     if (reducedWidth >= 1 && reducedWidth <= 9 && reducedHeight >= 1 && reducedHeight <= 9) {
@@ -38538,7 +38570,7 @@ ${hint}` : hint;
     return null;
   }
   function syncRatioAndOrientation(changedControl) {
-    if (isProgrammaticSizeSync()) return;
+    if (typeof isProgrammaticSizeSync === "function" && isProgrammaticSizeSync()) return;
     if (!els14.resolution || !els14.ratio || !els14.orientation) return;
     const rawRatio = String(els14.ratio.value || "").trim().toLowerCase();
     const isNoneOrAuto = rawRatio === "none" || rawRatio === "auto";
@@ -38549,9 +38581,11 @@ ${hint}` : hint;
         return;
       }
       if (changedControl === "ratio") {
-        withProgrammaticSizeSync(() => {
+        const apply = () => {
           setSizeControlValue(els14.orientation, DEFAULT_ORIENTATION);
-        });
+        };
+        if (typeof withProgrammaticSizeSync === "function") withProgrammaticSizeSync(apply);
+        else apply();
         return;
       }
       return;
@@ -38572,13 +38606,15 @@ ${hint}` : hint;
     syncOrientationFromRatio();
   }
   function syncOrientationFromRatio() {
-    withProgrammaticSizeSync(() => {
+    const apply = () => {
       const nextOrientation = RATIO_ORIENTATION[els14.ratio.value] || DEFAULT_ORIENTATION;
       setSizeControlValue(els14.orientation, nextOrientation);
-    });
+    };
+    if (typeof withProgrammaticSizeSync === "function") withProgrammaticSizeSync(apply);
+    else apply();
   }
   function syncRatioFromOrientation() {
-    withProgrammaticSizeSync(() => {
+    const apply = () => {
       const rawRatio = String(els14.ratio?.value || "").trim().toLowerCase();
       if (rawRatio === "none" || rawRatio === "auto") return;
       const orientation = els14.orientation.value;
@@ -38593,7 +38629,9 @@ ${hint}` : hint;
         return;
       }
       setSizeControlValue(els14.ratio, ORIENTATION_DEFAULT_RATIOS[orientation] || DEFAULT_RATIO);
-    });
+    };
+    if (typeof withProgrammaticSizeSync === "function") withProgrammaticSizeSync(apply);
+    else apply();
   }
   function setSizeControlValue(select, value) {
     if (!select || select.value === value) return false;
@@ -38635,20 +38673,26 @@ ${hint}` : hint;
       if (!size || normalizedSize === "auto") {
         if (els14.customSizeToggle) els14.customSizeToggle.checked = false;
         if (els14.resolution && !els14.resolution.value) els14.resolution.value = DEFAULT_RESOLUTION;
-        if (els14.ratio) els14.ratio.value = explicitRatio || "None";
-        if (els14.orientation && !els14.orientation.value) els14.orientation.value = DEFAULT_ORIENTATION;
+        const targetRatio = explicitRatio || "None";
+        if (els14.ratio) els14.ratio.value = targetRatio;
+        if (els14.orientation) {
+          els14.orientation.value = targetRatio && RATIO_ORIENTATION[targetRatio] || DEFAULT_ORIENTATION;
+        }
         updateSizeFromPreset();
         syncRadioButtons(els14.resolution, els14.ratio, els14.orientation);
         return;
       }
       const presetMatch = findPresetForSize(normalizedSize);
       if (presetMatch) {
+        const targetRatio = explicitRatio || presetMatch.ratio;
         if (els14.customSizeToggle) els14.customSizeToggle.checked = false;
         if (els14.resolution) els14.resolution.value = presetMatch.resolution;
         if (els14.ratio) {
-          els14.ratio.value = explicitRatio || presetMatch.ratio;
+          els14.ratio.value = targetRatio;
         }
-        if (els14.orientation) els14.orientation.value = presetMatch.orientation;
+        if (els14.orientation) {
+          els14.orientation.value = targetRatio && RATIO_ORIENTATION[targetRatio] || presetMatch.orientation;
+        }
         updateSizeFromPreset();
         syncRadioButtons(els14.resolution, els14.ratio, els14.orientation);
         return;
@@ -38659,6 +38703,9 @@ ${hint}` : hint;
         if (els14.size) els14.size.value = "custom";
         if (els14.customWidth) els14.customWidth.value = width;
         if (els14.customHeight) els14.customHeight.value = height;
+        if (explicitRatio && els14.ratio) {
+          els14.ratio.value = explicitRatio;
+        }
         updatePixelPreview("custom");
         updateCustomSize();
         updateRequestPreview5();
@@ -51431,7 +51478,9 @@ ${galleryText}`;
       els33.webSearch.dispatchEvent(new Event("input"));
     }
     if (params.model && els33.model) els33.model.value = params.model;
-    if (output.size) syncSizeControlsFromSize2(output.size, output.ratio || params.ratio);
+    if (output.size || output.ratio || params.ratio) {
+      syncSizeControlsFromSize2(output.size || "auto", output.ratio || params.ratio);
+    }
     if (output.n && els33.nInput) {
       els33.nInput.value = String(output.n);
     }
@@ -51447,10 +51496,6 @@ ${galleryText}`;
     if (output.chatgpt_browser) {
       const b = String(output.chatgpt_browser).toLowerCase() === "chrome" ? "chrome" : "edge";
       persistChatGPTBrowserState(b);
-    }
-    if (output.chatgpt_delete_chat !== void 0 && els33.chatgptDeleteChat) {
-      els33.chatgptDeleteChat.checked = Boolean(output.chatgpt_delete_chat);
-      persistChatGPTDeleteChatState();
     }
     updateQuantity2();
     syncRadioButtons2(els33.nInput);

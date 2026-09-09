@@ -591,6 +591,49 @@ describe("buildGenerationPrompt", () => {
     });
     expect(prompt219).toBe("Generate an image of: An ultrawide banner. Set the aspect ratio to 21:9.");
   });
+
+  it("chuẩn hóa --aspect-ratio và khoảng trắng quanh dấu hai chấm (--ar 16 : 9)", () => {
+    const prompt1 = buildGenerationPrompt({
+      prompt: "A cute dog --aspect-ratio 16:9",
+      hasInputImages: false,
+      n: 1,
+    });
+    expect(prompt1).toBe("Generate an image of: A cute dog. Set the aspect ratio to 16:9.");
+
+    const prompt2 = buildGenerationPrompt({
+      prompt: "A cute dog --ar 16 : 9",
+      hasInputImages: false,
+      n: 1,
+    });
+    expect(prompt2).toBe("Generate an image of: A cute dog. Set the aspect ratio to 16:9.");
+  });
+
+  it("chuẩn hóa tỷ lệ số thập phân 9:19.5 mà không để lại rác thập phân", () => {
+    const prompt = buildGenerationPrompt({
+      prompt: "A mobile wallpaper --ar 9:19.5",
+      hasInputImages: false,
+      n: 1,
+    });
+    expect(prompt).toBe("Generate an image of: A mobile wallpaper. Set the aspect ratio to 9:19.5.");
+  });
+
+  it("nhận diện và chuẩn hóa các biến thể aspect ratio tự nhiên (aspect ratio 16:9, aspect-ratio: 16:9, aspect ratio to 16:9)", () => {
+    const cases = [
+      "A mountain landscape aspect ratio 16:9",
+      "A mountain landscape aspect-ratio: 16:9",
+      "A mountain landscape aspect ratio: 16:9",
+      "A mountain landscape aspect ratio to 16:9",
+      "A mountain landscape --aspect-ratio=16:9",
+    ];
+    for (const c of cases) {
+      const prompt = buildGenerationPrompt({
+        prompt: c,
+        hasInputImages: false,
+        n: 1,
+      });
+      expect(prompt).toBe("Generate an image of: A mountain landscape. Set the aspect ratio to 16:9.");
+    }
+  });
 });
 
 describe("CORS & Origin Security (REQ-06)", () => {

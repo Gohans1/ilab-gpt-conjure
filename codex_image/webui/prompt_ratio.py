@@ -5,7 +5,7 @@ from math import gcd
 from typing import Any
 
 
-_RATIO_RE = re.compile(r"^\s*([1-9]\d{0,2})\s*:\s*([1-9]\d{0,2})\s*$")
+_RATIO_RE = re.compile(r"^\s*([1-9]\d{0,2}(?:\.\d+)?)\s*:\s*([1-9]\d{0,2}(?:\.\d+)?)\s*$")
 _SIZE_RE = re.compile(r"^\s*([1-9]\d*)\s*x\s*([1-9]\d*)\s*$", re.IGNORECASE)
 
 _RATIO_INSTRUCTION_TEMPLATES = {
@@ -50,7 +50,11 @@ def normalize_prompt_ratio(value: Any) -> str:
     match = _RATIO_RE.match(str(value or ""))
     if not match:
         return ""
-    return f"{int(match.group(1))}:{int(match.group(2))}"
+    w = match.group(1)
+    h = match.group(2)
+    w_str = f"{float(w):g}" if "." in w else f"{int(w)}"
+    h_str = f"{float(h):g}" if "." in h else f"{int(h)}"
+    return f"{w_str}:{h_str}"
 
 
 _STANDARD_RATIO_PRESETS: dict[tuple[int, int], str] = {
@@ -63,15 +67,44 @@ _STANDARD_RATIO_PRESETS: dict[tuple[int, int], str] = {
 }
 
 
+_STANDARD_RATIO_TARGETS: tuple[tuple[str, float], ...] = (
+    ("1:1", 1.0),
+    ("16:9", 16 / 9),
+    ("9:16", 9 / 16),
+    ("4:3", 4 / 3),
+    ("3:4", 3 / 4),
+    ("3:2", 3 / 2),
+    ("2:3", 2 / 3),
+    ("4:5", 4 / 5),
+    ("5:4", 5 / 4),
+    ("21:9", 21 / 9),
+    ("9:21", 9 / 21),
+    ("19.5:9", 19.5 / 9),
+    ("9:19.5", 9 / 19.5),
+)
+
+
 def ratio_from_size(value: Any) -> str:
     match = _SIZE_RE.match(str(value or ""))
     if not match:
         return ""
     width = int(match.group(1))
     height = int(match.group(2))
+    if width <= 0 or height <= 0:
+        return ""
     preset = _STANDARD_RATIO_PRESETS.get((width, height))
     if preset:
         return preset
+    ratio = width / height
+    best_match: str | None = None
+    min_relative_diff = 0.03
+    for name, target_ratio in _STANDARD_RATIO_TARGETS:
+        diff = abs(ratio - target_ratio) / target_ratio
+        if diff < min_relative_diff:
+            min_relative_diff = diff
+            best_match = name
+    if best_match:
+        return best_match
     divisor = gcd(width, height)
     reduced_w = width // divisor
     reduced_h = height // divisor
@@ -86,7 +119,7 @@ def orientation_from_ratio(value: Any) -> str:
     ratio = normalize_prompt_ratio(value)
     if not ratio:
         return ""
-    width, height = (int(part) for part in ratio.split(":"))
+    width, height = (float(part) for part in ratio.split(":"))
     if width == height:
         return "square"
     return "landscape" if width > height else "portrait"

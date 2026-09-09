@@ -358,16 +358,30 @@ export function enqueueTask<T>(task: () => Promise<T>, signal?: AbortSignal): Pr
   });
 }
 
-// Regex bao quát toàn bộ 14 ngôn ngữ hỗ trợ để bóc sạch câu ratio nếu có, cùng các cú pháp phổ biến như --ar, -ar, aspect ratio
-export const ratioRegex =
-  /(?:(?:Set the aspect ratio to|Đặt tỷ lệ khung hình thành|将宽高比设为|將寬高比設為|アスペクト比を|화면 비율을|Establece la relación de aspecto en|Defina a proporção da imagem como|Réglez le rapport largeur\/hauteur sur|Stelle das Seitenverhältnis auf|Установите соотношение сторон|Imposta le proporzioni su|पक्षानुपात को)\s*[0-9]+:[0-9]+(?:\s*に設定してください|\s*로 설정하세요|\s*ein|\s*पर सेट करें)?[.\u3002\u0964]?)|(?:(?:--ar|-ar|aspect[_\s-]*ratio(?:[:=]|\s+to)?)\s*[0-9]+:[0-9]+[.\u3002\u0964]?)/gi;
+// Cấu trúc regex nhận diện và bóc sạch câu ratio theo 14 ngôn ngữ và các cờ shorthand phổ biến (--ar, --aspect-ratio, v.v.)
+const RATIO_LANGUAGE_PREFIXES_PATTERN =
+  "Set the aspect ratio to|Đặt tỷ lệ khung hình thành|将宽高比设为|將寬高比設為|アスペクト比を|화면 비율을|Establece la relación de aspecto en|Defina a proporção da imagem como|Réglez le rapport largeur\\/hauteur sur|Stelle das Seitenverhältnis auf|Установите соотношение сторон|Imposta le proporzioni su|पक्षानुपात को";
+
+const RATIO_SHORTHAND_PATTERN =
+  "--ar|-ar|(?:--|-)?aspect[_\\s-]*ratio(?:[:=]|\\s+to)?";
+
+const RATIO_NUMBER_PATTERN =
+  "[0-9]+(?:\\.[0-9]+)?\\s*:\\s*[0-9]+(?:\\.[0-9]+)?";
+
+export const ratioRegex = new RegExp(
+  `(?:(?:${RATIO_LANGUAGE_PREFIXES_PATTERN})\\s*${RATIO_NUMBER_PATTERN}(?:\\s*に設定してください|\\s*로 설정하세요|\\s*ein|\\s*पर सेट करें)?[.\\u3002\\u0964]?)|(?:(?:${RATIO_SHORTHAND_PATTERN})\\s*${RATIO_NUMBER_PATTERN}[.\\u3002\\u0964]?)`,
+  "gi"
+);
 
 export function extractRatioFromText(text: string): string | null {
   if (!text) return null;
   const match = text.match(
-    /(?:(?:Set the aspect ratio to|Đặt tỷ lệ khung hình thành|将宽高比设为|將寬高比設為|アスペクト比を|화면 비율을|Establece la relación de aspecto en|Defina a proporção da imagem como|Réglez le rapport largeur\/hauteur sur|Stelle das Seitenverhältnis auf|Установите соотношение сторон|Imposta le proporzioni su|पक्षानुपात को)|(?:--ar|-ar|aspect[_\s-]*ratio(?:[:=]|\s+to)?))\s*([0-9]+:[0-9]+)/i
+    new RegExp(
+      `(?:(?:${RATIO_LANGUAGE_PREFIXES_PATTERN})|(?:${RATIO_SHORTHAND_PATTERN}))\\s*(${RATIO_NUMBER_PATTERN})`,
+      "i"
+    )
   );
-  return match ? match[1] : null;
+  return match?.[1] ? match[1].replace(/\s+/g, "") : null;
 }
 
 const ORIGINAL_PROMPT_MARKERS = [

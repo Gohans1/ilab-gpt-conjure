@@ -151,6 +151,22 @@ export function orientationForDimensions(width: any, height: any): string {
   return numericWidth > numericHeight ? "landscape" : "portrait";
 }
 
+function gcd(a: number, b: number): number {
+  return b === 0 ? a : gcd(b, a % b);
+}
+
+export function ratioFromDimensions(width: number, height: number): string {
+  if (width <= 0 || height <= 0) return "1:1";
+  const divisor = gcd(Math.round(width), Math.round(height));
+  const rw = Math.round(width) / divisor;
+  const rh = Math.round(height) / divisor;
+  if (rw === 3 && rh === 7) return "9:21";
+  if (rw === 7 && rh === 3) return "21:9";
+  if (Math.abs(width / height - 9 / 19.5) < 0.01) return "9:19.5";
+  if (Math.abs(width / height - 19.5 / 9) < 0.01) return "19.5:9";
+  return `${rw}:${rh}`;
+}
+
 export function normalizeCustomDimension(value: any): number | null {
   const rawValue = String(value ?? "").trim();
   if (!rawValue) return null;
@@ -230,12 +246,24 @@ export function currentTaskParams(): any {
   const isCustomMode = Boolean(els.customSizeToggle?.checked || els.size?.value === "custom");
   if (isCustomMode) {
     const customRatio = currentCustomRatio();
+    const dimensions = String(params.size || "").split("x").map((value) => Number(value));
+    const dimW = dimensions[0];
+    const dimH = dimensions[1];
+    const hasValidDimensions = dimensions.length === 2 && typeof dimW === "number" && typeof dimH === "number" && Number.isFinite(dimW) && Number.isFinite(dimH) && dimW > 0 && dimH > 0;
     if (customRatio) {
       params.ratio = customRatio;
+    } else {
+      const presetMatch = findPresetForSize(params.size);
+      if (presetMatch) {
+        params.ratio = presetMatch.ratio;
+      } else if (hasValidDimensions) {
+        params.ratio = ratioFromDimensions(dimW, dimH);
+      } else if (els.ratio?.value && els.ratio.value !== "None") {
+        params.ratio = els.ratio.value;
+      }
     }
-    const dimensions = String(params.size || "").split("x").map((value) => Number(value));
-    if (dimensions.length === 2 && dimensions.every((value) => Number.isFinite(value) && value > 0)) {
-      params.orientation = orientationForDimensions(dimensions[0], dimensions[1]);
+    if (hasValidDimensions) {
+      params.orientation = orientationForDimensions(dimW, dimH);
     }
   } else {
     const presetMatch = findPresetForSize(params.size);

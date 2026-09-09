@@ -323,7 +323,7 @@ export function sizeControlName(target: any): string | null {
 }
 
 export function syncRatioAndOrientation(changedControl: any): void {
-  if (isProgrammaticSizeSync()) return;
+  if (typeof isProgrammaticSizeSync === "function" && isProgrammaticSizeSync()) return;
   if (!els.resolution || !els.ratio || !els.orientation) return;
 
   const rawRatio = String(els.ratio.value || "").trim().toLowerCase();
@@ -336,9 +336,11 @@ export function syncRatioAndOrientation(changedControl: any): void {
       return;
     }
     if (changedControl === "ratio") {
-      withProgrammaticSizeSync(() => {
+      const apply = () => {
         setSizeControlValue(els.orientation, DEFAULT_ORIENTATION);
-      });
+      };
+      if (typeof withProgrammaticSizeSync === "function") withProgrammaticSizeSync(apply);
+      else apply();
       return;
     }
     return;
@@ -362,14 +364,16 @@ export function syncRatioAndOrientation(changedControl: any): void {
 }
 
 export function syncOrientationFromRatio(): void {
-  withProgrammaticSizeSync(() => {
+  const apply = () => {
     const nextOrientation = RATIO_ORIENTATION[els.ratio.value] || DEFAULT_ORIENTATION;
     setSizeControlValue(els.orientation, nextOrientation);
-  });
+  };
+  if (typeof withProgrammaticSizeSync === "function") withProgrammaticSizeSync(apply);
+  else apply();
 }
 
 export function syncRatioFromOrientation(): void {
-  withProgrammaticSizeSync(() => {
+  const apply = () => {
     const rawRatio = String(els.ratio?.value || "").trim().toLowerCase();
     if (rawRatio === "none" || rawRatio === "auto") return;
     const orientation = els.orientation.value;
@@ -385,7 +389,9 @@ export function syncRatioFromOrientation(): void {
       return;
     }
     setSizeControlValue(els.ratio, ORIENTATION_DEFAULT_RATIOS[orientation] || DEFAULT_RATIO);
-  });
+  };
+  if (typeof withProgrammaticSizeSync === "function") withProgrammaticSizeSync(apply);
+  else apply();
 }
 
 export function setSizeControlValue(select: any, value: any): boolean {
@@ -435,8 +441,11 @@ export function syncSizeControlsFromSize(size: any, explicitRatio?: string): voi
     if (!size || normalizedSize === "auto") {
       if (els.customSizeToggle) els.customSizeToggle.checked = false;
       if (els.resolution && !els.resolution.value) els.resolution.value = DEFAULT_RESOLUTION;
-      if (els.ratio) els.ratio.value = explicitRatio || "None";
-      if (els.orientation && !els.orientation.value) els.orientation.value = DEFAULT_ORIENTATION;
+      const targetRatio = explicitRatio || "None";
+      if (els.ratio) els.ratio.value = targetRatio;
+      if (els.orientation) {
+        els.orientation.value = (targetRatio && RATIO_ORIENTATION[targetRatio]) || DEFAULT_ORIENTATION;
+      }
       updateSizeFromPreset();
       syncRadioButtons(els.resolution, els.ratio, els.orientation);
       return;
@@ -444,12 +453,15 @@ export function syncSizeControlsFromSize(size: any, explicitRatio?: string): voi
 
     const presetMatch = findPresetForSize(normalizedSize);
     if (presetMatch) {
+      const targetRatio = explicitRatio || presetMatch.ratio;
       if (els.customSizeToggle) els.customSizeToggle.checked = false;
       if (els.resolution) els.resolution.value = presetMatch.resolution;
       if (els.ratio) {
-        els.ratio.value = explicitRatio || presetMatch.ratio;
+        els.ratio.value = targetRatio;
       }
-      if (els.orientation) els.orientation.value = presetMatch.orientation;
+      if (els.orientation) {
+        els.orientation.value = (targetRatio && RATIO_ORIENTATION[targetRatio]) || presetMatch.orientation;
+      }
       updateSizeFromPreset();
       syncRadioButtons(els.resolution, els.ratio, els.orientation);
       return;
@@ -461,6 +473,9 @@ export function syncSizeControlsFromSize(size: any, explicitRatio?: string): voi
       if (els.size) els.size.value = "custom";
       if (els.customWidth) els.customWidth.value = width;
       if (els.customHeight) els.customHeight.value = height;
+      if (explicitRatio && els.ratio) {
+        els.ratio.value = explicitRatio;
+      }
       updatePixelPreview("custom");
       updateCustomSize();
       updateRequestPreview();

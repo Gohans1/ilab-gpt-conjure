@@ -20341,6 +20341,12 @@
         if (row && (typeof item !== "string" || !row.allowed_values.includes(item))) return false;
       }
     }
+    if (definition.id === "canvas.aspect_ratio" && typeof value === "string") {
+      const s = value.trim().toLowerCase();
+      if (s === "none" || s === "auto" || /^[1-9]\d*(?:\.\d+)?\s*:\s*[1-9]\d*(?:\.\d+)?$/.test(s)) {
+        return true;
+      }
+    }
     if (definition.allowed_values.length && !definition.allowed_values.includes(value)) return false;
     if (typeof value === "number") {
       if (definition.minimum !== null && value < definition.minimum) return false;

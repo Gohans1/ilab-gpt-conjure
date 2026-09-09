@@ -231,9 +231,9 @@ export function sizeToAspectRatio(sizeOrRatio?: string | null): string | null {
     return null;
   }
 
-  // Đã là dạng tỷ lệ X:Y nguyên dương (ví dụ "16:9", "1:1", "9:16", "4:3", "3:4", "3:2", "2:3", "21:9")
-  if (/^[1-9][0-9]*:[1-9][0-9]*$/.test(s)) {
-    return s;
+  // Đã là dạng tỷ lệ X:Y (nguyên hoặc thập phân, ví dụ "16:9", "1:1", "9:19.5", "19.5:9", "21:9")
+  if (/^[1-9][0-9]*(?:\.[0-9]+)?\s*:\s*[1-9][0-9]*(?:\.[0-9]+)?$/.test(s)) {
+    return s.replace(/\s+/g, "");
   }
 
   // Dạng kích thước pixel WxH (ví dụ "1792x1024", "1024x1024", "1024x1792")
@@ -254,6 +254,8 @@ export function sizeToAspectRatio(sizeOrRatio?: string | null): string | null {
       ["2:3", 2 / 3],
       ["4:5", 4 / 5],
       ["5:4", 5 / 4],
+      ["9:19.5", 9 / 19.5],
+      ["19.5:9", 19.5 / 9],
       ["9:21", 9 / 21],
       ["21:9", 21 / 9],
       ["1:2", 1 / 2],
@@ -265,11 +267,11 @@ export function sizeToAspectRatio(sizeOrRatio?: string | null): string | null {
     ];
 
     let bestMatch: string | null = null;
-    let minDiff = 0.04;
+    let minRelativeDiff = 0.03; // Sai số tương đối đối xứng <= 3%
     for (const [name, targetRatio] of standardRatios) {
-      const diff = Math.abs(ratio - targetRatio);
-      if (diff < minDiff) {
-        minDiff = diff;
+      const relativeDiff = Math.abs(ratio - targetRatio) / targetRatio;
+      if (relativeDiff < minRelativeDiff) {
+        minRelativeDiff = relativeDiff;
         bestMatch = name;
       }
     }
@@ -277,7 +279,11 @@ export function sizeToAspectRatio(sizeOrRatio?: string | null): string | null {
 
     const gcd = (a: number, b: number): number => (b === 0 ? a : gcd(b, a % b));
     const d = gcd(w, h);
-    return `${w / d}:${h / d}`;
+    const reducedW = w / d;
+    const reducedH = h / d;
+    if (reducedW === 3 && reducedH === 7) return "9:21";
+    if (reducedW === 7 && reducedH === 3) return "21:9";
+    return `${reducedW}:${reducedH}`;
   }
 
   return null;

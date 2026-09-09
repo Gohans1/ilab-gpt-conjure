@@ -327,9 +327,11 @@ def _prepare_generation_submission(
             canonical_model_id=canonical_model_id,
             operation=operation,
         ):
-            prompt_ratio = normalize_prompt_ratio(
-                canonical_parameters.get("canvas.aspect_ratio")
-            ) or ratio_from_size(canonical_parameters.get("canvas.size"))
+            raw_ratio = canonical_parameters.get("canvas.aspect_ratio")
+            if str(raw_ratio or "").strip().lower() in ("none", "auto"):
+                prompt_ratio = ""
+            else:
+                prompt_ratio = normalize_prompt_ratio(raw_ratio) or ratio_from_size(canonical_parameters.get("canvas.size"))
             model_prompt = append_ratio_prompt_instruction(
                 model_prompt,
                 prompt_ratio,
