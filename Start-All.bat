@@ -62,14 +62,56 @@ if not defined BUN_CMD (
   )
 )
 
-:: 3. Check / Install Bridge dependencies
+:: 3. Check Node runtime for Playwright browser transport
+set "NODE_CMD="
+if exist "%PROJECT_DIR%bin\node.exe" (
+  set "NODE_CMD=%PROJECT_DIR%bin\node.exe"
+) else (
+  where node >nul 2>nul && set "NODE_CMD=node"
+)
+
+if defined NODE_CMD (
+  "%NODE_CMD%" -e "process.exit(Number(process.versions.node.split('.')[0]) >= 22 ? 0 : 1)" >nul 2>nul
+  if errorlevel 1 set "NODE_CMD="
+)
+
+if not defined NODE_CMD (
+  echo [INFO] Chua co Node.js 22+. Dang tu dong tai ban Node.js 22 LTS da kiem tra ma bam...
+  powershell -NoProfile -ExecutionPolicy Bypass -Command "$ErrorActionPreference='Stop'; [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; $release=Invoke-RestMethod 'https://nodejs.org/dist/index.json' | Where-Object { $_.version -match '^v22\.' } | Select-Object -First 1; if (-not $release) { throw 'Node.js 22 LTS release not found' }; $version=$release.version; $archive='node-'+$version+'-win-x64.zip'; $base='https://nodejs.org/dist/'+$version; $zip='%PROJECT_DIR%bin\node.zip'; $sums='%PROJECT_DIR%bin\node-sha256.txt'; Invoke-WebRequest -Uri ($base+'/'+$archive) -OutFile $zip; Invoke-WebRequest -Uri ($base+'/SHASUMS256.txt') -OutFile $sums; $line=Get-Content $sums | Where-Object { $_ -match ('\s'+[regex]::Escape($archive)+'$') } | Select-Object -First 1; if (-not $line) { throw 'Node.js checksum entry not found' }; $expected=($line -split '\s+')[0].ToLowerInvariant(); $actual=(Get-FileHash -Algorithm SHA256 $zip).Hash.ToLowerInvariant(); if ($actual -ne $expected) { throw 'Node.js checksum mismatch' }; Expand-Archive -Path $zip -DestinationPath '%PROJECT_DIR%bin\node-unpack' -Force; Copy-Item -Path ('%PROJECT_DIR%bin\node-unpack\node-'+$version+'-win-x64\node.exe') -Destination '%PROJECT_DIR%bin\node.exe' -Force; Remove-Item -Path $zip, $sums, '%PROJECT_DIR%bin\node-unpack' -Recurse -Force" >nul 2>nul
+  if exist "%PROJECT_DIR%bin\node.exe" (
+    set "NODE_CMD=%PROJECT_DIR%bin\node.exe"
+    echo [INFO] Da tai Node.js 22 LTS thanh cong.
+  ) else (
+    echo [ERROR] Tu dong tai Node.js that bai! Vui long cai Node.js 22+ hoac dat node.exe vao bin\.
+    pause
+    exit /b 1
+  )
+)
+
+:: 4. Check / Install Bridge dependencies
 if not exist "%PROJECT_DIR%chatgpt-bridge\node_modules" (
   echo [INFO] Dang cai dat dependencies cho ChatGPT Bridge...
   pushd "%PROJECT_DIR%chatgpt-bridge"
   call "%BUN_CMD%" install
   popd
 )
-echo [1/4] Bun runtime va Bridge modules: SAN SANG.
+pushd "%PROJECT_DIR%chatgpt-bridge"
+if exist "node_modules\typescript\bin\tsc" (
+  call "%BUN_CMD%" run build
+  if errorlevel 1 (
+    popd
+    echo [ERROR] Bien dich ChatGPT Bridge that bai!
+    pause
+    exit /b 1
+  )
+) else if not exist "dist\node-server.js" (
+  popd
+  echo [ERROR] Thieu ban ChatGPT Bridge da bien dich!
+  pause
+  exit /b 1
+)
+popd
+echo [1/4] Bun, Node.js va Bridge modules: SAN SANG.
 
 :: 4. Isolate UV cache and Python installs to project directory (.uv)
 set "UV_CACHE_DIR=%PROJECT_DIR%.uv\cache"
@@ -160,7 +202,7 @@ set "AUTH_SETTINGS_PATH=%PROJECT_DIR%output\webui-auth-settings.json"
 "%PYTHON_BIN%" -m codex_image.webui.startup_auth --settings-path "%AUTH_SETTINGS_PATH%" >nul 2>nul
 
 :: 6. Check ChatGPT session
-"%BUN_CMD%" run "%PROJECT_DIR%chatgpt-bridge\src\check-session.ts" >nul 2>nul
+"%NODE_CMD%" "%PROJECT_DIR%chatgpt-bridge\dist\check-session.js" >nul 2>nul
 if %ERRORLEVEL% EQU 0 (
   echo [3/4] ChatGPT Session: DA DANG NHAP.
 ) else (
@@ -176,7 +218,7 @@ if %ERRORLEVEL% EQU 0 (
 )
 
 echo [4/4] Dang khoi dong ChatGPT Image Bridge (Port 3000)...
-start "iLab CONJURE - ChatGPT Bridge (Port 3000)" cmd /c ""%PROJECT_DIR%bin\disable-quickedit.exe" 2>nul & cd /d "%PROJECT_DIR%chatgpt-bridge" && "%BUN_CMD%" run src/server.ts || pause"
+start "iLab CONJURE - ChatGPT Bridge (Port 3000)" cmd /c ""%PROJECT_DIR%bin\disable-quickedit.exe" 2>nul & cd /d "%PROJECT_DIR%chatgpt-bridge" && "%NODE_CMD%" dist\node-server.js || pause"
 
 set /a ATTEMPTS=0
 :wait_bridge
