@@ -850,6 +850,10 @@ export async function handleLogin(
             await new Promise((r) => setTimeout(r, 100));
           }
 
+          if (!cdpEndpoint && !lastExtractionError) {
+            lastExtractionError = new Error("CDP port file (DevToolsActivePort) was not created within deadline");
+          }
+
           if (cdpEndpoint) {
             const cdpBrowser = await chromium.connectOverCDP(cdpEndpoint, { timeout: 8000 });
             try {

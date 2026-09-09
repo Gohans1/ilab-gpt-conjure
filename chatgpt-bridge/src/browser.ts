@@ -551,7 +551,7 @@ export async function getBrowserSession(options: BrowserOptions = {}): Promise<B
       close: () =>
         (closePromise ??= (async () => {
           isSessionClosed = true;
-          let timer: any;
+          let timer: ReturnType<typeof setTimeout> | undefined;
           try {
             await Promise.race([
               (async () => {

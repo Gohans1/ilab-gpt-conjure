@@ -8,6 +8,7 @@ import {
   cleanupStaleLocks,
   findBrowserPidsByTagAsync,
   getActiveBrowserPids,
+  isBrowserProfileInUseAsync,
   isBrowserProfileLockedByFs,
   killOrphanBrowsers,
   killOrphanBrowsersByTag,
@@ -74,6 +75,24 @@ describe("browser helpers", () => {
       // Khi khôi phục quyền ghi -> false
       chmodSync(cookiesPath, 0o666);
       expect(isBrowserProfileLockedByFs(testDir)).toBe(false);
+    }
+
+    rmSync(testDir, { recursive: true, force: true });
+  });
+
+  test("isBrowserProfileInUseAsync kiểm tra chính xác trạng thái thư mục profile", async () => {
+    const testDir = join(tmpdir(), "test-in-use-fs-" + Date.now());
+    expect(await isBrowserProfileInUseAsync(testDir)).toBe(false);
+
+    mkdirSync(join(testDir, "Default", "Network"), { recursive: true });
+    const cookiesPath = join(testDir, "Default", "Network", "Cookies");
+    writeFileSync(cookiesPath, "dummy-sqlite-data");
+
+    if (process.platform === "win32") {
+      chmodSync(cookiesPath, 0o444);
+      expect(await isBrowserProfileInUseAsync(testDir)).toBe(true);
+      chmodSync(cookiesPath, 0o666);
+      expect(await isBrowserProfileInUseAsync(testDir)).toBe(false);
     }
 
     rmSync(testDir, { recursive: true, force: true });
