@@ -36904,9 +36904,7 @@ ${hint}` : hint;
     }
     if (definition.id === "canvas.aspect_ratio" && definition.allowed_values.length === 0 && typeof value === "string") {
       const s = value.trim().toLowerCase();
-      if (s === "none" || s === "auto" || /^[1-9]\d*(?:\.\d+)?\s*:\s*[1-9]\d*(?:\.\d+)?$/.test(s)) {
-        return true;
-      }
+      return s === "none" || s === "auto" || /^[1-9]\d*(?:\.\d+)?\s*:\s*[1-9]\d*(?:\.\d+)?$/.test(s);
     }
     if (definition.allowed_values.length && !definition.allowed_values.includes(value)) return false;
     if (typeof value === "number") {
@@ -38119,6 +38117,8 @@ ${hint}` : hint;
       "3:2": [1536, 1024],
       "9:16": [864, 1536],
       "16:9": [1536, 864],
+      "9:19.5": [704, 1536],
+      "19.5:9": [1536, 704],
       "9:21": [672, 1568],
       "21:9": [1568, 672]
     },
@@ -38132,6 +38132,8 @@ ${hint}` : hint;
       "3:2": [2016, 1344],
       "9:16": [1152, 2048],
       "16:9": [2048, 1152],
+      "9:19.5": [944, 2048],
+      "19.5:9": [2048, 944],
       "9:21": [1152, 2688],
       "21:9": [2688, 1152]
     },
@@ -38145,6 +38147,8 @@ ${hint}` : hint;
       "3:2": [3504, 2336],
       "9:16": [2160, 3840],
       "16:9": [3840, 2160],
+      "9:19.5": [1760, 3840],
+      "19.5:9": [3840, 1760],
       "9:21": [1632, 3808],
       "21:9": [3808, 1632]
     }
@@ -38303,14 +38307,14 @@ ${hint}` : hint;
       const dimW = dimensions2[0];
       const dimH = dimensions2[1];
       const hasValidDimensions = dimensions2.length === 2 && typeof dimW === "number" && typeof dimH === "number" && Number.isFinite(dimW) && Number.isFinite(dimH) && dimW > 0 && dimH > 0;
-      if (customRatio) {
+      if (hasValidDimensions) {
+        params.ratio = ratioFromDimensions(dimW, dimH);
+      } else if (customRatio) {
         params.ratio = customRatio;
       } else {
         const presetMatch = findPresetForSize(params.size);
         if (presetMatch) {
           params.ratio = presetMatch.ratio;
-        } else if (hasValidDimensions) {
-          params.ratio = ratioFromDimensions(dimW, dimH);
         } else if (els13.ratio?.value) {
           params.ratio = els13.ratio.value;
         }
@@ -51525,8 +51529,10 @@ ${galleryText}`;
       els33.webSearch.dispatchEvent(new Event("input"));
     }
     if (params.model && els33.model) els33.model.value = params.model;
-    if (output.size || output.ratio || params.ratio) {
-      syncSizeControlsFromSize2(output.size || "auto", output.ratio || params.ratio);
+    const targetSize = output.size || task.size || params.size || request.size || "auto";
+    const targetRatio = output.ratio || params.ratio || request.ratio || task.ratio;
+    if (output.size || task.size || params.size || request.size || targetRatio) {
+      syncSizeControlsFromSize2(targetSize, targetRatio);
     }
     if (output.n && els33.nInput) {
       els33.nInput.value = String(output.n);

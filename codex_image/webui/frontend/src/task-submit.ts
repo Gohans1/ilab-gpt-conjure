@@ -146,8 +146,10 @@ export function applyTaskOutputParams(task: any): void {
     els.webSearch.dispatchEvent(new Event("input"));
   }
   if (params.model && els.model) els.model.value = params.model;
-  if (output.size || output.ratio || params.ratio) {
-    syncSizeControlsFromSize(output.size || "auto", (output.ratio || params.ratio) as string | undefined);
+  const targetSize = (output.size || task.size || params.size || request.size || "auto") as string;
+  const targetRatio = (output.ratio || params.ratio || request.ratio || task.ratio) as string | undefined;
+  if (output.size || task.size || params.size || request.size || targetRatio) {
+    syncSizeControlsFromSize(targetSize, targetRatio);
   }
   if (output.n && els.nInput) {
     els.nInput.value = String(output.n);

@@ -482,13 +482,16 @@ export function buildGenerationPrompt(options: {
 
   let ratioInstruction = "";
   if (!isExplicitNoneRatio) {
-    const detectedRatio = sizeToAspectRatio(rawAspect);
-    if (detectedRatio) {
-      ratioInstruction = ` Set the aspect ratio to ${detectedRatio}.`;
+    const isExplicitRatio = typeof rawAspect === "string" && /^\d+(?:\.\d+)?:\d+(?:\.\d+)?$/.test(rawAspect.trim());
+    const promptRatio = extractRatioFromText(options.prompt);
+    if (isExplicitRatio) {
+      ratioInstruction = ` Set the aspect ratio to ${rawAspect.trim()}.`;
+    } else if (promptRatio) {
+      ratioInstruction = ` Set the aspect ratio to ${promptRatio}.`;
     } else {
-      const promptRatio = extractRatioFromText(options.prompt);
-      if (promptRatio) {
-        ratioInstruction = ` Set the aspect ratio to ${promptRatio}.`;
+      const detectedRatio = sizeToAspectRatio(rawAspect);
+      if (detectedRatio) {
+        ratioInstruction = ` Set the aspect ratio to ${detectedRatio}.`;
       }
     }
   }

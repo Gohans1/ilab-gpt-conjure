@@ -554,6 +554,16 @@ describe("buildGenerationPrompt", () => {
     expect(prompt).toBe("Generate an image of: A cute orange cat. Set the aspect ratio to 16:9.");
   });
 
+  it("không bị fallback 1024x1024 đè mất tỷ lệ --ar 16:9 trong prompt", () => {
+    const prompt = buildGenerationPrompt({
+      prompt: "A cute orange cat --ar 16:9",
+      aspectRatioOrSize: "1024x1024",
+      hasInputImages: false,
+      n: 1,
+    });
+    expect(prompt).toBe("Generate an image of: A cute orange cat. Set the aspect ratio to 16:9.");
+  });
+
   it("ưu tiên dropdown ratio và dọn sạch --ar cũ trong prompt để chống conflicting ratios", () => {
     const prompt = buildGenerationPrompt({
       prompt: "A futuristic city --ar 1:1",

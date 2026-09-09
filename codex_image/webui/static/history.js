@@ -20347,9 +20347,7 @@
     }
     if (definition.id === "canvas.aspect_ratio" && definition.allowed_values.length === 0 && typeof value === "string") {
       const s = value.trim().toLowerCase();
-      if (s === "none" || s === "auto" || /^[1-9]\d*(?:\.\d+)?\s*:\s*[1-9]\d*(?:\.\d+)?$/.test(s)) {
-        return true;
-      }
+      return s === "none" || s === "auto" || /^[1-9]\d*(?:\.\d+)?\s*:\s*[1-9]\d*(?:\.\d+)?$/.test(s);
     }
     if (definition.allowed_values.length && !definition.allowed_values.includes(value)) return false;
     if (typeof value === "number") {

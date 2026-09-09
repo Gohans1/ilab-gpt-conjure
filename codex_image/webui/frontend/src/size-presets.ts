@@ -62,6 +62,8 @@ export const GPT_IMAGE_2_SIZE_PRESETS: Record<string, Record<string, [number, nu
     "3:2": [1536, 1024],
     "9:16": [864, 1536],
     "16:9": [1536, 864],
+    "9:19.5": [704, 1536],
+    "19.5:9": [1536, 704],
     "9:21": [672, 1568],
     "21:9": [1568, 672],
   },
@@ -75,6 +77,8 @@ export const GPT_IMAGE_2_SIZE_PRESETS: Record<string, Record<string, [number, nu
     "3:2": [2016, 1344],
     "9:16": [1152, 2048],
     "16:9": [2048, 1152],
+    "9:19.5": [944, 2048],
+    "19.5:9": [2048, 944],
     "9:21": [1152, 2688],
     "21:9": [2688, 1152],
   },
@@ -88,6 +92,8 @@ export const GPT_IMAGE_2_SIZE_PRESETS: Record<string, Record<string, [number, nu
     "3:2": [3504, 2336],
     "9:16": [2160, 3840],
     "16:9": [3840, 2160],
+    "9:19.5": [1760, 3840],
+    "19.5:9": [3840, 1760],
     "9:21": [1632, 3808],
     "21:9": [3808, 1632],
   },
@@ -282,14 +288,14 @@ export function currentTaskParams(): any {
     const dimW = dimensions[0];
     const dimH = dimensions[1];
     const hasValidDimensions = dimensions.length === 2 && typeof dimW === "number" && typeof dimH === "number" && Number.isFinite(dimW) && Number.isFinite(dimH) && dimW > 0 && dimH > 0;
-    if (customRatio) {
+    if (hasValidDimensions) {
+      params.ratio = ratioFromDimensions(dimW, dimH);
+    } else if (customRatio) {
       params.ratio = customRatio;
     } else {
       const presetMatch = findPresetForSize(params.size);
       if (presetMatch) {
         params.ratio = presetMatch.ratio;
-      } else if (hasValidDimensions) {
-        params.ratio = ratioFromDimensions(dimW, dimH);
       } else if (els.ratio?.value) {
         params.ratio = els.ratio.value;
       }

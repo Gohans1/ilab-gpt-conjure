@@ -328,7 +328,10 @@ export function closeBrowserGracefully(profileDir?: string | string[], pid?: num
       const powershell = join(systemRoot, "System32", "WindowsPowerShell", "v1.0", "powershell.exe");
       const parts: string[] = [];
       if (typeof pid === "number" && Number.isInteger(pid) && pid > 0) {
-        parts.push(`Get-Process -Id ${pid} -ErrorAction SilentlyContinue | ForEach-Object { try { $_.CloseMainWindow() | Out-Null } catch {} }`);
+        parts.push(`
+& "$env:SystemRoot\\System32\\taskkill.exe" /PID ${pid} 2>$null
+Get-Process -Id ${pid} -ErrorAction SilentlyContinue | ForEach-Object { try { $_.CloseMainWindow() | Out-Null } catch {} }
+`.trim());
       }
       const profileDirs = (Array.isArray(profileDir) ? profileDir : [profileDir]).filter(Boolean) as string[];
       if (profileDirs.length > 0) {
@@ -344,6 +347,7 @@ Get-CimInstance Win32_Process -Filter "Name = 'chrome.exe' or Name = 'msedge.exe
     return $false
   } |
   ForEach-Object {
+    & "$env:SystemRoot\\System32\\taskkill.exe" /PID $_.ProcessId 2>$null
     $p = Get-Process -Id $_.ProcessId -ErrorAction SilentlyContinue
     if ($p) {
       try { $p.CloseMainWindow() | Out-Null } catch {}

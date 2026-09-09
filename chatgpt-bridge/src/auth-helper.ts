@@ -606,7 +606,7 @@ export async function handleLogin(
       failedOnEarlyExit = false;
       if (!continuationRequested) {
         let inUse = false;
-        const isEarlyExit = Date.now() - startTime < 4000;
+        const isEarlyExit = Date.now() - startTime < 2500;
         const maxAttempts = isEarlyExit ? 15 : 2;
         for (let attempt = 1; attempt <= maxAttempts; attempt++) {
           if (await isBrowserProfileInUseAsync(safeProfileDir, tempProfileDir)) {
@@ -767,8 +767,8 @@ export async function handleLogin(
 
     // 3. Trình duyệt đã tắt, mọi cookie đã được flush sạch vào safeProfileDir.
     // Trích xuất storageState trong chế độ hoàn toàn OFFLINE.
-    // Ưu tiên 1: Kết nối loopback CDP (DevToolsActivePort) để né sạch 100% bug anonymous pipe của Bun trên Windows.
-    // Ưu tiên 2: Fallback qua chromium.launchPersistentContext nếu môi trường không cho phép mở cổng DevTools.
+    // Trích xuất phiên đăng nhập hoàn toàn offline qua loopback CDP (DevToolsActivePort)
+    // Miễn nhiễm 100% với lỗi anonymous pipe (--remote-debugging-pipe) của Bun trên Windows.
     let extractedStorageState: any = null;
     let lastExtractionError: unknown = null;
 
@@ -779,7 +779,6 @@ export async function handleLogin(
       let cdpSuccess = false;
 
       try {
-        // --- PHƯƠNG ÁN 1: DevTools CDP Port loopback (Miễn nhiễm bug anonymous pipe của Bun trên Windows) ---
         let cdpChild: ReturnType<typeof spawn> | null = null;
         try {
           const portFile = join(safeProfileDir, "DevToolsActivePort");
@@ -796,7 +795,6 @@ export async function handleLogin(
             "--disable-background-networking",
             "--no-first-run",
             "--no-default-browser-check",
-            "--restore-last-session",
             "--disable-features=AutoDeElevate,ProfilePickerOnStartup",
             "--do-not-de-elevate",
             attemptTag,
@@ -871,10 +869,14 @@ export async function handleLogin(
                 cdpSuccess = true;
               }
             } finally {
+              try {
+                const session = await cdpBrowser.newBrowserCDPSession();
+                await session.send("Browser.close");
+              } catch {}
               let closeTimer: ReturnType<typeof setTimeout> | undefined;
               await Promise.race([
                 cdpBrowser.close().catch(() => {}),
-                new Promise((r) => { closeTimer = setTimeout(r, 3000); }),
+                new Promise((r) => { closeTimer = setTimeout(r, 2000); }),
               ]);
               if (closeTimer) clearTimeout(closeTimer);
             }
@@ -882,108 +884,9 @@ export async function handleLogin(
         } catch (cdpErr) {
           lastExtractionError = cdpErr;
         }
-
-        // --- PHƯƠNG ÁN 2: Fallback sang launchPersistentContext nếu CDP chưa lấy được ---
-        if (!cdpSuccess && !extractedStorageState) {
-          // Dọn dẹp dứt điểm tiến trình CDP cũ trước khi chuyển sang Phase 2 để tránh đụng độ profile lock
-          if (cdpChild?.pid) {
-            try {
-              killProcessTree(cdpChild.pid, true);
-            } catch {}
-            unregisterActiveBrowserPid(cdpChild.pid);
-            offlineTrackedPids.delete(cdpChild.pid);
-            attemptPids.delete(cdpChild.pid);
-          }
-          await killOrphanBrowsersByTagAsync(attemptTag).catch(() => {});
-          for (let w = 0; w < 5; w++) {
-            if (!isBrowserProfileLockedByFs(safeProfileDir)) break;
-            await new Promise((r) => setTimeout(r, 200));
-          }
-          cleanupStaleLocks(safeProfileDir);
-
-          let isPolling = false;
-          let isPollingDisposed = false;
-          const pidPollTimer = setInterval(() => {
-            if (isPolling || isPollingDisposed) return;
-            isPolling = true;
-            findBrowserPidsByTagAsync(attemptTag)
-              .then((pids) => {
-                if (isPollingDisposed) return;
-                for (const pid of pids) {
-                  attemptPids.add(pid);
-                  offlineTrackedPids.add(pid);
-                  registerActiveBrowserPid(pid);
-                }
-              })
-              .catch(() => {})
-              .finally(() => {
-                isPolling = false;
-              });
-          }, 1000);
-
-          try {
-            context = await chromium.launchPersistentContext(safeProfileDir, {
-              executablePath: activeCandidate.path,
-              headless: true,
-              chromiumSandbox: true,
-              serviceWorkers: "block",
-              offline: true,
-              ignoreDefaultArgs: [
-                "--no-sandbox",
-                "--password-store=basic",
-                "--use-mock-keychain",
-              ],
-              args: [
-                attemptTag,
-                "--chatgpt-bridge-instance",
-                "--disable-background-mode",
-                "--disable-background-networking",
-                "--no-first-run",
-                "--no-default-browser-check",
-                "--restore-last-session",
-                "--disable-features=AutoDeElevate,ProfilePickerOnStartup",
-                "--do-not-de-elevate",
-              ],
-              timeout: 10_000,
-            });
-
-            await context.setOffline(true);
-            await context.route("**/*", (route: any) =>
-              route.fulfill({
-                status: 200,
-                contentType: "text/html",
-                body: '<!doctype html><meta charset="utf-8"><title>Login State Extraction</title>',
-              })
-            );
-
-            const page = context.pages()[0] ?? (await context.newPage());
-            await page.goto(CHATGPT_TEMPORARY_CHAT_URL, {
-              waitUntil: "domcontentloaded",
-              timeout: 8000,
-            });
-
-            const rawState = await context.storageState();
-            const state = sanitizeBrowserLoginStorageState(rawState);
-            if (hasValidSessionToken(state.cookies || [])) {
-              extractedStorageState = state;
-            }
-          } finally {
-            isPollingDisposed = true;
-            clearInterval(pidPollTimer);
-          }
-        }
       } catch (e) {
         lastExtractionError = e;
       } finally {
-        if (context) {
-          let closeTimer: ReturnType<typeof setTimeout> | undefined;
-          await Promise.race([
-            context.close().catch(() => {}),
-            new Promise((r) => { closeTimer = setTimeout(r, 3000); }),
-          ]);
-          if (closeTimer) clearTimeout(closeTimer);
-          context = null;
-        }
         for (const pid of attemptPids) {
           try {
             killProcessTree(pid, true);
@@ -992,7 +895,6 @@ export async function handleLogin(
           offlineTrackedPids.delete(pid);
         }
         attemptPids.clear();
-        // Cưỡng chế quét và diệt sạch mọi zombie theo tag dù PID có lấy được hay không (nếu thất bại)!
         if (!cdpSuccess) {
           await killOrphanBrowsersByTagAsync(attemptTag).catch(() => {});
         }
