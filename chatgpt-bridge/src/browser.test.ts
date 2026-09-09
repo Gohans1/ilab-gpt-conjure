@@ -8,6 +8,7 @@ import {
   cleanupStaleLocks,
   findBrowserPidsByTagAsync,
   getActiveBrowserPids,
+  isBrowserProfileLockedByFs,
   killOrphanBrowsers,
   killOrphanBrowsersByTag,
   killOrphanBrowsersByTagAsync,
@@ -38,6 +39,7 @@ describe("browser helpers", () => {
     writeFileSync(join(testDir, "SingletonCookie"), "cookie");
     writeFileSync(join(testDir, "SingletonSocket"), "socket");
     writeFileSync(join(testDir, "lockfile"), "lockfile");
+    writeFileSync(join(testDir, "DevToolsActivePort"), "12345\n/devtools/browser/abc");
     writeFileSync(join(testDir, "regular-file.txt"), "keep me");
 
     cleanupStaleLocks(testDir);
@@ -46,7 +48,23 @@ describe("browser helpers", () => {
     expect(existsSync(join(testDir, "SingletonCookie"))).toBe(false);
     expect(existsSync(join(testDir, "SingletonSocket"))).toBe(false);
     expect(existsSync(join(testDir, "lockfile"))).toBe(false);
+    expect(existsSync(join(testDir, "DevToolsActivePort"))).toBe(false);
     expect(existsSync(join(testDir, "regular-file.txt"))).toBe(true);
+
+    rmSync(testDir, { recursive: true, force: true });
+  });
+
+  test("isBrowserProfileLockedByFs phát hiện đúng trạng thái lock file", () => {
+    const testDir = join(tmpdir(), "test-locked-fs-" + Date.now());
+    mkdirSync(join(testDir, "Default", "Network"), { recursive: true });
+
+    // Khi chưa có file hoặc file không bị lock -> false
+    expect(isBrowserProfileLockedByFs(testDir)).toBe(false);
+
+    // Khi file có mặt và mở được bình thường -> false
+    const cookiesPath = join(testDir, "Default", "Network", "Cookies");
+    writeFileSync(cookiesPath, "dummy-sqlite-data");
+    expect(isBrowserProfileLockedByFs(testDir)).toBe(false);
 
     rmSync(testDir, { recursive: true, force: true });
   });

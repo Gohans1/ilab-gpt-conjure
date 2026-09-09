@@ -1,5 +1,5 @@
 import { spawn } from "node:child_process";
-import { chmodSync, existsSync, mkdirSync, mkdtempSync, readdirSync, rmSync, writeFileSync } from "node:fs";
+import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { chromium, type BrowserContext, type Page } from "playwright-core";
@@ -734,8 +734,8 @@ export async function handleLogin(
       closeBrowserGracefully(tempProfileDir);
     }
 
-    // Chờ Chromium tự đóng êm đẹp và nhả file lock (tối đa 5.0s nếu continuationRequested, 1.5s nếu timeout/exit)
-    const gracefulDeadline = Date.now() + (continuationRequested ? 5000 : 1500);
+    // Chờ Chromium tự đóng êm đẹp và nhả file lock (tối đa 5.0s nếu continuationRequested, 4.0s nếu timeout/exit)
+    const gracefulDeadline = Date.now() + (continuationRequested ? 5000 : 4000);
     while (Date.now() < gracefulDeadline) {
       if (!(await isBrowserProfileInUseAsync(safeProfileDir, tempProfileDir))) {
         break;
@@ -746,7 +746,7 @@ export async function handleLogin(
     // 2. Cưỡng chế dọn dẹp các tiến trình còn sót lại
     if (activeBrowserPid) {
       try {
-        killProcessTree(activeBrowserPid);
+        killProcessTree(activeBrowserPid, true);
       } catch {}
       unregisterActiveBrowserPid(activeBrowserPid);
       activeBrowserPid = null;
@@ -757,14 +757,7 @@ export async function handleLogin(
     }
     await new Promise((r) => setTimeout(r, 400));
 
-    cleanupStaleLocks(safeProfileDir);
-    removeTemporaryChromeTabSessions(safeProfileDir);
-    if (safeProfileDir !== tempProfileDir && existsSync(tempProfileDir)) {
-      cleanupStaleLocks(tempProfileDir);
-      removeTemporaryChromeTabSessions(tempProfileDir);
-    }
-
-    // Chờ các file SQLite WAL và locks nhả hoàn toàn trước khi mở persistent context
+    // Chờ các file SQLite WAL và locks nhả hoàn toàn trước khi trích xuất
     for (let w = 0; w < 10; w++) {
       if (!isBrowserProfileLockedByFs(safeProfileDir) && (!tempProfileDir || !isBrowserProfileLockedByFs(tempProfileDir))) {
         break;
@@ -772,10 +765,18 @@ export async function handleLogin(
       await new Promise((r) => setTimeout(r, 300));
     }
 
-    // 2. Trình duyệt đã tắt, mọi cookie đã được flush sạch vào safeProfileDir.
-    // Dùng Playwright mở chớp nhoáng safeProfileDir để trích xuất storageState trong chế độ hoàn toàn OFFLINE
-    let extractedStorageState: any = null;
+    cleanupStaleLocks(safeProfileDir);
+    removeTemporaryChromeTabSessions(safeProfileDir);
+    if (safeProfileDir !== tempProfileDir && existsSync(tempProfileDir)) {
+      cleanupStaleLocks(tempProfileDir);
+      removeTemporaryChromeTabSessions(tempProfileDir);
+    }
 
+    // 3. Trình duyệt đã tắt, mọi cookie đã được flush sạch vào safeProfileDir.
+    // Trích xuất storageState trong chế độ hoàn toàn OFFLINE.
+    // Ưu tiên 1: Kết nối loopback CDP (DevToolsActivePort) để né sạch 100% bug anonymous pipe của Bun trên Windows.
+    // Ưu tiên 2: Fallback qua chromium.launchPersistentContext nếu môi trường không cho phép mở cổng DevTools.
+    let extractedStorageState: any = null;
     let lastExtractionError: unknown = null;
 
     for (let attempt = 1; attempt <= 3; attempt++) {
@@ -783,21 +784,15 @@ export async function handleLogin(
       const attemptTag = `${instanceTag}-off-${attempt}`;
       const attemptPids = new Set<number>();
       let isAttemptActive = true;
+      let cdpSuccess = false;
+
       try {
-        context = await chromium.launchPersistentContext(safeProfileDir, {
-          executablePath: activeCandidate.path,
-          headless: true,
-          chromiumSandbox: true,
-          serviceWorkers: "block",
-          offline: true,
-          ignoreDefaultArgs: [
-            "--no-sandbox",
-            "--password-store=basic",
-            "--use-mock-keychain",
-          ],
-          args: [
-            attemptTag,
-            "--chatgpt-bridge-instance",
+        // --- PHƯƠNG ÁN 1: DevTools CDP Port loopback (Miễn nhiễm bug anonymous pipe của Bun trên Windows) ---
+        try {
+          const cdpArgs = [
+            "--headless=new",
+            `--user-data-dir=${safeProfileDir}`,
+            "--remote-debugging-port=0",
             "--disable-background-mode",
             "--disable-background-networking",
             "--no-first-run",
@@ -805,49 +800,133 @@ export async function handleLogin(
             "--restore-last-session",
             "--disable-features=AutoDeElevate,ProfilePickerOnStartup",
             "--do-not-de-elevate",
-          ],
-          timeout: 15_000,
-        });
+            attemptTag,
+            "--chatgpt-bridge-instance",
+            "about:blank",
+          ];
 
-        findBrowserPidsByTagAsync(attemptTag)
-          .then((pids) => {
-            if (!isAttemptActive || isOfflineExtractionClosed) {
-              for (const pid of pids) {
-                try {
-                  killProcessTree(pid, true);
-                } catch {}
+          const cdpChild = spawn(activeCandidate.path, cdpArgs, {
+            stdio: "ignore",
+            windowsHide: true,
+          });
+
+          if (cdpChild.pid) {
+            attemptPids.add(cdpChild.pid);
+            offlineTrackedPids.add(cdpChild.pid);
+            registerActiveBrowserPid(cdpChild.pid);
+          }
+
+          const portFile = join(safeProfileDir, "DevToolsActivePort");
+          let cdpPort: number | null = null;
+          const portDeadline = Date.now() + 6000;
+          while (Date.now() < portDeadline) {
+            if (existsSync(portFile)) {
+              try {
+                const lines = readFileSync(portFile, "utf-8").trim().split("\n");
+                const p = Number(lines[0]?.trim());
+                if (Number.isFinite(p) && p > 0) {
+                  cdpPort = p;
+                  break;
+                }
+              } catch {}
+            }
+            await new Promise((r) => setTimeout(r, 100));
+          }
+
+          if (cdpPort) {
+            const cdpBrowser = await chromium.connectOverCDP(`http://127.0.0.1:${cdpPort}`, { timeout: 8000 });
+            try {
+              const cdpContext = cdpBrowser.contexts()[0] ?? (await cdpBrowser.newContext());
+              await cdpContext.setOffline(true);
+              await cdpContext.route("**/*", (route: any) =>
+                route.fulfill({
+                  status: 200,
+                  contentType: "text/html",
+                  body: '<!doctype html><meta charset="utf-8"><title>Login State Extraction</title>',
+                })
+              );
+              const page = cdpContext.pages()[0] ?? (await cdpContext.newPage());
+              await page.goto(CHATGPT_TEMPORARY_CHAT_URL, {
+                waitUntil: "domcontentloaded",
+                timeout: 8000,
+              });
+              const rawState = await cdpContext.storageState();
+              const state = sanitizeBrowserLoginStorageState(rawState);
+              if (hasValidSessionToken(state.cookies || [])) {
+                extractedStorageState = state;
+                cdpSuccess = true;
               }
-              return;
+            } finally {
+              await cdpBrowser.close().catch(() => {});
             }
-            for (const pid of pids) {
-              attemptPids.add(pid);
-              offlineTrackedPids.add(pid);
-              registerActiveBrowserPid(pid);
+          }
+        } catch (cdpErr) {
+          lastExtractionError = cdpErr;
+        }
+
+        // --- PHƯƠNG ÁN 2: Fallback sang launchPersistentContext nếu CDP chưa lấy được ---
+        if (!cdpSuccess && !extractedStorageState) {
+          const pidPollTimer = setInterval(() => {
+            findBrowserPidsByTagAsync(attemptTag)
+              .then((pids) => {
+                for (const pid of pids) {
+                  attemptPids.add(pid);
+                  offlineTrackedPids.add(pid);
+                  registerActiveBrowserPid(pid);
+                }
+              })
+              .catch(() => {});
+          }, 300);
+
+          try {
+            context = await chromium.launchPersistentContext(safeProfileDir, {
+              executablePath: activeCandidate.path,
+              headless: true,
+              chromiumSandbox: true,
+              serviceWorkers: "block",
+              offline: true,
+              ignoreDefaultArgs: [
+                "--no-sandbox",
+                "--password-store=basic",
+                "--use-mock-keychain",
+              ],
+              args: [
+                attemptTag,
+                "--chatgpt-bridge-instance",
+                "--disable-background-mode",
+                "--disable-background-networking",
+                "--no-first-run",
+                "--no-default-browser-check",
+                "--restore-last-session",
+                "--disable-features=AutoDeElevate,ProfilePickerOnStartup",
+                "--do-not-de-elevate",
+              ],
+              timeout: 10_000,
+            });
+
+            await context.setOffline(true);
+            await context.route("**/*", (route: any) =>
+              route.fulfill({
+                status: 200,
+                contentType: "text/html",
+                body: '<!doctype html><meta charset="utf-8"><title>Login State Extraction</title>',
+              })
+            );
+
+            const page = context.pages()[0] ?? (await context.newPage());
+            await page.goto(CHATGPT_TEMPORARY_CHAT_URL, {
+              waitUntil: "domcontentloaded",
+              timeout: 8000,
+            });
+
+            const rawState = await context.storageState();
+            const state = sanitizeBrowserLoginStorageState(rawState);
+            if (hasValidSessionToken(state.cookies || [])) {
+              extractedStorageState = state;
             }
-          })
-          .catch(() => {});
-
-        await context.setOffline(true);
-        await context.route("**/*", (route: any) =>
-          route.fulfill({
-            status: 200,
-            contentType: "text/html",
-            body: '<!doctype html><meta charset="utf-8"><title>Login State Extraction</title>',
-          })
-        );
-
-        const page = context.pages()[0] ?? (await context.newPage());
-        await page.goto(CHATGPT_TEMPORARY_CHAT_URL, {
-          waitUntil: "domcontentloaded",
-          timeout: 10_000,
-        });
-
-        const rawState = await context.storageState();
-        const state = sanitizeBrowserLoginStorageState(rawState);
-        const hasValidToken = hasValidSessionToken(state.cookies || []);
-
-        if (hasValidToken) {
-          extractedStorageState = state;
+          } finally {
+            clearInterval(pidPollTimer);
+          }
         }
       } catch (e) {
         lastExtractionError = e;
@@ -857,19 +936,21 @@ export async function handleLogin(
           let closeTimer: any;
           await Promise.race([
             context.close().catch(() => {}),
-            new Promise((r) => { closeTimer = setTimeout(r, 4000); }),
+            new Promise((r) => { closeTimer = setTimeout(r, 3000); }),
           ]);
           if (closeTimer) clearTimeout(closeTimer);
           context = null;
         }
         for (const pid of attemptPids) {
           try {
-            killProcessTree(pid);
+            killProcessTree(pid, true);
           } catch {}
           unregisterActiveBrowserPid(pid);
           offlineTrackedPids.delete(pid);
         }
         attemptPids.clear();
+        // Cưỡng chế quét và diệt sạch mọi zombie theo tag dù PID có lấy được hay không!
+        await killOrphanBrowsersByTagAsync(attemptTag).catch(() => {});
       }
 
       if (extractedStorageState) {
@@ -897,9 +978,11 @@ export async function handleLogin(
           `⚠️ [Extraction Warning] Lần trích xuất phiên cuối cùng gặp lỗi: ${(lastExtractionError as any)?.message || lastExtractionError}`
         );
       }
-      throw new Error(
-        "Chưa phát hiện phiên đăng nhập hợp lệ. Vui lòng thử đăng nhập lại và đợi trang ChatGPT tải xong trước khi đóng trình duyệt."
-      );
+      const isTimeout = String(lastExtractionError || "").toLowerCase().includes("timeout");
+      const errorMsg = isTimeout
+        ? "Quá trình mở trình duyệt để trích xuất phiên đăng nhập bị treo (Timeout). Có thể tiến trình nền của trình duyệt chưa nhả file lock. Vui lòng đóng hết các cửa sổ trình duyệt và thử lại."
+        : "Chưa phát hiện phiên đăng nhập hợp lệ. Vui lòng thử đăng nhập lại và đợi trang ChatGPT tải xong trước khi đóng trình duyệt.";
+      throw new Error(errorMsg);
     }
 
     atomicWriteFile(STORAGE_STATE_PATH, JSON.stringify(extractedStorageState, null, 2));

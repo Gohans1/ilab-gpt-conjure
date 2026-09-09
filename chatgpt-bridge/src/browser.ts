@@ -284,7 +284,7 @@ Get-CimInstance Win32_Process -Filter "Name = 'chrome.exe' or Name = 'msedge.exe
 }
 
 export function cleanupStaleLocks(profileDir: string): void {
-  const locks = ["SingletonLock", "SingletonCookie", "SingletonSocket", "lockfile"];
+  const locks = ["SingletonLock", "SingletonCookie", "SingletonSocket", "lockfile", "DevToolsActivePort"];
   for (const name of locks) {
     try {
       rmSync(join(profileDir, name), { force: true });
@@ -294,18 +294,28 @@ export function cleanupStaleLocks(profileDir: string): void {
 
 export function isBrowserProfileLockedByFs(profileDir: string): boolean {
   if (!profileDir || !existsSync(profileDir)) return false;
-  if (process.platform === "win32") {
-    const candidateFiles = ["lockfile", "SingletonLock"];
-    for (const relPath of candidateFiles) {
-      const lockPath = join(profileDir, relPath);
-      if (existsSync(lockPath)) {
-        try {
-          const fd = openSync(lockPath, "r+");
-          closeSync(fd);
-        } catch (err: any) {
-          if (err?.code === "EBUSY" || err?.code === "EPERM" || err?.code === "EACCES") {
-            return true;
-          }
+  const candidateFiles =
+    process.platform === "win32"
+      ? [
+          join("Default", "Network", "Cookies"),
+          join("Default", "Network", "Cookies-wal"),
+          join("Default", "Cookies"),
+          join("Default", "Local Storage", "leveldb", "LOCK"),
+          join("Default", "Preferences"),
+          "lockfile",
+          "SingletonLock",
+        ]
+      : ["SingletonLock", "lockfile", "SingletonCookie", "SingletonSocket"];
+
+  for (const relPath of candidateFiles) {
+    const lockPath = join(profileDir, relPath);
+    if (existsSync(lockPath)) {
+      try {
+        const fd = openSync(lockPath, "r+");
+        closeSync(fd);
+      } catch (err: any) {
+        if (err?.code === "EBUSY" || err?.code === "EPERM" || err?.code === "EACCES") {
+          return true;
         }
       }
     }
