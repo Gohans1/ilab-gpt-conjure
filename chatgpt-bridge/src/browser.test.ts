@@ -94,11 +94,18 @@ describe("browser helpers", () => {
 
   test("killProcessTree sử dụng fast-path trực tiếp khi PID nằm trong activeBrowserPids", () => {
     const dummy = spawn(process.platform === "win32" ? "cmd.exe" : "sleep", process.platform === "win32" ? ["/c", "timeout 10 >nul"] : ["10"], { stdio: "ignore" });
+    expect(dummy.pid).toBeDefined();
     if (dummy.pid) {
       registerActiveBrowserPid(dummy.pid);
-      expect(getActiveBrowserPids().includes(dummy.pid)).toBe(true);
-      expect(() => killProcessTree(dummy.pid)).not.toThrow();
-      unregisterActiveBrowserPid(dummy.pid);
+      try {
+        expect(getActiveBrowserPids().includes(dummy.pid)).toBe(true);
+        expect(() => killProcessTree(dummy.pid)).not.toThrow();
+      } finally {
+        unregisterActiveBrowserPid(dummy.pid);
+        try {
+          dummy.kill("SIGKILL");
+        } catch {}
+      }
     }
   });
 

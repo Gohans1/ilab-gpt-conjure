@@ -779,6 +779,7 @@ export async function handleLogin(
     let lastExtractionError: unknown = null;
 
     for (let attempt = 1; attempt <= 3; attempt++) {
+      lastExtractionError = null;
       const attemptTag = `${instanceTag}-off-${attempt}`;
       const attemptPids = new Set<number>();
       let isAttemptActive = true;
@@ -811,13 +812,12 @@ export async function handleLogin(
         findBrowserPidsByTagAsync(attemptTag)
           .then((pids) => {
             if (!isAttemptActive || isOfflineExtractionClosed) {
-              if (!extractedStorageState) {
-                for (const pid of pids) {
-                  try {
-                    killProcessTree(pid);
-                  } catch {}
-                  unregisterActiveBrowserPid(pid);
-                }
+              for (const pid of pids) {
+                registerActiveBrowserPid(pid);
+                try {
+                  killProcessTree(pid);
+                } catch {}
+                unregisterActiveBrowserPid(pid);
               }
               return;
             }
@@ -864,16 +864,14 @@ export async function handleLogin(
           if (closeTimer) clearTimeout(closeTimer);
           context = null;
         }
-        if (!extractedStorageState) {
-          for (const pid of attemptPids) {
-            try {
-              killProcessTree(pid);
-            } catch {}
-            unregisterActiveBrowserPid(pid);
-            offlineTrackedPids.delete(pid);
-          }
-          attemptPids.clear();
+        for (const pid of attemptPids) {
+          try {
+            killProcessTree(pid);
+          } catch {}
+          unregisterActiveBrowserPid(pid);
+          offlineTrackedPids.delete(pid);
         }
+        attemptPids.clear();
       }
 
       if (extractedStorageState) {
@@ -887,6 +885,10 @@ export async function handleLogin(
       cleanupStaleLocks(safeProfileDir);
       if (safeProfileDir !== tempProfileDir && existsSync(tempProfileDir)) {
         cleanupStaleLocks(tempProfileDir);
+      }
+      removeTemporaryChromeTabSessions(safeProfileDir);
+      if (safeProfileDir !== tempProfileDir && existsSync(tempProfileDir)) {
+        removeTemporaryChromeTabSessions(tempProfileDir);
       }
       await new Promise((r) => setTimeout(r, 600));
     }

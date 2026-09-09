@@ -492,7 +492,11 @@ export async function getBrowserSession(options: BrowserOptions = {}): Promise<B
       // Session đã kết thúc hoặc browser đã ngắt kết nối trước khi tìm xong PID.
       // Diệt ngay lập tức các PID vừa tìm được để chống rò rỉ Zombie PID vào bộ nhớ.
       for (const pid of pids) {
-        killProcessTree(pid);
+        registerActiveBrowserPid(pid);
+        try {
+          killProcessTree(pid);
+        } catch {}
+        unregisterActiveBrowserPid(pid);
       }
       return;
     }
