@@ -122,6 +122,7 @@ export interface CatalogProvider {
   available: boolean;
   bindings: CatalogProviderBinding[];
   icon_emoji?: string;
+  base_url?: string;
 }
 
 export interface GenerationCatalog {

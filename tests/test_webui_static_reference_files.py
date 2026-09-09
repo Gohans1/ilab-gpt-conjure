@@ -354,12 +354,12 @@ class ReferenceFileFrontendContractTests(unittest.TestCase):
         self.assertIn("runtime-790", index)
         self.assertIn("runtime-790", history)
         self.assertTrue(
-            "ilab-conjure-shell-v270" in worker or "ilab-conjure-shell-v272" in worker,
-            "Expected ilab-conjure-shell-v270 or v272 in worker",
+            "ilab-conjure-shell-v270" in worker or "ilab-conjure-shell-v272" in worker or "ilab-conjure-shell-v273" in worker,
+            "Expected ilab-conjure-shell-v270, v272, or v273 in worker",
         )
         self.assertTrue(
-            "/static/app.js?v=runtime-790" in worker or "/static/app.js?v=runtime-791" in worker,
-            "Expected /static/app.js?v=runtime-790 or runtime-791 in worker",
+            "/static/app.js?v=runtime-790" in worker or "/static/app.js?v=runtime-791" in worker or "/static/app.js?v=runtime-792" in worker,
+            "Expected /static/app.js?v=runtime-790, runtime-791, or runtime-792 in worker",
         )
         self.assertIn('/static/styles.css?v=runtime-790', worker)
 

@@ -3,6 +3,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { buildGenerationPrompt, cleanupTempFiles, enqueueTask, handleRequest, parseImageRequest } from "./server.js";
+import { clearSessionVerified, getSessionVerifiedMarkerPath } from "./check-session.js";
 
 describe("parseImageRequest", () => {
   it("phân tích đúng JSON request không có ảnh", async () => {
@@ -330,22 +331,32 @@ describe("handleRequest validation", () => {
   });
 
   it("trả về 401 fail-fast khi request hợp lệ nhưng chưa có session đăng nhập hợp lệ", async () => {
-    const req = new Request("http://127.0.0.1:3000/v1/images/generations", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: "Bearer sk-local",
-      },
-      body: JSON.stringify({
-        prompt: "A beautiful scenery",
-      }),
-    });
+    const markerPath = getSessionVerifiedMarkerPath();
+    const hadMarker = existsSync(markerPath);
+    const savedMarker = hadMarker ? readFileSync(markerPath, "utf-8") : null;
+    clearSessionVerified(false);
+    try {
+      const req = new Request("http://127.0.0.1:3000/v1/images/generations", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer sk-local",
+        },
+        body: JSON.stringify({
+          prompt: "A beautiful scenery",
+        }),
+      });
 
-    const res = await handleRequest(req);
-    // Khi chưa đăng nhập (hoặc trong môi trường test cô lập), server phải fail-fast 401
-    expect(res.status).toBe(401);
-    const json: any = await res.json();
-    expect(json.error?.type).toBe("authentication_error");
+      const res = await handleRequest(req);
+      // Khi chưa đăng nhập (hoặc trong môi trường test cô lập), server phải fail-fast 401
+      expect(res.status).toBe(401);
+      const json: any = await res.json();
+      expect(json.error?.type).toBe("authentication_error");
+    } finally {
+      if (hadMarker && savedMarker) {
+        writeFileSync(markerPath, savedMarker, "utf-8");
+      }
+    }
   });
 
   it("không xem văn bản từ chối (refusal text) có chữ unauthorized là lỗi 401 hết hạn phiên", async () => {

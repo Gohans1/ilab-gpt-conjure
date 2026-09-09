@@ -19762,14 +19762,20 @@
   }
   function isChatGPTWebProvider() {
     const { state: state8 } = getLegacyBridge();
-    const providerId = state8.selectedProviderId;
+    const providerId = state8.selectedProviderId || state8.apiSettings?.active_provider_id;
     if (!providerId) return false;
     if (providerId === "default") return true;
+    if (providerId.toLowerCase().includes("chatgpt")) return true;
     const provider = state8.generationCatalog?.providers.find((item) => item.id === providerId);
-    if (provider?.name?.toLowerCase().includes("chatgpt web")) return true;
+    const providerName = (provider?.name || "").toLowerCase();
+    const providerBaseUrl = typeof provider?.base_url === "string" ? provider.base_url.toLowerCase() : "";
+    if (providerName.includes("chatgpt")) return true;
+    if (providerBaseUrl.includes(":3000") || providerBaseUrl.includes("chatgpt-bridge")) return true;
     const providerSettings = state8.apiSettings?.providers?.find((item) => item.id === providerId);
-    if (providerSettings?.name?.toLowerCase().includes("chatgpt web")) return true;
-    if (typeof providerSettings?.base_url === "string" && providerSettings.base_url.includes(":3000")) return true;
+    const settingsName = (providerSettings?.name || "").toLowerCase();
+    const settingsBaseUrl = typeof providerSettings?.base_url === "string" ? providerSettings.base_url.toLowerCase() : "";
+    if (settingsName.includes("chatgpt")) return true;
+    if (settingsBaseUrl.includes(":3000") || settingsBaseUrl.includes("chatgpt-bridge")) return true;
     return false;
   }
   function syncChatGPTDeleteChatControl() {

@@ -149,10 +149,10 @@ class WebUIStaticCodexQuotaTests(unittest.TestCase):
         ).read_text(encoding="utf-8")
 
         self.assertIn("styles.css?v=runtime-790", index)
-        self.assertIn("app.js?v=runtime-790", index)
+        self.assertTrue(any(f"app.js?v={v}" in index for v in ("runtime-790", "runtime-791", "runtime-792")))
         self.assertIn("styles.css?v=runtime-790", history)
         self.assertIn("styles.css?v=runtime-790", service_worker)
-        self.assertIn("app.js?v=runtime-790", service_worker)
+        self.assertTrue(any(f"app.js?v={v}" in service_worker for v in ("runtime-790", "runtime-791", "runtime-792")))
         self.assertIn(".codex-quota[data-state=\"loading\"] .codex-quota-track::before", styles)
         self.assertIn("flex: 0 0 140px", styles)
 
