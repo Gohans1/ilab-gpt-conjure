@@ -216,7 +216,7 @@ export function isChatGPTWebProvider(): boolean {
 }
 
 export function syncChatGPTDeleteChatControl(): void {
-  const { els, methods } = getLegacyBridge();
+  const { els, methods, state } = getLegacyBridge();
   const isChatGPT = isChatGPTWebProvider();
   if (els.chatgptDeleteChatField) {
     els.chatgptDeleteChatField.style.display = isChatGPT ? "" : "none";
@@ -225,6 +225,19 @@ export function syncChatGPTDeleteChatControl(): void {
   if (els.chatgptBrowserField) {
     els.chatgptBrowserField.style.display = isChatGPT ? "" : "none";
     els.chatgptBrowserField.classList.toggle("hidden", !isChatGPT);
+  }
+  const ratioField = els.ratio?.closest(".ratio-field") as HTMLElement | null;
+  if (ratioField) {
+    if (isChatGPT) {
+      ratioField.style.display = "none";
+      ratioField.classList.add("hidden");
+    } else {
+      const isLegacyGpt = state.selectedModelId === "gpt-image-2";
+      if (isLegacyGpt) {
+        ratioField.style.display = "";
+        ratioField.classList.remove("hidden");
+      }
+    }
   }
   if (isChatGPT && typeof methods.restoreChatGPTDeleteChatState === "function") {
     methods.restoreChatGPTDeleteChatState();

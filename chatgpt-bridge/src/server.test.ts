@@ -371,14 +371,14 @@ describe("handleRequest validation", () => {
 });
 
 describe("buildGenerationPrompt", () => {
-  it("giữ prompt fresh 100% khi hasInputImages = true, bóc sạch ratio command", () => {
+  it("giữ nguyên prompt khi hasInputImages = true", () => {
     const prompt = buildGenerationPrompt({
       prompt: "Make the hair bright green. Set the aspect ratio to 16:9.",
       aspectRatioOrSize: "16:9",
       hasInputImages: true,
       n: 1,
     });
-    expect(prompt).toBe("Make the hair bright green.");
+    expect(prompt).toBe("Make the hair bright green. Set the aspect ratio to 16:9.");
   });
 
   it("không bọc Generate an image of: khi có ảnh reference", () => {
@@ -391,54 +391,54 @@ describe("buildGenerationPrompt", () => {
     expect(prompt).toBe("Change the background to a sunny beach");
   });
 
-  it("thêm wrapper và aspect ratio khi KHÔNG có ảnh reference", () => {
+  it("thêm wrapper và KHÔNG inject aspect ratio khi KHÔNG có ảnh reference", () => {
     const prompt = buildGenerationPrompt({
       prompt: "A futuristic cyberpunk city",
       aspectRatioOrSize: "16:9",
       hasInputImages: false,
       n: 1,
     });
-    expect(prompt).toBe("Generate an image of: A futuristic cyberpunk city. Set the aspect ratio to 16:9.");
+    expect(prompt).toBe("Generate an image of: A futuristic cyberpunk city");
   });
 
   it("không thêm aspect ratio khi chọn None dù không có ảnh reference", () => {
     const prompt = buildGenerationPrompt({
-      prompt: "A peaceful forest with mist. Set the aspect ratio to 1:1.",
+      prompt: "A peaceful forest with mist",
       aspectRatioOrSize: "None",
       hasInputImages: false,
       n: 1,
     });
-    expect(prompt).toBe("Generate an image of: A peaceful forest with mist.");
+    expect(prompt).toBe("Generate an image of: A peaceful forest with mist");
   });
 
   it("không thêm aspect ratio khi aspectRatioOrSize là auto dù không có ảnh reference", () => {
     const prompt = buildGenerationPrompt({
-      prompt: "A peaceful forest with mist. Set the aspect ratio to 1:1.",
+      prompt: "A peaceful forest with mist",
       aspectRatioOrSize: "auto",
       hasInputImages: false,
       n: 1,
     });
-    expect(prompt).toBe("Generate an image of: A peaceful forest with mist.");
+    expect(prompt).toBe("Generate an image of: A peaceful forest with mist");
   });
 
-  it("bóc sạch câu lệnh aspect ratio tiếng Hindi bao gồm hậu tố và dấu danda", () => {
+  it("giữ nguyên câu lệnh aspect ratio tiếng Hindi khi có ảnh reference", () => {
     const prompt = buildGenerationPrompt({
       prompt: "Make the character smile. पक्षानुपात को 16:9 पर सेट करें।",
       aspectRatioOrSize: "16:9",
       hasInputImages: true,
       n: 1,
     });
-    expect(prompt).toBe("Make the character smile.");
+    expect(prompt).toBe("Make the character smile. पक्षानुपात को 16:9 पर सेट करें।");
   });
 
-  it("fallback sang prompt mặc định khi người dùng chỉ nhập đúng câu ratio khi có ảnh tham chiếu", () => {
+  it("giữ nguyên prompt người dùng nhập khi có ảnh tham chiếu", () => {
     const prompt = buildGenerationPrompt({
       prompt: "Set the aspect ratio to 16:9.",
       aspectRatioOrSize: "16:9",
       hasInputImages: true,
       n: 1,
     });
-    expect(prompt).toBe("Generate a creative variation of the attached image.");
+    expect(prompt).toBe("Set the aspect ratio to 16:9.");
   });
 
   it("bọc Generate exactly N separate individual variations khi có ảnh reference và n > 1", () => {
@@ -545,73 +545,73 @@ describe("buildGenerationPrompt", () => {
     expect(prompt).toBe("Generate an image of: A cute cat.");
   });
 
-  it("chuẩn hóa --ar 16:9 trong prompt thành Set the aspect ratio to 16:9.", () => {
+  it("không inject ratio, giữ nguyên --ar 16:9 trong prompt của người dùng", () => {
     const prompt = buildGenerationPrompt({
       prompt: "A cute orange cat --ar 16:9",
       hasInputImages: false,
       n: 1,
     });
-    expect(prompt).toBe("Generate an image of: A cute orange cat. Set the aspect ratio to 16:9.");
+    expect(prompt).toBe("Generate an image of: A cute orange cat --ar 16:9");
   });
 
-  it("không bị fallback 1024x1024 đè mất tỷ lệ --ar 16:9 trong prompt", () => {
+  it("không bị fallback 1024x1024 hay tham số size chèn ratio vào prompt", () => {
     const prompt = buildGenerationPrompt({
       prompt: "A cute orange cat --ar 16:9",
       aspectRatioOrSize: "1024x1024",
       hasInputImages: false,
       n: 1,
     });
-    expect(prompt).toBe("Generate an image of: A cute orange cat. Set the aspect ratio to 16:9.");
+    expect(prompt).toBe("Generate an image of: A cute orange cat --ar 16:9");
   });
 
-  it("không bị giá trị mặc định 1:1 đè mất tỷ lệ --ar 16:9 trong prompt", () => {
+  it("không inject ratio 1:1 mặc định vào prompt", () => {
     const prompt = buildGenerationPrompt({
       prompt: "A cute orange cat --ar 16:9",
       aspectRatioOrSize: "1:1",
       hasInputImages: false,
       n: 1,
     });
-    expect(prompt).toBe("Generate an image of: A cute orange cat. Set the aspect ratio to 16:9.");
+    expect(prompt).toBe("Generate an image of: A cute orange cat --ar 16:9");
   });
 
-  it("ưu tiên dropdown ratio và dọn sạch --ar cũ trong prompt để chống conflicting ratios", () => {
+  it("không inject ratio từ dropdown khi vẽ ảnh mới", () => {
     const prompt = buildGenerationPrompt({
       prompt: "A futuristic city --ar 1:1",
       aspectRatioOrSize: "16:9",
       hasInputImages: false,
       n: 1,
     });
-    expect(prompt).toBe("Generate an image of: A futuristic city. Set the aspect ratio to 16:9.");
+    expect(prompt).toBe("Generate an image of: A futuristic city --ar 1:1");
   });
 
-  it("chuẩn hóa dropdown ratio có khoảng trắng quanh dấu hai chấm '16 : 9'", () => {
+  it("giữ nguyên prompt kể cả khi aspectRatioOrSize có khoảng trắng", () => {
     const prompt = buildGenerationPrompt({
       prompt: "A futuristic city --ar 1:1",
       aspectRatioOrSize: " 16 : 9 ",
       hasInputImages: false,
       n: 1,
     });
-    expect(prompt).toBe("Generate an image of: A futuristic city. Set the aspect ratio to 16:9.");
+    expect(prompt).toBe("Generate an image of: A futuristic city --ar 1:1");
   });
 
-  it("xóa sạch --ar khi người dùng chọn None", () => {
+  it("giữ nguyên prompt khi người dùng chọn None", () => {
     const prompt = buildGenerationPrompt({
       prompt: "A peaceful forest with mist --ar 16:9",
       aspectRatioOrSize: "None",
       hasInputImages: false,
       n: 1,
     });
-    expect(prompt).toBe("Generate an image of: A peaceful forest with mist.");
+    expect(prompt).toBe("Generate an image of: A peaceful forest with mist --ar 16:9");
   });
 
-  it("hỗ trợ tỷ lệ 9:21 và 21:9 từ độ phân giải chính xác", () => {
+  it("không inject ratio từ độ phân giải 672x1568 hay 1568x672", () => {
     const prompt921 = buildGenerationPrompt({
       prompt: "A tall wallpaper",
       aspectRatioOrSize: "672x1568",
       hasInputImages: false,
       n: 1,
     });
-    expect(prompt921).toBe("Generate an image of: A tall wallpaper. Set the aspect ratio to 9:21.");
+    expect(prompt921).toBe("Generate an image of: A tall wallpaper");
 
     const prompt219 = buildGenerationPrompt({
       prompt: "An ultrawide banner",
@@ -619,35 +619,35 @@ describe("buildGenerationPrompt", () => {
       hasInputImages: false,
       n: 1,
     });
-    expect(prompt219).toBe("Generate an image of: An ultrawide banner. Set the aspect ratio to 21:9.");
+    expect(prompt219).toBe("Generate an image of: An ultrawide banner");
   });
 
-  it("chuẩn hóa --aspect-ratio và khoảng trắng quanh dấu hai chấm (--ar 16 : 9)", () => {
+  it("giữ nguyên --aspect-ratio và khoảng trắng trong prompt của user", () => {
     const prompt1 = buildGenerationPrompt({
       prompt: "A cute dog --aspect-ratio 16:9",
       hasInputImages: false,
       n: 1,
     });
-    expect(prompt1).toBe("Generate an image of: A cute dog. Set the aspect ratio to 16:9.");
+    expect(prompt1).toBe("Generate an image of: A cute dog --aspect-ratio 16:9");
 
     const prompt2 = buildGenerationPrompt({
       prompt: "A cute dog --ar 16 : 9",
       hasInputImages: false,
       n: 1,
     });
-    expect(prompt2).toBe("Generate an image of: A cute dog. Set the aspect ratio to 16:9.");
+    expect(prompt2).toBe("Generate an image of: A cute dog --ar 16 : 9");
   });
 
-  it("chuẩn hóa tỷ lệ số thập phân 9:19.5 mà không để lại rác thập phân", () => {
+  it("giữ nguyên tỷ lệ 9:19.5 trong prompt của user", () => {
     const prompt = buildGenerationPrompt({
       prompt: "A mobile wallpaper --ar 9:19.5",
       hasInputImages: false,
       n: 1,
     });
-    expect(prompt).toBe("Generate an image of: A mobile wallpaper. Set the aspect ratio to 9:19.5.");
+    expect(prompt).toBe("Generate an image of: A mobile wallpaper --ar 9:19.5");
   });
 
-  it("nhận diện và chuẩn hóa các biến thể aspect ratio tự nhiên (aspect ratio 16:9, aspect-ratio: 16:9, aspect ratio to 16:9)", () => {
+  it("giữ nguyên các biến thể aspect ratio trong prompt người dùng", () => {
     const cases = [
       "A mountain landscape aspect ratio 16:9",
       "A mountain landscape aspect-ratio: 16:9",
@@ -661,7 +661,7 @@ describe("buildGenerationPrompt", () => {
         hasInputImages: false,
         n: 1,
       });
-      expect(prompt).toBe("Generate an image of: A mountain landscape. Set the aspect ratio to 16:9.");
+      expect(prompt).toBe(`Generate an image of: ${c}`);
     }
   });
 });

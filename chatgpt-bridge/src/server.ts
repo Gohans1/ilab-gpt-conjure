@@ -1,8 +1,7 @@
 import { existsSync, mkdtempSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve, sep } from "node:path";
-import crypto from "node:crypto";
-import { generateImage, sizeToAspectRatio } from "./generator.js";
+import { generateImage } from "./generator.js";
 import { handleLogin, notifyLoginContinuation } from "./auth-helper.js";
 import { clearSessionVerified, isSessionCached } from "./check-session.js";
 import { cleanupActiveBrowsers } from "./browser.js";
@@ -358,31 +357,6 @@ export function enqueueTask<T>(task: () => Promise<T>, signal?: AbortSignal): Pr
   });
 }
 
-// Cấu trúc regex nhận diện và bóc sạch câu ratio theo 14 ngôn ngữ và các cờ shorthand phổ biến (--ar, --aspect-ratio, v.v.)
-const RATIO_LANGUAGE_PREFIXES_PATTERN =
-  "Set the aspect ratio to|Đặt tỷ lệ khung hình thành|将宽高比设为|將寬高比設為|アスペクト比を|화면 비율을|Establece la relación de aspecto en|Defina a proporção da imagem como|Réglez le rapport largeur\\/hauteur sur|Stelle das Seitenverhältnis auf|Установите соотношение сторон|Imposta le proporzioni su|पक्षानुपात को";
-
-const RATIO_SHORTHAND_PATTERN =
-  "--ar|-ar|(?:--|-)?aspect[_\\s-]*ratio(?:[:=]|\\s+to)?";
-
-const RATIO_NUMBER_PATTERN =
-  "[0-9]+(?:\\.[0-9]+)?\\s*:\\s*[0-9]+(?:\\.[0-9]+)?";
-
-export const ratioRegex = new RegExp(
-  `(?:(?:${RATIO_LANGUAGE_PREFIXES_PATTERN})\\s*${RATIO_NUMBER_PATTERN}(?:\\s*に設定してください|\\s*로 설정하세요|\\s*ein|\\s*पर सेट करें)?[.\\u3002\\u0964]?)|(?:(?:${RATIO_SHORTHAND_PATTERN})\\s*${RATIO_NUMBER_PATTERN}[.\\u3002\\u0964]?)`,
-  "gi"
-);
-
-const EXTRACT_RATIO_REGEX = new RegExp(
-  `(?:(?:${RATIO_LANGUAGE_PREFIXES_PATTERN})|(?:${RATIO_SHORTHAND_PATTERN}))\\s*(${RATIO_NUMBER_PATTERN})`,
-  "i"
-);
-
-export function extractRatioFromText(text: string): string | null {
-  if (!text) return null;
-  const match = text.match(EXTRACT_RATIO_REGEX);
-  return match?.[1] ? match[1].replace(/\s+/g, "") : null;
-}
 
 const ORIGINAL_PROMPT_MARKERS = [
   "Original user prompt:",
@@ -413,9 +387,8 @@ export function cleanAndUnwrapPrompt(rawPrompt: string): string {
     }
   }
 
-  // Bóc sạch bất kỳ câu ratio tự động và câu chống grid nào
+  // Bóc sạch câu chống grid nếu prompt đã từng bị wrap
   prompt = prompt
-    .replace(ratioRegex, "")
     .replace(
       /\s*Do not combine (?:the \d+ (?:images|variations)|them) into a single grid or collage(?:;\s*output each as a separate image)?[.!?]?/gi,
       ""
@@ -470,44 +443,18 @@ export function buildGenerationPrompt(options: {
     return cleanPrompt || "Generate a creative variation of the attached image.";
   }
 
-  // Text-to-image (vẽ mới)
-  const rawAspect = options.aspectRatioOrSize;
-  const rawRatioStr = String(rawAspect || "").trim().toLowerCase();
-  const isExplicitNoneRatio =
-    rawRatioStr === "none" ||
-    rawRatioStr === "off" ||
-    rawRatioStr === "null" ||
-    rawRatioStr === "auto" ||
-    rawRatioStr === "undefined";
-
-  let ratioInstruction = "";
-  if (!isExplicitNoneRatio) {
-    const isExplicitRatio = typeof rawAspect === "string" && /^[1-9]\d*(?:\.\d+)?\s*:\s*[1-9]\d*(?:\.\d+)?$/.test(rawAspect.trim());
-    const promptRatio = extractRatioFromText(options.prompt);
-    if (promptRatio && (!isExplicitRatio || rawAspect?.trim() === "1:1")) {
-      ratioInstruction = ` Set the aspect ratio to ${promptRatio}.`;
-    } else if (isExplicitRatio) {
-      const normalizedRatio = rawAspect.trim().replace(/\s*:\s*/, ":");
-      ratioInstruction = ` Set the aspect ratio to ${normalizedRatio}.`;
-    } else {
-      const detectedRatio = sizeToAspectRatio(rawAspect);
-      if (detectedRatio) {
-        ratioInstruction = ` Set the aspect ratio to ${detectedRatio}.`;
-      }
-    }
-  }
-
+  // Text-to-image (vẽ mới) - không inject ratio gì cả, người dùng tự điền vào prompt
   if (!cleanPrompt) {
     if (options.n > 1) {
-      return `Generate exactly ${options.n} separate individual creative images. Do not combine the ${options.n} images into a single grid or collage; output each as a separate image.${ratioInstruction}`;
+      return `Generate exactly ${options.n} separate individual creative images. Do not combine the ${options.n} images into a single grid or collage; output each as a separate image.`;
     }
-    return `Generate a creative image.${ratioInstruction}`;
+    return `Generate a creative image.`;
   }
 
   if (options.n > 1) {
-    return `Generate exactly ${options.n} separate individual images of: ${cleanPrompt}${separator} Do not combine the ${options.n} images into a single grid or collage; output each as a separate image.${ratioInstruction}`;
+    return `Generate exactly ${options.n} separate individual images of: ${cleanPrompt}${separator} Do not combine the ${options.n} images into a single grid or collage; output each as a separate image.`;
   }
-  return `Generate an image of: ${cleanPrompt}${separator}${ratioInstruction}`;
+  return `Generate an image of: ${cleanPrompt}`;
 }
 
 export async function handleRequest(req: Request): Promise<Response> {

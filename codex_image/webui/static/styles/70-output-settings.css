@@ -828,12 +828,17 @@
 }
 
 .chatgpt-delete-chat-field {
+  grid-column: 1 / -1;
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
   min-width: 0;
   padding: 4px 0 6px;
+}
+
+.chatgpt-browser-field {
+  grid-column: 1 / -1;
 }
 
 .web-search-field > span,

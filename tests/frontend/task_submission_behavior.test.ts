@@ -96,6 +96,8 @@ const fakeWindow: any = {
 
 const runtimeFeedback = await import("../../codex_image/webui/frontend/src/runtime-feedback");
 const { initTaskSubmitFeature } = await import("../../codex_image/webui/frontend/src/task-submit");
+const { syncChatGPTDeleteChatControl } = await import("../../codex_image/webui/frontend/src/provider-selection");
+const { currentTaskParams } = await import("../../codex_image/webui/frontend/src/size-presets");
 
 function resetSubmissionState(): void {
   state.historyTaskReveal = null;
@@ -271,4 +273,35 @@ test("applyTaskOutputParams does not overwrite chatgptVisibleBrowser setting fro
   });
 
   assert.equal(visibleBrowserCheckbox.checked, true, "Historical task params must not overwrite chatgptVisibleBrowser setting");
+});
+
+test("syncChatGPTDeleteChatControl hides ratio-field on ChatGPT Web Free and reveals it for other providers", () => {
+  resetSubmissionState();
+  const ratioField = { style: { display: "" }, classList: new FakeClassList() };
+  (els as any).ratio = {
+    value: "16:9",
+    closest: (selector: string) => (selector === ".ratio-field" ? ratioField : null),
+  };
+
+  state.selectedProviderId = "default";
+  syncChatGPTDeleteChatControl();
+  assert.equal(ratioField.style.display, "none");
+  assert.equal(ratioField.classList.contains("hidden"), true);
+
+  state.selectedProviderId = "provider-a";
+  syncChatGPTDeleteChatControl();
+  assert.equal(ratioField.style.display, "");
+  assert.equal(ratioField.classList.contains("hidden"), false);
+});
+
+test("currentTaskParams forces ratio to None for ChatGPT Web Free", () => {
+  resetSubmissionState();
+  state.selectedProviderId = "default";
+  (els as any).size = { value: "1024x1024" };
+  (els as any).ratio = { value: "16:9" };
+  (els as any).quality = { value: "auto" };
+  (els as any).nInput = { value: "1" };
+  (els as any).model = { value: "gpt-image-2" };
+  const params = currentTaskParams();
+  assert.equal(params.ratio, "None");
 });

@@ -19773,7 +19773,7 @@
     return false;
   }
   function syncChatGPTDeleteChatControl() {
-    const { els: els14, methods } = getLegacyBridge();
+    const { els: els14, methods, state: state8 } = getLegacyBridge();
     const isChatGPT = isChatGPTWebProvider();
     if (els14.chatgptDeleteChatField) {
       els14.chatgptDeleteChatField.style.display = isChatGPT ? "" : "none";
@@ -19782,6 +19782,19 @@
     if (els14.chatgptBrowserField) {
       els14.chatgptBrowserField.style.display = isChatGPT ? "" : "none";
       els14.chatgptBrowserField.classList.toggle("hidden", !isChatGPT);
+    }
+    const ratioField = els14.ratio?.closest(".ratio-field");
+    if (ratioField) {
+      if (isChatGPT) {
+        ratioField.style.display = "none";
+        ratioField.classList.add("hidden");
+      } else {
+        const isLegacyGpt = state8.selectedModelId === "gpt-image-2";
+        if (isLegacyGpt) {
+          ratioField.style.display = "";
+          ratioField.classList.remove("hidden");
+        }
+      }
     }
     if (isChatGPT && typeof methods.restoreChatGPTDeleteChatState === "function") {
       methods.restoreChatGPTDeleteChatState();

@@ -260,14 +260,15 @@ export function currentWebSearchEnabled(): boolean {
 }
 
 export function currentTaskParams(): any {
+  const outputFormat = els.outputFormat?.value || "png";
   const params: any = {
     model: currentImageToolModel(),
     size: currentSize(),
     n: currentQuantity(),
-    quality: els.quality.value,
-    output_format: els.outputFormat.value,
-    moderation: els.moderation.value,
-    output_compression: els.outputFormat.value === "png" ? null : Number(els.compression.value),
+    quality: els.quality?.value || "auto",
+    output_format: outputFormat,
+    moderation: els.moderation?.value || "auto",
+    output_compression: outputFormat === "png" ? null : Number(els.compression?.value ?? 85),
   };
   const { state } = getLegacyBridge();
   if (!state.generationCatalog || state.selectedModelId === "gpt-image-2") {
@@ -277,12 +278,14 @@ export function currentTaskParams(): any {
   if (currentWebSearchEnabled()) {
     params.web_search = true;
   }
+  const isCustomMode = Boolean(els.customSizeToggle?.checked || els.size?.value === "custom");
   if (isChatGPTWebProvider()) {
     params["chatgpt.delete_chat_after_gen"] = Boolean(els.chatgptDeleteChat?.checked ?? true);
     params["chatgpt.browser"] = currentChatGPTBrowser();
-  }
-  const isCustomMode = Boolean(els.customSizeToggle?.checked || els.size?.value === "custom");
-  if (isCustomMode) {
+    params.ratio = "None";
+    params.resolution = els.resolution?.value || DEFAULT_RESOLUTION;
+    params.orientation = els.orientation?.value || DEFAULT_ORIENTATION;
+  } else if (isCustomMode) {
     const customRatio = currentCustomRatio();
     const dimensions = String(params.size || "").split("x").map((value) => Number(value));
     const dimW = dimensions[0];

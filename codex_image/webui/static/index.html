@@ -952,26 +952,27 @@
                   </div>
                 </div>
 
+                <div id="chatgptDeleteChatField" class="field full-width chatgpt-delete-chat-field" style="display: none;">
+                  <span data-i18n="output.chatgptDeleteChat">生成后删除对话</span>
+                  <label class="chatgpt-delete-chat-toggle" title="图像生成完成后自动删除 ChatGPT Web 上的对话" data-i18n-attr="title:output.chatgptDeleteChatTitle">
+                    <input id="chatgptDeleteChat" type="checkbox" checked />
+                    <span class="chatgpt-delete-chat-toggle-track" aria-hidden="true"></span>
+                    <span id="chatgptDeleteChatStatus" class="chatgpt-delete-chat-toggle-text" data-i18n="output.chatgptDeleteChatToggle">开启</span>
+                  </label>
+                </div>
+                <div id="chatgptBrowserField" class="field full-width chatgpt-browser-field" style="display: none;">
+                  <span data-i18n="output.chatgptBrowser">Trình duyệt</span>
+                  <div class="radio-group" id="chatgptBrowserGroup" role="group" aria-label="Trình duyệt" data-i18n-attr="aria-label:output.chatgptBrowser">
+                    <button class="radio-btn active" data-browser="edge" type="button" data-i18n="output.chatgptBrowserEdge">Edge</button>
+                    <button class="radio-btn" data-browser="chrome" type="button" data-i18n="output.chatgptBrowserChrome">Chrome</button>
+                  </div>
+                  <input type="hidden" id="chatgptBrowser" value="edge" />
+                </div>
+
                 <div class="field full-width ratio-field">
-                  <div id="chatgptDeleteChatField" class="field chatgpt-delete-chat-field" style="display: none;">
-                    <span data-i18n="output.chatgptDeleteChat">生成后删除对话</span>
-                    <label class="chatgpt-delete-chat-toggle" title="图像生成完成后自动删除 ChatGPT Web 上的对话" data-i18n-attr="title:output.chatgptDeleteChatTitle">
-                      <input id="chatgptDeleteChat" type="checkbox" checked />
-                      <span class="chatgpt-delete-chat-toggle-track" aria-hidden="true"></span>
-                      <span id="chatgptDeleteChatStatus" class="chatgpt-delete-chat-toggle-text" data-i18n="output.chatgptDeleteChatToggle">开启</span>
-                    </label>
-                  </div>
-                  <div id="chatgptBrowserField" class="field chatgpt-browser-field" style="display: none;">
-                    <span data-i18n="output.chatgptBrowser">Trình duyệt</span>
-                    <div class="radio-group" id="chatgptBrowserGroup" role="group" aria-label="Trình duyệt" data-i18n-attr="aria-label:output.chatgptBrowser">
-                      <button class="radio-btn active" data-browser="edge" type="button" data-i18n="output.chatgptBrowserEdge">Edge</button>
-                      <button class="radio-btn" data-browser="chrome" type="button" data-i18n="output.chatgptBrowserChrome">Chrome</button>
-                    </div>
-                    <input type="hidden" id="chatgptBrowser" value="edge" />
-                  </div>
                   <span data-i18n="output.ratio">比例</span>
                   <div class="radio-group ratio-group" id="ratioGroup" role="group" aria-label="比例" data-i18n-attr="aria-label:output.ratio">
-                    <button class="radio-btn" data-val="None" type="button" title="ChatGPT Web tự quyết định tỷ lệ">None</button>
+                    <button class="radio-btn" data-val="None" type="button" title="Tự động (Không đặt tỷ lệ)">None</button>
                     <button class="radio-btn active" data-val="1:1" type="button">1:1</button>
                     <button class="radio-btn" data-val="4:5" type="button">4:5</button>
                     <button class="radio-btn" data-val="5:4" type="button">5:4</button>

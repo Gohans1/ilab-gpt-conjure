@@ -36315,7 +36315,7 @@ ${hint}` : hint;
     return false;
   }
   function syncChatGPTDeleteChatControl() {
-    const { els: els44, methods } = getLegacyBridge();
+    const { els: els44, methods, state: state33 } = getLegacyBridge();
     const isChatGPT = isChatGPTWebProvider();
     if (els44.chatgptDeleteChatField) {
       els44.chatgptDeleteChatField.style.display = isChatGPT ? "" : "none";
@@ -36324,6 +36324,19 @@ ${hint}` : hint;
     if (els44.chatgptBrowserField) {
       els44.chatgptBrowserField.style.display = isChatGPT ? "" : "none";
       els44.chatgptBrowserField.classList.toggle("hidden", !isChatGPT);
+    }
+    const ratioField = els44.ratio?.closest(".ratio-field");
+    if (ratioField) {
+      if (isChatGPT) {
+        ratioField.style.display = "none";
+        ratioField.classList.add("hidden");
+      } else {
+        const isLegacyGpt = state33.selectedModelId === "gpt-image-2";
+        if (isLegacyGpt) {
+          ratioField.style.display = "";
+          ratioField.classList.remove("hidden");
+        }
+      }
     }
     if (isChatGPT && typeof methods.restoreChatGPTDeleteChatState === "function") {
       methods.restoreChatGPTDeleteChatState();
@@ -38279,14 +38292,15 @@ ${hint}` : hint;
     return Boolean(els13.webSearch?.checked && webSearchSupportedForCurrentBackend());
   }
   function currentTaskParams() {
+    const outputFormat = els13.outputFormat?.value || "png";
     const params = {
       model: currentImageToolModel(),
       size: currentSize(),
       n: currentQuantity(),
-      quality: els13.quality.value,
-      output_format: els13.outputFormat.value,
-      moderation: els13.moderation.value,
-      output_compression: els13.outputFormat.value === "png" ? null : Number(els13.compression.value)
+      quality: els13.quality?.value || "auto",
+      output_format: outputFormat,
+      moderation: els13.moderation?.value || "auto",
+      output_compression: outputFormat === "png" ? null : Number(els13.compression?.value ?? 85)
     };
     const { state: state33 } = getLegacyBridge();
     if (!state33.generationCatalog || state33.selectedModelId === "gpt-image-2") {
@@ -38296,12 +38310,14 @@ ${hint}` : hint;
     if (currentWebSearchEnabled()) {
       params.web_search = true;
     }
+    const isCustomMode = Boolean(els13.customSizeToggle?.checked || els13.size?.value === "custom");
     if (isChatGPTWebProvider()) {
       params["chatgpt.delete_chat_after_gen"] = Boolean(els13.chatgptDeleteChat?.checked ?? true);
       params["chatgpt.browser"] = currentChatGPTBrowser();
-    }
-    const isCustomMode = Boolean(els13.customSizeToggle?.checked || els13.size?.value === "custom");
-    if (isCustomMode) {
+      params.ratio = "None";
+      params.resolution = els13.resolution?.value || DEFAULT_RESOLUTION;
+      params.orientation = els13.orientation?.value || DEFAULT_ORIENTATION;
+    } else if (isCustomMode) {
       const customRatio = currentCustomRatio();
       const dimensions2 = String(params.size || "").split("x").map((value) => Number(value));
       const dimW = dimensions2[0];
