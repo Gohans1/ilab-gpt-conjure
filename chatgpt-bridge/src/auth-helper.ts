@@ -27,9 +27,7 @@ import {
   findBrowserPidsByTagAsync,
   isBrowserProfileInUseAsync,
   isBrowserProfileLockedByFs,
-  killOrphanBrowsers,
   killOrphanBrowsersAsync,
-  killOrphanBrowsersByTag,
   killOrphanBrowsersByTagAsync,
   killProcessTree,
   registerActiveBrowserPid,
@@ -588,7 +586,7 @@ export async function handleLogin(
             unregisterActiveBrowserPid(activeBrowserPid);
             activeBrowserPid = null;
           }
-          killOrphanBrowsers(safeProfileDir, true);
+          await killOrphanBrowsersAsync([safeProfileDir, tempProfileDir], true);
           cleanupStaleLocks(safeProfileDir);
           try {
             removeTemporaryChromeTabSessions(safeProfileDir);
@@ -630,7 +628,7 @@ export async function handleLogin(
               unregisterActiveBrowserPid(activeBrowserPid);
               activeBrowserPid = null;
             }
-            killOrphanBrowsers(safeProfileDir, true);
+            await killOrphanBrowsersAsync([safeProfileDir, tempProfileDir], true);
             cleanupStaleLocks(safeProfileDir);
             try {
               removeTemporaryChromeTabSessions(safeProfileDir);
@@ -709,10 +707,9 @@ export async function handleLogin(
         unregisterActiveBrowserPid(activeBrowserPid);
         activeBrowserPid = null;
       }
-      killOrphanBrowsers(safeProfileDir, true);
+      await killOrphanBrowsersAsync([safeProfileDir, tempProfileDir], true);
       cleanupStaleLocks(safeProfileDir);
       if (safeProfileDir !== tempProfileDir && existsSync(tempProfileDir)) {
-        killOrphanBrowsers(tempProfileDir, true);
         cleanupStaleLocks(tempProfileDir);
       }
       const currentDisplayName = activeCandidate.browser === "edge" ? "Microsoft Edge" : "Google Chrome";

@@ -6,11 +6,13 @@ import { join } from "node:path";
 import {
   cleanupActiveBrowsers,
   cleanupStaleLocks,
+  closeBrowserGracefully,
   findBrowserPidsByTagAsync,
   getActiveBrowserPids,
   isBrowserProfileInUseAsync,
   isBrowserProfileLockedByFs,
   killOrphanBrowsers,
+  killOrphanBrowsersAsync,
   killOrphanBrowsersByTag,
   killOrphanBrowsersByTagAsync,
   killProcessTree,
@@ -225,4 +227,16 @@ describe("browser helpers", () => {
       killOrphanBrowsersByTag(fakeTag);
     }).not.toThrow();
   }, 15000);
+
+  test("killOrphanBrowsersAsync thực thi an toàn mà không throw lỗi kể cả với mảng profile dirs", async () => {
+    await expect(killOrphanBrowsersAsync("non-existent-profile-path")).resolves.toBeUndefined();
+    await expect(killOrphanBrowsersAsync(["non-existent-1", "non-existent-2"], true)).resolves.toBeUndefined();
+    await expect(killOrphanBrowsersAsync()).resolves.toBeUndefined();
+  }, 15000);
+
+  test("closeBrowserGracefully thực thi an toàn với cả mảng profile dirs và PID không hợp lệ", () => {
+    expect(() => closeBrowserGracefully("non-existent-profile-path")).not.toThrow();
+    expect(() => closeBrowserGracefully(["non-existent-1", "non-existent-2"], 99999999)).not.toThrow();
+    expect(() => closeBrowserGracefully(undefined, undefined)).not.toThrow();
+  });
 });

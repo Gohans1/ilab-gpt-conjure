@@ -92,24 +92,9 @@ export function killProcessTree(pid: number, isKnownBrowser: boolean = false): v
   }
 }
 
-export function killOrphanBrowsers(profileDir?: string | string[], force = false): void {
-  const profileDirs = (Array.isArray(profileDir) ? profileDir : [profileDir]).filter(Boolean) as string[];
-  const hasLock = profileDirs.length > 0
-    ? profileDirs.some((dir) =>
-        isBrowserProfileLockedByFs(dir) ||
-        ["SingletonLock", "lockfile", "SingletonCookie", "SingletonSocket"].some((f) =>
-          existsSync(join(dir, f))
-        )
-      )
-    : false;
-  if (profileDirs.length > 0 && !hasLock && !force) return;
-
-  if (process.platform === "win32") {
-    try {
-      const systemRoot = process.env.SystemRoot || process.env.SYSTEMROOT || "C:\\Windows";
-      const powershell = join(systemRoot, "System32", "WindowsPowerShell", "v1.0", "powershell.exe");
-      const normalizedList = profileDirs.map((d) => d.replace(/[/\\]+/g, "\\").replace(/'/g, "''"));
-      const script = `
+function buildOrphanKillScript(profileDirs: string[]): string {
+  const normalizedList = profileDirs.map((d) => d.replace(/[/\\]+/g, "\\").replace(/'/g, "''"));
+  return `
 $patterns = @(${normalizedList.length > 0 ? normalizedList.map((p) => `'${p}'`).join(",") : "''"});
 Get-CimInstance Win32_Process -Filter "Name = 'chrome.exe' or Name = 'msedge.exe' or Name = 'chromium.exe'" |
   Where-Object {
@@ -129,6 +114,25 @@ Get-CimInstance Win32_Process -Filter "Name = 'chrome.exe' or Name = 'msedge.exe
     }
   }
 `.trim();
+}
+
+export function killOrphanBrowsers(profileDir?: string | string[], force = false): void {
+  const profileDirs = (Array.isArray(profileDir) ? profileDir : [profileDir]).filter(Boolean) as string[];
+  const hasLock = profileDirs.length > 0
+    ? profileDirs.some((dir) =>
+        isBrowserProfileLockedByFs(dir) ||
+        ["SingletonLock", "lockfile", "SingletonCookie", "SingletonSocket"].some((f) =>
+          existsSync(join(dir, f))
+        )
+      )
+    : false;
+  if (profileDirs.length > 0 && !hasLock && !force) return;
+
+  if (process.platform === "win32") {
+    try {
+      const systemRoot = process.env.SystemRoot || process.env.SYSTEMROOT || "C:\\Windows";
+      const powershell = join(systemRoot, "System32", "WindowsPowerShell", "v1.0", "powershell.exe");
+      const script = buildOrphanKillScript(profileDirs);
       const b64 = Buffer.from(script, "utf16le").toString("base64");
       spawnSync(powershell, ["-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-EncodedCommand", b64], {
         stdio: "ignore",
@@ -167,27 +171,7 @@ export async function killOrphanBrowsersAsync(profileDir?: string | string[], fo
     try {
       const systemRoot = process.env.SystemRoot || process.env.SYSTEMROOT || "C:\\Windows";
       const powershell = join(systemRoot, "System32", "WindowsPowerShell", "v1.0", "powershell.exe");
-      const normalizedList = profileDirs.map((d) => d.replace(/[/\\]+/g, "\\").replace(/'/g, "''"));
-      const script = `
-$patterns = @(${normalizedList.length > 0 ? normalizedList.map((p) => `'${p}'`).join(",") : "''"});
-Get-CimInstance Win32_Process -Filter "Name = 'chrome.exe' or Name = 'msedge.exe' or Name = 'chromium.exe'" |
-  Where-Object {
-    if (!$_.CommandLine) { return $false }
-    if ($patterns.Count -gt 0 -and $patterns[0] -ne '') {
-      foreach ($p in $patterns) {
-        if ($_.CommandLine -match [regex]::Escape($p)) { return $true }
-      }
-      return $false
-    }
-    return $_.CommandLine -match '--chatgpt-bridge-instance'
-  } |
-  ForEach-Object {
-    & "$env:SystemRoot\\System32\\taskkill.exe" /PID $_.ProcessId /T /F 2>$null
-    if ($LASTEXITCODE -ne 0) {
-      Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue
-    }
-  }
-`.trim();
+      const script = buildOrphanKillScript(profileDirs);
       const b64 = Buffer.from(script, "utf16le").toString("base64");
       const proc = spawn(powershell, ["-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-EncodedCommand", b64], {
         stdio: "ignore",
