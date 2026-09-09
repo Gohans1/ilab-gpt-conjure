@@ -783,16 +783,22 @@ export async function handleLogin(
       lastExtractionError = null;
       const attemptTag = `${instanceTag}-off-${attempt}`;
       const attemptPids = new Set<number>();
-      let isAttemptActive = true;
       let cdpSuccess = false;
 
       try {
         // --- PHƯƠNG ÁN 1: DevTools CDP Port loopback (Miễn nhiễm bug anonymous pipe của Bun trên Windows) ---
+        let cdpChild: ReturnType<typeof spawn> | null = null;
         try {
+          const portFile = join(safeProfileDir, "DevToolsActivePort");
+          try {
+            rmSync(portFile, { force: true });
+          } catch {}
+
           const cdpArgs = [
             "--headless=new",
             `--user-data-dir=${safeProfileDir}`,
             "--remote-debugging-port=0",
+            "--remote-allow-origins=*",
             "--disable-background-mode",
             "--disable-background-networking",
             "--no-first-run",
@@ -805,9 +811,12 @@ export async function handleLogin(
             "about:blank",
           ];
 
-          const cdpChild = spawn(activeCandidate.path, cdpArgs, {
+          cdpChild = spawn(activeCandidate.path, cdpArgs, {
             stdio: "ignore",
             windowsHide: true,
+          });
+          cdpChild.on("error", (err) => {
+            lastExtractionError = err;
           });
 
           if (cdpChild.pid) {
@@ -816,16 +825,21 @@ export async function handleLogin(
             registerActiveBrowserPid(cdpChild.pid);
           }
 
-          const portFile = join(safeProfileDir, "DevToolsActivePort");
-          let cdpPort: number | null = null;
+          let cdpEndpoint: string | null = null;
           const portDeadline = Date.now() + 6000;
           while (Date.now() < portDeadline) {
+            if (cdpChild.exitCode !== null || cdpChild.signalCode !== null) {
+              throw new Error(`CDP browser process exited prematurely with code ${cdpChild.exitCode}`);
+            }
             if (existsSync(portFile)) {
               try {
                 const lines = readFileSync(portFile, "utf-8").trim().split("\n");
                 const p = Number(lines[0]?.trim());
                 if (Number.isFinite(p) && p > 0) {
-                  cdpPort = p;
+                  const wsPath = lines[1]?.trim() || "";
+                  cdpEndpoint = wsPath
+                    ? `ws://127.0.0.1:${p}${wsPath.startsWith("/") ? wsPath : `/${wsPath}`}`
+                    : `http://127.0.0.1:${p}`;
                   break;
                 }
               } catch {}
@@ -833,8 +847,8 @@ export async function handleLogin(
             await new Promise((r) => setTimeout(r, 100));
           }
 
-          if (cdpPort) {
-            const cdpBrowser = await chromium.connectOverCDP(`http://127.0.0.1:${cdpPort}`, { timeout: 8000 });
+          if (cdpEndpoint) {
+            const cdpBrowser = await chromium.connectOverCDP(cdpEndpoint, { timeout: 8000 });
             try {
               const cdpContext = cdpBrowser.contexts()[0] ?? (await cdpBrowser.newContext());
               await cdpContext.setOffline(true);
@@ -857,7 +871,12 @@ export async function handleLogin(
                 cdpSuccess = true;
               }
             } finally {
-              await cdpBrowser.close().catch(() => {});
+              let closeTimer: any;
+              await Promise.race([
+                cdpBrowser.close().catch(() => {}),
+                new Promise((r) => { closeTimer = setTimeout(r, 3000); }),
+              ]);
+              if (closeTimer) clearTimeout(closeTimer);
             }
           }
         } catch (cdpErr) {
@@ -866,7 +885,26 @@ export async function handleLogin(
 
         // --- PHƯƠNG ÁN 2: Fallback sang launchPersistentContext nếu CDP chưa lấy được ---
         if (!cdpSuccess && !extractedStorageState) {
+          // Dọn dẹp dứt điểm tiến trình CDP cũ trước khi chuyển sang Phase 2 để tránh đụng độ profile lock
+          if (cdpChild?.pid) {
+            try {
+              killProcessTree(cdpChild.pid, true);
+            } catch {}
+            unregisterActiveBrowserPid(cdpChild.pid);
+            offlineTrackedPids.delete(cdpChild.pid);
+            attemptPids.delete(cdpChild.pid);
+          }
+          await killOrphanBrowsersByTagAsync(attemptTag).catch(() => {});
+          for (let w = 0; w < 5; w++) {
+            if (!isBrowserProfileLockedByFs(safeProfileDir)) break;
+            await new Promise((r) => setTimeout(r, 200));
+          }
+          cleanupStaleLocks(safeProfileDir);
+
+          let isPolling = false;
           const pidPollTimer = setInterval(() => {
+            if (isPolling) return;
+            isPolling = true;
             findBrowserPidsByTagAsync(attemptTag)
               .then((pids) => {
                 for (const pid of pids) {
@@ -875,8 +913,11 @@ export async function handleLogin(
                   registerActiveBrowserPid(pid);
                 }
               })
-              .catch(() => {});
-          }, 300);
+              .catch(() => {})
+              .finally(() => {
+                isPolling = false;
+              });
+          }, 1000);
 
           try {
             context = await chromium.launchPersistentContext(safeProfileDir, {
@@ -931,7 +972,6 @@ export async function handleLogin(
       } catch (e) {
         lastExtractionError = e;
       } finally {
-        isAttemptActive = false;
         if (context) {
           let closeTimer: any;
           await Promise.race([

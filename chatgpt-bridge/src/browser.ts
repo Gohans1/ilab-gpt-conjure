@@ -94,7 +94,8 @@ export function killProcessTree(pid: number, isKnownBrowser: boolean = false): v
 
 export function killOrphanBrowsers(profileDir?: string, force = false): void {
   const hasLock = profileDir
-    ? ["SingletonLock", "lockfile", "SingletonCookie", "SingletonSocket"].some((f) =>
+    ? isBrowserProfileLockedByFs(profileDir) ||
+      ["SingletonLock", "lockfile", "SingletonCookie", "SingletonSocket"].some((f) =>
         existsSync(join(profileDir, f))
       )
     : false;

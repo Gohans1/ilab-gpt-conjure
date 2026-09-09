@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { existsSync, writeFileSync, mkdirSync, rmSync } from "node:fs";
+import { chmodSync, existsSync, writeFileSync, mkdirSync, rmSync } from "node:fs";
 import { spawn } from "node:child_process";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -64,6 +64,14 @@ describe("browser helpers", () => {
     // Khi file có mặt và mở được bình thường -> false
     const cookiesPath = join(testDir, "Default", "Network", "Cookies");
     writeFileSync(cookiesPath, "dummy-sqlite-data");
+    expect(isBrowserProfileLockedByFs(testDir)).toBe(false);
+
+    // Khi file bị khóa quyền ghi (read-only) -> isBrowserProfileLockedByFs phát hiện ra lock (true)
+    chmodSync(cookiesPath, 0o444);
+    expect(isBrowserProfileLockedByFs(testDir)).toBe(true);
+
+    // Khi khôi phục quyền ghi -> false
+    chmodSync(cookiesPath, 0o666);
     expect(isBrowserProfileLockedByFs(testDir)).toBe(false);
 
     rmSync(testDir, { recursive: true, force: true });
