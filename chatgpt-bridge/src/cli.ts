@@ -37,7 +37,10 @@ async function main(): Promise<void> {
   }
 
   if (args.includes("--login")) {
-    await handleLogin();
+    const loginIdx = args.indexOf("--login");
+    const nextArg = args[loginIdx + 1];
+    const preferredBrowser = nextArg && !nextArg.startsWith("-") ? nextArg : undefined;
+    await handleLogin(300_000, preferredBrowser);
     process.exit(0);
   }
 
