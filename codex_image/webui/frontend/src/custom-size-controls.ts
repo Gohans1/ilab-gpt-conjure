@@ -350,7 +350,15 @@ export function syncRatioAndOrientation(changedControl: any): void {
     setSizeControlValue(els.resolution, DEFAULT_RESOLUTION);
   }
   if (!RATIO_ORIENTATION[els.ratio.value]) {
-    setSizeControlValue(els.ratio, DEFAULT_RATIO);
+    const match = String(els.ratio.value || "").trim().match(/^([1-9]\d*(?:\.\d+)?)\s*:\s*([1-9]\d*(?:\.\d+)?)$/);
+    if (match) {
+      const rw = Number(match[1]);
+      const rh = Number(match[2]);
+      const dynamicOrient = rw === rh ? "square" : rw > rh ? "landscape" : "portrait";
+      RATIO_ORIENTATION[els.ratio.value] = dynamicOrient;
+    } else {
+      setSizeControlValue(els.ratio, DEFAULT_RATIO);
+    }
   }
   if (!ORIENTATION_DEFAULT_RATIOS[els.orientation.value]) {
     setSizeControlValue(els.orientation, RATIO_ORIENTATION[els.ratio.value] || DEFAULT_ORIENTATION);

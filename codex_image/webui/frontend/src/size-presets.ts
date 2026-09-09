@@ -22,6 +22,8 @@ export const RATIO_ORIENTATION: Record<string, string> = {
   "3:2": "landscape",
   "9:16": "portrait",
   "16:9": "landscape",
+  "9:19.5": "portrait",
+  "19.5:9": "landscape",
   "9:21": "portrait",
   "21:9": "landscape",
 };
@@ -37,6 +39,8 @@ export const RATIO_COUNTERPARTS: Record<string, string> = {
   "3:2": "2:3",
   "9:16": "16:9",
   "16:9": "9:16",
+  "9:19.5": "19.5:9",
+  "19.5:9": "9:19.5",
   "9:21": "21:9",
   "21:9": "9:21",
 };
@@ -155,15 +159,43 @@ function gcd(a: number, b: number): number {
   return b === 0 ? a : gcd(b, a % b);
 }
 
+const STANDARD_RATIO_TARGETS: Array<[string, number]> = [
+  ["1:1", 1],
+  ["16:9", 16 / 9],
+  ["9:16", 9 / 16],
+  ["4:3", 4 / 3],
+  ["3:4", 3 / 4],
+  ["3:2", 3 / 2],
+  ["2:3", 2 / 3],
+  ["4:5", 4 / 5],
+  ["5:4", 5 / 4],
+  ["9:19.5", 9 / 19.5],
+  ["19.5:9", 19.5 / 9],
+  ["9:21", 9 / 21],
+  ["21:9", 21 / 9],
+  ["1:2", 1 / 2],
+  ["2:1", 2 / 1],
+];
+
 export function ratioFromDimensions(width: number, height: number): string {
   if (width <= 0 || height <= 0) return "1:1";
+  const ratio = width / height;
+  let bestMatch: string | null = null;
+  let minRelativeDiff = 0.03;
+  for (const [name, target] of STANDARD_RATIO_TARGETS) {
+    const diff = Math.abs(ratio - target) / target;
+    if (diff < minRelativeDiff) {
+      minRelativeDiff = diff;
+      bestMatch = name;
+    }
+  }
+  if (bestMatch) return bestMatch;
+
   const divisor = gcd(Math.round(width), Math.round(height));
   const rw = Math.round(width) / divisor;
   const rh = Math.round(height) / divisor;
   if (rw === 3 && rh === 7) return "9:21";
   if (rw === 7 && rh === 3) return "21:9";
-  if (Math.abs(width / height - 9 / 19.5) < 0.01) return "9:19.5";
-  if (Math.abs(width / height - 19.5 / 9) < 0.01) return "19.5:9";
   return `${rw}:${rh}`;
 }
 
@@ -258,7 +290,7 @@ export function currentTaskParams(): any {
         params.ratio = presetMatch.ratio;
       } else if (hasValidDimensions) {
         params.ratio = ratioFromDimensions(dimW, dimH);
-      } else if (els.ratio?.value && els.ratio.value !== "None") {
+      } else if (els.ratio?.value) {
         params.ratio = els.ratio.value;
       }
     }
@@ -266,19 +298,24 @@ export function currentTaskParams(): any {
       params.orientation = orientationForDimensions(dimW, dimH);
     }
   } else {
-    const presetMatch = findPresetForSize(params.size);
     const rawRatio = String(els.ratio?.value || "").trim().toLowerCase();
     const isNoneOrAuto = rawRatio === "none" || rawRatio === "auto";
-    if (presetMatch) {
+    const presetMatch = findPresetForSize(params.size);
+    if (isNoneOrAuto) {
+      params.ratio = "None";
+      params.resolution = els.resolution?.value || presetMatch?.resolution || DEFAULT_RESOLUTION;
+      params.orientation = els.orientation?.value || presetMatch?.orientation || DEFAULT_ORIENTATION;
+    } else if (els.ratio?.value) {
+      params.ratio = els.ratio.value;
+      params.resolution = els.resolution?.value || presetMatch?.resolution || DEFAULT_RESOLUTION;
+      params.orientation = els.orientation?.value || presetMatch?.orientation || RATIO_ORIENTATION[els.ratio.value] || DEFAULT_ORIENTATION;
+    } else if (presetMatch) {
       params.resolution = presetMatch.resolution;
       params.ratio = presetMatch.ratio;
-      if (isNoneOrAuto) {
-        params.ratio = "None";
-      }
       params.orientation = presetMatch.orientation;
     } else {
       params.resolution = els.resolution?.value || DEFAULT_RESOLUTION;
-      params.ratio = isNoneOrAuto ? "None" : (els.ratio?.value || undefined);
+      params.ratio = undefined;
       params.orientation = els.orientation?.value || DEFAULT_ORIENTATION;
     }
   }

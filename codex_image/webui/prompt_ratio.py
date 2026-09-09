@@ -5,7 +5,7 @@ from math import gcd
 from typing import Any
 
 
-_RATIO_RE = re.compile(r"^\s*([1-9]\d{0,2}(?:\.\d+)?)\s*:\s*([1-9]\d{0,2}(?:\.\d+)?)\s*$")
+_RATIO_RE = re.compile(r"^\s*([1-9]\d*(?:\.\d+)?)\s*:\s*([1-9]\d*(?:\.\d+)?)\s*$")
 _SIZE_RE = re.compile(r"^\s*([1-9]\d*)\s*x\s*([1-9]\d*)\s*$", re.IGNORECASE)
 
 _RATIO_INSTRUCTION_TEMPLATES = {

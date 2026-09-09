@@ -45,6 +45,8 @@ class PromptRatioTests(unittest.TestCase):
         self.assertEqual(normalize_prompt_ratio(" 16 : 9 "), "16:9")
         self.assertEqual(normalize_prompt_ratio("9:19.5"), "9:19.5")
         self.assertEqual(normalize_prompt_ratio("19.5:9"), "19.5:9")
+        self.assertEqual(normalize_prompt_ratio("1080:1920"), "1080:1920")
+        self.assertEqual(normalize_prompt_ratio("1920:1080"), "1920:1080")
         self.assertEqual(normalize_prompt_ratio("none"), "")
         self.assertEqual(normalize_prompt_ratio(""), "")
 

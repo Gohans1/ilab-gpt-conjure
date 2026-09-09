@@ -36650,6 +36650,7 @@ ${hint}` : hint;
     ["3:4", "4:3"],
     ["2:3", "3:2"],
     ["9:16", "16:9"],
+    ["9:21", "21:9"],
     ["1:4", "4:1"],
     ["1:8", "8:1"],
     ["1:2", "2:1"],
@@ -36675,7 +36676,10 @@ ${hint}` : hint;
     const used = /* @__PURE__ */ new Set();
     const slots = [];
     PREFERRED_RATIO_SLOTS.forEach((preferred, index) => {
-      const matched = preferred.filter((value) => available.has(value) && !used.has(value));
+      let matched = preferred.filter((value) => available.has(value) && !used.has(value));
+      if (index === 0 && available.has("9:21")) {
+        matched = matched.filter((value) => value !== "21:9");
+      }
       if (!matched.length) return;
       if (index === 0 && matched.length === 1 && matched[0] === "1:1" && available.has("auto")) {
         matched.push("auto");
@@ -36898,7 +36902,7 @@ ${hint}` : hint;
         if (row && (typeof item !== "string" || !row.allowed_values.includes(item))) return false;
       }
     }
-    if (definition.id === "canvas.aspect_ratio" && typeof value === "string") {
+    if (definition.id === "canvas.aspect_ratio" && definition.allowed_values.length === 0 && typeof value === "string") {
       const s = value.trim().toLowerCase();
       if (s === "none" || s === "auto" || /^[1-9]\d*(?:\.\d+)?\s*:\s*[1-9]\d*(?:\.\d+)?$/.test(s)) {
         return true;
@@ -38078,6 +38082,8 @@ ${hint}` : hint;
     "3:2": "landscape",
     "9:16": "portrait",
     "16:9": "landscape",
+    "9:19.5": "portrait",
+    "19.5:9": "landscape",
     "9:21": "portrait",
     "21:9": "landscape"
   };
@@ -38092,6 +38098,8 @@ ${hint}` : hint;
     "3:2": "2:3",
     "9:16": "16:9",
     "16:9": "9:16",
+    "9:19.5": "19.5:9",
+    "19.5:9": "9:19.5",
     "9:21": "21:9",
     "21:9": "9:21"
   };
@@ -38183,15 +38191,41 @@ ${hint}` : hint;
   function gcd(a, b) {
     return b === 0 ? a : gcd(b, a % b);
   }
+  var STANDARD_RATIO_TARGETS = [
+    ["1:1", 1],
+    ["16:9", 16 / 9],
+    ["9:16", 9 / 16],
+    ["4:3", 4 / 3],
+    ["3:4", 3 / 4],
+    ["3:2", 3 / 2],
+    ["2:3", 2 / 3],
+    ["4:5", 4 / 5],
+    ["5:4", 5 / 4],
+    ["9:19.5", 9 / 19.5],
+    ["19.5:9", 19.5 / 9],
+    ["9:21", 9 / 21],
+    ["21:9", 21 / 9],
+    ["1:2", 1 / 2],
+    ["2:1", 2 / 1]
+  ];
   function ratioFromDimensions(width, height) {
     if (width <= 0 || height <= 0) return "1:1";
+    const ratio = width / height;
+    let bestMatch = null;
+    let minRelativeDiff = 0.03;
+    for (const [name, target] of STANDARD_RATIO_TARGETS) {
+      const diff = Math.abs(ratio - target) / target;
+      if (diff < minRelativeDiff) {
+        minRelativeDiff = diff;
+        bestMatch = name;
+      }
+    }
+    if (bestMatch) return bestMatch;
     const divisor = gcd(Math.round(width), Math.round(height));
     const rw = Math.round(width) / divisor;
     const rh = Math.round(height) / divisor;
     if (rw === 3 && rh === 7) return "9:21";
     if (rw === 7 && rh === 3) return "21:9";
-    if (Math.abs(width / height - 9 / 19.5) < 0.01) return "9:19.5";
-    if (Math.abs(width / height - 19.5 / 9) < 0.01) return "19.5:9";
     return `${rw}:${rh}`;
   }
   function normalizeCustomDimension(value) {
@@ -38277,7 +38311,7 @@ ${hint}` : hint;
           params.ratio = presetMatch.ratio;
         } else if (hasValidDimensions) {
           params.ratio = ratioFromDimensions(dimW, dimH);
-        } else if (els13.ratio?.value && els13.ratio.value !== "None") {
+        } else if (els13.ratio?.value) {
           params.ratio = els13.ratio.value;
         }
       }
@@ -38285,19 +38319,24 @@ ${hint}` : hint;
         params.orientation = orientationForDimensions(dimW, dimH);
       }
     } else {
-      const presetMatch = findPresetForSize(params.size);
       const rawRatio = String(els13.ratio?.value || "").trim().toLowerCase();
       const isNoneOrAuto = rawRatio === "none" || rawRatio === "auto";
-      if (presetMatch) {
+      const presetMatch = findPresetForSize(params.size);
+      if (isNoneOrAuto) {
+        params.ratio = "None";
+        params.resolution = els13.resolution?.value || presetMatch?.resolution || DEFAULT_RESOLUTION;
+        params.orientation = els13.orientation?.value || presetMatch?.orientation || DEFAULT_ORIENTATION;
+      } else if (els13.ratio?.value) {
+        params.ratio = els13.ratio.value;
+        params.resolution = els13.resolution?.value || presetMatch?.resolution || DEFAULT_RESOLUTION;
+        params.orientation = els13.orientation?.value || presetMatch?.orientation || RATIO_ORIENTATION[els13.ratio.value] || DEFAULT_ORIENTATION;
+      } else if (presetMatch) {
         params.resolution = presetMatch.resolution;
         params.ratio = presetMatch.ratio;
-        if (isNoneOrAuto) {
-          params.ratio = "None";
-        }
         params.orientation = presetMatch.orientation;
       } else {
         params.resolution = els13.resolution?.value || DEFAULT_RESOLUTION;
-        params.ratio = isNoneOrAuto ? "None" : els13.ratio?.value || void 0;
+        params.ratio = void 0;
         params.orientation = els13.orientation?.value || DEFAULT_ORIENTATION;
       }
     }
@@ -38594,7 +38633,15 @@ ${hint}` : hint;
       setSizeControlValue(els14.resolution, DEFAULT_RESOLUTION);
     }
     if (!RATIO_ORIENTATION[els14.ratio.value]) {
-      setSizeControlValue(els14.ratio, DEFAULT_RATIO);
+      const match = String(els14.ratio.value || "").trim().match(/^([1-9]\d*(?:\.\d+)?)\s*:\s*([1-9]\d*(?:\.\d+)?)$/);
+      if (match) {
+        const rw = Number(match[1]);
+        const rh = Number(match[2]);
+        const dynamicOrient = rw === rh ? "square" : rw > rh ? "landscape" : "portrait";
+        RATIO_ORIENTATION[els14.ratio.value] = dynamicOrient;
+      } else {
+        setSizeControlValue(els14.ratio, DEFAULT_RATIO);
+      }
     }
     if (!ORIENTATION_DEFAULT_RATIOS[els14.orientation.value]) {
       setSizeControlValue(els14.orientation, RATIO_ORIENTATION[els14.ratio.value] || DEFAULT_ORIENTATION);

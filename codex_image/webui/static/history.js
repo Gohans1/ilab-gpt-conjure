@@ -20108,6 +20108,7 @@
     ["3:4", "4:3"],
     ["2:3", "3:2"],
     ["9:16", "16:9"],
+    ["9:21", "21:9"],
     ["1:4", "4:1"],
     ["1:8", "8:1"],
     ["1:2", "2:1"],
@@ -20133,7 +20134,10 @@
     const used = /* @__PURE__ */ new Set();
     const slots = [];
     PREFERRED_RATIO_SLOTS.forEach((preferred, index) => {
-      const matched = preferred.filter((value) => available.has(value) && !used.has(value));
+      let matched = preferred.filter((value) => available.has(value) && !used.has(value));
+      if (index === 0 && available.has("9:21")) {
+        matched = matched.filter((value) => value !== "21:9");
+      }
       if (!matched.length) return;
       if (index === 0 && matched.length === 1 && matched[0] === "1:1" && available.has("auto")) {
         matched.push("auto");
@@ -20341,7 +20345,7 @@
         if (row && (typeof item !== "string" || !row.allowed_values.includes(item))) return false;
       }
     }
-    if (definition.id === "canvas.aspect_ratio" && typeof value === "string") {
+    if (definition.id === "canvas.aspect_ratio" && definition.allowed_values.length === 0 && typeof value === "string") {
       const s = value.trim().toLowerCase();
       if (s === "none" || s === "auto" || /^[1-9]\d*(?:\.\d+)?\s*:\s*[1-9]\d*(?:\.\d+)?$/.test(s)) {
         return true;
@@ -20984,6 +20988,23 @@
 
   // codex_image/webui/frontend/src/size-presets.ts
   var { els: els7 } = getLegacyBridge();
+  var STANDARD_RATIO_TARGETS = [
+    ["1:1", 1],
+    ["16:9", 16 / 9],
+    ["9:16", 9 / 16],
+    ["4:3", 4 / 3],
+    ["3:4", 3 / 4],
+    ["3:2", 3 / 2],
+    ["2:3", 2 / 3],
+    ["4:5", 4 / 5],
+    ["5:4", 5 / 4],
+    ["9:19.5", 9 / 19.5],
+    ["19.5:9", 19.5 / 9],
+    ["9:21", 9 / 21],
+    ["21:9", 21 / 9],
+    ["1:2", 1 / 2],
+    ["2:1", 2 / 1]
+  ];
   function normalizeCustomDimension(value) {
     const rawValue = String(value ?? "").trim();
     if (!rawValue) return null;

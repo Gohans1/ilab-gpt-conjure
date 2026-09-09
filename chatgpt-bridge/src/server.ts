@@ -373,14 +373,14 @@ export const ratioRegex = new RegExp(
   "gi"
 );
 
+const EXTRACT_RATIO_REGEX = new RegExp(
+  `(?:(?:${RATIO_LANGUAGE_PREFIXES_PATTERN})|(?:${RATIO_SHORTHAND_PATTERN}))\\s*(${RATIO_NUMBER_PATTERN})`,
+  "i"
+);
+
 export function extractRatioFromText(text: string): string | null {
   if (!text) return null;
-  const match = text.match(
-    new RegExp(
-      `(?:(?:${RATIO_LANGUAGE_PREFIXES_PATTERN})|(?:${RATIO_SHORTHAND_PATTERN}))\\s*(${RATIO_NUMBER_PATTERN})`,
-      "i"
-    )
-  );
+  const match = text.match(EXTRACT_RATIO_REGEX);
   return match?.[1] ? match[1].replace(/\s+/g, "") : null;
 }
 

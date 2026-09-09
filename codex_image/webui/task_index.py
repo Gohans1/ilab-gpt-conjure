@@ -101,6 +101,8 @@ KNOWN_RATIO_ORIENTATIONS = {
     "3:2": "landscape",
     "9:16": "portrait",
     "16:9": "landscape",
+    "9:19.5": "portrait",
+    "19.5:9": "landscape",
     "9:21": "portrait",
     "21:9": "landscape",
 }
@@ -897,12 +899,12 @@ def _normalized_utc_timestamp(value: object) -> str:
 
 
 def _history_ratio(params: dict[str, Any], size: str) -> str:
-    known = _known_ratio_from_size(size)
-    if known:
-        return known
     explicit = str(params.get("ratio") or "").strip()
     if explicit:
         return explicit
+    known = _known_ratio_from_size(size)
+    if known:
+        return known
     return ""
 
 
@@ -946,8 +948,20 @@ def _known_ratio_from_size(size: str) -> str:
         return ""
     width, height = dimensions
     divisor = gcd(width, height)
-    ratio = f"{width // divisor}:{height // divisor}"
-    return ratio if ratio in KNOWN_RATIO_ORIENTATIONS else ""
+    rw = width // divisor
+    rh = height // divisor
+    if rw == 3 and rh == 7:
+        return "9:21"
+    if rw == 7 and rh == 3:
+        return "21:9"
+    ratio = f"{rw}:{rh}"
+    if ratio in KNOWN_RATIO_ORIENTATIONS:
+        return ratio
+    if abs(width / height - 9 / 19.5) < 0.01:
+        return "9:19.5"
+    if abs(width / height - 19.5 / 9) < 0.01:
+        return "19.5:9"
+    return ""
 
 
 def _orientation_from_size(size: str) -> str:
