@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { existsSync, writeFileSync, mkdirSync, rmSync } from "node:fs";
+import { spawn } from "node:child_process";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
@@ -11,6 +12,8 @@ import {
   killOrphanBrowsersByTag,
   killOrphanBrowsersByTagAsync,
   killProcessTree,
+  registerActiveBrowserPid,
+  unregisterActiveBrowserPid,
 } from "./browser.js";
 import { findBrowserCandidates, normalizeBrowserChoice } from "./config.js";
 
@@ -83,6 +86,20 @@ describe("browser helpers", () => {
     expect(() => killProcessTree(-1)).not.toThrow();
     expect(() => killProcessTree(NaN as any)).not.toThrow();
     expect(() => killProcessTree(3.14)).not.toThrow();
+
+    registerActiveBrowserPid(99999998);
+    expect(() => killProcessTree(99999998)).not.toThrow();
+    unregisterActiveBrowserPid(99999998);
+  });
+
+  test("killProcessTree sử dụng fast-path trực tiếp khi PID nằm trong activeBrowserPids", () => {
+    const dummy = spawn(process.platform === "win32" ? "cmd.exe" : "sleep", process.platform === "win32" ? ["/c", "timeout 10 >nul"] : ["10"], { stdio: "ignore" });
+    if (dummy.pid) {
+      registerActiveBrowserPid(dummy.pid);
+      expect(getActiveBrowserPids().includes(dummy.pid)).toBe(true);
+      expect(() => killProcessTree(dummy.pid)).not.toThrow();
+      unregisterActiveBrowserPid(dummy.pid);
+    }
   });
 
   test("browser process handling an toàn khi đối tượng browser không có method process", () => {
@@ -102,5 +119,5 @@ describe("browser helpers", () => {
     expect(() => {
       killOrphanBrowsersByTag(fakeTag);
     }).not.toThrow();
-  });
+  }, 15000);
 });

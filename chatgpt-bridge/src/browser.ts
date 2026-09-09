@@ -61,15 +61,18 @@ export function killProcessTree(pid: number): void {
   if (process.platform === "win32") {
     try {
       const systemRoot = process.env.SystemRoot || process.env.SYSTEMROOT || "C:\\Windows";
-      const tasklist = join(systemRoot, "System32", "tasklist.exe");
-      const check = spawnSync(tasklist, ["/FI", `PID eq ${pid}`, "/FO", "CSV", "/NH"], {
-        encoding: "utf8",
-        windowsHide: true,
-        timeout: 2000,
-      });
-      const line = (check.stdout || "").toLowerCase();
-      if (!line.includes("chrome.exe") && !line.includes("msedge.exe") && !line.includes("chromium.exe")) {
-        return;
+      const isKnownBrowserPid = activeBrowserPids.has(pid);
+      if (!isKnownBrowserPid) {
+        const tasklist = join(systemRoot, "System32", "tasklist.exe");
+        const check = spawnSync(tasklist, ["/FI", `PID eq ${pid}`, "/FO", "CSV", "/NH"], {
+          encoding: "utf8",
+          windowsHide: true,
+          timeout: 2000,
+        });
+        const line = (check.stdout || "").toLowerCase();
+        if (!line.includes("chrome.exe") && !line.includes("msedge.exe") && !line.includes("chromium.exe")) {
+          return;
+        }
       }
       const taskkill = join(systemRoot, "System32", "taskkill.exe");
       spawnSync(taskkill, ["/PID", String(pid), "/T", "/F"], {
