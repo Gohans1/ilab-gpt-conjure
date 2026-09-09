@@ -38,7 +38,7 @@ function cloneValue(value: unknown): unknown {
 
 function gptSizeValid(value: unknown): boolean {
   if (typeof value !== "string") return false;
-  const normalized = value.trim().toLowerCase();
+  const normalized = value.trim().toLowerCase().replace(/×/g, "x");
   if (normalized === "auto") return true;
   const match = normalized.match(/^(\d+)x(\d+)$/);
   if (!match) return false;

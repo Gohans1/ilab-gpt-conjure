@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import shutil
 import subprocess
 import tempfile
@@ -36,7 +37,7 @@ class TaskParameterHistoryFrontendTests(WebUIStaticTestCase):
 
     def test_history_and_parameter_migration_behavior(self) -> None:
         node = shutil.which("node")
-        esbuild = Path("node_modules/.bin/esbuild")
+        esbuild = Path("node_modules/.bin/esbuild.cmd" if os.name == "nt" else "node_modules/.bin/esbuild")
         if node is None or not esbuild.exists():
             self.skipTest("node and npm install are required for frontend behavior tests")
 

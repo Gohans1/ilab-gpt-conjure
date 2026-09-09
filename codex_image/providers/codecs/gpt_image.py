@@ -69,17 +69,18 @@ def _is_openai_official(binding: ProviderModelBinding) -> bool:
 
 
 def _resolve_openai_official_size(size: str | None, aspect_ratio: str | None) -> str:
-    clean_size = str(size or "").strip().lower()
+    clean_size = str(size or "").strip().lower().replace("×", "x").replace(" ", "")
     if aspect_ratio and ":" in str(aspect_ratio):
         try:
             parts = str(aspect_ratio).split(":")
-            w, h = float(parts[0]), float(parts[1])
-            if w > 0 and h > 0:
-                if w > h:
-                    return "1792x1024"
-                if h > w:
-                    return "1024x1792"
-                return "1024x1024"
+            if len(parts) == 2:
+                w, h = float(parts[0]), float(parts[1])
+                if w > 0 and h > 0:
+                    if w > h:
+                        return "1792x1024"
+                    if h > w:
+                        return "1024x1792"
+                    return "1024x1024"
         except (ValueError, TypeError, IndexError):
             pass
     if clean_size in {"1024x1024", "1792x1024", "1024x1792"}:
@@ -87,13 +88,14 @@ def _resolve_openai_official_size(size: str | None, aspect_ratio: str | None) ->
     if clean_size and "x" in clean_size and clean_size != "auto":
         try:
             parts = clean_size.split("x")
-            w, h = float(parts[0]), float(parts[1])
-            if w > 0 and h > 0:
-                if w > h:
-                    return "1792x1024"
-                if h > w:
-                    return "1024x1792"
-                return "1024x1024"
+            if len(parts) == 2:
+                w, h = float(parts[0]), float(parts[1])
+                if w > 0 and h > 0:
+                    if w > h:
+                        return "1792x1024"
+                    if h > w:
+                        return "1024x1792"
+                    return "1024x1024"
         except (ValueError, TypeError, IndexError):
             pass
     return "1024x1024"

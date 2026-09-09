@@ -186,8 +186,8 @@ export function findPresetForSize(size: any): any {
 }
 
 export function currentSize(): string {
-  if (els.size.value !== "custom") return els.size.value;
-  return `${els.customWidth.value}x${els.customHeight.value}`;
+  if (els.size?.value !== "custom") return els.size?.value || "auto";
+  return `${els.customWidth?.value || 1024}x${els.customHeight?.value || 1024}`;
 }
 
 export function currentImageToolModel(): string {

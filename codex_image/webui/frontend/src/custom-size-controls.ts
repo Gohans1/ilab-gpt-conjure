@@ -423,7 +423,11 @@ if (typeof document !== "undefined" && typeof document.addEventListener === "fun
 
 export function syncSizeControlsFromSize(size: any): void {
   withProgrammaticSizeSync(() => {
-    const normalizedSize = String(size || "").trim().toLowerCase();
+    const normalizedSize = String(size || "")
+      .trim()
+      .toLowerCase()
+      .replace(/×/g, "x")
+      .replace(/\s*x\s*/g, "x");
     if (!size || normalizedSize === "auto") {
       if (els.customSizeToggle) els.customSizeToggle.checked = false;
       if (els.resolution && !els.resolution.value) els.resolution.value = DEFAULT_RESOLUTION;

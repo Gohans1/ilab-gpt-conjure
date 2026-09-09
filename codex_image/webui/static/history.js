@@ -20194,7 +20194,8 @@
     rect.setAttribute("stroke", "currentColor");
     rect.setAttribute("stroke-width", "1.35");
     rect.setAttribute("vector-effect", "non-scaling-stroke");
-    if (String(value || "").trim().toLowerCase() === "none") {
+    const normVal = String(value || "").trim().toLowerCase();
+    if (normVal === "none" || normVal === "auto") {
       rect.setAttribute("stroke-dasharray", "2 2");
     }
     svg.append(rect);
@@ -20314,7 +20315,7 @@
   }
   function gptSizeValid(value) {
     if (typeof value !== "string") return false;
-    const normalized = value.trim().toLowerCase();
+    const normalized = value.trim().toLowerCase().replace(/×/g, "x");
     if (normalized === "auto") return true;
     const match = normalized.match(/^(\d+)x(\d+)$/);
     if (!match) return false;
@@ -21119,7 +21120,7 @@
       if (typeof draft["canvas.aspect_ratio"] === "string" && els14.ratio) els14.ratio.value = draft["canvas.aspect_ratio"];
       const rawRatio = String(draft["canvas.aspect_ratio"] || "").trim().toLowerCase();
       const isNoneRatio = rawRatio === "none" || rawRatio === "auto";
-      const effectiveSize = isNoneRatio && draft["canvas.size"] === "1024x1024" ? "auto" : draft["canvas.size"];
+      const effectiveSize = isNoneRatio ? "auto" : draft["canvas.size"];
       if (typeof effectiveSize === "string") {
         methods.syncSizeControlsFromSize?.(effectiveSize);
       } else if ((draft["canvas.resolution"] || draft["canvas.aspect_ratio"]) && typeof methods.updateSizeFromPreset === "function") {

@@ -107,7 +107,8 @@ export function createAspectRatioIcon(value: string): SVGSVGElement | null {
   rect.setAttribute("stroke", "currentColor");
   rect.setAttribute("stroke-width", "1.35");
   rect.setAttribute("vector-effect", "non-scaling-stroke");
-  if (String(value || "").trim().toLowerCase() === "none") {
+  const normVal = String(value || "").trim().toLowerCase();
+  if (normVal === "none" || normVal === "auto") {
     rect.setAttribute("stroke-dasharray", "2 2");
   }
   svg.append(rect);

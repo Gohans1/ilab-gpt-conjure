@@ -582,10 +582,12 @@ test("syncSizeControlsFromSize updates els.size.value and controls for auto, pre
     assert.equal(fakeEls.customWidth.value, "1920");
     assert.equal(fakeEls.customHeight.value, "1080");
 
-    // 4. Case-insensitive "none" ratio should not be forcibly reset to 1:1
-    fakeEls.ratio.value = "none";
-    syncRatioAndOrientation(null);
-    assert.equal(fakeEls.ratio.value, "none");
+    // 4. Changing ratio to None when orientation is landscape should set orientation to square without reverting ratio
+    fakeEls.orientation.value = "landscape";
+    fakeEls.ratio.value = "None";
+    syncRatioAndOrientation("ratio");
+    assert.equal(fakeEls.ratio.value, "None");
+    assert.equal(fakeEls.orientation.value, "square");
   } finally {
     for (const key of Object.keys(fakeEls)) {
       delete (bridge.els as any)[key];
