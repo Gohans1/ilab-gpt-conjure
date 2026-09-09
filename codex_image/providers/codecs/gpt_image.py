@@ -153,6 +153,7 @@ def _responses_payload(
         input_files=list(command.reference_files),
         mask_image=command.mask_image,
         size=size,
+        aspect_ratio=aspect_ratio,
         quality=parameters["quality"],
         background=parameters["background"],
         output_format=parameters["output_format"],

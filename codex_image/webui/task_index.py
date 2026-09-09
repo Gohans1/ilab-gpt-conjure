@@ -899,12 +899,12 @@ def _normalized_utc_timestamp(value: object) -> str:
 
 
 def _history_ratio(params: dict[str, Any], size: str) -> str:
-    explicit = str(params.get("ratio") or "").strip()
-    if explicit:
-        return explicit
     known = _known_ratio_from_size(size)
     if known:
         return known
+    explicit = str(params.get("ratio") or "").strip()
+    if explicit:
+        return explicit
     return ""
 
 
@@ -943,24 +943,11 @@ def _normalize_dimension_size(value: Any) -> str:
 
 
 def _known_ratio_from_size(size: str) -> str:
-    dimensions = _size_dimensions(size)
-    if dimensions is None:
-        return ""
-    width, height = dimensions
-    divisor = gcd(width, height)
-    rw = width // divisor
-    rh = height // divisor
-    if rw == 3 and rh == 7:
-        return "9:21"
-    if rw == 7 and rh == 3:
-        return "21:9"
-    ratio = f"{rw}:{rh}"
+    from .prompt_ratio import ratio_from_size
+
+    ratio = ratio_from_size(size)
     if ratio in KNOWN_RATIO_ORIENTATIONS:
         return ratio
-    if abs(width / height - 9 / 19.5) < 0.01:
-        return "9:19.5"
-    if abs(width / height - 19.5 / 9) < 0.01:
-        return "19.5:9"
     return ""
 
 

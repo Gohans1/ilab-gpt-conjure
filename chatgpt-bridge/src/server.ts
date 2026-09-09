@@ -482,13 +482,13 @@ export function buildGenerationPrompt(options: {
 
   let ratioInstruction = "";
   if (!isExplicitNoneRatio) {
-    const isExplicitRatio = typeof rawAspect === "string" && /^\d+(?:\.\d+)?\s*:\s*\d+(?:\.\d+)?$/.test(rawAspect.trim());
+    const isExplicitRatio = typeof rawAspect === "string" && /^[1-9]\d*(?:\.\d+)?\s*:\s*[1-9]\d*(?:\.\d+)?$/.test(rawAspect.trim());
     const promptRatio = extractRatioFromText(options.prompt);
-    if (isExplicitRatio) {
+    if (promptRatio && (!isExplicitRatio || rawAspect?.trim() === "1:1")) {
+      ratioInstruction = ` Set the aspect ratio to ${promptRatio}.`;
+    } else if (isExplicitRatio) {
       const normalizedRatio = rawAspect.trim().replace(/\s*:\s*/, ":");
       ratioInstruction = ` Set the aspect ratio to ${normalizedRatio}.`;
-    } else if (promptRatio) {
-      ratioInstruction = ` Set the aspect ratio to ${promptRatio}.`;
     } else {
       const detectedRatio = sizeToAspectRatio(rawAspect);
       if (detectedRatio) {

@@ -124,7 +124,7 @@
     <link rel="stylesheet" href="/static/styles.css?v=runtime-790" />
     <style>
       .ratio-group {
-        grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
+        grid-template-columns: repeat(8, minmax(0, 1fr)) !important;
         grid-template-rows: repeat(2, 30px) !important;
         gap: 2px !important;
       }
@@ -170,12 +170,20 @@
         grid-column: 6 !important;
         grid-row: 2 !important;
       }
-      .ratio-group .radio-btn[data-val="9:21"] {
+      .ratio-group .radio-btn[data-val="9:19.5"] {
         grid-column: 7 !important;
         grid-row: 1 !important;
       }
-      .ratio-group .radio-btn[data-val="21:9"] {
+      .ratio-group .radio-btn[data-val="19.5:9"] {
         grid-column: 7 !important;
+        grid-row: 2 !important;
+      }
+      .ratio-group .radio-btn[data-val="9:21"] {
+        grid-column: 8 !important;
+        grid-row: 1 !important;
+      }
+      .ratio-group .radio-btn[data-val="21:9"] {
+        grid-column: 8 !important;
         grid-row: 2 !important;
       }
       .chatgpt-delete-chat-field {
@@ -973,6 +981,8 @@
                     <button class="radio-btn" data-val="3:2" type="button">3:2</button>
                     <button class="radio-btn" data-val="9:16" type="button">9:16</button>
                     <button class="radio-btn" data-val="16:9" type="button">16:9</button>
+                    <button class="radio-btn" data-val="9:19.5" type="button">9:19.5</button>
+                    <button class="radio-btn" data-val="19.5:9" type="button">19.5:9</button>
                     <button class="radio-btn" data-val="9:21" type="button">9:21</button>
                     <button class="radio-btn" data-val="21:9" type="button">21:9</button>
                   </div>

@@ -307,13 +307,22 @@ def _prepare_generation_submission(
             effective_size = canonical_size
         canonical_ratio = canonical_parameters.get("canvas.aspect_ratio")
         if canonical_ratio and not effective_ratio:
-            effective_ratio = str(canonical_ratio).strip()
+            raw_val = str(canonical_ratio).strip()
+            if raw_val.lower() not in ("none", "auto"):
+                effective_ratio = raw_val
         canonical_resolution = canonical_parameters.get("canvas.resolution")
         if canonical_resolution and not resolution:
             resolution = str(canonical_resolution).strip()
-        if not effective_ratio:
-            effective_ratio = ratio_from_size(effective_size) or None
-        if not effective_orientation:
+        if (
+            auth_source == "codex"
+            and canonical_model_id == "gpt-image-2"
+            and requested_backend in _CODEX_GPT_BACKENDS
+        ):
+            if not effective_ratio:
+                effective_ratio = ratio_from_size(effective_size) or None
+            if not effective_orientation:
+                effective_orientation = orientation_from_ratio(effective_ratio) or None
+        elif effective_ratio and not effective_orientation:
             effective_orientation = orientation_from_ratio(effective_ratio) or None
     base_model_prompt = h["model_prompt_for_fidelity"](prompt, prompt_for_model, fidelity)
     if fidelity == "original":

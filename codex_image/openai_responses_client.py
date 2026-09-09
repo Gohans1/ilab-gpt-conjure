@@ -42,6 +42,7 @@ def build_openai_responses_payload(
     input_files: list[ResponsesInputFile] | None = None,
     mask_image: str | None = None,
     size: str | None = None,
+    aspect_ratio: str | None = None,
     quality: str | None = None,
     background: str | None = None,
     output_format: str = "png",
@@ -56,7 +57,7 @@ def build_openai_responses_payload(
         "type": "image_generation", "action": action, "model": image_model,
         "output_format": output_format,
     }
-    for key, value in (("size", size), ("quality", quality), ("background", background)):
+    for key, value in (("size", size), ("aspect_ratio", aspect_ratio), ("quality", quality), ("background", background)):
         if value:
             tool[key] = value
     if input_fidelity and image_model_supports_input_fidelity(image_model):

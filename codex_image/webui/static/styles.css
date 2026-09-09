@@ -4096,7 +4096,7 @@ select.themed-select-native {
 .ratio-group {
   --segmented-control-padding: 2px;
   display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
+  grid-template-columns: repeat(8, minmax(0, 1fr));
   grid-template-rows: repeat(2, 30px);
   gap: 2px;
 }
@@ -4153,13 +4153,23 @@ select.themed-select-native {
   grid-row: 2;
 }
 
-.ratio-group .radio-btn[data-val="9:21"] {
+.ratio-group .radio-btn[data-val="9:19.5"] {
   grid-column: 7;
   grid-row: 1;
 }
 
-.ratio-group .radio-btn[data-val="21:9"] {
+.ratio-group .radio-btn[data-val="19.5:9"] {
   grid-column: 7;
+  grid-row: 2;
+}
+
+.ratio-group .radio-btn[data-val="9:21"] {
+  grid-column: 8;
+  grid-row: 1;
+}
+
+.ratio-group .radio-btn[data-val="21:9"] {
+  grid-column: 8;
   grid-row: 2;
 }
 
@@ -13938,7 +13948,7 @@ button:disabled {
   }
 
   .ratio-group {
-    grid-template-columns: repeat(7, minmax(0, 1fr));
+    grid-template-columns: repeat(8, minmax(0, 1fr));
     grid-template-rows: repeat(2, var(--compact-settings-segment-height));
   }
 
