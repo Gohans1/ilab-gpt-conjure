@@ -16,6 +16,7 @@ import {
   killOrphanBrowsersByTag,
   killOrphanBrowsersByTagAsync,
   killProcessTree,
+  parseDevToolsActivePort,
   registerActiveBrowserPid,
   unregisterActiveBrowserPid,
 } from "./browser.js";
@@ -238,5 +239,25 @@ describe("browser helpers", () => {
     expect(() => closeBrowserGracefully("non-existent-profile-path")).not.toThrow();
     expect(() => closeBrowserGracefully(["non-existent-1", "non-existent-2"], 99999999)).not.toThrow();
     expect(() => closeBrowserGracefully(undefined, undefined)).not.toThrow();
+  });
+
+  test("parseDevToolsActivePort phân tích chính xác các định dạng port và wsPath", () => {
+    // 1. Chuẩn CRLF từ Chrome/Edge Windows với wsPath
+    expect(parseDevToolsActivePort("9222\r\n/devtools/browser/abc-123\r\n")).toBe("ws://127.0.0.1:9222/devtools/browser/abc-123");
+    // 2. Chuẩn LF
+    expect(parseDevToolsActivePort("9222\n/devtools/browser/abc-123\n")).toBe("ws://127.0.0.1:9222/devtools/browser/abc-123");
+    // 3. wsPath không có leading slash
+    expect(parseDevToolsActivePort("54321\ndevtools/browser/xyz\n")).toBe("ws://127.0.0.1:54321/devtools/browser/xyz");
+    // 4. Chỉ có port, không có wsPath: trả về null nếu allowHttpFallback = false
+    expect(parseDevToolsActivePort("9222\n")).toBeNull();
+    // 5. Chỉ có port, allowHttpFallback = true: fallback sang http://
+    expect(parseDevToolsActivePort("9222\n", true)).toBe("http://127.0.0.1:9222");
+    // 6. Port không hợp lệ: 0, 65536, âm, chữ, rỗng
+    expect(parseDevToolsActivePort("0\n/devtools")).toBeNull();
+    expect(parseDevToolsActivePort("65536\n/devtools")).toBeNull();
+    expect(parseDevToolsActivePort("-1\n/devtools")).toBeNull();
+    expect(parseDevToolsActivePort("abc\n/devtools")).toBeNull();
+    expect(parseDevToolsActivePort("")).toBeNull();
+    expect(parseDevToolsActivePort(null as any)).toBeNull();
   });
 });

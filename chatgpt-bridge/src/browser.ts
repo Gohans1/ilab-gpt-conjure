@@ -92,14 +92,32 @@ export function killProcessTree(pid: number, isKnownBrowser: boolean = false): v
   }
 }
 
+export function parseDevToolsActivePort(content: string, allowHttpFallback = false): string | null {
+  if (!content) return null;
+  const lines = content.trim().split(/\r?\n/);
+  const port = Number(lines[0]?.trim());
+  if (!Number.isInteger(port) || port < 1 || port > 65535) {
+    return null;
+  }
+  const wsPath = lines[1]?.trim() || "";
+  if (wsPath) {
+    return `ws://127.0.0.1:${port}${wsPath.startsWith("/") ? wsPath : `/${wsPath}`}`;
+  }
+  if (allowHttpFallback) {
+    return `http://127.0.0.1:${port}`;
+  }
+  return null;
+}
+
 function buildOrphanKillScript(profileDirs: string[]): string {
   const normalizedList = profileDirs.map((d) => d.replace(/[/\\]+/g, "\\").replace(/'/g, "''"));
+  const patternItems = normalizedList.map((p) => `'${p}'`).join(",");
   return `
-$patterns = @(${normalizedList.length > 0 ? normalizedList.map((p) => `'${p}'`).join(",") : "''"});
+$patterns = @(${patternItems});
 Get-CimInstance Win32_Process -Filter "Name = 'chrome.exe' or Name = 'msedge.exe' or Name = 'chromium.exe'" |
   Where-Object {
     if (!$_.CommandLine) { return $false }
-    if ($patterns.Count -gt 0 -and $patterns[0] -ne '') {
+    if ($patterns.Count -gt 0) {
       foreach ($p in $patterns) {
         if ($_.CommandLine -match [regex]::Escape($p)) { return $true }
       }
@@ -196,9 +214,9 @@ export async function killOrphanBrowsersAsync(profileDir?: string | string[], fo
     try {
       if (profileDirs.length > 0) {
         const escaped = profileDirs.map((d) => d.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|");
-        spawnSync("pkill", ["-f", escaped], { stdio: "ignore" });
+        spawn("pkill", ["-f", escaped], { stdio: "ignore" }).unref();
       } else {
-        spawnSync("pkill", ["-f", "--chatgpt-bridge-instance"], { stdio: "ignore" });
+        spawn("pkill", ["-f", "--chatgpt-bridge-instance"], { stdio: "ignore" }).unref();
       }
     } catch {}
   }

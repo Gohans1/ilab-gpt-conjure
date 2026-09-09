@@ -30,6 +30,7 @@ import {
   killOrphanBrowsersAsync,
   killOrphanBrowsersByTagAsync,
   killProcessTree,
+  parseDevToolsActivePort,
   registerActiveBrowserPid,
   unregisterActiveBrowserPid,
 } from "./browser.js";
@@ -826,16 +827,12 @@ export async function handleLogin(
             }
             if (existsSync(portFile)) {
               try {
-                const lines = readFileSync(portFile, "utf-8").trim().split("\n");
-                const p = Number(lines[0]?.trim());
-                if (Number.isInteger(p) && p >= 1 && p <= 65535) {
-                  const wsPath = lines[1]?.trim() || "";
-                  if (wsPath || Date.now() > portDeadline - 1500) {
-                    cdpEndpoint = wsPath
-                      ? `ws://127.0.0.1:${p}${wsPath.startsWith("/") ? wsPath : `/${wsPath}`}`
-                      : `http://127.0.0.1:${p}`;
-                    break;
-                  }
+                const raw = readFileSync(portFile, "utf-8");
+                const allowHttp = Date.now() > portDeadline - 1500;
+                const endpoint = parseDevToolsActivePort(raw, allowHttp);
+                if (endpoint) {
+                  cdpEndpoint = endpoint;
+                  break;
                 }
               } catch {}
             }
@@ -849,7 +846,11 @@ export async function handleLogin(
           if (cdpEndpoint) {
             const cdpBrowser = await chromium.connectOverCDP(cdpEndpoint, { timeout: 8000 });
             try {
-              const cdpContext = cdpBrowser.contexts()[0] ?? (await cdpBrowser.newContext());
+              let cdpContext = cdpBrowser.contexts()[0];
+              if (!cdpContext) {
+                console.warn("⚠️ [CDP Extraction] Default persistent context not found on CDP connection; creating new context.");
+                cdpContext = await cdpBrowser.newContext();
+              }
               await cdpContext.setOffline(true);
               await cdpContext.route("**/*", (route: any) =>
                 route.fulfill({
