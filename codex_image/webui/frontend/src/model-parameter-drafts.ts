@@ -1,7 +1,8 @@
 import type { CatalogModel, CatalogParameterDefinition, GenerationOperation } from "./types";
 import { selectedProviderBinding } from "./provider-selection";
 import { getLegacyBridge } from "./state";
-import { renderCurrentModelParameters } from "./model-parameters";
+import { parameterValueValid, renderCurrentModelParameters } from "./model-parameters";
+import { withProgrammaticSizeSync } from "./custom-size-controls";
 
 function cloneValue(value: unknown): unknown {
   if (Array.isArray(value)) return value.map(cloneValue);
@@ -41,26 +42,6 @@ function conditionMatches(
   if (condition.operator === "equals") return actual === condition.value;
   if (condition.operator === "not_equals") return actual !== condition.value;
   return Array.isArray(condition.value) && condition.value.includes(actual);
-}
-
-function parameterValueValid(parameter: CatalogParameterDefinition, value: unknown): boolean {
-  const typeValid = parameter.value_type === "string" ? typeof value === "string"
-    : parameter.value_type === "integer" ? typeof value === "number" && Number.isInteger(value)
-      : parameter.value_type === "boolean" ? typeof value === "boolean"
-        : parameter.value_type === "object" ? Boolean(value) && typeof value === "object" && !Array.isArray(value)
-          : false;
-  if (!typeValid) return false;
-  if (parameter.allowed_values.length && !parameter.allowed_values.includes(value)) return false;
-  if (typeof value === "number") {
-    if (parameter.minimum !== null && value < parameter.minimum) return false;
-    if (parameter.maximum !== null && value > parameter.maximum) return false;
-    if (parameter.step !== null) {
-      const base = parameter.minimum ?? 0;
-      const quotient = (value - base) / parameter.step;
-      if (Math.abs(quotient - Math.round(quotient)) > 1e-9) return false;
-    }
-  }
-  return true;
 }
 
 export function migratePortableModelDraft(
@@ -132,30 +113,36 @@ export function restoreCurrentModelParameterDraft(): void {
     renderCurrentModelParameters();
     return;
   }
-  const draft = {
-    ...Object.fromEntries(model.parameters.map((parameter) => [parameter.id, parameter.default])),
-    ...(state.parameterDraftsByModel[modelId] || {}),
-  };
-  if (typeof draft["canvas.resolution"] === "string" && els.resolution) els.resolution.value = draft["canvas.resolution"];
-  if (typeof draft["canvas.aspect_ratio"] === "string" && els.ratio) els.ratio.value = draft["canvas.aspect_ratio"];
-  if ((draft["canvas.resolution"] || draft["canvas.aspect_ratio"]) && typeof methods.updateSizeFromPreset === "function") {
-    methods.updateSizeFromPreset();
-  }
-  if (typeof draft["canvas.size"] === "string" && draft["canvas.aspect_ratio"] !== "None") {
-    methods.syncSizeControlsFromSize?.(draft["canvas.size"]);
-  }
-  if (typeof draft["gpt.quality"] === "string" && els.quality) els.quality.value = draft["gpt.quality"];
-  if (typeof draft["output.format"] === "string" && els.outputFormat) els.outputFormat.value = draft["output.format"];
-  if (typeof draft["gpt.moderation"] === "string" && els.moderation) els.moderation.value = draft["gpt.moderation"];
-  if (typeof draft["gpt.output_compression"] === "number" && els.compression) els.compression.value = String(draft["gpt.output_compression"]);
-  if (typeof draft["gpt.web_search"] === "boolean" && els.webSearch) {
-    els.webSearch.checked = draft["gpt.web_search"] && (selectedProviderBinding()?.protocol_profile || "").endsWith("_responses");
-  }
-  if (typeof draft["output.count"] === "number" && els.nInput) els.nInput.value = String(draft["output.count"]);
-  methods.syncRadioButtons?.(els.quality, els.outputFormat, els.moderation);
-  methods.updateQuantity?.();
-  methods.updateCompression?.();
-  renderCurrentModelParameters();
+  withProgrammaticSizeSync(() => {
+    const draft = {
+      ...Object.fromEntries(model.parameters.map((parameter) => [parameter.id, parameter.default])),
+      ...(state.parameterDraftsByModel[modelId] || {}),
+    };
+    if (typeof draft["canvas.resolution"] === "string" && els.resolution) els.resolution.value = draft["canvas.resolution"];
+    if (typeof draft["canvas.aspect_ratio"] === "string" && els.ratio) els.ratio.value = draft["canvas.aspect_ratio"];
+    const rawRatio = String(draft["canvas.aspect_ratio"] || "").trim().toLowerCase();
+    const isNoneRatio = rawRatio === "none" || rawRatio === "auto";
+    const effectiveSize = (isNoneRatio && draft["canvas.size"] === "1024x1024")
+      ? "auto"
+      : draft["canvas.size"];
+    if (typeof effectiveSize === "string") {
+      methods.syncSizeControlsFromSize?.(effectiveSize);
+    } else if ((draft["canvas.resolution"] || draft["canvas.aspect_ratio"]) && typeof methods.updateSizeFromPreset === "function") {
+      methods.updateSizeFromPreset();
+    }
+    if (typeof draft["gpt.quality"] === "string" && els.quality) els.quality.value = draft["gpt.quality"];
+    if (typeof draft["output.format"] === "string" && els.outputFormat) els.outputFormat.value = draft["output.format"];
+    if (typeof draft["gpt.moderation"] === "string" && els.moderation) els.moderation.value = draft["gpt.moderation"];
+    if (typeof draft["gpt.output_compression"] === "number" && els.compression) els.compression.value = String(draft["gpt.output_compression"]);
+    if (typeof draft["gpt.web_search"] === "boolean" && els.webSearch) {
+      els.webSearch.checked = draft["gpt.web_search"] && (selectedProviderBinding()?.protocol_profile || "").endsWith("_responses");
+    }
+    if (typeof draft["output.count"] === "number" && els.nInput) els.nInput.value = String(draft["output.count"]);
+    methods.syncRadioButtons?.(els.quality, els.outputFormat, els.moderation);
+    methods.updateQuantity?.();
+    methods.updateCompression?.();
+    renderCurrentModelParameters();
+  });
 }
 
 export function initModelParameterDraftFeature(): void {

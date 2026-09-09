@@ -26,8 +26,16 @@ GPT_PARAMETER_IDS = frozenset(
 
 def gpt_image_parameters(command: GenerationCommand) -> dict[str, Any]:
     params = {**command.parameters, **command.legacy_compat_parameters}
-    size = params.get("canvas.size")
+    size = params.get("canvas.size") or params.get("size")
+    if isinstance(size, str):
+        size = size.strip()
+        if size.lower() == "auto":
+            size = "auto"
     aspect_ratio = params.get("canvas.aspect_ratio") or params.get("aspect_ratio") or params.get("ratio")
+    if isinstance(aspect_ratio, str):
+        aspect_ratio = aspect_ratio.strip()
+        if aspect_ratio.lower() in ("none", "auto"):
+            aspect_ratio = "None"
     if size == "auto" and not aspect_ratio:
         aspect_ratio = "None"
     return {
@@ -55,19 +63,60 @@ class _GptCodec:
         return GPT_PARAMETER_IDS
 
 
+def _is_openai_official(binding: ProviderModelBinding) -> bool:
+    provider = binding.provider_id.lower().strip()
+    return provider == "openai" or provider.startswith(("openai-", "openai_"))
+
+
+def _resolve_openai_official_size(size: str | None, aspect_ratio: str | None) -> str:
+    clean_size = str(size or "").strip().lower()
+    if aspect_ratio and ":" in str(aspect_ratio):
+        try:
+            parts = str(aspect_ratio).split(":")
+            w, h = float(parts[0]), float(parts[1])
+            if w > 0 and h > 0:
+                if w > h:
+                    return "1792x1024"
+                if h > w:
+                    return "1024x1792"
+                return "1024x1024"
+        except (ValueError, TypeError, IndexError):
+            pass
+    if clean_size in {"1024x1024", "1792x1024", "1024x1792"}:
+        return clean_size
+    if clean_size and "x" in clean_size and clean_size != "auto":
+        try:
+            parts = clean_size.split("x")
+            w, h = float(parts[0]), float(parts[1])
+            if w > 0 and h > 0:
+                if w > h:
+                    return "1792x1024"
+                if h > w:
+                    return "1024x1792"
+                return "1024x1024"
+        except (ValueError, TypeError, IndexError):
+            pass
+    return "1024x1024"
+
+
 def _images_payload(
     command: GenerationCommand,
     binding: ProviderModelBinding,
 ) -> dict[str, Any]:
     parameters = gpt_image_parameters(command)
+    size = parameters["size"]
+    aspect_ratio = parameters["aspect_ratio"]
+    if _is_openai_official(binding):
+        size = _resolve_openai_official_size(size, aspect_ratio)
+        aspect_ratio = None
     return build_openai_images_payload(
         prompt=command.prompt,
         action=command.operation,
         model=binding.remote_model_id, default_model=binding.remote_model_id,
         input_images=[image.data_url for image in command.image_inputs],
         mask_image=command.mask_image,
-        size=parameters["size"],
-        aspect_ratio=parameters["aspect_ratio"],
+        size=size,
+        aspect_ratio=aspect_ratio,
         quality=parameters["quality"],
         background=parameters["background"],
         output_format=parameters["output_format"],
@@ -85,6 +134,10 @@ def _responses_payload(
     codex: bool,
 ) -> dict[str, Any]:
     parameters = gpt_image_parameters(command)
+    size = parameters["size"]
+    aspect_ratio = parameters["aspect_ratio"]
+    if not codex and _is_openai_official(binding):
+        size = _resolve_openai_official_size(size, aspect_ratio)
     builder = build_codex_responses_payload if codex else build_openai_responses_payload
     kwargs = dict(
         prompt=command.prompt,
@@ -95,7 +148,7 @@ def _responses_payload(
         input_images=[image.data_url for image in command.image_inputs],
         input_files=list(command.reference_files),
         mask_image=command.mask_image,
-        size=parameters["size"],
+        size=size,
         quality=parameters["quality"],
         background=parameters["background"],
         output_format=parameters["output_format"],

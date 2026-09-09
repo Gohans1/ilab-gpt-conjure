@@ -13,6 +13,7 @@ import {
   nextObjectPresetValue,
   parameterAffectsVisibility,
   parameterRenderFingerprint,
+  parameterValueValid,
 } from "../../codex_image/webui/frontend/src/model-parameters";
 import {
   aspectRatioRect,
@@ -29,6 +30,14 @@ import {
   taskParameterInspectorParameters,
 } from "../../codex_image/webui/frontend/src/task-parameter-inspector";
 import { appendCanonicalGenerationFields } from "../../codex_image/webui/frontend/src/generation-request";
+import { canonicalControlValues } from "../../codex_image/webui/frontend/src/model-parameter-drafts";
+import {
+  isProgrammaticSizeSync,
+  syncRatioAndOrientation,
+  syncSizeControlsFromSize,
+  withProgrammaticSizeSync,
+} from "../../codex_image/webui/frontend/src/custom-size-controls";
+import { getLegacyBridge } from "../../codex_image/webui/frontend/src/state";
 import { translate } from "../../codex_image/webui/frontend/src/i18n";
 
 const parameters: CatalogModel["parameters"] = [
@@ -254,8 +263,8 @@ test("aspect ratio SVG geometry preserves orientation and keeps extreme ratios v
   assert.ok(portrait.width >= 2);
   assert.ok(portrait.height > portrait.width);
   assert.ok(landscape.height >= 2);
-  assert.ok(landscape.width > landscape.height);
-  assert.equal(aspectRatioRect("auto"), null);
+  assert.deepEqual(aspectRatioRect("auto"), { x: 5, y: 5, width: 10, height: 10 });
+  assert.equal(aspectRatioRect("invalid"), null);
 });
 
 test("advanced parameter expansion is manifest driven and history remains expanded", () => {
@@ -467,3 +476,121 @@ test("canonical fields are deterministic and do not include image data", () => {
   assert.equal(form.get("parameters_json"), '{"a":"value","z":1}');
   assert.doesNotMatch(String(form.get("parameters_json")), /data:image/);
 });
+
+test("gpt canvas.size parameter accepts auto and valid dimension strings", () => {
+  const gptModel: CatalogModel = {
+    ...model,
+    id: "gpt-image-2",
+    parameters: [
+      {
+        id: "canvas.size",
+        label_key: "output.size",
+        group: "canvas",
+        control: "text",
+        value_type: "string",
+        default: "1024x1024",
+        allowed_values: [],
+        scope: "model",
+        minimum: null,
+        maximum: null,
+        step: null,
+        visible_when: [],
+        operations: ["generate"],
+        full_width: true,
+      },
+    ],
+  };
+  const sizeParam = gptModel.parameters[0];
+  assert.equal(parameterValueValid(sizeParam, "auto"), true);
+  assert.equal(parameterValueValid(sizeParam, "AUTO"), true);
+  assert.equal(parameterValueValid(sizeParam, "1024x1024"), true);
+  assert.equal(parameterValueValid(sizeParam, "1536x1024"), true);
+  assert.equal(parameterValueValid(sizeParam, "invalid"), false);
+
+  const activeValues = activeParameterValuesFor(gptModel, "generate", { "canvas.size": "auto" });
+  assert.equal(activeValues["canvas.size"], "auto");
+});
+
+test("canonicalControlValues preserves size and ratio without leaking None in custom mode", () => {
+  const customParams = {
+    size: "1600x900",
+    ratio: undefined,
+    resolution: "standard",
+    output_format: "png",
+    quality: "auto",
+    moderation: "auto",
+    n: 1,
+  };
+  const canonical = canonicalControlValues(customParams, "openai_images");
+  assert.equal(canonical["canvas.size"], "1600x900");
+  assert.equal(canonical["canvas.aspect_ratio"], undefined);
+});
+
+test("aspectRatioRect normalizes None case-insensitively and handles whitespace", () => {
+  const expected = { x: 5, y: 5, width: 10, height: 10 };
+  assert.deepEqual(aspectRatioRect("None"), expected);
+  assert.deepEqual(aspectRatioRect("none"), expected);
+  assert.deepEqual(aspectRatioRect("NONE"), expected);
+  assert.deepEqual(aspectRatioRect("  none  "), expected);
+});
+
+test("withProgrammaticSizeSync handles nested reentrancy correctly", () => {
+  assert.equal(isProgrammaticSizeSync(), false);
+  withProgrammaticSizeSync(() => {
+    assert.equal(isProgrammaticSizeSync(), true);
+    withProgrammaticSizeSync(() => {
+      assert.equal(isProgrammaticSizeSync(), true);
+    });
+    assert.equal(isProgrammaticSizeSync(), true);
+  });
+  assert.equal(isProgrammaticSizeSync(), false);
+});
+
+test("syncSizeControlsFromSize updates els.size.value and controls for auto, preset, and custom sizes", () => {
+  const fakeEls: any = {
+    customSizeToggle: { checked: true },
+    size: { value: "custom" },
+    resolution: { value: "1K", dispatchEvent() {} },
+    ratio: { value: "1:1", dispatchEvent() {} },
+    orientation: { value: "square", dispatchEvent() {} },
+    customWidth: { value: "1600" },
+    customHeight: { value: "900" },
+    pixelPreview: { textContent: "" },
+  };
+  const bridge = getLegacyBridge();
+  const originalEls = { ...bridge.els };
+  Object.assign(bridge.els, fakeEls);
+  try {
+    // 1. Sync auto size: should uncheck custom toggle, set ratio to None, and set size to auto, but preserve existing resolution 2K
+    fakeEls.resolution.value = "2K";
+    syncSizeControlsFromSize("auto");
+    assert.equal(fakeEls.customSizeToggle.checked, false);
+    assert.equal(fakeEls.ratio.value, "None");
+    assert.equal(fakeEls.size.value, "auto");
+    assert.equal(fakeEls.resolution.value, "2K");
+
+    // 2. Sync preset size with whitespace and uppercase X " 1536X1024 " (3:2)
+    syncSizeControlsFromSize(" 1536X1024 ");
+    assert.equal(fakeEls.customSizeToggle.checked, false);
+    assert.equal(fakeEls.ratio.value, "3:2");
+    assert.equal(fakeEls.size.value, "1536x1024");
+
+    // 3. Sync custom size with uppercase X 1920X1080
+    syncSizeControlsFromSize("1920X1080");
+    assert.equal(fakeEls.customSizeToggle.checked, true);
+    assert.equal(fakeEls.size.value, "custom");
+    assert.equal(fakeEls.customWidth.value, "1920");
+    assert.equal(fakeEls.customHeight.value, "1080");
+
+    // 4. Case-insensitive "none" ratio should not be forcibly reset to 1:1
+    fakeEls.ratio.value = "none";
+    syncRatioAndOrientation(null);
+    assert.equal(fakeEls.ratio.value, "none");
+  } finally {
+    for (const key of Object.keys(fakeEls)) {
+      delete (bridge.els as any)[key];
+    }
+    Object.assign(bridge.els, originalEls);
+  }
+});
+

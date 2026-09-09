@@ -69,21 +69,25 @@ def _command(
     operation: str = "generate",
     count: int = 1,
     size: str = "1024x1024",
+    aspect_ratio: str | None = None,
     image_inputs: tuple[Any, ...] = (),
 ) -> GenerationCommand:
+    parameters: dict[str, Any] = {
+        "canvas.size": size,
+        "gpt.quality": "low",
+        "gpt.background": "opaque",
+        "output.format": "png",
+        "gpt.moderation": "auto",
+        "output.count": count,
+    }
+    if aspect_ratio is not None:
+        parameters["canvas.aspect_ratio"] = aspect_ratio
     return GenerationCommand(
         operation=operation,  # type: ignore[arg-type]
         canonical_model_id="gpt-image-2",
         provider_id="relay",
         prompt="draw a rabbit",
-        parameters={
-            "canvas.size": size,
-            "gpt.quality": "low",
-            "gpt.background": "opaque",
-            "output.format": "png",
-            "gpt.moderation": "auto",
-            "output.count": count,
-        },
+        parameters=parameters,
         image_inputs=image_inputs,
         main_model="gpt-5.4-mini",
         instructions="preserve the prompt",
@@ -470,6 +474,68 @@ class LegacyProviderAdapterTests(unittest.TestCase):
         body = dict(encoded.json_body or {})
         self.assertEqual(body.get("size"), "auto")
         self.assertEqual(body.get("aspect_ratio"), "None")
+
+    def test_gpt_image_auto_size_official_openai_falls_back(self) -> None:
+        binding = _binding(profile="openai_images", codec="gpt_openai_images", provider_id="openai-official")
+        command = _command(size="auto")
+        encoded = GptOpenAIImagesCodec().encode(command, get_model_manifest("gpt-image-2"), binding)
+        body = dict(encoded.json_body or {})
+        self.assertEqual(body.get("size"), "1024x1024")
+        self.assertNotIn("aspect_ratio", body)
+
+        # Ratio preservation on official OpenAI fallback
+        for ratio in ("16:9", "21:9", "3:2", "4:3", "5:4"):
+            command_wide = _command(size="auto", aspect_ratio=ratio)
+            encoded_wide = GptOpenAIImagesCodec().encode(command_wide, get_model_manifest("gpt-image-2"), binding)
+            self.assertEqual(dict(encoded_wide.json_body or {}).get("size"), "1792x1024")
+
+        for ratio in ("9:16", "9:21", "2:3", "3:4", "4:5"):
+            command_tall = _command(size="auto", aspect_ratio=ratio)
+            encoded_tall = GptOpenAIImagesCodec().encode(command_tall, get_model_manifest("gpt-image-2"), binding)
+            self.assertEqual(dict(encoded_tall.json_body or {}).get("size"), "1024x1792")
+
+        # Unsupported preset size falls back to official allowed dimensions
+        command_preset_wide = _command(size="1536x864")
+        encoded_preset_wide = GptOpenAIImagesCodec().encode(command_preset_wide, get_model_manifest("gpt-image-2"), binding)
+        self.assertEqual(dict(encoded_preset_wide.json_body or {}).get("size"), "1792x1024")
+
+        command_preset_tall = _command(size="864x1536")
+        encoded_preset_tall = GptOpenAIImagesCodec().encode(command_preset_tall, get_model_manifest("gpt-image-2"), binding)
+        self.assertEqual(dict(encoded_preset_tall.json_body or {}).get("size"), "1024x1792")
+
+    def test_gpt_responses_auto_size_official_openai_falls_back(self) -> None:
+        binding = _binding(profile="openai_responses", codec="gpt_openai_responses", provider_id="openai-official")
+        command = _command(size="auto")
+        encoded = GptOpenAIResponsesCodec().encode(command, get_model_manifest("gpt-image-2"), binding)
+        body = dict(encoded.json_body or {})
+        tools = body.get("tools") or []
+        self.assertEqual(tools[0].get("size"), "1024x1024")
+
+        command_wide = _command(size="auto", aspect_ratio="16:9")
+        encoded_wide = GptOpenAIResponsesCodec().encode(command_wide, get_model_manifest("gpt-image-2"), binding)
+        self.assertEqual((dict(encoded_wide.json_body or {}).get("tools") or [])[0].get("size"), "1792x1024")
+
+        command_tall = _command(size="auto", aspect_ratio="9:16")
+        encoded_tall = GptOpenAIResponsesCodec().encode(command_tall, get_model_manifest("gpt-image-2"), binding)
+        self.assertEqual((dict(encoded_tall.json_body or {}).get("tools") or [])[0].get("size"), "1024x1792")
+
+    def test_gpt_openai_official_square_ratio_and_provider_slugs(self) -> None:
+        # 1. 1:1 aspect ratio takes precedence over non-square preset size
+        binding_api = _binding(profile="openai_images", codec="gpt_openai_images", provider_id="openai-api")
+        command_square = _command(size="1536x1024", aspect_ratio="1:1")
+        encoded_square = GptOpenAIImagesCodec().encode(command_square, get_model_manifest("gpt-image-2"), binding_api)
+        self.assertEqual(dict(encoded_square.json_body or {}).get("size"), "1024x1024")
+
+        # 2. explicit aspect ratio 16:9 takes precedence over default size 1024x1024
+        command_wide_override = _command(size="1024x1024", aspect_ratio="16:9")
+        encoded_wide_override = GptOpenAIImagesCodec().encode(command_wide_override, get_model_manifest("gpt-image-2"), binding_api)
+        self.assertEqual(dict(encoded_wide_override.json_body or {}).get("size"), "1792x1024")
+
+        # 3. openai_official provider slug activates official size resolution
+        binding_custom = _binding(profile="openai_images", codec="gpt_openai_images", provider_id="openai_official")
+        command_wide = _command(size="auto", aspect_ratio="16:9")
+        encoded_wide = GptOpenAIImagesCodec().encode(command_wide, get_model_manifest("gpt-image-2"), binding_custom)
+        self.assertEqual(dict(encoded_wide.json_body or {}).get("size"), "1792x1024")
 
 
 def _image_result():

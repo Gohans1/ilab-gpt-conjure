@@ -533,9 +533,24 @@
   }
 
   // codex_image/webui/frontend/src/state.ts
+  var fallbackBridge = null;
   function getLegacyBridge() {
-    const bridge40 = window.__codexImageWebUI;
+    const globalRef = typeof globalThis !== "undefined" ? globalThis : void 0;
+    const bridge40 = (typeof window !== "undefined" ? window.__codexImageWebUI : void 0) ?? globalRef?.window?.__codexImageWebUI ?? globalRef?.__codexImageWebUI;
     if (!bridge40) {
+      if (typeof window === "undefined" && !globalRef?.window) {
+        if (!fallbackBridge) {
+          fallbackBridge = {
+            state: {},
+            els: {},
+            methods: {},
+            constants: {},
+            boot() {
+            }
+          };
+        }
+        return fallbackBridge;
+      }
       throw new Error("WebUI legacy bridge is not initialized");
     }
     return bridge40;
@@ -19243,7 +19258,7 @@
   var DEFAULT_CODEX_MODE = "images";
   var DEFAULT_API_IMAGES_CONCURRENCY = 4;
   var API_SETTINGS_STORAGE_KEY = "codex-image-api-settings";
-  var DEFAULT_DOCUMENT_TITLE = document.title || "iLab CONJURE";
+  var DEFAULT_DOCUMENT_TITLE = (typeof document !== "undefined" ? document.title : "") || "iLab CONJURE";
   var TASK_HISTORY_EXPANDED_GROUP_STORAGE_KEY = "codex-image-task-history-expanded-group";
   function defaultGalleryCategories() {
     return DEFAULT_GALLERY_CATEGORIES.map((category) => ({ ...category }));
@@ -36678,7 +36693,8 @@ ${hint}` : hint;
     return slots;
   }
   function aspectRatioRect(value) {
-    if (value === "None" || value === "none" || value === "auto") {
+    const normalized = String(value || "").trim().toLowerCase();
+    if (normalized === "none" || normalized === "auto") {
       return {
         x: 5,
         y: 5,
@@ -36720,7 +36736,7 @@ ${hint}` : hint;
     rect.setAttribute("stroke", "currentColor");
     rect.setAttribute("stroke-width", "1.35");
     rect.setAttribute("vector-effect", "non-scaling-stroke");
-    if (value === "None" || value === "none") {
+    if (String(value || "").trim().toLowerCase() === "none") {
       rect.setAttribute("stroke-dasharray", "2 2");
     }
     svg.append(rect);
@@ -36843,6 +36859,9 @@ ${hint}` : hint;
   }
 
   // codex_image/webui/frontend/src/model-parameters.ts
+  var GPT_IMAGE_2_MIN_PIXELS = 655360;
+  var GPT_IMAGE_2_MAX_PIXELS = 8294400;
+  var GPT_IMAGE_2_MAX_LONG_SHORT_RATIO = 3;
   function cloneValue(value) {
     if (Array.isArray(value)) return value.map(cloneValue);
     if (value && typeof value === "object") {
@@ -36852,16 +36871,18 @@ ${hint}` : hint;
   }
   function gptSizeValid(value) {
     if (typeof value !== "string") return false;
-    const match = value.match(/^(\d+)x(\d+)$/i);
+    const normalized = value.trim().toLowerCase();
+    if (normalized === "auto") return true;
+    const match = normalized.match(/^(\d+)x(\d+)$/);
     if (!match) return false;
     const width = Number(match[1]);
     const height = Number(match[2]);
     if (!Number.isInteger(width) || !Number.isInteger(height)) return false;
     if (width < 16 || width > 3840 || height < 16 || height > 3840) return false;
     if (width % 16 !== 0 || height % 16 !== 0) return false;
-    if (Math.max(width, height) / Math.min(width, height) > 3) return false;
+    if (Math.max(width, height) / Math.min(width, height) > GPT_IMAGE_2_MAX_LONG_SHORT_RATIO) return false;
     const pixels = width * height;
-    return pixels >= 655360 && pixels <= 8294400;
+    return pixels >= GPT_IMAGE_2_MIN_PIXELS && pixels <= GPT_IMAGE_2_MAX_PIXELS;
   }
   function parameterValueValid(definition, value) {
     if (definition.id === "canvas.size" && definition.allowed_values.length === 0) {
@@ -37525,6 +37546,1253 @@ ${hint}` : hint;
     document.addEventListener(LOCALE_CHANGE_EVENT, renderCurrentModelParameters);
   }
 
+  // codex_image/webui/frontend/src/output-controls.ts
+  var { els: els10 } = getLegacyBridge();
+  function legacyMethod14(name, ...args) {
+    const method = getLegacyBridge().methods[name];
+    if (typeof method !== "function") {
+      throw new Error("Legacy method " + name + " is not initialized");
+    }
+    return method(...args);
+  }
+  function buildPreviewRequest() {
+    return legacyMethod14("buildPreviewRequest");
+  }
+  function updateRangeProgress(input) {
+    if (!input) return;
+    const min = Number(input.min || 0);
+    const max = Number(input.max || 100);
+    const value = Number(input.value || min);
+    const progress = max > min ? (value - min) / (max - min) * 100 : 0;
+    input.style.setProperty("--range-progress", `${Math.max(0, Math.min(100, progress))}%`);
+  }
+  function currentQuantity() {
+    const value = Number.parseInt(els10.nInput?.value || "1", 10);
+    if (Number.isNaN(value)) return 1;
+    return Math.min(4, Math.max(1, value));
+  }
+  function updateQuantity() {
+    if (!els10.nInput) return;
+    els10.nInput.value = String(currentQuantity());
+    if (els10.nValue) {
+      els10.nValue.textContent = els10.nInput.value;
+    }
+    if (els10.nInput.matches?.('input[type="range"]')) {
+      updateRangeProgress(els10.nInput);
+    }
+  }
+  function updateCompression() {
+    const compressionEnabled = els10.outputFormat.value !== "png";
+    els10.compression.disabled = !compressionEnabled;
+    if (!compressionEnabled) {
+      closeCompressionPopover();
+    }
+    els10.compressionValue.textContent = `${els10.compression.value}%`;
+    updateRangeProgress(els10.compression);
+  }
+  function openCompressionPopover() {
+    if (!els10.compressionPopover || els10.outputFormat.value === "png") return;
+    els10.compressionPopover.classList.remove("hidden");
+    els10.compressionPopover.setAttribute("aria-hidden", "false");
+  }
+  function closeCompressionPopover() {
+    if (!els10.compressionPopover) return;
+    els10.compressionPopover.classList.add("hidden");
+    els10.compressionPopover.setAttribute("aria-hidden", "true");
+  }
+  function handleOutputFormatDoubleClick(event) {
+    const button = event.target.closest("[data-val]");
+    if (!button || !["jpeg", "webp"].includes(button.dataset.val)) return;
+    openCompressionPopover();
+  }
+  function syncRadioButtons(...selects) {
+    selects.filter(Boolean).forEach((select) => {
+      select.dispatchEvent(new Event("change"));
+    });
+  }
+  function updateRequestPreview5() {
+    if (!els10.requestJson) return;
+    els10.requestJson.textContent = JSON.stringify(buildPreviewRequest(), null, 2);
+  }
+
+  // codex_image/webui/frontend/src/main-model-combobox.ts
+  var DEFAULT_MAIN_MODEL = "gpt-5.4-mini";
+  var MAIN_MODEL_OPTIONS = [
+    "gpt-6-astra",
+    "gpt-5.6-sol",
+    "gpt-5.6-terra",
+    "gpt-5.6-luna",
+    "gpt-5.5",
+    "gpt-5.4",
+    "gpt-5.4-mini",
+    "gpt-5.3-codex",
+    "gpt-5.2"
+  ];
+  var RETIRED_MAIN_MODEL_OPTIONS = /* @__PURE__ */ new Set(["gpt-5.3-codex-spark"]);
+  var MAIN_MODEL_STORAGE_KEY = "codex-image-main-model";
+  var bridge9 = getLegacyBridge();
+  var state9 = bridge9.state;
+  var els11 = bridge9.els;
+  function legacyMethod15(name, ...args) {
+    const method = getLegacyBridge().methods[name];
+    if (typeof method !== "function") {
+      throw new Error("Legacy method " + name + " is not initialized");
+    }
+    return method(...args);
+  }
+  function escapeHtml8(value) {
+    return legacyMethod15("escapeHtml", value);
+  }
+  function mainModelOptionsForQuery(query) {
+    const normalized = String(query || "").trim().toLowerCase();
+    if (!normalized) return MAIN_MODEL_OPTIONS.slice();
+    return MAIN_MODEL_OPTIONS.filter((model) => model.toLowerCase().includes(normalized));
+  }
+  function openMainModelCombobox({ showAll = false } = {}) {
+    if (!els11.mainModel || !els11.mainModelOptions || !els11.mainModelCombobox) return;
+    if (showAll) {
+      state9.mainModelShowAllOptions = true;
+      const selectedIndex = MAIN_MODEL_OPTIONS.indexOf(currentMainModel());
+      state9.mainModelOptionIndex = selectedIndex >= 0 ? selectedIndex : 0;
+    }
+    state9.mainModelComboboxOpen = true;
+    renderMainModelOptions();
+    els11.mainModelOptions.classList.remove("hidden");
+    els11.mainModelCombobox.setAttribute("aria-expanded", "true");
+    els11.mainModel.setAttribute("aria-expanded", "true");
+  }
+  function closeMainModelCombobox() {
+    state9.mainModelComboboxOpen = false;
+    state9.mainModelOptionIndex = 0;
+    state9.mainModelShowAllOptions = false;
+    els11.mainModelOptions?.classList.add("hidden");
+    els11.mainModelCombobox?.setAttribute("aria-expanded", "false");
+    els11.mainModel?.setAttribute("aria-expanded", "false");
+    els11.mainModel?.removeAttribute("aria-activedescendant");
+  }
+  function renderMainModelOptions() {
+    if (!els11.mainModel || !els11.mainModelOptions) return;
+    const query = state9.mainModelShowAllOptions ? "" : els11.mainModel.value;
+    const options = mainModelOptionsForQuery(query);
+    state9.mainModelOptionIndex = Math.min(Math.max(0, state9.mainModelOptionIndex), Math.max(0, options.length - 1));
+    if (!options.length) {
+      els11.mainModelOptions.innerHTML = `<div class="model-combobox-empty" role="option" aria-disabled="true">${escapeHtml8(translate("output.mainModelCustomForInput"))}</div>`;
+      els11.mainModel.removeAttribute("aria-activedescendant");
+      return;
+    }
+    els11.mainModelOptions.innerHTML = options.map((model, index) => {
+      const active = index === state9.mainModelOptionIndex;
+      const selected = model === currentMainModel();
+      return `
+      <button
+        id="mainModelOption-${index}"
+        class="model-combobox-option${active ? " active" : ""}${selected ? " selected" : ""}"
+        type="button"
+        role="option"
+        aria-selected="${selected ? "true" : "false"}"
+        data-main-model-option="${escapeHtml8(model)}"
+      >${escapeHtml8(model)}</button>
+    `;
+    }).join("");
+    els11.mainModel.setAttribute("aria-activedescendant", `mainModelOption-${state9.mainModelOptionIndex}`);
+    els11.mainModelOptions.querySelectorAll("[data-main-model-option]").forEach((button) => {
+      button.addEventListener("mousedown", (event) => event.preventDefault());
+      button.addEventListener("click", () => selectMainModelOption(button.dataset.mainModelOption));
+    });
+  }
+  function selectMainModelOption(model) {
+    if (!els11.mainModel || !model) return;
+    els11.mainModel.value = model;
+    persistMainModel();
+    updateRequestPreview5();
+    closeMainModelCombobox();
+    els11.mainModel.focus();
+  }
+  function handleMainModelKeydown(event) {
+    if (!els11.mainModelOptions) return;
+    const options = mainModelOptionsForQuery(els11.mainModel?.value || "");
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      if (!state9.mainModelComboboxOpen) {
+        state9.mainModelShowAllOptions = true;
+        state9.mainModelOptionIndex = 0;
+        openMainModelCombobox();
+        return;
+      }
+      if (options.length) state9.mainModelOptionIndex = (state9.mainModelOptionIndex + 1) % options.length;
+      renderMainModelOptions();
+    } else if (event.key === "ArrowUp") {
+      event.preventDefault();
+      if (!state9.mainModelComboboxOpen) {
+        state9.mainModelShowAllOptions = true;
+        state9.mainModelOptionIndex = Math.max(0, MAIN_MODEL_OPTIONS.length - 1);
+        openMainModelCombobox();
+        return;
+      }
+      if (options.length) state9.mainModelOptionIndex = (state9.mainModelOptionIndex - 1 + options.length) % options.length;
+      renderMainModelOptions();
+    } else if (event.key === "Enter" && state9.mainModelComboboxOpen && options.length) {
+      event.preventDefault();
+      selectMainModelOption(options[state9.mainModelOptionIndex]);
+    } else if (event.key === "Escape") {
+      closeMainModelCombobox();
+    }
+  }
+  function currentMainModel() {
+    return (els11.mainModel?.value || DEFAULT_MAIN_MODEL).trim() || DEFAULT_MAIN_MODEL;
+  }
+  function restoreMainModel() {
+    if (!els11.mainModel) return;
+    try {
+      const saved = localStorage.getItem(MAIN_MODEL_STORAGE_KEY);
+      let model = (saved || DEFAULT_MAIN_MODEL).trim() || DEFAULT_MAIN_MODEL;
+      if (RETIRED_MAIN_MODEL_OPTIONS.has(model)) {
+        model = DEFAULT_MAIN_MODEL;
+        localStorage.setItem(MAIN_MODEL_STORAGE_KEY, model);
+      }
+      els11.mainModel.value = model;
+    } catch {
+      els11.mainModel.value = DEFAULT_MAIN_MODEL;
+    }
+    renderMainModelOptions();
+  }
+  function persistMainModel() {
+    if (!els11.mainModel) return;
+    try {
+      localStorage.setItem(MAIN_MODEL_STORAGE_KEY, currentMainModel());
+    } catch {
+    }
+  }
+
+  // codex_image/webui/frontend/src/form-controls.ts
+  var bridge10 = getLegacyBridge();
+  var state10 = bridge10.state;
+  var els12 = bridge10.els;
+  var formControlsInitialized = false;
+  var formControlEventsBound = false;
+  var CHATGPT_DELETE_CHAT_STORAGE_KEY = "codex-image-chatgpt-delete-chat";
+  var CHATGPT_BROWSER_STORAGE_KEY = "codex-image-chatgpt-browser";
+  function syncChatGPTBrowserState(browser) {
+    const current = browser || (els12.chatgptBrowser?.value === "chrome" ? "chrome" : "edge");
+    if (els12.chatgptBrowser) {
+      els12.chatgptBrowser.value = current;
+    }
+    if (els12.chatgptBrowserGroup) {
+      const buttons = els12.chatgptBrowserGroup.querySelectorAll(".radio-btn");
+      buttons.forEach((btn) => {
+        const active = (btn.getAttribute("data-browser") || "edge") === current;
+        btn.classList.toggle("active", active);
+        btn.setAttribute("aria-pressed", String(active));
+      });
+    }
+  }
+  function restoreChatGPTBrowserState() {
+    const provider = activeChatGPTProvider();
+    const providerSetting = typeof provider?.browser === "string" ? provider.browser.toLowerCase() : null;
+    const saved = localStorage.getItem(CHATGPT_BROWSER_STORAGE_KEY);
+    const browser = providerSetting === "chrome" || saved === "chrome" ? "chrome" : "edge";
+    syncChatGPTBrowserState(browser);
+    localStorage.setItem(CHATGPT_BROWSER_STORAGE_KEY, browser);
+  }
+  function persistChatGPTBrowserState(browser) {
+    localStorage.setItem(CHATGPT_BROWSER_STORAGE_KEY, browser);
+    syncChatGPTBrowserState(browser);
+    const provider = activeChatGPTProvider();
+    if (provider && state10.apiSettings?.providers) {
+      const target = state10.apiSettings.providers.find((p) => p.id === provider.id);
+      if (target && target.browser !== browser) {
+        target.browser = browser;
+        const methods = getLegacyBridge().methods;
+        if (typeof methods?.persistApiSettings === "function") {
+          methods.persistApiSettings();
+        }
+        if (typeof methods?.queueApiSettingsAutosave === "function") {
+          methods.queueApiSettingsAutosave();
+        }
+      }
+    }
+  }
+  function currentChatGPTBrowser() {
+    return els12.chatgptBrowser?.value === "chrome" ? "chrome" : "edge";
+  }
+  function syncChatGPTDeleteChatState() {
+    if (!els12.chatgptDeleteChat) return;
+    const isChecked = Boolean(els12.chatgptDeleteChat.checked);
+    if (els12.chatgptDeleteChatStatus) {
+      els12.chatgptDeleteChatStatus.textContent = translate(
+        isChecked ? "output.chatgptDeleteChatToggle" : "output.chatgptDeleteChatToggleOff"
+      );
+    }
+  }
+  function syncChatGPTVisibleBrowserState() {
+  }
+  function activeChatGPTProvider() {
+    const providerId = state10.selectedProviderId || state10.apiSettings?.active_provider_id;
+    const providers = state10.apiSettings?.providers || state10.generationCatalog?.providers || [];
+    return providers.find((item) => item.id === providerId) || providers.find((item) => item.id === "default") || providers.find((item) => (item.name || "").toLowerCase().includes("chatgpt")) || null;
+  }
+  function restoreChatGPTDeleteChatState() {
+    if (!els12.chatgptDeleteChat) return;
+    const provider = activeChatGPTProvider();
+    const providerSetting = typeof provider?.delete_chat_after_gen === "boolean" ? provider.delete_chat_after_gen : null;
+    const saved = localStorage.getItem(CHATGPT_DELETE_CHAT_STORAGE_KEY);
+    const enabled = providerSetting !== null ? providerSetting : saved !== null ? saved !== "false" : true;
+    els12.chatgptDeleteChat.checked = enabled;
+    localStorage.setItem(CHATGPT_DELETE_CHAT_STORAGE_KEY, String(enabled));
+    syncChatGPTDeleteChatState();
+  }
+  function restoreChatGPTVisibleBrowserState() {
+  }
+  function persistChatGPTDeleteChatState() {
+    if (!els12.chatgptDeleteChat) return;
+    const enabled = Boolean(els12.chatgptDeleteChat.checked);
+    localStorage.setItem(CHATGPT_DELETE_CHAT_STORAGE_KEY, String(enabled));
+    syncChatGPTDeleteChatState();
+    const provider = activeChatGPTProvider();
+    if (provider && state10.apiSettings?.providers) {
+      const target = state10.apiSettings.providers.find((p) => p.id === provider.id);
+      if (target && target.delete_chat_after_gen !== enabled) {
+        target.delete_chat_after_gen = enabled;
+        const methods = getLegacyBridge().methods;
+        if (typeof methods?.persistApiSettings === "function") {
+          methods.persistApiSettings();
+        }
+        if (typeof methods?.queueApiSettingsAutosave === "function") {
+          methods.queueApiSettingsAutosave();
+        }
+      }
+    }
+    if (els12.apiProviderDeleteChat) {
+      els12.apiProviderDeleteChat.checked = enabled;
+    }
+  }
+  function persistChatGPTVisibleBrowserState() {
+  }
+  function currentChatGPTDeleteChatEnabled() {
+    return Boolean(els12.chatgptDeleteChat?.checked ?? true);
+  }
+  function currentChatGPTVisibleBrowserEnabled() {
+    return true;
+  }
+  function syncRunButtonLabel2() {
+    if (!els12.runButton || state10.runTimerId) return;
+    const mode = state10.mode === "edit" ? "edit" : "generate";
+    els12.runButton.textContent = translate(mode === "edit" ? "prompt.runEdit" : "prompt.run");
+    els12.runButton.title = translate(mode === "edit" ? "prompt.runEditTitle" : "prompt.runTitle");
+  }
+  function bindFormControlEvents() {
+    if (formControlEventsBound) return;
+    formControlEventsBound = true;
+    restoreChatGPTDeleteChatState();
+    restoreChatGPTBrowserState();
+    const handleChatGPTDeleteChatChange = () => {
+      persistChatGPTDeleteChatState();
+      updateRequestPreview5();
+    };
+    els12.chatgptDeleteChat?.addEventListener("input", handleChatGPTDeleteChatChange);
+    els12.chatgptDeleteChat?.addEventListener("change", handleChatGPTDeleteChatChange);
+    els12.chatgptBrowserGroup?.addEventListener("click", (event) => {
+      const button = event.target.closest(".radio-btn");
+      if (!button || button.disabled || button.classList.contains("disabled")) return;
+      const browser = button.getAttribute("data-browser") === "edge" ? "edge" : "chrome";
+      persistChatGPTBrowserState(browser);
+      updateRequestPreview5();
+    });
+    document.querySelectorAll("[data-mode]").forEach((button) => {
+      button.addEventListener("click", () => setMode3(button.dataset.mode));
+    });
+    [
+      els12.mainModel,
+      els12.webSearch,
+      els12.model,
+      els12.size,
+      els12.customWidth,
+      els12.customHeight,
+      els12.quality,
+      els12.outputFormat,
+      els12.moderation,
+      els12.compression,
+      els12.nInput,
+      els12.promptFidelity
+    ].filter(Boolean).forEach((element2) => {
+      const handleParameterChange = () => {
+        persistMainModel();
+        updateQuantity();
+        updateCompression();
+        if (element2 === els12.customWidth || element2 === els12.customHeight) handleCustomDimensionInput(element2);
+        updateCustomSize();
+        if (element2 === els12.customWidth || element2 === els12.customHeight) updatePixelPreview("custom");
+        updateRequestPreview5();
+        saveCurrentModelParameterDraft();
+      };
+      element2.addEventListener("input", handleParameterChange);
+      element2.addEventListener("change", handleParameterChange);
+    });
+    els12.mainModel?.addEventListener("focus", () => openMainModelCombobox({ showAll: true }));
+    els12.mainModel?.addEventListener("click", () => {
+      if (!state10.mainModelComboboxOpen) openMainModelCombobox({ showAll: true });
+    });
+    els12.mainModel?.addEventListener("input", () => {
+      state10.mainModelShowAllOptions = false;
+      openMainModelCombobox();
+      renderMainModelOptions();
+    });
+    els12.mainModel?.addEventListener("keydown", handleMainModelKeydown);
+    els12.mainModelToggle?.addEventListener("click", (event) => {
+      event.preventDefault();
+      if (state10.mainModelComboboxOpen) {
+        closeMainModelCombobox();
+      } else {
+        openMainModelCombobox({ showAll: true });
+        els12.mainModel?.focus();
+      }
+    });
+    document.addEventListener("click", (event) => {
+      if (!els12.mainModelCombobox || els12.mainModelCombobox.contains(event.target)) return;
+      closeMainModelCombobox();
+    });
+    [els12.resolution, els12.ratio, els12.orientation].filter(Boolean).forEach((element2) => {
+      element2.addEventListener("input", (event) => {
+        if (isProgrammaticSizeSync()) return;
+        updateSizeFromPreset(event);
+        saveCurrentModelParameterDraft();
+      });
+      element2.addEventListener("change", (event) => {
+        if (isProgrammaticSizeSync()) return;
+        updateSizeFromPreset(event);
+        saveCurrentModelParameterDraft();
+      });
+    });
+    [els12.customRatioWidth, els12.customRatioHeight].filter(Boolean).forEach((element2) => {
+      element2.addEventListener("input", () => {
+        handleCustomRatioInput(element2);
+        updateCustomSize();
+        updatePixelPreview("custom");
+        updateRequestPreview5();
+        saveCurrentModelParameterDraft();
+      });
+    });
+    els12.sizeModeGroup?.addEventListener("click", handleSizeModeEvent);
+    els12.swapCustomSizeButton?.addEventListener("click", swapCustomSizeDimensions);
+    els12.customRatioFromImageButton?.addEventListener("click", (event) => {
+      void applyFirstReferenceImageAspectRatio(event);
+    });
+    if (els12.customSizeToggle) {
+      els12.customSizeToggle.addEventListener("change", updateSizeFromPreset);
+    }
+    els12.outputFormatGroup?.addEventListener("dblclick", handleOutputFormatDoubleClick);
+  }
+  function setMode3(mode) {
+    saveCurrentModelParameterDraft();
+    state10.mode = mode;
+    document.querySelectorAll("[data-mode]").forEach((button) => {
+      button.classList.toggle("active", button.dataset.mode === mode);
+    });
+    if (!state10.runTimerId) {
+      syncRunButtonLabel2();
+    }
+    syncRadioButtons(els12.quality, els12.outputFormat, els12.moderation);
+    bridge10.methods.renderProviderSelection?.();
+    restoreCurrentModelParameterDraft();
+    bridge10.methods.updateModeSpecificSettings?.();
+    bridge10.methods.updateRequestPreview?.();
+  }
+  function initFormControlsFeature() {
+    if (formControlsInitialized) return;
+    formControlsInitialized = true;
+    document.addEventListener(LOCALE_CHANGE_EVENT, syncRunButtonLabel2);
+    document.addEventListener(LOCALE_CHANGE_EVENT, syncChatGPTDeleteChatState);
+    document.addEventListener(LOCALE_CHANGE_EVENT, syncChatGPTVisibleBrowserState);
+    Object.assign(getLegacyBridge().methods, {
+      bindFormControlEvents,
+      syncChatGPTDeleteChatState,
+      restoreChatGPTDeleteChatState,
+      persistChatGPTDeleteChatState,
+      currentChatGPTDeleteChatEnabled,
+      syncChatGPTVisibleBrowserState,
+      restoreChatGPTVisibleBrowserState,
+      persistChatGPTVisibleBrowserState,
+      currentChatGPTVisibleBrowserEnabled,
+      syncChatGPTBrowserState,
+      restoreChatGPTBrowserState,
+      persistChatGPTBrowserState,
+      currentChatGPTBrowser,
+      setMode: setMode3,
+      syncRunButtonLabel: syncRunButtonLabel2,
+      updateQuantity,
+      updateCompression,
+      openCompressionPopover,
+      closeCompressionPopover,
+      currentSize,
+      currentTaskParams,
+      currentMainModel,
+      currentQuantity,
+      currentImageToolModel,
+      currentWebSearchEnabled,
+      webSearchSupportedForCurrentBackend,
+      restoreMainModel,
+      persistMainModel,
+      syncSizeControlsFromSize,
+      updateSizeFromPreset,
+      updateCustomSize,
+      updateCustomRatioFieldState,
+      updateCustomRatioReferenceButtonState,
+      updatePixelPreview,
+      customSizeValidationMessage,
+      syncRadioButtons,
+      updateRequestPreview: updateRequestPreview5,
+      mainModelOptionsForQuery,
+      openMainModelCombobox,
+      closeMainModelCombobox,
+      renderMainModelOptions,
+      selectMainModelOption,
+      handleMainModelKeydown,
+      handleSizeModeEvent,
+      handleCustomDimensionInput,
+      handleCustomRatioInput,
+      applyFirstReferenceImageAspectRatio,
+      swapCustomSizeDimensions,
+      handleOutputFormatDoubleClick
+    });
+  }
+
+  // codex_image/webui/frontend/src/size-presets.ts
+  var DEFAULT_RESOLUTION = "standard";
+  var DEFAULT_RATIO = "1:1";
+  var DEFAULT_ORIENTATION = "square";
+  var RATIO_ORIENTATION = {
+    None: "square",
+    "1:1": "square",
+    "4:5": "portrait",
+    "5:4": "landscape",
+    "3:4": "portrait",
+    "4:3": "landscape",
+    "2:3": "portrait",
+    "3:2": "landscape",
+    "9:16": "portrait",
+    "16:9": "landscape",
+    "9:21": "portrait",
+    "21:9": "landscape"
+  };
+  var RATIO_COUNTERPARTS = {
+    None: "None",
+    "1:1": "1:1",
+    "4:5": "5:4",
+    "5:4": "4:5",
+    "3:4": "4:3",
+    "4:3": "3:4",
+    "2:3": "3:2",
+    "3:2": "2:3",
+    "9:16": "16:9",
+    "16:9": "9:16",
+    "9:21": "21:9",
+    "21:9": "9:21"
+  };
+  var ORIENTATION_DEFAULT_RATIOS = {
+    square: "1:1",
+    portrait: "2:3",
+    landscape: "3:2"
+  };
+  var GPT_IMAGE_2_SIZE_PRESETS = {
+    standard: {
+      "1:1": [1024, 1024],
+      "4:5": [1024, 1280],
+      "5:4": [1280, 1024],
+      "3:4": [1152, 1536],
+      "4:3": [1536, 1152],
+      "2:3": [1024, 1536],
+      "3:2": [1536, 1024],
+      "9:16": [864, 1536],
+      "16:9": [1536, 864],
+      "9:21": [672, 1568],
+      "21:9": [1568, 672]
+    },
+    "2k": {
+      "1:1": [2048, 2048],
+      "4:5": [1600, 2e3],
+      "5:4": [2e3, 1600],
+      "3:4": [1536, 2048],
+      "4:3": [2048, 1536],
+      "2:3": [1344, 2016],
+      "3:2": [2016, 1344],
+      "9:16": [1152, 2048],
+      "16:9": [2048, 1152],
+      "9:21": [1152, 2688],
+      "21:9": [2688, 1152]
+    },
+    "4k": {
+      "1:1": [2880, 2880],
+      "4:5": [2560, 3200],
+      "5:4": [3200, 2560],
+      "3:4": [2448, 3264],
+      "4:3": [3264, 2448],
+      "2:3": [2336, 3504],
+      "3:2": [3504, 2336],
+      "9:16": [2160, 3840],
+      "16:9": [3840, 2160],
+      "9:21": [1632, 3808],
+      "21:9": [3808, 1632]
+    }
+  };
+  var { els: els13 } = getLegacyBridge();
+  function legacyMethod16(name, ...args) {
+    const method = getLegacyBridge().methods[name];
+    if (typeof method !== "function") {
+      throw new Error("Legacy method " + name + " is not initialized");
+    }
+    return method(...args);
+  }
+  function currentPromptFidelity() {
+    return legacyMethod16("currentPromptFidelity");
+  }
+  function currentCustomRatio() {
+    const width = String(els13.customRatioWidth?.value || "").trim();
+    const height = String(els13.customRatioHeight?.value || "").trim();
+    if (!/^[1-9]$/.test(width) || !/^[1-9]$/.test(height)) {
+      return "";
+    }
+    return `${width}:${height}`;
+  }
+  function presetDimensions(resolution, ratio) {
+    const defaultPreset = GPT_IMAGE_2_SIZE_PRESETS[DEFAULT_RESOLUTION];
+    const preset = GPT_IMAGE_2_SIZE_PRESETS[resolution] || defaultPreset;
+    const dimensions2 = preset[ratio] || preset[DEFAULT_RATIO] || defaultPreset[DEFAULT_RATIO] || [1024, 1024];
+    return dimensions2;
+  }
+  function sizeForPreset(resolution, ratio) {
+    const normalized = String(ratio || "").trim().toLowerCase();
+    if (normalized === "none" || normalized === "auto") {
+      return "auto";
+    }
+    const [width, height] = presetDimensions(resolution, ratio);
+    return `${width}x${height}`;
+  }
+  function orientationForDimensions(width, height) {
+    const numericWidth = Number(width);
+    const numericHeight = Number(height);
+    if (numericWidth === numericHeight) return "square";
+    return numericWidth > numericHeight ? "landscape" : "portrait";
+  }
+  function normalizeCustomDimension(value) {
+    const rawValue = String(value ?? "").trim();
+    if (!rawValue) return null;
+    const numericValue = Number(rawValue);
+    if (!Number.isInteger(numericValue)) return null;
+    return numericValue;
+  }
+  function customDimensionValue(input) {
+    return normalizeCustomDimension(input?.value);
+  }
+  function customSizeValidationMessage(width = customDimensionValue(els13.customWidth), height = customDimensionValue(els13.customHeight)) {
+    if (width === null || height === null) return translate("output.customSizeRequired");
+    if (width < 16 || width > 3840 || height < 16 || height > 3840) return translate("output.customSizeBounds");
+    if (width % 16 !== 0 || height % 16 !== 0) return translate("output.customSizeMultiple");
+    if (Math.max(width, height) / Math.min(width, height) > GPT_IMAGE_2_MAX_LONG_SHORT_RATIO) return translate("output.customSizeRatio");
+    const totalPixels = width * height;
+    if (totalPixels < GPT_IMAGE_2_MIN_PIXELS || totalPixels > GPT_IMAGE_2_MAX_PIXELS) return translate("output.customSizePixels");
+    return "";
+  }
+  function findPresetForSize(size) {
+    const normalized = String(size || "").trim().toLowerCase();
+    for (const [resolution, ratios] of Object.entries(GPT_IMAGE_2_SIZE_PRESETS)) {
+      for (const [ratio, dimensions2] of Object.entries(ratios)) {
+        if (`${dimensions2[0]}x${dimensions2[1]}` === normalized) {
+          return { resolution, ratio, orientation: RATIO_ORIENTATION[ratio] || orientationForDimensions(dimensions2[0], dimensions2[1]) };
+        }
+      }
+    }
+    return null;
+  }
+  function currentSize() {
+    if (els13.size.value !== "custom") return els13.size.value;
+    return `${els13.customWidth.value}x${els13.customHeight.value}`;
+  }
+  function currentImageToolModel() {
+    return currentAuthSource2() === "api" ? currentApiImageModel() : els13.model.value;
+  }
+  function webSearchSupportedForCurrentBackend() {
+    const authSource = currentAuthSource2();
+    if (authSource === "api") return currentApiMode3() === "responses";
+    if (authSource === "codex") return currentCodexMode3() === "responses";
+    return true;
+  }
+  function currentWebSearchEnabled() {
+    return Boolean(els13.webSearch?.checked && webSearchSupportedForCurrentBackend());
+  }
+  function currentTaskParams() {
+    const params = {
+      model: currentImageToolModel(),
+      size: currentSize(),
+      n: currentQuantity(),
+      quality: els13.quality.value,
+      output_format: els13.outputFormat.value,
+      moderation: els13.moderation.value,
+      output_compression: els13.outputFormat.value === "png" ? null : Number(els13.compression.value)
+    };
+    const { state: state33 } = getLegacyBridge();
+    if (!state33.generationCatalog || state33.selectedModelId === "gpt-image-2") {
+      params.main_model = currentMainModel();
+      params.prompt_fidelity = currentPromptFidelity();
+    }
+    if (currentWebSearchEnabled()) {
+      params.web_search = true;
+    }
+    if (isChatGPTWebProvider()) {
+      params["chatgpt.delete_chat_after_gen"] = Boolean(els13.chatgptDeleteChat?.checked ?? true);
+      params["chatgpt.browser"] = currentChatGPTBrowser();
+    }
+    const isCustomMode = Boolean(els13.customSizeToggle?.checked || els13.size?.value === "custom");
+    if (isCustomMode) {
+      const customRatio = currentCustomRatio();
+      if (customRatio) {
+        params.ratio = customRatio;
+      }
+      const dimensions2 = String(params.size || "").split("x").map((value) => Number(value));
+      if (dimensions2.length === 2 && dimensions2.every((value) => Number.isFinite(value) && value > 0)) {
+        params.orientation = orientationForDimensions(dimensions2[0], dimensions2[1]);
+      }
+    } else {
+      const presetMatch = findPresetForSize(params.size);
+      const rawRatio = String(els13.ratio?.value || "").trim().toLowerCase();
+      const isNoneOrAuto = rawRatio === "none" || rawRatio === "auto";
+      if (presetMatch) {
+        params.resolution = presetMatch.resolution;
+        params.ratio = presetMatch.ratio;
+        if (isNoneOrAuto) {
+          params.ratio = "None";
+        }
+        params.orientation = presetMatch.orientation;
+      } else {
+        params.resolution = els13.resolution?.value || DEFAULT_RESOLUTION;
+        params.ratio = isNoneOrAuto ? "None" : els13.ratio?.value || void 0;
+        params.orientation = els13.orientation?.value || DEFAULT_ORIENTATION;
+      }
+    }
+    if (currentAuthSource2() === "api") {
+      params.api_provider_id = currentApiProviderId();
+      params.api_mode = currentApiMode3();
+      params.api_images_concurrency = currentApiImagesConcurrency();
+    } else if (currentAuthSource2() === "codex") {
+      params.codex_mode = currentCodexMode3();
+    }
+    return params;
+  }
+
+  // codex_image/webui/frontend/src/custom-size-controls.ts
+  var CUSTOM_SIZE_TRANSITION_MS = 220;
+  var CUSTOM_SIZE_HEIGHT_SNAP_TOLERANCE = 4;
+  var bridge11 = getLegacyBridge();
+  var state11 = bridge11.state;
+  var els14 = bridge11.els;
+  var customSizeTransitionTimers = /* @__PURE__ */ new WeakMap();
+  function saveCurrentModelParameterDraft2() {
+    bridge11.methods.saveCurrentModelParameterDraft?.();
+  }
+  function measuredElementHeight2(element2) {
+    if (!element2) return 0;
+    return Math.ceil(element2.getBoundingClientRect().height);
+  }
+  function handleSizeModeEvent(event) {
+    const button = event.target.closest?.("[data-custom-size-mode]");
+    if (!button || !els14.sizeModeGroup?.contains(button)) return;
+    setCustomSizeMode(button.dataset.customSizeMode === "custom");
+  }
+  function setCustomSizeMode(isCustom) {
+    if (els14.customSizeToggle) els14.customSizeToggle.checked = Boolean(isCustom);
+    updateSizeFromPreset();
+    saveCurrentModelParameterDraft2();
+  }
+  function swapCustomSizeDimensions(event) {
+    event?.preventDefault?.();
+    if (!els14.customWidth || !els14.customHeight) return;
+    const width = els14.customWidth.value;
+    els14.customWidth.value = els14.customHeight.value;
+    els14.customHeight.value = width;
+    if (typeof swapCustomRatioDigits === "function") swapCustomRatioDigits();
+    updateCustomSize();
+    updatePixelPreview("custom");
+    updateRequestPreview5();
+    saveCurrentModelParameterDraft2();
+  }
+  function sanitizeCustomRatioInput(input) {
+    const value = String(input?.value ?? "");
+    const digit = value.match(/[1-9]/)?.[0] || "";
+    if (input && input.value !== digit) input.value = digit;
+    return digit;
+  }
+  function customRatioDigitValue(input) {
+    const digit = sanitizeCustomRatioInput(input);
+    return digit ? Number(digit) : null;
+  }
+  function customAspectRatioFromManualInputs() {
+    const widthRatio = customRatioDigitValue(els14.customRatioWidth);
+    const heightRatio = customRatioDigitValue(els14.customRatioHeight);
+    if (!widthRatio || !heightRatio) return null;
+    return widthRatio / heightRatio;
+  }
+  function normalizeAspectDimension(value) {
+    const steppedValue = Math.round(value / 16) * 16;
+    const boundedValue = Math.min(3840, Math.max(16, steppedValue));
+    return String(boundedValue);
+  }
+  function updateCustomRatioFieldState() {
+    const locked2 = Boolean(state11.customAspectRatioLocked);
+    els14.customRatioField?.classList.toggle("active", locked2);
+  }
+  function setCustomAspectRatioFromManualInputs() {
+    const ratio = customAspectRatioFromManualInputs();
+    state11.customAspectRatioLocked = Boolean(ratio);
+    state11.customAspectRatioValue = ratio;
+    state11.customAspectRatioSource = "manual";
+    updateCustomRatioFieldState();
+  }
+  function applyCustomAspectRatioFromWidth() {
+    if (!state11.customAspectRatioLocked || !state11.customAspectRatioValue) return;
+    if (!els14.customWidth || !els14.customHeight) return;
+    const width = customDimensionValue(els14.customWidth);
+    if (!width) return;
+    els14.customHeight.value = normalizeAspectDimension(width / state11.customAspectRatioValue);
+  }
+  function handleCustomRatioInput(input) {
+    sanitizeCustomRatioInput(input);
+    setCustomAspectRatioFromManualInputs();
+    applyCustomAspectRatioFromWidth();
+  }
+  function singleDigitAspectRatioForDimensions(width, height) {
+    const numericWidth = Number(width);
+    const numericHeight = Number(height);
+    if (!Number.isFinite(numericWidth) || !Number.isFinite(numericHeight) || numericWidth <= 0 || numericHeight <= 0) return null;
+    function gcd(left, right) {
+      let a = Math.round(Math.abs(left));
+      let b = Math.round(Math.abs(right));
+      while (b) {
+        const remainder = a % b;
+        a = b;
+        b = remainder;
+      }
+      return a || 1;
+    }
+    const divisor = gcd(numericWidth, numericHeight);
+    const reducedWidth = Math.round(numericWidth / divisor);
+    const reducedHeight = Math.round(numericHeight / divisor);
+    if (reducedWidth >= 1 && reducedWidth <= 9 && reducedHeight >= 1 && reducedHeight <= 9) {
+      return { width: reducedWidth, height: reducedHeight };
+    }
+    const targetRatio = numericWidth / numericHeight;
+    let best = { width: 1, height: 1, error: Number.POSITIVE_INFINITY };
+    for (let widthRatio = 1; widthRatio <= 9; widthRatio += 1) {
+      for (let heightRatio = 1; heightRatio <= 9; heightRatio += 1) {
+        const candidateRatio = widthRatio / heightRatio;
+        const error = Math.abs(Math.log(candidateRatio / targetRatio));
+        if (error < best.error) {
+          best = { width: widthRatio, height: heightRatio, error };
+        }
+      }
+    }
+    return { width: best.width, height: best.height };
+  }
+  function firstReferenceImageSource() {
+    return (Array.isArray(state11.images) ? state11.images : []).find((source) => source && !source.missing && Boolean(sourceUrlForAspectRatio(source)));
+  }
+  function updateCustomRatioReferenceButtonState() {
+    if (!els14.customRatioFromImageButton) return;
+    const enabled = Boolean(firstReferenceImageSource());
+    els14.customRatioFromImageButton.disabled = !enabled;
+    els14.customRatioFromImageButton.setAttribute("aria-disabled", enabled ? "false" : "true");
+  }
+  function sourceUrlForAspectRatio(source) {
+    if (!source || source.missing) return "";
+    if (source.kind === "upload") return source.previewUrl || "";
+    return source.image_url || source.previewUrl || "";
+  }
+  function loadImageDimensions(url) {
+    return new Promise((resolve, reject) => {
+      const image = new Image();
+      image.onload = () => {
+        const width = image.naturalWidth || image.width;
+        const height = image.naturalHeight || image.height;
+        if (width > 0 && height > 0) {
+          resolve({ width, height });
+        } else {
+          reject(new Error(formatTranslation("output.imageSizeUnavailable")));
+        }
+      };
+      image.onerror = () => reject(new Error(formatTranslation("output.imageLoadFailed")));
+      image.src = String(url || "");
+    });
+  }
+  function applyCustomAspectRatioDigits(widthRatio, heightRatio) {
+    if (!els14.customRatioWidth || !els14.customRatioHeight) return;
+    els14.customRatioWidth.value = String(widthRatio || "");
+    els14.customRatioHeight.value = String(heightRatio || "");
+    setCustomAspectRatioFromManualInputs();
+    applyCustomAspectRatioFromWidth();
+    const numericWidthRatio = Number(widthRatio);
+    const numericHeightRatio = Number(heightRatio);
+    if (Number.isFinite(numericWidthRatio) && Number.isFinite(numericHeightRatio) && numericWidthRatio > 0 && numericHeightRatio > 0 && Math.max(numericWidthRatio, numericHeightRatio) / Math.min(numericWidthRatio, numericHeightRatio) <= GPT_IMAGE_2_MAX_LONG_SHORT_RATIO && els14.customWidth && els14.customHeight) {
+      const baseWidth = numericWidthRatio * 16;
+      const baseHeight = numericHeightRatio * 16;
+      const basePixels = baseWidth * baseHeight;
+      const minUnitByPixels = Math.max(1, Math.ceil(Math.sqrt(GPT_IMAGE_2_MIN_PIXELS / basePixels)));
+      const maxUnitByPixels = Math.floor(Math.sqrt(GPT_IMAGE_2_MAX_PIXELS / basePixels));
+      const maxUnitByBounds = Math.floor(Math.min(3840 / baseWidth, 3840 / baseHeight));
+      const maxUnit = Math.min(maxUnitByPixels, maxUnitByBounds);
+      if (maxUnit >= minUnitByPixels) {
+        const currentWidth = customDimensionValue(els14.customWidth);
+        const preferredUnit = Math.max(1, Math.round((currentWidth || baseWidth * minUnitByPixels) / baseWidth));
+        const unit = Math.min(maxUnit, Math.max(minUnitByPixels, preferredUnit));
+        els14.customWidth.value = String(baseWidth * unit);
+        els14.customHeight.value = String(baseHeight * unit);
+      }
+    }
+    updateCustomSize();
+    updatePixelPreview("custom");
+    updateRequestPreview5();
+  }
+  async function applyFirstReferenceImageAspectRatio(event) {
+    event?.preventDefault?.();
+    const source = firstReferenceImageSource();
+    updateCustomRatioReferenceButtonState();
+    if (!source) return;
+    const url = sourceUrlForAspectRatio(source);
+    if (!url) return;
+    return loadImageDimensions(url).catch(() => null).then((dimensions2) => {
+      if (!dimensions2) return;
+      const ratio = singleDigitAspectRatioForDimensions(dimensions2.width, dimensions2.height);
+      if (!ratio) return;
+      applyCustomAspectRatioDigits(ratio.width, ratio.height);
+      saveCurrentModelParameterDraft2();
+    });
+  }
+  function handleCustomDimensionInput(input) {
+    if (!state11.customAspectRatioLocked || !state11.customAspectRatioValue) return;
+    if (!els14.customWidth || !els14.customHeight) return;
+    const value = customDimensionValue(input);
+    if (!value) return;
+    if (input === els14.customWidth) {
+      els14.customHeight.value = normalizeAspectDimension(value / state11.customAspectRatioValue);
+      return;
+    }
+    if (input === els14.customHeight) {
+      els14.customWidth.value = normalizeAspectDimension(value * state11.customAspectRatioValue);
+    }
+  }
+  function swapCustomRatioDigits() {
+    if (!els14.customRatioWidth || !els14.customRatioHeight) return;
+    const widthRatio = els14.customRatioWidth.value;
+    els14.customRatioWidth.value = els14.customRatioHeight.value;
+    els14.customRatioHeight.value = widthRatio;
+    setCustomAspectRatioFromManualInputs();
+  }
+  var programmaticSync = false;
+  function isProgrammaticSizeSync() {
+    return programmaticSync;
+  }
+  function withProgrammaticSizeSync(action) {
+    const previous = programmaticSync;
+    programmaticSync = true;
+    try {
+      return action();
+    } finally {
+      programmaticSync = previous;
+    }
+  }
+  function updateSizeFromPreset(event = null) {
+    const changedControl = sizeControlName(event?.target);
+    syncRatioAndOrientation(changedControl);
+    if (els14.customSizeToggle?.checked) {
+      if (els14.size?.value !== "custom") {
+        populateCustomSizeFromCurrentPreset();
+      }
+      els14.size.value = "custom";
+      if (typeof setCustomAspectRatioFromManualInputs === "function") setCustomAspectRatioFromManualInputs();
+      if (typeof applyCustomAspectRatioFromWidth === "function") applyCustomAspectRatioFromWidth();
+      updateCustomSize();
+      updatePixelPreview("custom");
+      updateRequestPreview5();
+      return;
+    }
+    const size = sizeForPreset(els14.resolution?.value, els14.ratio?.value);
+    if (els14.size) els14.size.value = size;
+    updatePixelPreview(size);
+    updateCustomSize();
+    updateRequestPreview5();
+  }
+  function populateCustomSizeFromCurrentPreset() {
+    if (!els14.customWidth || !els14.customHeight) return;
+    let presetSize = sizeForPreset(els14.resolution?.value, els14.ratio?.value);
+    if (presetSize === "auto") {
+      const [w, h] = presetDimensions(els14.resolution?.value, DEFAULT_RATIO);
+      presetSize = `${w}x${h}`;
+    }
+    const [width, height] = presetSize.toLowerCase().split("x");
+    if (!width || !height) return;
+    els14.customWidth.value = width;
+    els14.customHeight.value = height;
+  }
+  function sizeControlName(target) {
+    if (target === els14.resolution) return "resolution";
+    if (target === els14.ratio) return "ratio";
+    if (target === els14.orientation) return "orientation";
+    return null;
+  }
+  function syncRatioAndOrientation(changedControl) {
+    if (isProgrammaticSizeSync()) return;
+    if (!els14.resolution || !els14.ratio || !els14.orientation) return;
+    const rawRatio = String(els14.ratio.value || "").trim().toLowerCase();
+    const isNoneOrAuto = rawRatio === "none" || rawRatio === "auto";
+    if (isNoneOrAuto) {
+      if (changedControl === "orientation") {
+        const orientation = els14.orientation.value;
+        setSizeControlValue(els14.ratio, ORIENTATION_DEFAULT_RATIOS[orientation] || DEFAULT_RATIO);
+        return;
+      }
+      if (changedControl === "ratio") {
+        withProgrammaticSizeSync(() => {
+          setSizeControlValue(els14.orientation, DEFAULT_ORIENTATION);
+        });
+        return;
+      }
+      return;
+    }
+    if (!GPT_IMAGE_2_SIZE_PRESETS[els14.resolution.value]) {
+      setSizeControlValue(els14.resolution, DEFAULT_RESOLUTION);
+    }
+    if (!RATIO_ORIENTATION[els14.ratio.value]) {
+      setSizeControlValue(els14.ratio, DEFAULT_RATIO);
+    }
+    if (!ORIENTATION_DEFAULT_RATIOS[els14.orientation.value]) {
+      setSizeControlValue(els14.orientation, RATIO_ORIENTATION[els14.ratio.value] || DEFAULT_ORIENTATION);
+    }
+    if (changedControl === "orientation") {
+      syncRatioFromOrientation();
+      return;
+    }
+    syncOrientationFromRatio();
+  }
+  function syncOrientationFromRatio() {
+    const nextOrientation = RATIO_ORIENTATION[els14.ratio.value] || DEFAULT_ORIENTATION;
+    setSizeControlValue(els14.orientation, nextOrientation);
+  }
+  function syncRatioFromOrientation() {
+    const rawRatio = String(els14.ratio?.value || "").trim().toLowerCase();
+    if (rawRatio === "none" || rawRatio === "auto") return;
+    const orientation = els14.orientation.value;
+    if (orientation === "square") {
+      setSizeControlValue(els14.ratio, DEFAULT_RATIO);
+      return;
+    }
+    if (RATIO_ORIENTATION[els14.ratio.value] === orientation) return;
+    const counterpart = RATIO_COUNTERPARTS[els14.ratio.value];
+    if (counterpart && RATIO_ORIENTATION[counterpart] === orientation) {
+      setSizeControlValue(els14.ratio, counterpart);
+      return;
+    }
+    setSizeControlValue(els14.ratio, ORIENTATION_DEFAULT_RATIOS[orientation] || DEFAULT_RATIO);
+  }
+  function setSizeControlValue(select, value) {
+    if (!select || select.value === value) return false;
+    select.value = value;
+    select.dispatchEvent(new Event("change", { bubbles: true }));
+    return true;
+  }
+  function updatePixelPreview(size) {
+    if (!els14.pixelPreview) return;
+    const normalized = String(size || "").trim().toLowerCase();
+    if (normalized === "auto") {
+      els14.pixelPreview.textContent = formatTranslation("output.pixelPreviewAuto");
+      return;
+    }
+    if (normalized === "custom") {
+      const message = customSizeValidationMessage();
+      if (message) {
+        els14.pixelPreview.textContent = formatTranslation("output.pixelPreviewValue", { value: message });
+        return;
+      }
+      els14.pixelPreview.textContent = formatTranslation("output.pixelPreviewValue", {
+        value: `${customDimensionValue(els14.customWidth)} x ${customDimensionValue(els14.customHeight)} px`
+      });
+      return;
+    }
+    const [width, height] = String(size || "").toLowerCase().split("x");
+    if (width && height) {
+      els14.pixelPreview.textContent = formatTranslation("output.pixelPreviewValue", { value: `${width} x ${height} px` });
+    } else {
+      els14.pixelPreview.textContent = "";
+    }
+  }
+  if (typeof document !== "undefined" && typeof document.addEventListener === "function") {
+    document.addEventListener(LOCALE_CHANGE_EVENT, () => updatePixelPreview(els14.size?.value || ""));
+  }
+  function syncSizeControlsFromSize(size) {
+    withProgrammaticSizeSync(() => {
+      const normalizedSize = String(size || "").trim().toLowerCase();
+      if (!size || normalizedSize === "auto") {
+        if (els14.customSizeToggle) els14.customSizeToggle.checked = false;
+        if (els14.resolution && !els14.resolution.value) els14.resolution.value = DEFAULT_RESOLUTION;
+        if (els14.ratio) els14.ratio.value = "None";
+        if (els14.orientation && !els14.orientation.value) els14.orientation.value = DEFAULT_ORIENTATION;
+        updateSizeFromPreset();
+        syncRadioButtons(els14.resolution, els14.ratio, els14.orientation);
+        return;
+      }
+      const presetMatch = findPresetForSize(normalizedSize);
+      if (presetMatch) {
+        if (els14.customSizeToggle) els14.customSizeToggle.checked = false;
+        if (els14.resolution) els14.resolution.value = presetMatch.resolution;
+        if (els14.ratio) {
+          els14.ratio.value = presetMatch.ratio;
+        }
+        if (els14.orientation) els14.orientation.value = presetMatch.orientation;
+        updateSizeFromPreset();
+        syncRadioButtons(els14.resolution, els14.ratio, els14.orientation);
+        return;
+      }
+      const [width, height] = normalizedSize.split("x");
+      if (width && height && /^\d+$/.test(width) && /^\d+$/.test(height)) {
+        if (els14.customSizeToggle) els14.customSizeToggle.checked = true;
+        if (els14.size) els14.size.value = "custom";
+        if (els14.customWidth) els14.customWidth.value = width;
+        if (els14.customHeight) els14.customHeight.value = height;
+        updatePixelPreview("custom");
+        updateCustomSize();
+        updateRequestPreview5();
+      }
+    });
+  }
+  function setCustomSizeModeLayout(isCustom) {
+    els14.customSize?.classList.toggle("hidden", !isCustom);
+    els14.customSize?.classList.toggle("custom-size-collapsed", !isCustom);
+    els14.customSize?.setAttribute("aria-hidden", isCustom ? "false" : "true");
+    els14.settingsGrid?.classList.toggle("custom-size-mode", isCustom);
+  }
+  function measureCustomSizeModeHeight(isCustom) {
+    const grid = els14.settingsGrid;
+    const customSize = els14.customSize;
+    if (!grid) return 0;
+    const originalHeight = grid.style.height;
+    const originalGridTransition = grid.style.transition;
+    const originalCustomTransition = customSize?.style.transition || "";
+    const originalCustomMode = grid.classList.contains("custom-size-mode");
+    const originalCustomHidden = customSize?.classList.contains("hidden") || false;
+    const originalCustomCollapsed = customSize?.classList.contains("custom-size-collapsed") || false;
+    const originalCustomAriaHidden = customSize?.getAttribute("aria-hidden");
+    grid.style.transition = "none";
+    grid.style.height = "";
+    if (customSize) customSize.style.transition = "none";
+    setCustomSizeModeLayout(isCustom);
+    const height = measuredElementHeight2(grid);
+    grid.classList.toggle("custom-size-mode", originalCustomMode);
+    if (customSize) {
+      customSize.classList.toggle("hidden", originalCustomHidden);
+      customSize.classList.toggle("custom-size-collapsed", originalCustomCollapsed);
+      if (originalCustomAriaHidden === null) {
+        customSize.removeAttribute("aria-hidden");
+      } else {
+        customSize.setAttribute("aria-hidden", originalCustomAriaHidden);
+      }
+      customSize.style.transition = originalCustomTransition;
+    }
+    grid.style.height = originalHeight;
+    grid.style.transition = originalGridTransition;
+    return height;
+  }
+  function transitionCustomSizeMode(isCustom) {
+    const grid = els14.settingsGrid;
+    const customSize = els14.customSize;
+    if (!grid || !customSize) {
+      setCustomSizeModeLayout(isCustom);
+      state11.customSizeMode = isCustom;
+      return;
+    }
+    if (state11.customSizeMode === null) {
+      state11.customSizeMode = isCustom;
+      grid.style.height = "";
+      grid.classList.remove("is-size-transitioning");
+      setCustomSizeModeLayout(isCustom);
+      return;
+    }
+    const pendingTimerId = customSizeTransitionTimers.get(grid);
+    if (state11.customSizeMode === isCustom && !pendingTimerId) {
+      grid.style.height = "";
+      grid.classList.remove("is-size-transitioning");
+      setCustomSizeModeLayout(isCustom);
+      return;
+    }
+    state11.customSizeMode = isCustom;
+    state11.customSizeTransitionSeq += 1;
+    const transitionSeq = state11.customSizeTransitionSeq;
+    if (pendingTimerId) {
+      window.clearTimeout(pendingTimerId);
+      customSizeTransitionTimers.delete(grid);
+    }
+    const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+    if (reduceMotion) {
+      grid.style.height = "";
+      grid.classList.remove("is-size-transitioning");
+      setCustomSizeModeLayout(isCustom);
+      return;
+    }
+    const fromHeight = measuredElementHeight2(grid);
+    const targetHeight = measureCustomSizeModeHeight(isCustom);
+    if (Math.abs(targetHeight - fromHeight) <= CUSTOM_SIZE_HEIGHT_SNAP_TOLERANCE) {
+      grid.style.height = "";
+      grid.classList.remove("is-size-transitioning");
+      setCustomSizeModeLayout(isCustom);
+      return;
+    }
+    grid.style.height = `${fromHeight}px`;
+    grid.classList.add("is-size-transitioning");
+    if (isCustom) {
+      customSize.classList.remove("hidden");
+      customSize.classList.add("custom-size-collapsed");
+      customSize.setAttribute("aria-hidden", "false");
+      grid.classList.add("custom-size-mode");
+      void grid.offsetHeight;
+      window.requestAnimationFrame(() => {
+        if (transitionSeq !== state11.customSizeTransitionSeq) return;
+        customSize.classList.remove("custom-size-collapsed");
+        grid.style.height = `${targetHeight}px`;
+      });
+    } else {
+      customSize.classList.remove("hidden");
+      customSize.classList.remove("custom-size-collapsed");
+      customSize.setAttribute("aria-hidden", "false");
+      grid.classList.add("custom-size-mode");
+      void grid.offsetHeight;
+      window.requestAnimationFrame(() => {
+        if (transitionSeq !== state11.customSizeTransitionSeq) return;
+        customSize.classList.add("custom-size-collapsed");
+        grid.classList.remove("custom-size-mode");
+        grid.style.height = `${targetHeight}px`;
+      });
+    }
+    const timerId = window.setTimeout(() => {
+      if (transitionSeq !== state11.customSizeTransitionSeq) return;
+      setCustomSizeModeLayout(isCustom);
+      grid.style.height = "";
+      grid.classList.remove("is-size-transitioning");
+      customSizeTransitionTimers.delete(grid);
+    }, CUSTOM_SIZE_TRANSITION_MS);
+    customSizeTransitionTimers.set(grid, timerId);
+  }
+  function updateCustomSize() {
+    const isCustom = els14.size?.value === "custom";
+    transitionCustomSizeMode(isCustom);
+    if (els14.customSizeToggle) els14.customSizeToggle.checked = isCustom;
+    els14.sizeModeGroup?.querySelectorAll("[data-custom-size-mode]").forEach((button) => {
+      const active = button.dataset.customSizeMode === (isCustom ? "custom" : "preset");
+      button.classList.toggle("active", active);
+      button.setAttribute("aria-pressed", active ? "true" : "false");
+    });
+    const message = isCustom ? customSizeValidationMessage() : "";
+    els14.customSize?.classList.toggle("has-error", Boolean(message));
+    if (els14.customSizeHint) {
+      els14.customSizeHint.textContent = message || formatTranslation("output.customSizeHint");
+    }
+    updateCustomRatioFieldState();
+  }
+
   // codex_image/webui/frontend/src/model-parameter-drafts.ts
   function cloneValue2(value) {
     if (Array.isArray(value)) return value.map(cloneValue2);
@@ -37551,33 +38819,18 @@ ${hint}` : hint;
     }
     return Object.fromEntries(Object.entries(values).filter(([, value]) => value !== void 0 && value !== null));
   }
-  function parameterValueValid2(parameter, value) {
-    const typeValid = parameter.value_type === "string" ? typeof value === "string" : parameter.value_type === "integer" ? typeof value === "number" && Number.isInteger(value) : parameter.value_type === "boolean" ? typeof value === "boolean" : parameter.value_type === "object" ? Boolean(value) && typeof value === "object" && !Array.isArray(value) : false;
-    if (!typeValid) return false;
-    if (parameter.allowed_values.length && !parameter.allowed_values.includes(value)) return false;
-    if (typeof value === "number") {
-      if (parameter.minimum !== null && value < parameter.minimum) return false;
-      if (parameter.maximum !== null && value > parameter.maximum) return false;
-      if (parameter.step !== null) {
-        const base = parameter.minimum ?? 0;
-        const quotient = (value - base) / parameter.step;
-        if (Math.abs(quotient - Math.round(quotient)) > 1e-9) return false;
-      }
-    }
-    return true;
-  }
   function migratePortableModelDraft(sourceModel, targetModel, sourceDraft, targetDraft) {
     const sourceIds = new Set(sourceModel.parameters.map((definition) => definition.id));
     return Object.fromEntries(targetModel.parameters.map((definition) => {
       if (sourceIds.has(definition.id)) {
         const sourceValue = sourceDraft[definition.id];
         return [definition.id, cloneValue2(
-          parameterValueValid2(definition, sourceValue) ? sourceValue : definition.default
+          parameterValueValid(definition, sourceValue) ? sourceValue : definition.default
         )];
       }
       const targetValue = targetDraft[definition.id];
       return [definition.id, cloneValue2(
-        parameterValueValid2(definition, targetValue) ? targetValue : definition.default
+        parameterValueValid(definition, targetValue) ? targetValue : definition.default
       )];
     }));
   }
@@ -37610,30 +38863,34 @@ ${hint}` : hint;
       renderCurrentModelParameters();
       return;
     }
-    const draft = {
-      ...Object.fromEntries(model.parameters.map((parameter) => [parameter.id, parameter.default])),
-      ...state33.parameterDraftsByModel[modelId] || {}
-    };
-    if (typeof draft["canvas.resolution"] === "string" && els44.resolution) els44.resolution.value = draft["canvas.resolution"];
-    if (typeof draft["canvas.aspect_ratio"] === "string" && els44.ratio) els44.ratio.value = draft["canvas.aspect_ratio"];
-    if ((draft["canvas.resolution"] || draft["canvas.aspect_ratio"]) && typeof methods.updateSizeFromPreset === "function") {
-      methods.updateSizeFromPreset();
-    }
-    if (typeof draft["canvas.size"] === "string" && draft["canvas.aspect_ratio"] !== "None") {
-      methods.syncSizeControlsFromSize?.(draft["canvas.size"]);
-    }
-    if (typeof draft["gpt.quality"] === "string" && els44.quality) els44.quality.value = draft["gpt.quality"];
-    if (typeof draft["output.format"] === "string" && els44.outputFormat) els44.outputFormat.value = draft["output.format"];
-    if (typeof draft["gpt.moderation"] === "string" && els44.moderation) els44.moderation.value = draft["gpt.moderation"];
-    if (typeof draft["gpt.output_compression"] === "number" && els44.compression) els44.compression.value = String(draft["gpt.output_compression"]);
-    if (typeof draft["gpt.web_search"] === "boolean" && els44.webSearch) {
-      els44.webSearch.checked = draft["gpt.web_search"] && (selectedProviderBinding()?.protocol_profile || "").endsWith("_responses");
-    }
-    if (typeof draft["output.count"] === "number" && els44.nInput) els44.nInput.value = String(draft["output.count"]);
-    methods.syncRadioButtons?.(els44.quality, els44.outputFormat, els44.moderation);
-    methods.updateQuantity?.();
-    methods.updateCompression?.();
-    renderCurrentModelParameters();
+    withProgrammaticSizeSync(() => {
+      const draft = {
+        ...Object.fromEntries(model.parameters.map((parameter) => [parameter.id, parameter.default])),
+        ...state33.parameterDraftsByModel[modelId] || {}
+      };
+      if (typeof draft["canvas.resolution"] === "string" && els44.resolution) els44.resolution.value = draft["canvas.resolution"];
+      if (typeof draft["canvas.aspect_ratio"] === "string" && els44.ratio) els44.ratio.value = draft["canvas.aspect_ratio"];
+      const rawRatio = String(draft["canvas.aspect_ratio"] || "").trim().toLowerCase();
+      const isNoneRatio = rawRatio === "none" || rawRatio === "auto";
+      const effectiveSize = isNoneRatio && draft["canvas.size"] === "1024x1024" ? "auto" : draft["canvas.size"];
+      if (typeof effectiveSize === "string") {
+        methods.syncSizeControlsFromSize?.(effectiveSize);
+      } else if ((draft["canvas.resolution"] || draft["canvas.aspect_ratio"]) && typeof methods.updateSizeFromPreset === "function") {
+        methods.updateSizeFromPreset();
+      }
+      if (typeof draft["gpt.quality"] === "string" && els44.quality) els44.quality.value = draft["gpt.quality"];
+      if (typeof draft["output.format"] === "string" && els44.outputFormat) els44.outputFormat.value = draft["output.format"];
+      if (typeof draft["gpt.moderation"] === "string" && els44.moderation) els44.moderation.value = draft["gpt.moderation"];
+      if (typeof draft["gpt.output_compression"] === "number" && els44.compression) els44.compression.value = String(draft["gpt.output_compression"]);
+      if (typeof draft["gpt.web_search"] === "boolean" && els44.webSearch) {
+        els44.webSearch.checked = draft["gpt.web_search"] && (selectedProviderBinding()?.protocol_profile || "").endsWith("_responses");
+      }
+      if (typeof draft["output.count"] === "number" && els44.nInput) els44.nInput.value = String(draft["output.count"]);
+      methods.syncRadioButtons?.(els44.quality, els44.outputFormat, els44.moderation);
+      methods.updateQuantity?.();
+      methods.updateCompression?.();
+      renderCurrentModelParameters();
+    });
   }
   function initModelParameterDraftFeature() {
     Object.assign(getLegacyBridge().methods, {
@@ -39072,11 +40329,11 @@ ${hint}` : hint;
   }
 
   // codex_image/webui/frontend/src/api-provider-settings.ts
-  var bridge9 = getLegacyBridge();
-  var state9 = bridge9.state;
-  var els10 = bridge9.els;
+  var bridge12 = getLegacyBridge();
+  var state12 = bridge12.state;
+  var els15 = bridge12.els;
   var apiSettingsAutosaveTimerId = null;
-  function legacyMethod14(name, ...args) {
+  function legacyMethod17(name, ...args) {
     const method = getLegacyBridge().methods[name];
     if (typeof method !== "function") {
       throw new Error("Legacy method " + name + " is not initialized");
@@ -39084,16 +40341,16 @@ ${hint}` : hint;
     return method(...args);
   }
   function setStatus8(message, type) {
-    legacyMethod14("setStatus", message, type);
+    legacyMethod17("setStatus", message, type);
   }
-  function updateRequestPreview5() {
-    legacyMethod14("updateRequestPreview");
+  function updateRequestPreview6() {
+    legacyMethod17("updateRequestPreview");
   }
   function closePromptPopover2() {
-    legacyMethod14("closePromptPopover");
+    legacyMethod17("closePromptPopover");
   }
   function openConfirmPopover4(...args) {
-    legacyMethod14("openConfirmPopover", ...args);
+    legacyMethod17("openConfirmPopover", ...args);
   }
   function normalizeApiProvider(provider = {}, index = 0) {
     const fallbackId = index === 0 ? "default" : `provider-${index + 1}`;
@@ -39155,7 +40412,7 @@ ${hint}` : hint;
   function normalizeCodexMode(value) {
     return value === "responses" ? "responses" : DEFAULT_CODEX_MODE;
   }
-  function providerById(providerId, settings = state9.apiSettings) {
+  function providerById(providerId, settings = state12.apiSettings) {
     const normalized = normalizeApiSettings(settings);
     return normalized.providers.find((provider) => provider.id === providerId) || normalized.providers[0];
   }
@@ -39170,13 +40427,13 @@ ${hint}` : hint;
     return baseUrl || DEFAULT_API_BASE_URL;
   }
   function updateApiRequestEndpointPreview() {
-    if (!els10.apiRequestEndpointPreview) return;
-    const provider = state9.apiProviderDraft || activeApiProvider();
-    const baseUrl = apiBaseUrlForEndpoint(els10.apiBaseUrl?.value || provider?.base_url);
-    const bindingCount = readProviderBindingCards(els10.apiProviderBindings).length || provider?.bindings?.length || 0;
+    if (!els15.apiRequestEndpointPreview) return;
+    const provider = state12.apiProviderDraft || activeApiProvider();
+    const baseUrl = apiBaseUrlForEndpoint(els15.apiBaseUrl?.value || provider?.base_url);
+    const bindingCount = readProviderBindingCards(els15.apiProviderBindings).length || provider?.bindings?.length || 0;
     const preview = `${baseUrl} \xB7 ${bindingCount} \xB7 ${translate("apiSettings.modelBindings")}`;
-    els10.apiRequestEndpointPreview.textContent = preview;
-    els10.apiRequestEndpointPreview.title = preview;
+    els15.apiRequestEndpointPreview.textContent = preview;
+    els15.apiRequestEndpointPreview.title = preview;
   }
   function providerHasApiKey(provider) {
     return Boolean(provider?.api_key || provider?.api_key_set);
@@ -39195,7 +40452,7 @@ ${hint}` : hint;
   }
   function uniqueCopiedProviderId(provider) {
     const base = String(provider?.id || provider?.name || "provider").trim().toLowerCase().replace(/[^a-z0-9_-]+/g, "-").replace(/^-+|-+$/g, "") || "provider";
-    const existing = new Set((state9.apiSettings.providers || []).map((item) => item.id));
+    const existing = new Set((state12.apiSettings.providers || []).map((item) => item.id));
     const root = `${base}-copy`;
     if (!existing.has(root)) return root;
     for (let index = 2; index < 1e3; index += 1) {
@@ -39207,7 +40464,7 @@ ${hint}` : hint;
   function copiedProviderName(provider) {
     const sourceName3 = String(provider?.name || provider?.id || translate("apiSettings.newProvider")).trim();
     const rootName = formatTranslation("apiSettings.copyProviderName", { name: sourceName3 });
-    const existing = new Set((state9.apiSettings.providers || []).map((item) => String(item.name || "").trim()));
+    const existing = new Set((state12.apiSettings.providers || []).map((item) => String(item.name || "").trim()));
     if (!existing.has(rootName)) return rootName;
     for (let index = 2; index < 1e3; index += 1) {
       const candidate = `${rootName} ${index}`;
@@ -39219,110 +40476,110 @@ ${hint}` : hint;
     if (element2) element2.textContent = String(value ?? "");
   }
   function setApiKeyRevealVisible(visible) {
-    if (!els10.apiKey) return;
-    const canReveal = Boolean(els10.apiKey.value);
+    if (!els15.apiKey) return;
+    const canReveal = Boolean(els15.apiKey.value);
     const shouldReveal = Boolean(visible && canReveal);
-    els10.apiKey.type = shouldReveal ? "text" : "password";
-    els10.apiKeyRevealButton?.setAttribute("aria-pressed", shouldReveal ? "true" : "false");
+    els15.apiKey.type = shouldReveal ? "text" : "password";
+    els15.apiKeyRevealButton?.setAttribute("aria-pressed", shouldReveal ? "true" : "false");
     const label = translate(shouldReveal ? "apiSettings.hideApiKey" : "apiSettings.showApiKey");
-    els10.apiKeyRevealButton?.setAttribute("aria-label", label);
-    els10.apiKeyRevealButton?.setAttribute("title", label);
-    els10.apiKeyRevealButton?.classList.toggle("active", shouldReveal);
+    els15.apiKeyRevealButton?.setAttribute("aria-label", label);
+    els15.apiKeyRevealButton?.setAttribute("title", label);
+    els15.apiKeyRevealButton?.classList.toggle("active", shouldReveal);
   }
   function hideApiKeyReveal() {
     setApiKeyRevealVisible(false);
   }
   function updateApiKeyRevealButton() {
-    if (!els10.apiKeyRevealButton) return;
-    const canReveal = Boolean(els10.apiKey?.value);
-    if (canReveal) els10.apiKey?.removeAttribute("aria-invalid");
+    if (!els15.apiKeyRevealButton) return;
+    const canReveal = Boolean(els15.apiKey?.value);
+    if (canReveal) els15.apiKey?.removeAttribute("aria-invalid");
     if (!canReveal) hideApiKeyReveal();
-    els10.apiKeyRevealButton.disabled = !canReveal;
+    els15.apiKeyRevealButton.disabled = !canReveal;
     const label = translate("apiSettings.showApiKey");
-    els10.apiKeyRevealButton.setAttribute("aria-label", label);
-    els10.apiKeyRevealButton.setAttribute("title", label);
+    els15.apiKeyRevealButton.setAttribute("aria-label", label);
+    els15.apiKeyRevealButton.setAttribute("title", label);
   }
   function revealApiKeyWhilePressed(event) {
-    if (!els10.apiKey?.value || els10.apiKeyRevealButton?.disabled) return;
+    if (!els15.apiKey?.value || els15.apiKeyRevealButton?.disabled) return;
     event?.preventDefault();
     setApiKeyRevealVisible(true);
   }
   function scrollApiProviderEditorIntoView() {
     window.requestAnimationFrame(() => {
-      els10.apiProviderEditor?.scrollIntoView?.({ block: "nearest", inline: "nearest" });
+      els15.apiProviderEditor?.scrollIntoView?.({ block: "nearest", inline: "nearest" });
     });
   }
   function setApiProviderEditorVisible(visible) {
-    els10.apiProviderSection?.classList.toggle("editing", visible);
-    els10.apiProviderSection?.setAttribute("aria-hidden", visible ? "true" : "false");
-    if (visible) els10.apiProviderSection?.setAttribute("inert", "");
-    else els10.apiProviderSection?.removeAttribute("inert");
-    els10.apiProviderEditor?.classList.toggle("hidden", !visible);
-    els10.apiProviderEditor?.setAttribute("aria-hidden", visible ? "false" : "true");
-    els10.apiProviderDetail?.classList.toggle("hidden", visible);
-    els10.apiSettingsActions?.classList.toggle("hidden", visible);
-    els10.apiSettingsActions?.setAttribute("aria-hidden", visible ? "true" : "false");
-    if (els10.editApiProviderButton) els10.editApiProviderButton.disabled = visible;
-    if (els10.addApiProviderButton) els10.addApiProviderButton.disabled = visible;
-    if (els10.copyApiProviderButton) els10.copyApiProviderButton.disabled = visible;
-    if (els10.sortApiProvidersButton) els10.sortApiProvidersButton.disabled = visible;
-    if (els10.deleteApiProviderButton) {
-      els10.deleteApiProviderButton.disabled = visible || normalizeApiSettings(state9.apiSettings).providers.length <= 1;
+    els15.apiProviderSection?.classList.toggle("editing", visible);
+    els15.apiProviderSection?.setAttribute("aria-hidden", visible ? "true" : "false");
+    if (visible) els15.apiProviderSection?.setAttribute("inert", "");
+    else els15.apiProviderSection?.removeAttribute("inert");
+    els15.apiProviderEditor?.classList.toggle("hidden", !visible);
+    els15.apiProviderEditor?.setAttribute("aria-hidden", visible ? "false" : "true");
+    els15.apiProviderDetail?.classList.toggle("hidden", visible);
+    els15.apiSettingsActions?.classList.toggle("hidden", visible);
+    els15.apiSettingsActions?.setAttribute("aria-hidden", visible ? "true" : "false");
+    if (els15.editApiProviderButton) els15.editApiProviderButton.disabled = visible;
+    if (els15.addApiProviderButton) els15.addApiProviderButton.disabled = visible;
+    if (els15.copyApiProviderButton) els15.copyApiProviderButton.disabled = visible;
+    if (els15.sortApiProvidersButton) els15.sortApiProvidersButton.disabled = visible;
+    if (els15.deleteApiProviderButton) {
+      els15.deleteApiProviderButton.disabled = visible || normalizeApiSettings(state12.apiSettings).providers.length <= 1;
     }
     if (!visible) hideApiKeyReveal();
   }
   function apiProviderEditorActive() {
-    return Boolean(state9.apiProviderEditingId && state9.apiProviderDraft);
+    return Boolean(state12.apiProviderEditingId && state12.apiProviderDraft);
   }
   function draftProviderFromForm() {
-    const draft = state9.apiProviderDraft || activeApiProvider();
-    const bindingCards = readProviderBindingCards(els10.apiProviderBindings);
+    const draft = state12.apiProviderDraft || activeApiProvider();
+    const bindingCards = readProviderBindingCards(els15.apiProviderBindings);
     return normalizeApiProvider({
       ...draft,
-      name: els10.apiProviderName?.value || draft.name,
-      icon_emoji: els10.apiProviderIconEmoji ? els10.apiProviderIconEmoji.value : draft.icon_emoji,
-      base_url: els10.apiBaseUrl?.value || DEFAULT_API_BASE_URL,
-      api_key: els10.apiKey?.value || "",
-      concurrency: normalizeApiImagesConcurrency(els10.apiImagesConcurrency?.value),
+      name: els15.apiProviderName?.value || draft.name,
+      icon_emoji: els15.apiProviderIconEmoji ? els15.apiProviderIconEmoji.value : draft.icon_emoji,
+      base_url: els15.apiBaseUrl?.value || DEFAULT_API_BASE_URL,
+      api_key: els15.apiKey?.value || "",
+      concurrency: normalizeApiImagesConcurrency(els15.apiImagesConcurrency?.value),
       bindings: bindingCards,
       default_model_ids: bindingCards.filter((binding) => binding.is_default).map((binding) => binding.canonical_model_id),
       api_key_set: Boolean(draft.api_key_set || draft.api_key || draft.api_key_source_provider_id),
       api_key_masked: draft.api_key_masked,
       api_key_source_provider_id: draft.api_key_source_provider_id,
-      delete_chat_after_gen: els10.apiProviderDeleteChat ? Boolean(els10.apiProviderDeleteChat.checked) : draft.delete_chat_after_gen !== false,
+      delete_chat_after_gen: els15.apiProviderDeleteChat ? Boolean(els15.apiProviderDeleteChat.checked) : draft.delete_chat_after_gen !== false,
       visible_browser: typeof draft.visible_browser === "boolean" ? draft.visible_browser : false
     }, 0);
   }
   function writeProviderForm(provider) {
-    if (els10.apiProviderName) els10.apiProviderName.value = provider.name || "";
-    if (els10.apiProviderIconEmoji) els10.apiProviderIconEmoji.value = provider.icon_emoji || "";
-    if (els10.apiBaseUrl) els10.apiBaseUrl.value = provider.base_url || DEFAULT_API_BASE_URL;
-    if (els10.apiImagesConcurrency) els10.apiImagesConcurrency.value = String(normalizeApiImagesConcurrency(provider.concurrency ?? provider.images_concurrency));
-    if (els10.apiProviderDeleteChat) {
-      els10.apiProviderDeleteChat.checked = provider.delete_chat_after_gen !== false;
+    if (els15.apiProviderName) els15.apiProviderName.value = provider.name || "";
+    if (els15.apiProviderIconEmoji) els15.apiProviderIconEmoji.value = provider.icon_emoji || "";
+    if (els15.apiBaseUrl) els15.apiBaseUrl.value = provider.base_url || DEFAULT_API_BASE_URL;
+    if (els15.apiImagesConcurrency) els15.apiImagesConcurrency.value = String(normalizeApiImagesConcurrency(provider.concurrency ?? provider.images_concurrency));
+    if (els15.apiProviderDeleteChat) {
+      els15.apiProviderDeleteChat.checked = provider.delete_chat_after_gen !== false;
     }
-    if (els10.apiProviderDeleteChatField) {
+    if (els15.apiProviderDeleteChatField) {
       const isChatGPT = provider.id === "default" || (provider.name || "").toLowerCase().includes("chatgpt") || typeof provider.base_url === "string" && provider.base_url.includes(":3000");
-      els10.apiProviderDeleteChatField.style.display = isChatGPT ? "" : "none";
+      els15.apiProviderDeleteChatField.style.display = isChatGPT ? "" : "none";
     }
-    if (els10.apiKey) {
-      els10.apiKey.value = provider.api_key || "";
-      els10.apiKey.placeholder = provider.api_key_set && !provider.api_key ? translate("apiSettings.savedKeyPlaceholder") : "sk-...";
+    if (els15.apiKey) {
+      els15.apiKey.value = provider.api_key || "";
+      els15.apiKey.placeholder = provider.api_key_set && !provider.api_key ? translate("apiSettings.savedKeyPlaceholder") : "sk-...";
     }
     hideApiKeyReveal();
     updateApiKeyRevealButton();
     renderProviderBindingCards(
-      els10.apiProviderBindings,
+      els15.apiProviderBindings,
       provider.bindings || [],
-      state9.generationCatalog?.models || [],
+      state12.generationCatalog?.models || [],
       provider.id,
-      state9.apiSettings.default_provider_by_model || {}
+      state12.apiSettings.default_provider_by_model || {}
     );
     updateApiRequestEndpointPreview();
     resetApiAdvancedSettings();
   }
   function defaultsForProviderDraft(provider) {
-    const defaults = { ...state9.apiSettings.default_provider_by_model || {} };
+    const defaults = { ...state12.apiSettings.default_provider_by_model || {} };
     (provider.default_model_ids || []).forEach((modelId) => {
       defaults[modelId] = provider.id;
     });
@@ -39330,25 +40587,25 @@ ${hint}` : hint;
   }
   function renderApiProviderList() {
     cancelApiProviderSortInteraction(true);
-    const settings = normalizeApiSettings(state9.apiSettings);
-    state9.apiSettings = settings;
-    const sorting = Boolean(state9.apiProviderSortMode && settings.providers.length > 1);
+    const settings = normalizeApiSettings(state12.apiSettings);
+    state12.apiSettings = settings;
+    const sorting = Boolean(state12.apiProviderSortMode && settings.providers.length > 1);
     const searchQuery = updateApiProviderListPresentation(settings.providers.length, sorting);
-    setElementText(els10.apiProviderCount, formatTranslation("apiSettings.providerCount", {
+    setElementText(els15.apiProviderCount, formatTranslation("apiSettings.providerCount", {
       count: String(settings.providers.length)
     }));
-    if (els10.sortApiProvidersButton) {
+    if (els15.sortApiProvidersButton) {
       const canSort = settings.providers.length > 1;
-      els10.sortApiProvidersButton.classList.toggle("hidden", !canSort);
-      els10.sortApiProvidersButton.classList.toggle("active", sorting);
-      els10.sortApiProvidersButton.disabled = apiProviderEditorActive() || !canSort;
-      els10.sortApiProvidersButton.textContent = translate(sorting ? "apiSettings.finishSortProviders" : "apiSettings.sortProviders");
-      els10.sortApiProvidersButton.setAttribute("aria-pressed", sorting ? "true" : "false");
+      els15.sortApiProvidersButton.classList.toggle("hidden", !canSort);
+      els15.sortApiProvidersButton.classList.toggle("active", sorting);
+      els15.sortApiProvidersButton.disabled = apiProviderEditorActive() || !canSort;
+      els15.sortApiProvidersButton.textContent = translate(sorting ? "apiSettings.finishSortProviders" : "apiSettings.sortProviders");
+      els15.sortApiProvidersButton.setAttribute("aria-pressed", sorting ? "true" : "false");
     }
-    els10.addApiProviderButton?.classList.toggle("hidden", sorting || apiProviderEditorActive());
-    if (!els10.apiProviderList) return;
-    els10.apiProviderList.classList.toggle("is-sorting", sorting);
-    els10.apiProviderList.setAttribute("role", sorting ? "list" : "listbox");
+    els15.addApiProviderButton?.classList.toggle("hidden", sorting || apiProviderEditorActive());
+    if (!els15.apiProviderList) return;
+    els15.apiProviderList.classList.toggle("is-sorting", sorting);
+    els15.apiProviderList.setAttribute("role", sorting ? "list" : "listbox");
     if (sorting) {
       const rows = settings.providers.map((provider) => {
         const row = document.createElement("div");
@@ -39383,7 +40640,7 @@ ${hint}` : hint;
         row.append(content, handle);
         return row;
       });
-      els10.apiProviderList.replaceChildren(...rows);
+      els15.apiProviderList.replaceChildren(...rows);
       return;
     }
     const visibleProviders = settings.providers.filter((provider) => apiProviderMatchesSearch(provider, searchQuery));
@@ -39407,29 +40664,29 @@ ${hint}` : hint;
       const empty = document.createElement("div");
       empty.className = "api-provider-search-empty";
       empty.textContent = translate("apiSettings.noProviderSearchResults");
-      els10.apiProviderList.replaceChildren(empty);
+      els15.apiProviderList.replaceChildren(empty);
       return;
     }
-    els10.apiProviderList.replaceChildren(...buttons);
+    els15.apiProviderList.replaceChildren(...buttons);
     if (!searchQuery) scrollActiveApiProviderCardIntoView(settings.active_provider_id, "center");
   }
   function renderApiProviderDetail() {
     const provider = activeApiProvider();
-    setElementText(els10.apiProviderDetailBaseUrl, provider.base_url || DEFAULT_API_BASE_URL);
-    setElementText(els10.apiProviderDetailKey, providerKeyLabel(provider));
+    setElementText(els15.apiProviderDetailBaseUrl, provider.base_url || DEFAULT_API_BASE_URL);
+    setElementText(els15.apiProviderDetailKey, providerKeyLabel(provider));
     setElementText(
-      els10.apiProviderDetailMode,
+      els15.apiProviderDetailMode,
       `${provider.bindings?.length || 0} \xB7 ${translate("apiSettings.modelBindings")}`
     );
-    setElementText(els10.apiProviderDetailConcurrency, normalizeApiImagesConcurrency(provider.concurrency ?? provider.images_concurrency));
+    setElementText(els15.apiProviderDetailConcurrency, normalizeApiImagesConcurrency(provider.concurrency ?? provider.images_concurrency));
   }
   function renderApiProviderEditor() {
     const editing = apiProviderEditorActive();
     setApiProviderEditorVisible(editing);
     if (!editing) return;
-    const isNew = Boolean(state9.apiProviderDraftIsNew);
-    setElementText(els10.apiProviderEditorTitle, translate(isNew ? "apiSettings.newProviderTitle" : "apiSettings.editProvider"));
-    writeProviderForm(state9.apiProviderDraft);
+    const isNew = Boolean(state12.apiProviderDraftIsNew);
+    setElementText(els15.apiProviderEditorTitle, translate(isNew ? "apiSettings.newProviderTitle" : "apiSettings.editProvider"));
+    writeProviderForm(state12.apiProviderDraft);
   }
   function applyApiProviderDraft(settings) {
     if (!apiProviderEditorActive()) return normalizeApiSettings(settings);
@@ -39454,9 +40711,9 @@ ${hint}` : hint;
         delete normalized.default_provider_by_model[modelId];
       }
     }
-    state9.apiProviderEditingId = null;
-    state9.apiProviderDraft = null;
-    state9.apiProviderDraftIsNew = false;
+    state12.apiProviderEditingId = null;
+    state12.apiProviderDraft = null;
+    state12.apiProviderDraftIsNew = false;
     return normalizeApiSettings(normalized);
   }
   function normalizeApiSettings(settings = {}) {
@@ -39491,25 +40748,25 @@ ${hint}` : hint;
     };
   }
   function activeApiProvider() {
-    const settings = normalizeApiSettings(state9.apiSettings);
-    state9.apiSettings = settings;
+    const settings = normalizeApiSettings(state12.apiSettings);
+    state12.apiSettings = settings;
     return settings.providers.find((provider) => provider.id === settings.active_provider_id) || settings.providers[0];
   }
   function restoreApiSettings() {
     try {
       const saved = JSON.parse(localStorage.getItem(API_SETTINGS_STORAGE_KEY) || "{}");
-      state9.apiSettings = normalizeApiSettings(saved);
+      state12.apiSettings = normalizeApiSettings(saved);
     } catch {
-      state9.apiSettings = normalizeApiSettings();
+      state12.apiSettings = normalizeApiSettings();
     }
   }
   function persistApiSettings() {
     try {
       localStorage.setItem(API_SETTINGS_STORAGE_KEY, JSON.stringify({
-        codex_mode: state9.apiSettings.codex_mode,
-        active_provider_id: state9.apiSettings.active_provider_id,
-        default_provider_by_model: state9.apiSettings.default_provider_by_model,
-        providers: state9.apiSettings.providers.map((provider) => ({
+        codex_mode: state12.apiSettings.codex_mode,
+        active_provider_id: state12.apiSettings.active_provider_id,
+        default_provider_by_model: state12.apiSettings.default_provider_by_model,
+        providers: state12.apiSettings.providers.map((provider) => ({
           id: provider.id,
           name: provider.name,
           icon_emoji: provider.icon_emoji || "",
@@ -39526,7 +40783,7 @@ ${hint}` : hint;
     }
   }
   function mergeApiProviderKeys(serverSettings) {
-    const localById = new Map((state9.apiSettings.providers || []).map((provider) => [provider.id, provider]));
+    const localById = new Map((state12.apiSettings.providers || []).map((provider) => [provider.id, provider]));
     const normalized = normalizeApiSettings(serverSettings);
     normalized.providers = normalized.providers.map((provider) => {
       const local = localById.get(provider.id);
@@ -39539,7 +40796,7 @@ ${hint}` : hint;
       const response = await fetch("/api/api-settings");
       const data = await response.json();
       if (!response.ok) throw new Error(data.detail || translate("apiSettings.loadFailed"));
-      state9.apiSettings = mergeApiProviderKeys(data.settings || {});
+      state12.apiSettings = mergeApiProviderKeys(data.settings || {});
       populateApiSettingsForm();
       renderAuthSourceAfterProviderChange();
     } catch (error) {
@@ -39548,25 +40805,25 @@ ${hint}` : hint;
   }
   function populateApiSettingsForm() {
     const provider = activeApiProvider();
-    if (els10.apiProviderQuick) {
-      els10.apiProviderQuick.innerHTML = "";
-      state9.apiSettings.providers.forEach((item) => {
+    if (els15.apiProviderQuick) {
+      els15.apiProviderQuick.innerHTML = "";
+      state12.apiSettings.providers.forEach((item) => {
         const option2 = document.createElement("option");
         option2.value = item.id;
         option2.textContent = item.name || item.id;
-        els10.apiProviderQuick.append(option2);
+        els15.apiProviderQuick.append(option2);
       });
-      els10.apiProviderQuick.value = provider.id;
+      els15.apiProviderQuick.value = provider.id;
     }
-    if (els10.apiProvider) {
-      els10.apiProvider.innerHTML = "";
-      state9.apiSettings.providers.forEach((item) => {
+    if (els15.apiProvider) {
+      els15.apiProvider.innerHTML = "";
+      state12.apiSettings.providers.forEach((item) => {
         const option2 = document.createElement("option");
         option2.value = item.id;
         option2.textContent = item.name || item.id;
-        els10.apiProvider.append(option2);
+        els15.apiProvider.append(option2);
       });
-      els10.apiProvider.value = provider.id;
+      els15.apiProvider.value = provider.id;
     }
     renderApiProviderList();
     renderApiProviderDetail();
@@ -39574,16 +40831,16 @@ ${hint}` : hint;
     updateModeSpecificSettings();
   }
   function readApiSettingsForm(options = {}) {
-    const settings = normalizeApiSettings(state9.apiSettings);
-    state9.apiSettings = options.applyProviderDraft ? applyApiProviderDraft(settings) : normalizeApiSettings(settings);
-    return state9.apiSettings;
+    const settings = normalizeApiSettings(state12.apiSettings);
+    state12.apiSettings = options.applyProviderDraft ? applyApiProviderDraft(settings) : normalizeApiSettings(settings);
+    return state12.apiSettings;
   }
   function currentApiProviderId() {
-    if (state9.selectedProviderId && state9.selectedProviderId !== "codex") return state9.selectedProviderId;
+    if (state12.selectedProviderId && state12.selectedProviderId !== "codex") return state12.selectedProviderId;
     return activeApiProvider().id;
   }
   function currentApiProviderLabel2() {
-    const selected = state9.generationCatalog?.providers.find((provider2) => provider2.id === state9.selectedProviderId);
+    const selected = state12.generationCatalog?.providers.find((provider2) => provider2.id === state12.selectedProviderId);
     if (selected) return String(selected.name || selected.id);
     const provider = activeApiProvider();
     return String(provider.name || provider.id || "").trim() || provider.id;
@@ -39593,34 +40850,34 @@ ${hint}` : hint;
       setApiSettingsFeedback(translate("apiSettings.finishEditFirst"), "error");
       return;
     }
-    state9.apiProviderSortMode = false;
+    state12.apiProviderSortMode = false;
     const id = `provider-${Date.now()}`;
-    state9.apiProviderEditingId = id;
-    state9.apiProviderDraftIsNew = true;
-    state9.apiProviderDraft = normalizeApiProvider({
+    state12.apiProviderEditingId = id;
+    state12.apiProviderDraftIsNew = true;
+    state12.apiProviderDraft = normalizeApiProvider({
       id,
       name: translate("apiSettings.newProvider"),
       base_url: DEFAULT_API_BASE_URL,
       concurrency: DEFAULT_API_IMAGES_CONCURRENCY,
       bindings: [bindingFromProtocol(`${id}-gpt-image-2`, "gpt-image-2", DEFAULT_API_IMAGE_MODEL, "openai_images")]
-    }, state9.apiSettings.providers.length);
+    }, state12.apiSettings.providers.length);
     populateApiSettingsForm();
     setApiSettingsFeedback(translate("apiSettings.newDraftStatus"), "running");
     scrollApiProviderEditorIntoView();
-    els10.apiProviderName?.focus();
+    els15.apiProviderName?.focus();
   }
   function copyApiProvider() {
     if (apiProviderEditorActive()) {
       setApiSettingsFeedback(translate("apiSettings.finishEditFirst"), "error");
       return;
     }
-    state9.apiProviderSortMode = false;
+    state12.apiProviderSortMode = false;
     const provider = activeApiProvider();
     const copiesSavedKey = providerHasApiKey(provider);
     const id = uniqueCopiedProviderId(provider);
-    state9.apiProviderEditingId = id;
-    state9.apiProviderDraftIsNew = true;
-    state9.apiProviderDraft = normalizeApiProvider({
+    state12.apiProviderEditingId = id;
+    state12.apiProviderDraftIsNew = true;
+    state12.apiProviderDraft = normalizeApiProvider({
       ...provider,
       bindings: provider.bindings.map((binding, index) => ({ ...binding, id: `${id}-binding-${index + 1}` })),
       id,
@@ -39629,42 +40886,42 @@ ${hint}` : hint;
       api_key_set: copiesSavedKey,
       api_key_masked: provider.api_key_masked || "",
       api_key_source_provider_id: copiesSavedKey ? provider.id : ""
-    }, state9.apiSettings.providers.length);
+    }, state12.apiSettings.providers.length);
     populateApiSettingsForm();
     setApiSettingsFeedback(translate(copiesSavedKey ? "apiSettings.copyProviderStatus" : "apiSettings.copyProviderWithoutKeyStatus"), "running");
     scrollApiProviderEditorIntoView();
-    els10.apiProviderName?.focus();
+    els15.apiProviderName?.focus();
   }
   function deleteApiProvider() {
     if (apiProviderEditorActive()) {
       setApiSettingsFeedback(translate("apiSettings.finishEditFirst"), "error");
       return;
     }
-    if (state9.apiSettings.providers.length <= 1) return;
-    const activeId = state9.apiSettings.active_provider_id;
-    state9.apiSettings.providers = state9.apiSettings.providers.filter((provider) => provider.id !== activeId);
-    state9.apiSettings.active_provider_id = state9.apiSettings.providers[0]?.id || "default";
-    Object.entries(state9.apiSettings.default_provider_by_model || {}).forEach(([modelId, providerId]) => {
-      if (providerId === activeId) delete state9.apiSettings.default_provider_by_model[modelId];
+    if (state12.apiSettings.providers.length <= 1) return;
+    const activeId = state12.apiSettings.active_provider_id;
+    state12.apiSettings.providers = state12.apiSettings.providers.filter((provider) => provider.id !== activeId);
+    state12.apiSettings.active_provider_id = state12.apiSettings.providers[0]?.id || "default";
+    Object.entries(state12.apiSettings.default_provider_by_model || {}).forEach(([modelId, providerId]) => {
+      if (providerId === activeId) delete state12.apiSettings.default_provider_by_model[modelId];
     });
-    Object.entries(state9.lastProviderByModel || {}).forEach(([modelId, providerId]) => {
-      if (providerId === activeId) delete state9.lastProviderByModel[modelId];
+    Object.entries(state12.lastProviderByModel || {}).forEach(([modelId, providerId]) => {
+      if (providerId === activeId) delete state12.lastProviderByModel[modelId];
     });
-    if (state9.apiSettings.providers.length <= 1) state9.apiProviderSortMode = false;
+    if (state12.apiSettings.providers.length <= 1) state12.apiProviderSortMode = false;
     populateApiSettingsForm();
     persistApiSettings();
     renderAuthSourceAfterProviderChange();
     setApiSettingsFeedback(translate("apiSettings.deleteProviderStatus"), "running");
     queueApiSettingsAutosave();
   }
-  function confirmDeleteApiProvider(anchor = els10.deleteApiProviderButton) {
+  function confirmDeleteApiProvider(anchor = els15.deleteApiProviderButton) {
     if (apiProviderEditorActive()) {
       setApiSettingsFeedback(translate("apiSettings.finishEditFirst"), "error");
       return;
     }
-    if (state9.apiSettings.providers.length <= 1) return;
+    if (state12.apiSettings.providers.length <= 1) return;
     const provider = activeApiProvider();
-    openConfirmPopover4(anchor || els10.deleteApiProviderButton, {
+    openConfirmPopover4(anchor || els15.deleteApiProviderButton, {
       title: translate("apiSettings.deleteProviderTitle"),
       message: formatTranslation("apiSettings.deleteProviderMessage", {
         provider: provider.name || provider.id
@@ -39676,10 +40933,10 @@ ${hint}` : hint;
   }
   function openApiSettingsModal() {
     closePromptPopover2();
-    state9.apiProviderEditingId = null;
-    state9.apiProviderDraft = null;
-    state9.apiProviderDraftIsNew = false;
-    if (els10.apiProviderSearch) els10.apiProviderSearch.value = "";
+    state12.apiProviderEditingId = null;
+    state12.apiProviderDraft = null;
+    state12.apiProviderDraftIsNew = false;
+    if (els15.apiProviderSearch) els15.apiProviderSearch.value = "";
     populateApiSettingsForm();
     setApiSettingsFeedback("", "");
     openSystemSettingsModal("api");
@@ -39698,17 +40955,17 @@ ${hint}` : hint;
       setApiSettingsFeedback(translate("apiSettings.finishEditFirst"), "error");
       return;
     }
-    if (state9.apiProviderSortMode) return;
+    if (state12.apiProviderSortMode) return;
     const provider = providerById(id);
     const continueSwitch = () => {
-      state9.apiSettings = normalizeApiSettings({
-        ...state9.apiSettings,
+      state12.apiSettings = normalizeApiSettings({
+        ...state12.apiSettings,
         active_provider_id: provider.id
       });
       populateApiSettingsForm();
       scrollActiveApiProviderCardIntoView(provider.id, "nearest");
       persistApiSettings();
-      legacyMethod14("selectGenerationProvider", provider.id);
+      legacyMethod17("selectGenerationProvider", provider.id);
       renderAuthSourceAfterProviderChange();
       queueApiSettingsAutosave();
     };
@@ -39721,22 +40978,22 @@ ${hint}` : hint;
   }
   function editApiProvider() {
     if (apiProviderEditorActive()) return;
-    state9.apiProviderSortMode = false;
+    state12.apiProviderSortMode = false;
     const provider = activeApiProvider();
-    state9.apiProviderEditingId = provider.id;
-    state9.apiProviderDraftIsNew = false;
-    state9.apiProviderDraft = normalizeApiProvider({ ...provider }, 0);
+    state12.apiProviderEditingId = provider.id;
+    state12.apiProviderDraftIsNew = false;
+    state12.apiProviderDraft = normalizeApiProvider({ ...provider }, 0);
     populateApiSettingsForm();
     setApiSettingsFeedback(translate("apiSettings.editDraftStatus"), "running");
     scrollApiProviderEditorIntoView();
-    els10.apiProviderName?.focus();
+    els15.apiProviderName?.focus();
   }
   function cancelApiProviderEdit() {
     if (!apiProviderEditorActive()) return;
-    els10.systemSettingsApiTab?.focus({ preventScroll: true });
-    state9.apiProviderEditingId = null;
-    state9.apiProviderDraft = null;
-    state9.apiProviderDraftIsNew = false;
+    els15.systemSettingsApiTab?.focus({ preventScroll: true });
+    state12.apiProviderEditingId = null;
+    state12.apiProviderDraft = null;
+    state12.apiProviderDraftIsNew = false;
     populateApiSettingsForm();
     setApiSettingsFeedback("", "");
     scrollActiveApiProviderCardIntoView(activeApiProvider().id, "center");
@@ -39746,16 +41003,16 @@ ${hint}` : hint;
       setApiSettingsFeedback(translate("apiSettings.finishEditFirst"), "error");
       return;
     }
-    const settings = normalizeApiSettings(state9.apiSettings);
+    const settings = normalizeApiSettings(state12.apiSettings);
     if (settings.providers.length <= 1) return;
     cancelApiProviderSortInteraction(true);
-    state9.apiProviderSortMode = !state9.apiProviderSortMode;
+    state12.apiProviderSortMode = !state12.apiProviderSortMode;
     renderApiProviderList();
-    if (!state9.apiProviderSortMode) scrollActiveApiProviderCardIntoView(settings.active_provider_id, "center");
-    setApiSettingsFeedback(state9.apiProviderSortMode ? translate("apiSettings.sortProviderModeStatus") : "", state9.apiProviderSortMode ? "running" : "");
+    if (!state12.apiProviderSortMode) scrollActiveApiProviderCardIntoView(settings.active_provider_id, "center");
+    setApiSettingsFeedback(state12.apiProviderSortMode ? translate("apiSettings.sortProviderModeStatus") : "", state12.apiProviderSortMode ? "running" : "");
   }
   function focusedApiProviderSortId() {
-    if (!state9.apiProviderSortMode) return "";
+    if (!state12.apiProviderSortMode) return "";
     const handle = document.activeElement?.closest(
       "button[data-api-provider-sort-handle][data-api-provider-id]"
     );
@@ -39765,12 +41022,12 @@ ${hint}` : hint;
     if (!providerId) return;
     window.requestAnimationFrame(() => {
       const escapedId = CSS.escape(providerId);
-      els10.apiProviderList?.querySelector(`button[data-api-provider-sort-handle][data-api-provider-id="${escapedId}"]`)?.focus({ preventScroll: true });
+      els15.apiProviderList?.querySelector(`button[data-api-provider-sort-handle][data-api-provider-id="${escapedId}"]`)?.focus({ preventScroll: true });
     });
   }
   function reorderApiProviders(orderedIds, focusProviderId = "") {
-    if (!state9.apiProviderSortMode || apiProviderEditorActive() || !Array.isArray(orderedIds)) return false;
-    const settings = normalizeApiSettings(state9.apiSettings);
+    if (!state12.apiProviderSortMode || apiProviderEditorActive() || !Array.isArray(orderedIds)) return false;
+    const settings = normalizeApiSettings(state12.apiSettings);
     const currentIds = settings.providers.map((provider) => provider.id);
     const candidate = orderedIds.map((id) => String(id || ""));
     if (!isCompleteProviderOrder(candidate, currentIds)) return false;
@@ -39779,7 +41036,7 @@ ${hint}` : hint;
       settings.providers.map((provider) => [provider.id, provider])
     );
     const providers = candidate.map((id) => providersById.get(id));
-    state9.apiSettings = normalizeApiSettings({
+    state12.apiSettings = normalizeApiSettings({
       ...settings,
       providers,
       active_provider_id: settings.active_provider_id
@@ -39798,7 +41055,7 @@ ${hint}` : hint;
   function addProviderBinding() {
     if (!apiProviderEditorActive()) return;
     const draft = draftProviderFromForm();
-    const models = state9.generationCatalog?.models || [];
+    const models = state12.generationCatalog?.models || [];
     const model = models.find((item) => !draft.bindings.some((binding) => binding.canonical_model_id === item.id)) || models[0];
     if (!model) {
       setApiSettingsFeedback(translate("apiSettings.catalogRequiredForBinding"), "error");
@@ -39817,12 +41074,12 @@ ${hint}` : hint;
       protocol,
       [...model.operations]
     ));
-    if (!state9.apiSettings.default_provider_by_model?.[model.id]) {
+    if (!state12.apiSettings.default_provider_by_model?.[model.id]) {
       draft.default_model_ids = [.../* @__PURE__ */ new Set([...draft.default_model_ids || [], model.id])];
     }
-    state9.apiProviderDraft = draft;
+    state12.apiProviderDraft = draft;
     renderProviderBindingCards(
-      els10.apiProviderBindings,
+      els15.apiProviderBindings,
       draft.bindings,
       models,
       draft.id,
@@ -39838,11 +41095,11 @@ ${hint}` : hint;
       return;
     }
     draft.bindings = draft.bindings.filter((binding) => binding.id !== bindingId);
-    state9.apiProviderDraft = draft;
+    state12.apiProviderDraft = draft;
     renderProviderBindingCards(
-      els10.apiProviderBindings,
+      els15.apiProviderBindings,
       draft.bindings,
-      state9.generationCatalog?.models || [],
+      state12.generationCatalog?.models || [],
       draft.id,
       defaultsForProviderDraft(draft)
     );
@@ -39880,13 +41137,13 @@ ${hint}` : hint;
       }
       card.dataset.bindingProtocolChanged = "true";
       card.dataset.bindingCompatibilityChanged = "true";
-      if (state9.apiProviderDraftIsNew && defaultProtocol) {
+      if (state12.apiProviderDraftIsNew && defaultProtocol) {
         const suggestion = bindingTemplateSuggestion(bindingTemplateForProtocol(modelId, defaultProtocol));
-        const currentBase = String(els10.apiBaseUrl?.value || "").trim();
-        if (!currentBase || isBindingTemplateBaseUrl(currentBase)) els10.apiBaseUrl.value = suggestion.base_url;
+        const currentBase = String(els15.apiBaseUrl?.value || "").trim();
+        if (!currentBase || isBindingTemplateBaseUrl(currentBase)) els15.apiBaseUrl.value = suggestion.base_url;
       }
       const remoteInput = card.querySelector("[data-binding-remote-model]");
-      const model = state9.generationCatalog?.models.find((item) => item.id === modelId);
+      const model = state12.generationCatalog?.models.find((item) => item.id === modelId);
       if (remoteInput && !remoteInput.value.trim()) remoteInput.value = model?.official_model_id || modelId;
       const existingOperations = String(card.dataset.bindingModelOperations || "").split(",").filter(Boolean);
       card.dataset.bindingModelOperations = (model?.operations || existingOperations).join(",");
@@ -39894,7 +41151,7 @@ ${hint}` : hint;
     if (target.matches("[data-binding-default]")) {
       const modelId = card.querySelector("[data-binding-model]")?.value;
       if (modelId) {
-        els10.apiProviderBindings?.querySelectorAll("[data-binding-id]").forEach((item) => {
+        els15.apiProviderBindings?.querySelectorAll("[data-binding-id]").forEach((item) => {
           if (item === card) return;
           if (item.querySelector("[data-binding-model]")?.value !== modelId) return;
           const checkbox = item.querySelector("[data-binding-default]");
@@ -39918,16 +41175,16 @@ ${hint}` : hint;
         syncThemedSelect(compatibilitySelect);
       }
       card.dataset.bindingCompatibilityChanged = "true";
-      if (state9.apiProviderDraftIsNew) {
+      if (state12.apiProviderDraftIsNew) {
         const templateId = bindingTemplateForProtocol(modelId, protocol);
         const suggestion = bindingTemplateSuggestion(templateId);
-        const currentBase = String(els10.apiBaseUrl?.value || "").trim();
-        if (!currentBase || isBindingTemplateBaseUrl(currentBase)) els10.apiBaseUrl.value = suggestion.base_url;
+        const currentBase = String(els15.apiBaseUrl?.value || "").trim();
+        if (!currentBase || isBindingTemplateBaseUrl(currentBase)) els15.apiBaseUrl.value = suggestion.base_url;
       }
     }
     if (target.matches("[data-binding-compatibility]")) {
       card.dataset.bindingCompatibilityChanged = "true";
-      if (state9.apiProviderDraftIsNew) {
+      if (state12.apiProviderDraftIsNew) {
         const modelId = card.querySelector("[data-binding-model]")?.value || "";
         const protocol = card.querySelector("[data-binding-protocol]")?.value || availableProtocolsForModel(modelId)[0];
         const templateId = bindingTemplateForCompatibility(
@@ -39936,21 +41193,21 @@ ${hint}` : hint;
           target.value
         );
         const suggestion = bindingTemplateSuggestion(templateId);
-        const currentBase = String(els10.apiBaseUrl?.value || "").trim();
-        if (!currentBase || isBindingTemplateBaseUrl(currentBase)) els10.apiBaseUrl.value = suggestion.base_url;
+        const currentBase = String(els15.apiBaseUrl?.value || "").trim();
+        if (!currentBase || isBindingTemplateBaseUrl(currentBase)) els15.apiBaseUrl.value = suggestion.base_url;
       }
     }
     updateApiRequestEndpointPreview();
   }
   function renderAuthSourceAfterProviderChange() {
-    legacyMethod14("renderAuthSource", state9.authStatus);
-    legacyMethod14("renderProviderSelection");
+    legacyMethod17("renderAuthSource", state12.authStatus);
+    legacyMethod17("renderProviderSelection");
     updateModeSpecificSettings();
-    updateRequestPreview5();
+    updateRequestPreview6();
   }
   function currentApiImageModel() {
     const provider = activeApiProvider();
-    const binding = provider.bindings?.find((item) => item.canonical_model_id === state9.selectedModelId) || provider.bindings?.find((item) => item.canonical_model_id === "gpt-image-2") || provider.bindings?.[0];
+    const binding = provider.bindings?.find((item) => item.canonical_model_id === state12.selectedModelId) || provider.bindings?.find((item) => item.canonical_model_id === "gpt-image-2") || provider.bindings?.[0];
     return String(binding?.remote_model_id || provider.image_model || DEFAULT_API_IMAGE_MODEL).trim() || DEFAULT_API_IMAGE_MODEL;
   }
   function currentApiMode3() {
@@ -39960,11 +41217,11 @@ ${hint}` : hint;
   }
   function currentCodexMode3() {
     const binding = selectedProviderBinding();
-    if (state9.selectedProviderId === "codex" && binding) {
+    if (state12.selectedProviderId === "codex" && binding) {
       return binding.protocol_profile === "codex_responses" ? "responses" : "images";
     }
-    state9.apiSettings = normalizeApiSettings(state9.apiSettings);
-    return normalizeCodexMode(state9.apiSettings.codex_mode);
+    state12.apiSettings = normalizeApiSettings(state12.apiSettings);
+    return normalizeCodexMode(state12.apiSettings.codex_mode);
   }
   function currentApiImagesConcurrency() {
     const provider = activeApiProvider();
@@ -39993,12 +41250,12 @@ ${hint}` : hint;
   function selectCodexMode(mode, anchor) {
     const normalized = normalizeCodexMode(mode);
     void anchor;
-    state9.apiSettings = normalizeApiSettings({ ...state9.apiSettings, codex_mode: normalized });
-    legacyMethod14("syncCodexCatalogMode", normalized);
-    legacyMethod14("selectGenerationProvider", providerBindingSelectionKey("codex", `codex-gpt-image-2-${normalized}`));
-    legacyMethod14("renderProviderSelection");
+    state12.apiSettings = normalizeApiSettings({ ...state12.apiSettings, codex_mode: normalized });
+    legacyMethod17("syncCodexCatalogMode", normalized);
+    legacyMethod17("selectGenerationProvider", providerBindingSelectionKey("codex", `codex-gpt-image-2-${normalized}`));
+    legacyMethod17("renderProviderSelection");
     updateModeSpecificSettings();
-    updateRequestPreview5();
+    updateRequestPreview6();
     persistApiSettings();
     queueApiSettingsAutosave();
     return true;
@@ -40033,7 +41290,7 @@ ${hint}` : hint;
     const providerName = String(
       task?.api_provider_name || task?.params?.api_provider_name || task?.request?.webui_api_provider_name || task?.request?.api_provider_name || task?.provider || ""
     ).trim();
-    const configuredProvider = providerId ? state9.apiSettings.providers.find((provider) => provider.id === providerId) : null;
+    const configuredProvider = providerId ? state12.apiSettings.providers.find((provider) => provider.id === providerId) : null;
     const label = providerName || configuredProvider?.name || providerId;
     if (!label) return "";
     return !providerId || label === providerId ? label : `${label} (${providerId})`;
@@ -40048,13 +41305,13 @@ ${hint}` : hint;
     return [backendLabel, provider].filter(Boolean).join(" \xB7 ");
   }
   function setApiSettingsFeedback(message, type = "") {
-    [els10.apiSettingsStatus].filter(Boolean).forEach((statusElement) => {
+    [els15.apiSettingsStatus].filter(Boolean).forEach((statusElement) => {
       statusElement.textContent = message;
       statusElement.className = `api-settings-feedback settings-action-status ${type || ""}`.trim();
     });
   }
   function saveButtons() {
-    return [els10.saveApiProviderEditButton].filter(Boolean);
+    return [els15.saveApiProviderEditButton].filter(Boolean);
   }
   function setSaveButtonsDisabled(disabled) {
     saveButtons().forEach((button) => {
@@ -40068,23 +41325,23 @@ ${hint}` : hint;
       failed: translate("apiSettings.saveFailedShort"),
       default: translate("apiSettings.saveProvider")
     }[stateName];
-    if (els10.saveApiProviderEditButton) els10.saveApiProviderEditButton.textContent = providerText;
+    if (els15.saveApiProviderEditButton) els15.saveApiProviderEditButton.textContent = providerText;
   }
   async function saveApiSettings(options = {}) {
     const autoSave = Boolean(options.auto);
     if (autoSave && apiProviderEditorActive()) return true;
     const sortFocusId = autoSave ? focusedApiProviderSortId() : "";
-    if (state9.apiSettingsSaveTimerId) {
-      window.clearTimeout(state9.apiSettingsSaveTimerId);
-      state9.apiSettingsSaveTimerId = null;
+    if (state12.apiSettingsSaveTimerId) {
+      window.clearTimeout(state12.apiSettingsSaveTimerId);
+      state12.apiSettingsSaveTimerId = null;
     }
-    const previousSettings = normalizeApiSettings(state9.apiSettings);
-    const previousEditingId = state9.apiProviderEditingId;
-    const previousDraft = state9.apiProviderDraft ? structuredClone(state9.apiProviderDraft) : null;
-    const previousDraftIsNew = state9.apiProviderDraftIsNew;
+    const previousSettings = normalizeApiSettings(state12.apiSettings);
+    const previousEditingId = state12.apiProviderEditingId;
+    const previousDraft = state12.apiProviderDraft ? structuredClone(state12.apiProviderDraft) : null;
+    const previousDraftIsNew = state12.apiProviderDraftIsNew;
     let confirmedOriginChange = null;
     if (!autoSave && apiProviderEditorActive()) {
-      const bindings = readProviderBindingCards(els10.apiProviderBindings);
+      const bindings = readProviderBindingCards(els15.apiProviderBindings);
       if (!bindings.length || bindings.some((binding) => !binding.canonical_model_id || !binding.remote_model_id || !binding.operations.length)) {
         setApiSettingsFeedback(translate("apiSettings.bindingRequiredFields"), "error");
         return false;
@@ -40095,7 +41352,7 @@ ${hint}` : hint;
           model: overlap.canonicalModelId,
           operation: overlap.operation
         }), "error");
-        els10.apiProviderBindings?.querySelector(`[data-binding-id="${CSS.escape(overlap.secondBindingId)}"]`)?.scrollIntoView?.({ block: "nearest" });
+        els15.apiProviderBindings?.querySelector(`[data-binding-id="${CSS.escape(overlap.secondBindingId)}"]`)?.scrollIntoView?.({ block: "nearest" });
         return false;
       }
       const providerDraft = draftProviderFromForm();
@@ -40104,15 +41361,15 @@ ${hint}` : hint;
         previousSettings.providers
       );
       if (credentialDecision.kind === "key_required") {
-        els10.apiKey?.setAttribute("aria-invalid", "true");
+        els15.apiKey?.setAttribute("aria-invalid", "true");
         setApiSettingsFeedback(translate("apiSettings.apiKeyRequired"), "error");
-        els10.apiKey?.focus();
+        els15.apiKey?.focus();
         return false;
       }
       const requestedConfirmation = options.originChangeConfirmation || null;
       if (credentialDecision.kind === "confirm_origin_change") {
         if (!isConfirmedProviderOriginChange(credentialDecision, requestedConfirmation)) {
-          openConfirmPopover4(els10.saveApiProviderEditButton, {
+          openConfirmPopover4(els15.saveApiProviderEditButton, {
             title: translate("apiSettings.originChangeTitle"),
             message: translate("apiSettings.originChangeMessage"),
             detail: formatTranslation("apiSettings.originChangeDetail", {
@@ -40122,7 +41379,7 @@ ${hint}` : hint;
             cancelText: translate("apiSettings.enterNewKey"),
             confirmText: translate("apiSettings.keepKeyAndSave"),
             focusCancel: true,
-            onCancel: () => els10.apiKey?.focus(),
+            onCancel: () => els15.apiKey?.focus(),
             onConfirm: () => saveApiSettings({
               originChangeConfirmation: {
                 providerId: credentialDecision.providerId,
@@ -40135,7 +41392,7 @@ ${hint}` : hint;
         }
         confirmedOriginChange = requestedConfirmation;
       }
-      els10.apiKey?.removeAttribute("aria-invalid");
+      els15.apiKey?.removeAttribute("aria-invalid");
     }
     const settings = readApiSettingsForm({ applyProviderDraft: !autoSave });
     persistApiSettings();
@@ -40186,10 +41443,10 @@ ${hint}` : hint;
         }
         throw new Error(detail || translate("apiSettings.saveFailed"));
       }
-      state9.apiSettings = clearProviderApiKeyInputs(normalizeApiSettings(data.settings || {}));
-      state9.apiProviderEditingId = null;
-      state9.apiProviderDraft = null;
-      state9.apiProviderDraftIsNew = false;
+      state12.apiSettings = clearProviderApiKeyInputs(normalizeApiSettings(data.settings || {}));
+      state12.apiProviderEditingId = null;
+      state12.apiProviderDraft = null;
+      state12.apiProviderDraftIsNew = false;
       persistApiSettings();
       populateApiSettingsForm();
       focusApiProviderSortHandle(sortFocusId);
@@ -40201,23 +41458,23 @@ ${hint}` : hint;
         concurrency: currentApiImagesConcurrency()
       }), "ok");
       if (!autoSave) setSaveButtonText("saved");
-      state9.apiSettingsSaveTimerId = window.setTimeout(() => {
+      state12.apiSettingsSaveTimerId = window.setTimeout(() => {
         if (!autoSave) setSaveButtonText("default");
-        state9.apiSettingsSaveTimerId = null;
+        state12.apiSettingsSaveTimerId = null;
       }, 1600);
       setStatus8(translate("apiSettings.savedStatus"), "ok");
       await refreshGenerationCatalog();
       await refreshHealth();
-      if (typeof bridge9.methods.restoreChatGPTDeleteChatState === "function") {
-        bridge9.methods.restoreChatGPTDeleteChatState();
+      if (typeof bridge12.methods.restoreChatGPTDeleteChatState === "function") {
+        bridge12.methods.restoreChatGPTDeleteChatState();
       }
-      updateRequestPreview5();
+      updateRequestPreview6();
       return true;
     } catch (error) {
-      state9.apiSettings = previousSettings;
-      state9.apiProviderEditingId = previousEditingId;
-      state9.apiProviderDraft = previousDraft;
-      state9.apiProviderDraftIsNew = previousDraftIsNew;
+      state12.apiSettings = previousSettings;
+      state12.apiProviderEditingId = previousEditingId;
+      state12.apiProviderDraft = previousDraft;
+      state12.apiProviderDraftIsNew = previousDraftIsNew;
       persistApiSettings();
       populateApiSettingsForm();
       focusApiProviderSortHandle(sortFocusId);
@@ -40227,10 +41484,10 @@ ${hint}` : hint;
       return false;
     } finally {
       if (!autoSave) setSaveButtonsDisabled(false);
-      if (!autoSave && !state9.apiSettingsSaveTimerId && els10.saveApiProviderEditButton?.textContent !== translate("apiSettings.saveProvider")) {
-        state9.apiSettingsSaveTimerId = window.setTimeout(() => {
+      if (!autoSave && !state12.apiSettingsSaveTimerId && els15.saveApiProviderEditButton?.textContent !== translate("apiSettings.saveProvider")) {
+        state12.apiSettingsSaveTimerId = window.setTimeout(() => {
           setSaveButtonText("default");
-          state9.apiSettingsSaveTimerId = null;
+          state12.apiSettingsSaveTimerId = null;
         }, 1600);
       }
     }
@@ -40788,17 +42045,17 @@ ${hint}` : hint;
   }
   function taskNotificationItemHtml(notification) {
     const unreadClass = notification.unread ? " unread" : "";
-    return `<button class="task-notification-item${unreadClass}" type="button" data-task-notification-id="${escapeHtml8(notification.id)}">
+    return `<button class="task-notification-item${unreadClass}" type="button" data-task-notification-id="${escapeHtml9(notification.id)}">
     ${taskNotificationInnerHtml(notification)}
   </button>`;
   }
   function taskNotificationInnerHtml(notification) {
-    const thumbnail = notification.thumbnail_url ? `<img class="task-notification-thumb" src="${escapeHtml8(notification.thumbnail_url)}" alt="">` : `<span class="task-notification-thumb task-notification-thumb-placeholder" aria-hidden="true">${escapeHtml8(statusGlyph(notification.status))}</span>`;
+    const thumbnail = notification.thumbnail_url ? `<img class="task-notification-thumb" src="${escapeHtml9(notification.thumbnail_url)}" alt="">` : `<span class="task-notification-thumb task-notification-thumb-placeholder" aria-hidden="true">${escapeHtml9(statusGlyph(notification.status))}</span>`;
     return `${thumbnail}
     <span class="task-notification-body">
-      <span class="task-notification-title">${escapeHtml8(taskNotificationDisplayTitle(notification))}</span>
-      <span class="task-notification-message">${escapeHtml8(taskNotificationDisplayMessage(notification))}</span>
-      <span class="task-notification-time">${escapeHtml8(formatNotificationTime(notification.created_at))}</span>
+      <span class="task-notification-title">${escapeHtml9(taskNotificationDisplayTitle(notification))}</span>
+      <span class="task-notification-message">${escapeHtml9(taskNotificationDisplayMessage(notification))}</span>
+      <span class="task-notification-time">${escapeHtml9(formatNotificationTime(notification.created_at))}</span>
     </span>`;
   }
   function statusGlyph(status) {
@@ -40901,7 +42158,7 @@ ${hint}` : hint;
     if (!text) return "";
     return text.length > 48 ? `${text.slice(0, 48)}...` : text;
   }
-  function escapeHtml8(value) {
+  function escapeHtml9(value) {
     return getLegacyBridge().methods.escapeHtml(value);
   }
   function setStatus9(message, type) {
@@ -40912,8 +42169,8 @@ ${hint}` : hint;
   }
 
   // codex_image/webui/frontend/src/storage-settings.ts
-  var bridge10 = getLegacyBridge();
-  var els11 = bridge10.els;
+  var bridge13 = getLegacyBridge();
+  var els16 = bridge13.els;
   var storageSettingsFeatureInitialized = false;
   var previousPaths = {};
   var previousPathsAnnounced = false;
@@ -40924,8 +42181,8 @@ ${hint}` : hint;
     source_data_root: "settings.sourceDataRoot"
   };
   function renderPreviousPaths() {
-    const details = els11.settingsPreviousPaths;
-    const list = els11.settingsPreviousPathsList;
+    const details = els16.settingsPreviousPaths;
+    const list = els16.settingsPreviousPathsList;
     if (!details || !list) return;
     list.replaceChildren();
     for (const [key, label] of Object.entries(pathLabels)) {
@@ -40940,7 +42197,7 @@ ${hint}` : hint;
     details.hidden = !list.childElementCount;
     if (details.hidden) details.open = false;
   }
-  function legacyMethod15(name, ...args) {
+  function legacyMethod18(name, ...args) {
     const method = getLegacyBridge().methods[name];
     if (typeof method !== "function") {
       throw new Error("Legacy method " + name + " is not initialized");
@@ -40948,13 +42205,13 @@ ${hint}` : hint;
     return method(...args);
   }
   function setStatus10(message, type) {
-    legacyMethod15("setStatus", message, type);
+    legacyMethod18("setStatus", message, type);
   }
   function closePromptPopover3() {
-    legacyMethod15("closePromptPopover");
+    legacyMethod18("closePromptPopover");
   }
   async function refreshSettings() {
-    if (!els11.settingsInputRoot) return;
+    if (!els16.settingsInputRoot) return;
     try {
       const response = await fetch("/api/settings");
       const data = await response.json();
@@ -40967,50 +42224,50 @@ ${hint}` : hint;
         showTransientNotice(translate("settings.previousPathsNotice"));
       }
     } catch (error) {
-      if (els11.settingsStatus) els11.settingsStatus.textContent = error.message || translate("settings.loadFailed");
+      if (els16.settingsStatus) els16.settingsStatus.textContent = error.message || translate("settings.loadFailed");
     }
   }
   function populateSettingsForm(settings) {
-    if (els11.settingsInputRoot) els11.settingsInputRoot.value = settings.input_root || "";
-    if (els11.settingsOutputRoot) els11.settingsOutputRoot.value = settings.output_root || "";
-    if (els11.settingsGalleryRoot) els11.settingsGalleryRoot.value = settings.gallery_root || "";
-    if (els11.settingsSourceDataRoot) els11.settingsSourceDataRoot.value = settings.source_data_root || "";
+    if (els16.settingsInputRoot) els16.settingsInputRoot.value = settings.input_root || "";
+    if (els16.settingsOutputRoot) els16.settingsOutputRoot.value = settings.output_root || "";
+    if (els16.settingsGalleryRoot) els16.settingsGalleryRoot.value = settings.gallery_root || "";
+    if (els16.settingsSourceDataRoot) els16.settingsSourceDataRoot.value = settings.source_data_root || "";
   }
   function openSettingsModal() {
     closePromptPopover3();
     refreshSettings();
-    if (els11.settingsStatus) els11.settingsStatus.textContent = translate("settings.status");
+    if (els16.settingsStatus) els16.settingsStatus.textContent = translate("settings.status");
     openSystemSettingsModal("storage");
   }
   function closeSettingsModal() {
     closeSystemSettingsModal();
   }
   async function saveSettings() {
-    if (!els11.saveSettingsButton) return;
-    els11.saveSettingsButton.disabled = true;
+    if (!els16.saveSettingsButton) return;
+    els16.saveSettingsButton.disabled = true;
     try {
       const response = await fetch("/api/settings", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          input_root: els11.settingsInputRoot?.value || "",
-          output_root: els11.settingsOutputRoot?.value || "",
-          gallery_root: els11.settingsGalleryRoot?.value || "",
-          source_data_root: els11.settingsSourceDataRoot?.value || ""
+          input_root: els16.settingsInputRoot?.value || "",
+          output_root: els16.settingsOutputRoot?.value || "",
+          gallery_root: els16.settingsGalleryRoot?.value || "",
+          source_data_root: els16.settingsSourceDataRoot?.value || ""
         })
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.detail || translate("settings.saveFailed"));
       populateSettingsForm(data.settings || {});
-      if (els11.settingsStatus) {
-        els11.settingsStatus.textContent = data.restart_required ? translate("settings.savedRestart") : translate("settings.saved");
+      if (els16.settingsStatus) {
+        els16.settingsStatus.textContent = data.restart_required ? translate("settings.savedRestart") : translate("settings.saved");
       }
       setStatus10(translate("settings.savedRestartStatus"), "ok");
     } catch (error) {
-      if (els11.settingsStatus) els11.settingsStatus.textContent = error.message || translate("settings.saveFailed");
+      if (els16.settingsStatus) els16.settingsStatus.textContent = error.message || translate("settings.saveFailed");
       setStatus10(error.message || translate("settings.saveFailed"), "error");
     } finally {
-      els11.saveSettingsButton.disabled = false;
+      els16.saveSettingsButton.disabled = false;
     }
   }
   function initStorageSettingsFeature() {
@@ -41018,8 +42275,8 @@ ${hint}` : hint;
     storageSettingsFeatureInitialized = true;
     document.addEventListener(LOCALE_CHANGE_EVENT, () => {
       renderPreviousPaths();
-      if (!els11.systemSettingsModal?.classList.contains("hidden") && !els11.systemSettingsStoragePanel?.hidden && els11.settingsStatus) {
-        els11.settingsStatus.textContent = translate("settings.status");
+      if (!els16.systemSettingsModal?.classList.contains("hidden") && !els16.systemSettingsStoragePanel?.hidden && els16.settingsStatus) {
+        els16.settingsStatus.textContent = translate("settings.status");
       }
     });
     Object.assign(getLegacyBridge().methods, {
@@ -42334,11 +43591,11 @@ ${hint}` : hint;
   ];
   var COLOR_PALETTE_ENDPOINT = "/api/color-palette";
   var COLOR_PALETTE_IMPORT_ENDPOINT = "/api/color-palette/import";
-  var bridge11 = getLegacyBridge();
-  var state10 = bridge11.state;
-  var els12 = bridge11.els;
+  var bridge14 = getLegacyBridge();
+  var state13 = bridge14.state;
+  var els17 = bridge14.els;
   var colorPaletteInitialized = false;
-  function legacyMethod16(name, ...args) {
+  function legacyMethod19(name, ...args) {
     const method = getLegacyBridge().methods[name];
     if (typeof method !== "function") {
       throw new Error("Legacy method " + name + " is not initialized");
@@ -42346,13 +43603,13 @@ ${hint}` : hint;
     return method(...args);
   }
   function setStatus12(message, type) {
-    legacyMethod16("setStatus", message, type);
+    legacyMethod19("setStatus", message, type);
   }
   function renderColorSuggest(...args) {
-    return legacyMethod16("renderColorSuggest", ...args);
+    return legacyMethod19("renderColorSuggest", ...args);
   }
   function updateColorSuggest(...args) {
-    return legacyMethod16("updateColorSuggest", ...args);
+    return legacyMethod19("updateColorSuggest", ...args);
   }
   function defaultColorPalette() {
     return {
@@ -42401,12 +43658,12 @@ ${hint}` : hint;
       const response = await fetch(COLOR_PALETTE_ENDPOINT);
       const data = await response.json();
       if (!response.ok) throw new Error(data.detail || translate("colors.loadFailed"));
-      state10.colorPalette = normalizeColorPalette(data.palette);
-      state10.selectedColorCode = state10.colorPalette.recent_colors[0] || favoriteColorsForDisplay()[0]?.hex || DEFAULT_COLOR_CODE;
+      state13.colorPalette = normalizeColorPalette(data.palette);
+      state13.selectedColorCode = state13.colorPalette.recent_colors[0] || favoriteColorsForDisplay()[0]?.hex || DEFAULT_COLOR_CODE;
       updateColorSuggest();
     } catch (error) {
       console.warn(error.message || translate("colors.loadFailed"));
-      state10.colorPalette = defaultColorPalette();
+      state13.colorPalette = defaultColorPalette();
     }
   }
   async function persistColorPalette(payload2) {
@@ -42417,8 +43674,8 @@ ${hint}` : hint;
     });
     const data = await response.json();
     if (!response.ok) throw new Error(data.detail || translate("colors.saveFailed"));
-    state10.colorPalette = normalizeColorPalette(data.palette);
-    return state10.colorPalette;
+    state13.colorPalette = normalizeColorPalette(data.palette);
+    return state13.colorPalette;
   }
   async function importColorPalette(file) {
     if (!file) return;
@@ -42430,40 +43687,40 @@ ${hint}` : hint;
     });
     const data = await response.json();
     if (!response.ok) throw new Error(data.detail || translate("colors.importFailed"));
-    state10.colorPalette = normalizeColorPalette(data.palette);
-    renderColorSuggest({ query: state10.selectedColorCode.slice(1), range: state10.activeColorRange });
-    els12.colorSuggest?.classList.remove("hidden");
-    els12.promptEditor?.focus({ preventScroll: true });
+    state13.colorPalette = normalizeColorPalette(data.palette);
+    renderColorSuggest({ query: state13.selectedColorCode.slice(1), range: state13.activeColorRange });
+    els17.colorSuggest?.classList.remove("hidden");
+    els17.promptEditor?.focus({ preventScroll: true });
     setStatus12(formatTranslation("colors.importedCount", { count: data.imported || 0 }), "ok");
   }
   function toggleColorPaletteManageMode() {
-    state10.colorPaletteManageMode = !state10.colorPaletteManageMode;
-    renderColorSuggest({ query: state10.selectedColorCode.slice(1), range: state10.activeColorRange });
-    els12.colorSuggest?.classList.remove("hidden");
-    els12.promptEditor?.focus({ preventScroll: true });
+    state13.colorPaletteManageMode = !state13.colorPaletteManageMode;
+    renderColorSuggest({ query: state13.selectedColorCode.slice(1), range: state13.activeColorRange });
+    els17.colorSuggest?.classList.remove("hidden");
+    els17.promptEditor?.focus({ preventScroll: true });
   }
   function favoriteColorsForDisplay() {
-    const favorites = Array.isArray(state10.colorPalette?.favorites) ? state10.colorPalette.favorites : [];
-    return Array.isArray(state10.colorPalette?.favorites) ? favorites : defaultColorPalette().favorites;
+    const favorites = Array.isArray(state13.colorPalette?.favorites) ? state13.colorPalette.favorites : [];
+    return Array.isArray(state13.colorPalette?.favorites) ? favorites : defaultColorPalette().favorites;
   }
   function recentColorsForDisplay() {
     const favoriteHex = new Set(favoriteColorsForDisplay().map((item) => item.hex));
-    return (state10.colorPalette?.recent_colors || []).filter((color) => !favoriteHex.has(color));
+    return (state13.colorPalette?.recent_colors || []).filter((color) => !favoriteHex.has(color));
   }
   function rememberRecentColor(colorCode) {
     const normalized = normalizeHexColor(colorCode);
     if (!normalized) return;
-    const recentLimit = state10.colorPalette?.recent_limit ?? 6;
-    const recentColors = dedupeColors([normalized, ...state10.colorPalette?.recent_colors || []]).slice(0, recentLimit);
-    state10.colorPalette = { ...state10.colorPalette, recent_colors: recentColors };
-    state10.selectedColorCode = normalized;
+    const recentLimit = state13.colorPalette?.recent_limit ?? 6;
+    const recentColors = dedupeColors([normalized, ...state13.colorPalette?.recent_colors || []]).slice(0, recentLimit);
+    state13.colorPalette = { ...state13.colorPalette, recent_colors: recentColors };
+    state13.selectedColorCode = normalized;
     void persistColorPalette({ recent_colors: recentColors }).catch((error) => {
       console.warn(error.message || translate("colors.recentSaveFailed"));
     });
   }
   async function saveFavoriteColor() {
-    const input = els12.colorSuggest?.querySelector("[data-color-hex-input]");
-    const normalized = normalizeHexColor(input?.value || state10.selectedColorCode);
+    const input = els17.colorSuggest?.querySelector("[data-color-hex-input]");
+    const normalized = normalizeHexColor(input?.value || state13.selectedColorCode);
     if (!normalized) return;
     const favorites = favoriteColorsForDisplay().filter((item) => item.hex !== normalized);
     favorites.push({
@@ -42473,9 +43730,9 @@ ${hint}` : hint;
     });
     try {
       await persistColorPalette({ favorites });
-      renderColorSuggest({ query: normalized.slice(1), range: state10.activeColorRange });
-      els12.colorSuggest?.classList.remove("hidden");
-      els12.promptEditor?.focus({ preventScroll: true });
+      renderColorSuggest({ query: normalized.slice(1), range: state13.activeColorRange });
+      els17.colorSuggest?.classList.remove("hidden");
+      els17.promptEditor?.focus({ preventScroll: true });
     } catch (error) {
       console.warn(error.message || translate("colors.favoriteSaveFailed"));
     }
@@ -42486,9 +43743,9 @@ ${hint}` : hint;
     const favorites = favoriteColorsForDisplay().filter((item) => item.hex !== normalized);
     try {
       await persistColorPalette({ favorites });
-      renderColorSuggest({ query: state10.selectedColorCode.slice(1), range: state10.activeColorRange });
-      els12.colorSuggest?.classList.remove("hidden");
-      els12.promptEditor?.focus({ preventScroll: true });
+      renderColorSuggest({ query: state13.selectedColorCode.slice(1), range: state13.activeColorRange });
+      els17.colorSuggest?.classList.remove("hidden");
+      els17.promptEditor?.focus({ preventScroll: true });
     } catch (error) {
       console.warn(error.message || translate("colors.favoriteDeleteFailed"));
     }
@@ -42579,75 +43836,75 @@ ${hint}` : hint;
   // codex_image/webui/frontend/src/prompt-colors.ts
   var DEFAULT_COLOR_CODE2 = "#FFFFFF";
   var COLOR_PALETTE_EXPORT_CSS_ENDPOINT = "/api/color-palette/export.css";
-  var bridge12 = getLegacyBridge();
-  var state11 = bridge12.state;
-  var els13 = bridge12.els;
-  function legacyMethod17(name, ...args) {
+  var bridge15 = getLegacyBridge();
+  var state14 = bridge15.state;
+  var els18 = bridge15.els;
+  function legacyMethod20(name, ...args) {
     const method = getLegacyBridge().methods[name];
     if (typeof method !== "function") {
       throw new Error("Legacy method " + name + " is not initialized");
     }
     return method(...args);
   }
-  function escapeHtml9(value) {
-    return legacyMethod17("escapeHtml", value);
+  function escapeHtml10(value) {
+    return legacyMethod20("escapeHtml", value);
   }
   function setStatus13(message, type) {
-    legacyMethod17("setStatus", message, type);
+    legacyMethod20("setStatus", message, type);
   }
   function normalizeHexColor2(value) {
-    return legacyMethod17("normalizeHexColor", value);
+    return legacyMethod20("normalizeHexColor", value);
   }
   function favoriteColorsForDisplay2() {
-    return legacyMethod17("favoriteColorsForDisplay");
+    return legacyMethod20("favoriteColorsForDisplay");
   }
   function recentColorsForDisplay2() {
-    return legacyMethod17("recentColorsForDisplay");
+    return legacyMethod20("recentColorsForDisplay");
   }
   function saveFavoriteColor2() {
-    return legacyMethod17("saveFavoriteColor");
+    return legacyMethod20("saveFavoriteColor");
   }
   function toggleColorPaletteManageMode2() {
-    legacyMethod17("toggleColorPaletteManageMode");
+    legacyMethod20("toggleColorPaletteManageMode");
   }
   function importColorPalette2(file) {
-    return legacyMethod17("importColorPalette", file);
+    return legacyMethod20("importColorPalette", file);
   }
   function removeFavoriteColor2(colorCode) {
-    return legacyMethod17("removeFavoriteColor", colorCode);
+    return legacyMethod20("removeFavoriteColor", colorCode);
   }
   function rememberRecentColor2(colorCode) {
-    legacyMethod17("rememberRecentColor", colorCode);
+    legacyMethod20("rememberRecentColor", colorCode);
   }
   function getPromptText2() {
-    return legacyMethod17("getPromptText");
+    return legacyMethod20("getPromptText");
   }
   function appendPromptText(text) {
-    legacyMethod17("appendPromptText", text);
+    legacyMethod20("appendPromptText", text);
   }
   function syncPromptFromEditor() {
-    legacyMethod17("syncPromptFromEditor");
+    legacyMethod20("syncPromptFromEditor");
   }
   function updatePromptCount2() {
-    legacyMethod17("updatePromptCount");
+    legacyMethod20("updatePromptCount");
   }
-  function updateRequestPreview6() {
-    legacyMethod17("updateRequestPreview");
+  function updateRequestPreview7() {
+    legacyMethod20("updateRequestPreview");
   }
   function mentionRangeRect(range) {
-    return legacyMethod17("mentionRangeRect", range);
+    return legacyMethod20("mentionRangeRect", range);
   }
   function syncPromptAfterChipMutation() {
-    legacyMethod17("syncPromptAfterChipMutation");
+    legacyMethod20("syncPromptAfterChipMutation");
   }
   function setCaretAfterNode(node) {
-    legacyMethod17("setCaretAfterNode", node);
+    legacyMethod20("setCaretAfterNode", node);
   }
   function removePromptGalleryChip(chip) {
-    legacyMethod17("removePromptGalleryChip", chip);
+    legacyMethod20("removePromptGalleryChip", chip);
   }
   function updateColorSuggest2() {
-    if (!els13.colorSuggest || !els13.promptEditor) return;
+    if (!els18.colorSuggest || !els18.promptEditor) return;
     const match = activeColorMatch();
     if (!match) {
       hideColorSuggest();
@@ -42655,12 +43912,12 @@ ${hint}` : hint;
     }
     renderColorSuggest2(match);
     positionColorSuggestAtCaret(match);
-    els13.colorSuggest.classList.remove("hidden");
+    els18.colorSuggest.classList.remove("hidden");
   }
   function activeColorMatch() {
     const selection = window.getSelection();
-    if (!selection || !selection.rangeCount || !selection.isCollapsed || !els13.promptEditor) return null;
-    if (!els13.promptEditor.contains(selection.anchorNode)) return null;
+    if (!selection || !selection.rangeCount || !selection.isCollapsed || !els18.promptEditor) return null;
+    if (!els18.promptEditor.contains(selection.anchorNode)) return null;
     const selectionRange = selection.getRangeAt(0);
     let container = selectionRange.startContainer;
     let offset = selectionRange.startOffset;
@@ -42684,50 +43941,50 @@ ${hint}` : hint;
     };
   }
   function renderColorSuggest2(match) {
-    if (!els13.colorSuggest) return;
-    state11.activeColorRange = match.range ? match.range.cloneRange() : null;
+    if (!els18.colorSuggest) return;
+    state14.activeColorRange = match.range ? match.range.cloneRange() : null;
     const queryColor = match.query ? normalizeHexColor2(`#${match.query}`) : "";
     const favoriteColors = favoriteColorsForDisplay2();
     const recentColors = recentColorsForDisplay2();
-    const selected = queryColor || state11.selectedColorCode || recentColors[0] || favoriteColors[0]?.hex || DEFAULT_COLOR_CODE2;
-    state11.selectedColorCode = selected;
-    const editingColor = state11.activeColorChip ? normalizeHexColor2(state11.activeColorChip.dataset.colorCode) || DEFAULT_COLOR_CODE2 : "";
+    const selected = queryColor || state14.selectedColorCode || recentColors[0] || favoriteColors[0]?.hex || DEFAULT_COLOR_CODE2;
+    state14.selectedColorCode = selected;
+    const editingColor = state14.activeColorChip ? normalizeHexColor2(state14.activeColorChip.dataset.colorCode) || DEFAULT_COLOR_CODE2 : "";
     const isEditingDirty = Boolean(editingColor && selected !== editingColor);
     const typedValue = match.query ? `#${match.query.toUpperCase()}` : selected;
-    const actionLabel = state11.activeColorChip ? translate("colors.update") : translate("colors.insert");
-    const swatchRowClass = state11.colorPaletteManageMode ? "color-swatch-row is-managing" : "color-swatch-row";
+    const actionLabel = state14.activeColorChip ? translate("colors.update") : translate("colors.insert");
+    const swatchRowClass = state14.colorPaletteManageMode ? "color-swatch-row is-managing" : "color-swatch-row";
     const swatchButtons = [
-      ...favoriteColors.map((item) => colorSwatchButton(item.hex, item.name, { removable: state11.colorPaletteManageMode })),
+      ...favoriteColors.map((item) => colorSwatchButton(item.hex, item.name, { removable: state14.colorPaletteManageMode })),
       ...recentColors.map((color) => colorSwatchButton(color, translate("colors.recentLabel")))
     ].join("");
-    els13.colorSuggest.innerHTML = `
-    <div class="color-suggest-main" data-color-original="${escapeHtml9(editingColor)}">
+    els18.colorSuggest.innerHTML = `
+    <div class="color-suggest-main" data-color-original="${escapeHtml10(editingColor)}">
       <div class="color-value-control${isEditingDirty ? " is-dirty" : ""}" data-color-value-control>
-        <label class="color-picker-control" title="${escapeHtml9(translate("colors.pick"))}" aria-label="${escapeHtml9(translate("colors.pick"))}">
-          <input class="color-picker-input" type="color" value="${escapeHtml9(selected)}" data-color-picker>
-          <span class="color-picker-swatch" style="--active-color: ${escapeHtml9(selected)}">
+        <label class="color-picker-control" title="${escapeHtml10(translate("colors.pick"))}" aria-label="${escapeHtml10(translate("colors.pick"))}">
+          <input class="color-picker-input" type="color" value="${escapeHtml10(selected)}" data-color-picker>
+          <span class="color-picker-swatch" style="--active-color: ${escapeHtml10(selected)}">
             <svg class="color-picker-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
               <path d="M14.5 4.5l5 5-8.8 8.8H6.5v-4.2l8-9.6z"></path>
               <path d="M12.7 6.4l4.9 4.9"></path>
             </svg>
-            <span class="color-picker-label">${escapeHtml9(translate("colors.pickShort"))}</span>
+            <span class="color-picker-label">${escapeHtml10(translate("colors.pickShort"))}</span>
           </span>
         </label>
-        <input class="color-hex-input" type="text" value="${escapeHtml9(typedValue)}" maxlength="7" spellcheck="false" aria-label="${escapeHtml9(translate("colors.hexValue"))}" data-color-hex-input>
+        <input class="color-hex-input" type="text" value="${escapeHtml10(typedValue)}" maxlength="7" spellcheck="false" aria-label="${escapeHtml10(translate("colors.hexValue"))}" data-color-hex-input>
       </div>
       <button class="ghost-button text-sm color-insert-button${isEditingDirty ? " is-dirty" : ""}" type="button" data-insert-color${editingColor && !isEditingDirty ? " disabled" : ""}>${actionLabel}</button>
       <div class="color-suggest-actions">
-        <button class="ghost-button text-sm" type="button" data-save-favorite-color>${escapeHtml9(translate("colors.save"))}</button>
-        <a class="ghost-button text-sm color-export-link" href="${COLOR_PALETTE_EXPORT_CSS_ENDPOINT}" target="_blank" rel="noopener" data-color-palette-export>${escapeHtml9(translate("colors.exportPs"))}</a>
+        <button class="ghost-button text-sm" type="button" data-save-favorite-color>${escapeHtml10(translate("colors.save"))}</button>
+        <a class="ghost-button text-sm color-export-link" href="${COLOR_PALETTE_EXPORT_CSS_ENDPOINT}" target="_blank" rel="noopener" data-color-palette-export>${escapeHtml10(translate("colors.exportPs"))}</a>
         <label class="ghost-button text-sm color-import-label" data-color-palette-import>
-          ${escapeHtml9(translate("colors.importPs"))}
+          ${escapeHtml10(translate("colors.importPs"))}
           <input class="color-import-input" type="file" accept=".aco,.css,.html,.htm,.svg,.txt" data-color-palette-import-input>
         </label>
-        <button class="ghost-button text-sm color-manage-button" type="button" aria-pressed="${state11.colorPaletteManageMode ? "true" : "false"}" data-color-palette-manage>${escapeHtml9(state11.colorPaletteManageMode ? translate("colors.done") : translate("colors.manage"))}</button>
+        <button class="ghost-button text-sm color-manage-button" type="button" aria-pressed="${state14.colorPaletteManageMode ? "true" : "false"}" data-color-palette-manage>${escapeHtml10(state14.colorPaletteManageMode ? translate("colors.done") : translate("colors.manage"))}</button>
       </div>
-      <div class="color-update-hint${isEditingDirty ? "" : " hidden"}" role="status" aria-live="polite" data-color-update-hint>${escapeHtml9(translate("colors.pendingUpdate"))}</div>
+      <div class="color-update-hint${isEditingDirty ? "" : " hidden"}" role="status" aria-live="polite" data-color-update-hint>${escapeHtml10(translate("colors.pendingUpdate"))}</div>
     </div>
-    <div class="${swatchRowClass}" aria-label="${escapeHtml9(translate("colors.favorites"))}">
+    <div class="${swatchRowClass}" aria-label="${escapeHtml10(translate("colors.favorites"))}">
       ${swatchButtons}
     </div>
   `;
@@ -42740,13 +43997,13 @@ ${hint}` : hint;
   }
   function colorSwatchButton(color, label = "", { removable = false } = {}) {
     const normalized = normalizeHexColor2(color) || DEFAULT_COLOR_CODE2;
-    const deleteLabel = escapeHtml9(formatTranslation("colors.deleteFavorite", { name: label || normalized }));
+    const deleteLabel = escapeHtml10(formatTranslation("colors.deleteFavorite", { name: label || normalized }));
     return `
     <span class="color-swatch-item">
-      <button class="color-swatch-button" type="button" title="${escapeHtml9(label ? `${label} ${normalized}` : normalized)}" data-color-swatch="${escapeHtml9(normalized)}" style="--swatch-color: ${escapeHtml9(normalized)}">
-        <span>${escapeHtml9(label ? `${label} ${normalized}` : normalized)}</span>
+      <button class="color-swatch-button" type="button" title="${escapeHtml10(label ? `${label} ${normalized}` : normalized)}" data-color-swatch="${escapeHtml10(normalized)}" style="--swatch-color: ${escapeHtml10(normalized)}">
+        <span>${escapeHtml10(label ? `${label} ${normalized}` : normalized)}</span>
       </button>
-      ${removable ? `<button class="color-swatch-remove" type="button" title="${deleteLabel}" aria-label="${deleteLabel}" data-remove-favorite-color="${escapeHtml9(normalized)}">
+      ${removable ? `<button class="color-swatch-remove" type="button" title="${deleteLabel}" aria-label="${deleteLabel}" data-remove-favorite-color="${escapeHtml10(normalized)}">
         <svg class="color-swatch-remove-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
           <path d="M7 7L17 17M17 7L7 17"></path>
         </svg>
@@ -42755,14 +44012,14 @@ ${hint}` : hint;
   `;
   }
   function bindColorSuggestEvents() {
-    if (!els13.colorSuggest) return;
-    const picker = els13.colorSuggest.querySelector("[data-color-picker]");
-    const input = els13.colorSuggest.querySelector("[data-color-hex-input]");
-    const insert = els13.colorSuggest.querySelector("[data-insert-color]");
-    const swatchPreview = els13.colorSuggest.querySelector(".color-picker-swatch");
-    const valueControl = els13.colorSuggest.querySelector("[data-color-value-control]");
-    const hint = els13.colorSuggest.querySelector("[data-color-update-hint]");
-    const originalColor = normalizeHexColor2(els13.colorSuggest.querySelector("[data-color-original]")?.dataset.colorOriginal);
+    if (!els18.colorSuggest) return;
+    const picker = els18.colorSuggest.querySelector("[data-color-picker]");
+    const input = els18.colorSuggest.querySelector("[data-color-hex-input]");
+    const insert = els18.colorSuggest.querySelector("[data-insert-color]");
+    const swatchPreview = els18.colorSuggest.querySelector(".color-picker-swatch");
+    const valueControl = els18.colorSuggest.querySelector("[data-color-value-control]");
+    const hint = els18.colorSuggest.querySelector("[data-color-update-hint]");
+    const originalColor = normalizeHexColor2(els18.colorSuggest.querySelector("[data-color-original]")?.dataset.colorOriginal);
     const keepPromptFocus = (event) => event.preventDefault();
     const updateDraftState = (value) => {
       const normalized = normalizeHexColor2(value);
@@ -42776,18 +44033,18 @@ ${hint}` : hint;
     const syncColor = (value) => {
       const normalized = normalizeHexColor2(value);
       if (!normalized) return;
-      state11.selectedColorCode = normalized;
+      state14.selectedColorCode = normalized;
       if (picker) picker.value = normalized;
       if (input) input.value = normalized;
       updateDraftState(normalized);
     };
-    updateDraftState(input?.value || state11.selectedColorCode);
+    updateDraftState(input?.value || state14.selectedColorCode);
     picker?.addEventListener("input", () => syncColor(picker.value));
     input?.addEventListener("input", () => {
       const normalized = normalizeHexColor2(input.value);
       updateDraftState(input.value);
       if (!normalized) return;
-      state11.selectedColorCode = normalized;
+      state14.selectedColorCode = normalized;
       if (picker) picker.value = normalized;
       if (swatchPreview) swatchPreview.style.setProperty("--active-color", normalized);
     });
@@ -42799,30 +44056,30 @@ ${hint}` : hint;
       if (event.key === "Escape") {
         event.preventDefault();
         hideColorSuggest();
-        els13.promptEditor?.focus();
+        els18.promptEditor?.focus();
       }
     });
     insert?.addEventListener("pointerdown", keepPromptFocus);
     insert?.addEventListener("mousedown", keepPromptFocus);
     insert?.addEventListener("click", () => {
       if (insert.disabled) return;
-      insertColorCode(input?.value || state11.selectedColorCode);
+      insertColorCode(input?.value || state14.selectedColorCode);
     });
-    const saveFavorite = els13.colorSuggest.querySelector("[data-save-favorite-color]");
+    const saveFavorite = els18.colorSuggest.querySelector("[data-save-favorite-color]");
     saveFavorite?.addEventListener("pointerdown", keepPromptFocus);
     saveFavorite?.addEventListener("mousedown", keepPromptFocus);
     saveFavorite?.addEventListener("click", (event) => {
       event.stopPropagation();
       saveFavoriteColor2();
     });
-    const manageFavorite = els13.colorSuggest.querySelector("[data-color-palette-manage]");
+    const manageFavorite = els18.colorSuggest.querySelector("[data-color-palette-manage]");
     manageFavorite?.addEventListener("pointerdown", keepPromptFocus);
     manageFavorite?.addEventListener("mousedown", keepPromptFocus);
     manageFavorite?.addEventListener("click", (event) => {
       event.stopPropagation();
       toggleColorPaletteManageMode2();
     });
-    const importInput = els13.colorSuggest.querySelector("[data-color-palette-import-input]");
+    const importInput = els18.colorSuggest.querySelector("[data-color-palette-import-input]");
     importInput?.addEventListener("change", async () => {
       const file = importInput.files?.[0];
       if (!file) return;
@@ -42835,11 +44092,11 @@ ${hint}` : hint;
         importInput.value = "";
       }
     });
-    els13.colorSuggest.querySelectorAll("[data-color-swatch]").forEach((button) => {
+    els18.colorSuggest.querySelectorAll("[data-color-swatch]").forEach((button) => {
       button.addEventListener("pointerdown", keepPromptFocus);
       button.addEventListener("mousedown", keepPromptFocus);
       button.addEventListener("click", () => {
-        if (state11.activeColorChip) {
+        if (state14.activeColorChip) {
           syncColor(button.dataset.colorSwatch);
           input?.focus({ preventScroll: true });
           return;
@@ -42847,7 +44104,7 @@ ${hint}` : hint;
         insertColorCode(button.dataset.colorSwatch);
       });
     });
-    els13.colorSuggest.querySelectorAll("[data-remove-favorite-color]").forEach((button) => {
+    els18.colorSuggest.querySelectorAll("[data-remove-favorite-color]").forEach((button) => {
       button.addEventListener("pointerdown", keepPromptFocus);
       button.addEventListener("mousedown", keepPromptFocus);
       button.addEventListener("click", (event) => {
@@ -42857,9 +44114,9 @@ ${hint}` : hint;
     });
   }
   function insertColorCode(colorCode) {
-    const normalized = normalizeHexColor2(colorCode) || state11.selectedColorCode || DEFAULT_COLOR_CODE2;
-    if (state11.activeColorChip && els13.promptEditor?.contains(state11.activeColorChip)) {
-      const chip = state11.activeColorChip;
+    const normalized = normalizeHexColor2(colorCode) || state14.selectedColorCode || DEFAULT_COLOR_CODE2;
+    if (state14.activeColorChip && els18.promptEditor?.contains(state14.activeColorChip)) {
+      const chip = state14.activeColorChip;
       updateColorChip(chip, normalized);
       rememberRecentColor2(normalized);
       syncPromptAfterChipMutation();
@@ -42867,8 +44124,8 @@ ${hint}` : hint;
       return;
     }
     let match = activeColorMatch();
-    if (!match?.range && state11.activeColorRange) {
-      match = { query: "", range: state11.activeColorRange };
+    if (!match?.range && state14.activeColorRange) {
+      match = { query: "", range: state14.activeColorRange };
     }
     let trailingSpace = null;
     if (match?.range) {
@@ -42882,23 +44139,23 @@ ${hint}` : hint;
       if (currentText && !/\s$/.test(currentText)) {
         appendPromptText(" ");
       }
-      els13.promptEditor.append(createColorChip(normalized));
+      els18.promptEditor.append(createColorChip(normalized));
       trailingSpace = document.createTextNode(" ");
-      els13.promptEditor.append(trailingSpace);
+      els18.promptEditor.append(trailingSpace);
     }
     rememberRecentColor2(normalized);
     syncPromptFromEditor();
     updatePromptCount2();
-    updateRequestPreview6();
+    updateRequestPreview7();
     hideColorSuggest();
     setCaretAfterNode(trailingSpace);
   }
   function positionColorSuggestAtCaret(match) {
-    if (!els13.colorSuggest || !els13.promptEditor || !match?.range) return;
-    const host = els13.promptEditor.closest(".prompt-editor-wrap") || els13.promptEditor;
-    const anchorRect = mentionRangeRect(match.range) || els13.promptEditor.getBoundingClientRect();
+    if (!els18.colorSuggest || !els18.promptEditor || !match?.range) return;
+    const host = els18.promptEditor.closest(".prompt-editor-wrap") || els18.promptEditor;
+    const anchorRect = mentionRangeRect(match.range) || els18.promptEditor.getBoundingClientRect();
     positionPromptPopoverAtAnchor(
-      els13.colorSuggest,
+      els18.colorSuggest,
       host,
       anchorRect,
       {
@@ -42911,21 +44168,21 @@ ${hint}` : hint;
     );
   }
   function openColorChipEditor(chip) {
-    if (!chip || !els13.promptEditor?.contains(chip)) return;
+    if (!chip || !els18.promptEditor?.contains(chip)) return;
     const normalized = normalizeHexColor2(chip.dataset.colorCode) || DEFAULT_COLOR_CODE2;
-    state11.activeColorChip = chip;
-    state11.activeColorRange = null;
-    state11.selectedColorCode = normalized;
+    state14.activeColorChip = chip;
+    state14.activeColorRange = null;
+    state14.selectedColorCode = normalized;
     renderColorSuggest2({ query: normalized.slice(1), range: null });
     positionColorSuggestAtChip(chip);
-    els13.colorSuggest?.classList.remove("hidden");
+    els18.colorSuggest?.classList.remove("hidden");
   }
   function positionColorSuggestAtChip(chip) {
-    if (!els13.colorSuggest || !els13.promptEditor || !chip) return;
-    const host = els13.promptEditor.closest(".prompt-editor-wrap") || els13.promptEditor;
+    if (!els18.colorSuggest || !els18.promptEditor || !chip) return;
+    const host = els18.promptEditor.closest(".prompt-editor-wrap") || els18.promptEditor;
     const chipRect = chip.getBoundingClientRect();
     positionPromptPopoverAtAnchor(
-      els13.colorSuggest,
+      els18.colorSuggest,
       host,
       chipRect,
       {
@@ -43021,16 +44278,16 @@ ${hint}` : hint;
     return (lighter + 0.05) / (darker + 0.05);
   }
   function hideColorSuggest() {
-    if (!els13.colorSuggest) return;
-    els13.colorSuggest.classList.add("hidden");
-    els13.colorSuggest.innerHTML = "";
-    state11.activeColorRange = null;
-    state11.activeColorChip = null;
-    state11.colorPaletteManageMode = false;
-    els13.colorSuggest.style.removeProperty("--color-left");
-    els13.colorSuggest.style.removeProperty("--color-top");
-    els13.colorSuggest.style.removeProperty("--color-width");
-    els13.colorSuggest.style.removeProperty("--prompt-popover-max-height");
+    if (!els18.colorSuggest) return;
+    els18.colorSuggest.classList.add("hidden");
+    els18.colorSuggest.innerHTML = "";
+    state14.activeColorRange = null;
+    state14.activeColorChip = null;
+    state14.colorPaletteManageMode = false;
+    els18.colorSuggest.style.removeProperty("--color-left");
+    els18.colorSuggest.style.removeProperty("--color-top");
+    els18.colorSuggest.style.removeProperty("--color-width");
+    els18.colorSuggest.style.removeProperty("--prompt-popover-max-height");
   }
   function initPromptColorsFeature() {
     Object.assign(getLegacyBridge().methods, {
@@ -43061,9 +44318,9 @@ ${hint}` : hint;
   var PROMPT_SNIPPET_TRIGGER_CHARS = "~\uFF5E\u301C\u223C\u02DC";
   var PROMPT_SNIPPET_BOUNDARY_CHARS = `\uFF0C\u3002,.\uFF1B;\uFF1A:\uFF01\uFF1F!?\u3001\uFF08\uFF09()[]\u3010\u3011"'\u201C\u201D\u2018\u2019`;
   var PROMPT_SNIPPET_TRIGGER_PATTERN = /(^|[\s\n，。,.；;：:！？!?、（）()\[\]【】"'“”‘’])([~～〜∼˜]+)([^\s~～〜∼˜@#，。,.；;：:！？!?、（）()\[\]【】"'“”‘’]*)$/;
-  var bridge13 = getLegacyBridge();
-  var state12 = bridge13.state;
-  var els14 = bridge13.els;
+  var bridge16 = getLegacyBridge();
+  var state15 = bridge16.state;
+  var els19 = bridge16.els;
   var promptSnippetSuggestEl = null;
   var promptSnippetSelectionButtonEl = null;
   var promptSnippetPopoverEl = null;
@@ -43072,42 +44329,42 @@ ${hint}` : hint;
     chip: null,
     snippetId: null
   };
-  function legacyMethod18(name, ...args) {
+  function legacyMethod21(name, ...args) {
     const method = getLegacyBridge().methods[name];
     if (typeof method !== "function") {
       throw new Error("Legacy method " + name + " is not initialized");
     }
     return method(...args);
   }
-  function escapeHtml10(value) {
-    return legacyMethod18("escapeHtml", value);
+  function escapeHtml11(value) {
+    return legacyMethod21("escapeHtml", value);
   }
   function setStatus14(message, type) {
-    legacyMethod18("setStatus", message, type);
+    legacyMethod21("setStatus", message, type);
   }
   function getPromptText3() {
-    return legacyMethod18("getPromptText");
+    return legacyMethod21("getPromptText");
   }
   function promptTextFromRange(range) {
-    return legacyMethod18("promptTextFromRange", range);
+    return legacyMethod21("promptTextFromRange", range);
   }
   function rangeIntersectsNode(range, node) {
-    return legacyMethod18("rangeIntersectsNode", range, node);
+    return legacyMethod21("rangeIntersectsNode", range, node);
   }
   function appendPromptText2(text) {
-    legacyMethod18("appendPromptText", text);
+    legacyMethod21("appendPromptText", text);
   }
   function mentionRangeRect2(range) {
-    return legacyMethod18("mentionRangeRect", range);
+    return legacyMethod21("mentionRangeRect", range);
   }
   function removePromptGalleryChip2(chip) {
-    legacyMethod18("removePromptGalleryChip", chip);
+    legacyMethod21("removePromptGalleryChip", chip);
   }
   function syncPromptAfterChipMutation2() {
-    legacyMethod18("syncPromptAfterChipMutation");
+    legacyMethod21("syncPromptAfterChipMutation");
   }
   function setCaretAfterNode2(node) {
-    legacyMethod18("setCaretAfterNode", node);
+    legacyMethod21("setCaretAfterNode", node);
   }
   function normalizePromptSnippet(value) {
     if (!value || typeof value !== "object") return null;
@@ -43143,11 +44400,11 @@ ${hint}` : hint;
       const response = await fetch(PROMPT_SNIPPETS_ENDPOINT);
       const data = await response.json();
       if (!response.ok) throw new Error(data.detail || translate("snippets.loadFailed"));
-      state12.promptSnippets = normalizePromptSnippetList(data.snippets);
+      state15.promptSnippets = normalizePromptSnippetList(data.snippets);
       updatePromptSnippetSuggest();
     } catch (error) {
       console.warn(error.message || translate("snippets.loadFailed"));
-      state12.promptSnippets = [];
+      state15.promptSnippets = [];
     }
   }
   function promptSnippetSuggestElement() {
@@ -43155,7 +44412,7 @@ ${hint}` : hint;
     promptSnippetSuggestEl = document.createElement("div");
     promptSnippetSuggestEl.className = "prompt-snippet-suggest hidden";
     promptSnippetSuggestEl.setAttribute("aria-label", translate("snippets.suggestLabel"));
-    els14.promptEditor?.closest(".prompt-editor-wrap")?.appendChild(promptSnippetSuggestEl);
+    els19.promptEditor?.closest(".prompt-editor-wrap")?.appendChild(promptSnippetSuggestEl);
     return promptSnippetSuggestEl;
   }
   function promptSnippetSelectionButtonElement() {
@@ -43171,7 +44428,7 @@ ${hint}` : hint;
       event.stopPropagation();
       openPromptSnippetSavePopover();
     });
-    els14.promptEditor?.closest(".prompt-editor-wrap")?.appendChild(promptSnippetSelectionButtonEl);
+    els19.promptEditor?.closest(".prompt-editor-wrap")?.appendChild(promptSnippetSelectionButtonEl);
     return promptSnippetSelectionButtonEl;
   }
   function promptSnippetPopoverElement() {
@@ -43180,13 +44437,13 @@ ${hint}` : hint;
     promptSnippetPopoverEl.className = "prompt-snippet-popover hidden";
     promptSnippetPopoverEl.setAttribute("role", "dialog");
     promptSnippetPopoverEl.setAttribute("aria-label", translate("snippets.popoverLabel"));
-    els14.promptEditor?.closest(".prompt-editor-wrap")?.appendChild(promptSnippetPopoverEl);
+    els19.promptEditor?.closest(".prompt-editor-wrap")?.appendChild(promptSnippetPopoverEl);
     return promptSnippetPopoverEl;
   }
   function activePromptSnippetMatch() {
     const selection = window.getSelection();
-    if (!selection || !selection.rangeCount || !selection.isCollapsed || !els14.promptEditor) return null;
-    if (!els14.promptEditor.contains(selection.anchorNode)) return null;
+    if (!selection || !selection.rangeCount || !selection.isCollapsed || !els19.promptEditor) return null;
+    if (!els19.promptEditor.contains(selection.anchorNode)) return null;
     const selectionRange = selection.getRangeAt(0);
     let container = selectionRange.startContainer;
     let offset = selectionRange.startOffset;
@@ -43213,7 +44470,7 @@ ${hint}` : hint;
   }
   function updatePromptSnippetSuggest() {
     const suggest = promptSnippetSuggestElement();
-    if (!suggest || !els14.promptEditor) return;
+    if (!suggest || !els19.promptEditor) return;
     const match = activePromptSnippetMatch();
     if (!match) {
       hidePromptSnippetSuggest();
@@ -43225,15 +44482,15 @@ ${hint}` : hint;
       hidePromptSnippetSuggest();
       return;
     }
-    state12.activePromptSnippetRange = match.range.cloneRange();
+    state15.activePromptSnippetRange = match.range.cloneRange();
     suggest.innerHTML = snippets.map((snippet) => `
-    <button type="button" class="prompt-snippet-option" data-prompt-snippet-id="${escapeHtml10(snippet.id)}">
-      <span class="prompt-snippet-option-tag">~${escapeHtml10(snippet.tag)}</span>
+    <button type="button" class="prompt-snippet-option" data-prompt-snippet-id="${escapeHtml11(snippet.id)}">
+      <span class="prompt-snippet-option-tag">~${escapeHtml11(snippet.tag)}</span>
       <span class="prompt-snippet-option-main">
-        <span>${escapeHtml10(snippet.title)}</span>
-        <small>${escapeHtml10(promptSnippetPreview(snippet.content))}</small>
+        <span>${escapeHtml11(snippet.title)}</span>
+        <small>${escapeHtml11(promptSnippetPreview(snippet.content))}</small>
       </span>
-      <small>${escapeHtml10(snippet.category)}</small>
+      <small>${escapeHtml11(snippet.category)}</small>
     </button>
   `).join("");
     suggest.querySelectorAll("[data-prompt-snippet-id]").forEach((button) => {
@@ -43248,8 +44505,8 @@ ${hint}` : hint;
   }
   function promptSnippetsForQuery(query) {
     const normalized = String(query || "").trim().toLowerCase();
-    if (!normalized) return state12.promptSnippets.slice();
-    return state12.promptSnippets.filter((snippet) => snippet.tag.toLowerCase().includes(normalized) || snippet.title.toLowerCase().includes(normalized) || snippet.content.toLowerCase().includes(normalized));
+    if (!normalized) return state15.promptSnippets.slice();
+    return state15.promptSnippets.filter((snippet) => snippet.tag.toLowerCase().includes(normalized) || snippet.title.toLowerCase().includes(normalized) || snippet.content.toLowerCase().includes(normalized));
   }
   function promptSnippetPreview(text) {
     const clean = String(text || "").replace(/\s+/g, " ").trim();
@@ -43257,9 +44514,9 @@ ${hint}` : hint;
   }
   function positionPromptSnippetSuggestAtCaret(match) {
     const suggest = promptSnippetSuggestElement();
-    if (!suggest || !els14.promptEditor || !match?.range) return;
-    const host = els14.promptEditor.closest(".prompt-editor-wrap") || els14.promptEditor;
-    const anchorRect = mentionRangeRect2(match.range) || els14.promptEditor.getBoundingClientRect();
+    if (!suggest || !els19.promptEditor || !match?.range) return;
+    const host = els19.promptEditor.closest(".prompt-editor-wrap") || els19.promptEditor;
+    const anchorRect = mentionRangeRect2(match.range) || els19.promptEditor.getBoundingClientRect();
     positionPromptPopoverAtAnchor(
       suggest,
       host,
@@ -43275,10 +44532,10 @@ ${hint}` : hint;
   }
   function insertPromptSnippet(snippet) {
     const normalized = normalizePromptSnippet(snippet);
-    if (!normalized || !els14.promptEditor) return;
+    if (!normalized || !els19.promptEditor) return;
     let match = activePromptSnippetMatch();
-    if (!match?.range && state12.activePromptSnippetRange) {
-      match = { query: "", range: state12.activePromptSnippetRange };
+    if (!match?.range && state15.activePromptSnippetRange) {
+      match = { query: "", range: state15.activePromptSnippetRange };
     }
     let trailingSpace = null;
     if (match?.range) {
@@ -43290,9 +44547,9 @@ ${hint}` : hint;
     } else {
       const currentText = getPromptText3();
       if (currentText && !/\s$/.test(currentText)) appendPromptText2(" ");
-      els14.promptEditor.append(createPromptSnippetChip(normalized));
+      els19.promptEditor.append(createPromptSnippetChip(normalized));
       trailingSpace = document.createTextNode(" ");
-      els14.promptEditor.append(trailingSpace);
+      els19.promptEditor.append(trailingSpace);
     }
     syncPromptAfterChipMutation2();
     hidePromptSnippetSuggest();
@@ -43359,11 +44616,11 @@ ${hint}` : hint;
     return { snippet, end: tagStart + tag.length };
   }
   function findPromptSnippetById(id) {
-    return state12.promptSnippets.find((snippet) => snippet.id === id) || null;
+    return state15.promptSnippets.find((snippet) => snippet.id === id) || null;
   }
   function findPromptSnippetByTag(tag) {
     const key = String(tag || "").replace(/^[~～〜∼˜]+/, "").toLowerCase();
-    return state12.promptSnippets.find((snippet) => snippet.tag.toLowerCase() === key) || null;
+    return state15.promptSnippets.find((snippet) => snippet.tag.toLowerCase() === key) || null;
   }
   function expandPromptSnippets(prompt) {
     const text = String(prompt || "");
@@ -43386,9 +44643,9 @@ ${hint}` : hint;
   }
   function getPromptSelectionForSnippet() {
     const selection = window.getSelection();
-    if (!selection || !selection.rangeCount || selection.isCollapsed || !els14.promptEditor) return null;
+    if (!selection || !selection.rangeCount || selection.isCollapsed || !els19.promptEditor) return null;
     const range = selection.getRangeAt(0);
-    if (!rangeIntersectsNode(range, els14.promptEditor)) return null;
+    if (!rangeIntersectsNode(range, els19.promptEditor)) return null;
     const text = promptTextFromRange(range).replace(/\u00a0/g, " ").trim();
     if (!text || selectionContainsPromptAtomicChip(range)) return null;
     return { range: range.cloneRange(), text };
@@ -43410,8 +44667,8 @@ ${hint}` : hint;
   function showPromptSnippetSelectionButton(selection) {
     const button = promptSnippetSelectionButtonElement();
     if (!button || !selection?.range) return;
-    state12.promptSnippetSelectionRange = selection.range.cloneRange();
-    state12.promptSnippetSelectionText = selection.text;
+    state15.promptSnippetSelectionRange = selection.range.cloneRange();
+    state15.promptSnippetSelectionText = selection.text;
     const editorRect = promptSnippetVisibleEditorRect();
     const rect = promptSnippetSelectionAnchorRect(selection, editorRect);
     if (!rect || !editorRect) return;
@@ -43441,8 +44698,8 @@ ${hint}` : hint;
     return visibleRects.length ? visibleRects[visibleRects.length - 1] : promptSnippetFallbackVisibleAnchorRect(editorRect);
   }
   function promptSnippetVisibleEditorRect() {
-    if (!els14.promptEditor) return null;
-    const rect = els14.promptEditor.getBoundingClientRect();
+    if (!els19.promptEditor) return null;
+    const rect = els19.promptEditor.getBoundingClientRect();
     const viewportWidth = window.innerWidth || document.documentElement.clientWidth || rect.right;
     const viewportHeight = window.innerHeight || document.documentElement.clientHeight || rect.bottom;
     return clipRectToBounds(rect, {
@@ -43484,15 +44741,15 @@ ${hint}` : hint;
     button?.classList.add("hidden");
     button?.style.removeProperty("--prompt-snippet-save-left");
     button?.style.removeProperty("--prompt-snippet-save-top");
-    state12.promptSnippetSelectionRange = null;
-    state12.promptSnippetSelectionText = "";
+    state15.promptSnippetSelectionRange = null;
+    state15.promptSnippetSelectionText = "";
   }
   function openPromptSnippetSavePopover() {
-    if (!state12.promptSnippetSelectionText || !state12.promptSnippetSelectionRange) return;
+    if (!state15.promptSnippetSelectionText || !state15.promptSnippetSelectionRange) return;
     const snippet = {
-      tag: suggestPromptSnippetTag(state12.promptSnippetSelectionText),
+      tag: suggestPromptSnippetTag(state15.promptSnippetSelectionText),
       title: "",
-      content: state12.promptSnippetSelectionText,
+      content: state15.promptSnippetSelectionText,
       category: DEFAULT_PROMPT_SNIPPET_CATEGORY
     };
     renderPromptSnippetForm("save", snippet);
@@ -43507,13 +44764,13 @@ ${hint}` : hint;
     promptSnippetPopoverState.chip = chip;
     promptSnippetPopoverState.snippetId = snippet.id;
     popover.innerHTML = `
-    <div class="prompt-snippet-popover-title">~${escapeHtml10(snippet.tag)}</div>
-    <div class="prompt-snippet-popover-meta">${escapeHtml10(snippet.title)} \xB7 ${escapeHtml10(snippet.category)}</div>
-    <div class="prompt-snippet-popover-preview">${escapeHtml10(snippet.content)}</div>
+    <div class="prompt-snippet-popover-title">~${escapeHtml11(snippet.tag)}</div>
+    <div class="prompt-snippet-popover-meta">${escapeHtml11(snippet.title)} \xB7 ${escapeHtml11(snippet.category)}</div>
+    <div class="prompt-snippet-popover-preview">${escapeHtml11(snippet.content)}</div>
     <div class="prompt-snippet-popover-actions">
-      <button class="ghost-button text-sm" type="button" data-prompt-snippet-expand>${escapeHtml10(translate("snippets.expand"))}</button>
-      <button class="ghost-button text-sm" type="button" data-prompt-snippet-edit>${escapeHtml10(translate("snippets.edit"))}</button>
-      <button class="ghost-button text-sm" type="button" data-prompt-snippet-close>${escapeHtml10(translate("snippets.close"))}</button>
+      <button class="ghost-button text-sm" type="button" data-prompt-snippet-expand>${escapeHtml11(translate("snippets.expand"))}</button>
+      <button class="ghost-button text-sm" type="button" data-prompt-snippet-edit>${escapeHtml11(translate("snippets.edit"))}</button>
+      <button class="ghost-button text-sm" type="button" data-prompt-snippet-close>${escapeHtml11(translate("snippets.close"))}</button>
     </div>
   `;
     function handlePopoverActionClick(event, action) {
@@ -43535,26 +44792,26 @@ ${hint}` : hint;
     promptSnippetPopoverState.snippetId = snippet.id || null;
     popover.innerHTML = `
     <form class="prompt-snippet-form">
-      <div class="prompt-snippet-popover-title">${escapeHtml10(mode === "edit" ? translate("snippets.editTitle") : translate("snippets.saveTitle"))}</div>
+      <div class="prompt-snippet-popover-title">${escapeHtml11(mode === "edit" ? translate("snippets.editTitle") : translate("snippets.saveTitle"))}</div>
       <label class="prompt-snippet-field">
-        <span>${escapeHtml10(translate("snippets.shortTag"))}</span>
-        <input class="prompt-snippet-input" type="text" maxlength="24" value="${escapeHtml10(snippet.tag || "")}" data-prompt-snippet-tag>
+        <span>${escapeHtml11(translate("snippets.shortTag"))}</span>
+        <input class="prompt-snippet-input" type="text" maxlength="24" value="${escapeHtml11(snippet.tag || "")}" data-prompt-snippet-tag>
       </label>
       <label class="prompt-snippet-field">
-        <span>${escapeHtml10(translate("snippets.title"))}</span>
-        <input class="prompt-snippet-input" type="text" maxlength="80" value="${escapeHtml10(snippet.title || "")}" placeholder="${escapeHtml10(translate("snippets.titlePlaceholder"))}" data-prompt-snippet-title>
+        <span>${escapeHtml11(translate("snippets.title"))}</span>
+        <input class="prompt-snippet-input" type="text" maxlength="80" value="${escapeHtml11(snippet.title || "")}" placeholder="${escapeHtml11(translate("snippets.titlePlaceholder"))}" data-prompt-snippet-title>
       </label>
       <label class="prompt-snippet-field">
-        <span>${escapeHtml10(translate("snippets.category"))}</span>
-        <input class="prompt-snippet-input" type="text" maxlength="32" value="${escapeHtml10(snippet.category || DEFAULT_PROMPT_SNIPPET_CATEGORY)}" data-prompt-snippet-category>
+        <span>${escapeHtml11(translate("snippets.category"))}</span>
+        <input class="prompt-snippet-input" type="text" maxlength="32" value="${escapeHtml11(snippet.category || DEFAULT_PROMPT_SNIPPET_CATEGORY)}" data-prompt-snippet-category>
       </label>
       <label class="prompt-snippet-field">
-        <span>${escapeHtml10(translate("snippets.content"))}</span>
-        <textarea class="prompt-snippet-input prompt-snippet-textarea" maxlength="4000" data-prompt-snippet-content>${escapeHtml10(snippet.content || "")}</textarea>
+        <span>${escapeHtml11(translate("snippets.content"))}</span>
+        <textarea class="prompt-snippet-input prompt-snippet-textarea" maxlength="4000" data-prompt-snippet-content>${escapeHtml11(snippet.content || "")}</textarea>
       </label>
       <div class="prompt-snippet-popover-actions">
-        <button class="ghost-button text-sm" type="button" data-prompt-snippet-cancel>${escapeHtml10(translate("snippets.cancel"))}</button>
-        <button class="ghost-button text-sm" type="submit">${escapeHtml10(mode === "edit" ? translate("snippets.save") : translate("snippets.saveSelection"))}</button>
+        <button class="ghost-button text-sm" type="button" data-prompt-snippet-cancel>${escapeHtml11(translate("snippets.cancel"))}</button>
+        <button class="ghost-button text-sm" type="submit">${escapeHtml11(mode === "edit" ? translate("snippets.save") : translate("snippets.saveSelection"))}</button>
       </div>
     </form>
   `;
@@ -43584,7 +44841,7 @@ ${hint}` : hint;
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.detail || translate("snippets.saveFailed"));
-      state12.promptSnippets = normalizePromptSnippetList(data.snippets);
+      state15.promptSnippets = normalizePromptSnippetList(data.snippets);
       const snippet = normalizePromptSnippet(data.snippet);
       if (isEdit && promptSnippetPopoverState.chip) {
         updatePromptSnippetChip(promptSnippetPopoverState.chip, snippet);
@@ -43600,9 +44857,9 @@ ${hint}` : hint;
     }
   }
   function replacePromptSelectionWithSnippet(snippet) {
-    if (!state12.promptSnippetSelectionRange || !els14.promptEditor) return;
-    const range = state12.promptSnippetSelectionRange;
-    if (!els14.promptEditor.contains(range.commonAncestorContainer)) return;
+    if (!state15.promptSnippetSelectionRange || !els19.promptEditor) return;
+    const range = state15.promptSnippetSelectionRange;
+    if (!els19.promptEditor.contains(range.commonAncestorContainer)) return;
     range.deleteContents();
     const chip = createPromptSnippetChip(snippet);
     const trailingSpace = document.createTextNode(" ");
@@ -43638,7 +44895,7 @@ ${hint}` : hint;
   }
   function expandPromptSnippetChip(chip) {
     const snippet = promptSnippetFromChip(chip);
-    if (!snippet || !els14.promptEditor?.contains(chip)) return;
+    if (!snippet || !els19.promptEditor?.contains(chip)) return;
     const text = document.createTextNode(snippet.content);
     chip.replaceWith(text);
     closePromptSnippetPopover();
@@ -43657,14 +44914,14 @@ ${hint}` : hint;
     positionPromptSnippetPopover(buttonRect);
   }
   function positionPromptSnippetPopoverAtChip(chip) {
-    if (!chip || !els14.promptEditor) return;
+    if (!chip || !els19.promptEditor) return;
     const chipRect = chip.getBoundingClientRect();
     positionPromptSnippetPopover(chipRect);
   }
   function positionPromptSnippetPopover(anchorRect) {
     const popover = promptSnippetPopoverElement();
-    if (!popover || !els14.promptEditor) return;
-    const host = els14.promptEditor.closest(".prompt-editor-wrap") || els14.promptEditor;
+    if (!popover || !els19.promptEditor) return;
+    const host = els19.promptEditor.closest(".prompt-editor-wrap") || els19.promptEditor;
     positionPromptPopoverAtAnchor(
       popover,
       host,
@@ -43689,8 +44946,8 @@ ${hint}` : hint;
     promptSnippetPopoverState.mode = null;
     promptSnippetPopoverState.chip = null;
     promptSnippetPopoverState.snippetId = null;
-    state12.promptSnippetSelectionRange = null;
-    state12.promptSnippetSelectionText = "";
+    state15.promptSnippetSelectionRange = null;
+    state15.promptSnippetSelectionText = "";
   }
   function hidePromptSnippetSuggest() {
     const suggest = promptSnippetSuggestElement();
@@ -43701,12 +44958,12 @@ ${hint}` : hint;
     suggest.style.removeProperty("--prompt-snippet-top");
     suggest.style.removeProperty("--prompt-snippet-width");
     suggest.style.removeProperty("--prompt-popover-max-height");
-    state12.activePromptSnippetRange = null;
+    state15.activePromptSnippetRange = null;
   }
   function handlePromptSnippetDocumentClick(target) {
     if (promptSnippetSuggestEl && !promptSnippetSuggestEl.classList.contains("hidden")) {
       const clickedSuggest = promptSnippetSuggestEl.contains(target);
-      const clickedPromptEditor = els14.promptEditor?.contains(target);
+      const clickedPromptEditor = els19.promptEditor?.contains(target);
       if (!clickedSuggest && !clickedPromptEditor) {
         hidePromptSnippetSuggest();
       }
@@ -43790,43 +45047,43 @@ ${hint}` : hint;
     [PROMPT_TEMPLATE_CATEGORY_POSTER]: "templates.categoryPoster",
     [PROMPT_TEMPLATE_CATEGORY_ECOMMERCE]: "templates.categoryEcommerce"
   };
-  var bridge14 = getLegacyBridge();
-  var state13 = bridge14.state;
-  var els15 = bridge14.els;
+  var bridge17 = getLegacyBridge();
+  var state16 = bridge17.state;
+  var els20 = bridge17.els;
   var promptTemplateSearchAcceptManualInput = false;
   var lastPromptTemplateTrigger = null;
   var promptTemplateLoading = false;
   var promptTemplateLoadError = "";
-  function legacyMethod19(name, ...args) {
+  function legacyMethod22(name, ...args) {
     const method = getLegacyBridge().methods[name];
     if (typeof method !== "function") {
       throw new Error("Legacy method " + name + " is not initialized");
     }
     return method(...args);
   }
-  function escapeHtml11(value) {
-    return legacyMethod19("escapeHtml", value);
+  function escapeHtml12(value) {
+    return legacyMethod22("escapeHtml", value);
   }
   function setStatus15(message, type) {
-    legacyMethod19("setStatus", message, type);
+    legacyMethod22("setStatus", message, type);
   }
   function getPromptText4() {
-    return legacyMethod19("getPromptText");
+    return legacyMethod22("getPromptText");
   }
   function appendPromptText3(text) {
-    legacyMethod19("appendPromptText", text);
+    legacyMethod22("appendPromptText", text);
   }
   function setPromptText(text) {
-    legacyMethod19("setPromptText", text);
+    legacyMethod22("setPromptText", text);
   }
   function syncPromptFromEditor2() {
-    legacyMethod19("syncPromptFromEditor");
+    legacyMethod22("syncPromptFromEditor");
   }
   function updatePromptCount3() {
-    legacyMethod19("updatePromptCount");
+    legacyMethod22("updatePromptCount");
   }
-  function updateRequestPreview7() {
-    legacyMethod19("updateRequestPreview");
+  function updateRequestPreview8() {
+    legacyMethod22("updateRequestPreview");
   }
   function normalizePromptTemplate(value) {
     if (!value || typeof value !== "object") return null;
@@ -43882,10 +45139,10 @@ ${hint}` : hint;
     return categories;
   }
   function applyPromptTemplateSettingsResponse(data) {
-    state13.promptTemplates = normalizePromptTemplateList(data?.templates);
-    state13.promptTemplateCategories = normalizePromptTemplateCategoryList(data?.categories);
-    if (state13.promptTemplateCategory && !state13.promptTemplateCategories.some((category) => category.id === state13.promptTemplateCategory)) {
-      state13.promptTemplateCategory = "";
+    state16.promptTemplates = normalizePromptTemplateList(data?.templates);
+    state16.promptTemplateCategories = normalizePromptTemplateCategoryList(data?.categories);
+    if (state16.promptTemplateCategory && !state16.promptTemplateCategories.some((category) => category.id === state16.promptTemplateCategory)) {
+      state16.promptTemplateCategory = "";
     }
     renderPromptTemplateRecentDock();
     if (promptTemplateDrawerIsOpen()) {
@@ -43895,12 +45152,12 @@ ${hint}` : hint;
     }
   }
   function promptTemplateDrawerIsOpen() {
-    return Boolean(els15.promptTemplateDrawer?.classList.contains("open"));
+    return Boolean(els20.promptTemplateDrawer?.classList.contains("open"));
   }
   async function refreshPromptTemplates() {
     promptTemplateLoading = true;
     promptTemplateLoadError = "";
-    els15.promptTemplateList?.setAttribute("aria-busy", "true");
+    els20.promptTemplateList?.setAttribute("aria-busy", "true");
     if (promptTemplateDrawerIsOpen()) renderPromptTemplateList();
     try {
       const response = await fetch(PROMPT_TEMPLATES_ENDPOINT);
@@ -43912,31 +45169,31 @@ ${hint}` : hint;
       console.warn(promptTemplateLoadError);
     } finally {
       promptTemplateLoading = false;
-      els15.promptTemplateList?.removeAttribute("aria-busy");
+      els20.promptTemplateList?.removeAttribute("aria-busy");
       if (promptTemplateDrawerIsOpen()) renderPromptTemplateList();
     }
   }
   function syncPromptTemplateSearchInput() {
-    const input = els15.promptTemplateSearch;
+    const input = els20.promptTemplateSearch;
     if (!input) {
       updatePromptTemplateSearchClearButton();
       return;
     }
-    const nextValue = String(state13.promptTemplateQuery || "");
+    const nextValue = String(state16.promptTemplateQuery || "");
     if (input.value !== nextValue) input.value = nextValue;
     updatePromptTemplateSearchClearButton();
   }
   function promptTemplateSearchHasValue() {
-    return Boolean(String(state13.promptTemplateQuery || "").trim());
+    return Boolean(String(state16.promptTemplateQuery || "").trim());
   }
   function updatePromptTemplateSearchClearButton() {
-    const button = els15.promptTemplateSearchClearButton;
+    const button = els20.promptTemplateSearchClearButton;
     if (!button) return;
     button.hidden = !promptTemplateSearchHasValue();
   }
   function clearPromptTemplateSearch() {
-    const input = els15.promptTemplateSearch;
-    state13.promptTemplateQuery = "";
+    const input = els20.promptTemplateSearch;
+    state16.promptTemplateQuery = "";
     promptTemplateSearchAcceptManualInput = false;
     setPromptTemplateSearchLocked(false);
     if (input) {
@@ -43947,7 +45204,7 @@ ${hint}` : hint;
     renderPromptTemplateList();
   }
   function setPromptTemplateSearchLocked(locked2) {
-    const input = els15.promptTemplateSearch;
+    const input = els20.promptTemplateSearch;
     if (!input) return;
     input.readOnly = locked2;
     if (locked2) {
@@ -43959,18 +45216,18 @@ ${hint}` : hint;
   function guardPromptTemplateSearchInput(delays = [0, 120, 360, 900]) {
     delays.forEach((delay) => {
       window.setTimeout(() => {
-        if (!els15.promptTemplateDrawer?.classList.contains("open")) return;
+        if (!els20.promptTemplateDrawer?.classList.contains("open")) return;
         syncPromptTemplateSearchInput();
       }, delay);
     });
   }
   function openPromptTemplateDrawer() {
-    legacyMethod19("closeGallery", { restoreFocus: false });
-    lastPromptTemplateTrigger = document.activeElement instanceof HTMLElement ? document.activeElement : els15.promptTemplateButton;
-    els15.promptTemplateDrawer?.classList.add("open");
-    els15.promptTemplateDrawer?.setAttribute("aria-hidden", "false");
-    els15.promptTemplateDrawerBackdrop?.classList.remove("hidden");
-    els15.promptTemplateButton?.setAttribute("aria-expanded", "true");
+    legacyMethod22("closeGallery", { restoreFocus: false });
+    lastPromptTemplateTrigger = document.activeElement instanceof HTMLElement ? document.activeElement : els20.promptTemplateButton;
+    els20.promptTemplateDrawer?.classList.add("open");
+    els20.promptTemplateDrawer?.setAttribute("aria-hidden", "false");
+    els20.promptTemplateDrawerBackdrop?.classList.remove("hidden");
+    els20.promptTemplateButton?.setAttribute("aria-expanded", "true");
     promptTemplateSearchAcceptManualInput = false;
     setPromptTemplateSearchLocked(true);
     renderPromptTemplateCategories();
@@ -43979,34 +45236,34 @@ ${hint}` : hint;
     guardPromptTemplateSearchInput();
     window.setTimeout(() => {
       syncPromptTemplateSearchInput();
-      els15.promptTemplateDrawerClose?.focus({ preventScroll: true });
+      els20.promptTemplateDrawerClose?.focus({ preventScroll: true });
     }, 0);
   }
   function closePromptTemplateDrawer(options = {}) {
     const restoreFocus = options?.restoreFocus !== false;
-    els15.promptTemplateDrawer?.classList.remove("open");
-    els15.promptTemplateDrawer?.setAttribute("aria-hidden", "true");
-    els15.promptTemplateDrawerBackdrop?.classList.add("hidden");
-    els15.promptTemplateButton?.setAttribute("aria-expanded", "false");
+    els20.promptTemplateDrawer?.classList.remove("open");
+    els20.promptTemplateDrawer?.setAttribute("aria-hidden", "true");
+    els20.promptTemplateDrawerBackdrop?.classList.add("hidden");
+    els20.promptTemplateButton?.setAttribute("aria-expanded", "false");
     promptTemplateSearchAcceptManualInput = false;
     setPromptTemplateSearchLocked(true);
     hidePromptTemplateDetail();
     hidePromptTemplateForm();
     hidePromptTemplateCategoryPanel();
     if (restoreFocus) {
-      const focusTarget = lastPromptTemplateTrigger || els15.promptTemplateButton;
+      const focusTarget = lastPromptTemplateTrigger || els20.promptTemplateButton;
       focusTarget?.focus?.({ preventScroll: true });
     }
   }
   function renderPromptTemplateCategories() {
-    if (!els15.promptTemplateCategoryList) return;
-    const categories = normalizePromptTemplateCategoryList(state13.promptTemplateCategories);
-    state13.promptTemplateCategories = categories;
-    els15.promptTemplateCategoryList.innerHTML = [
-      `<button class="prompt-template-category ${state13.promptTemplateCategory ? "" : "active"}" data-prompt-template-category="" type="button">${translate("templates.all")}</button>`,
+    if (!els20.promptTemplateCategoryList) return;
+    const categories = normalizePromptTemplateCategoryList(state16.promptTemplateCategories);
+    state16.promptTemplateCategories = categories;
+    els20.promptTemplateCategoryList.innerHTML = [
+      `<button class="prompt-template-category ${state16.promptTemplateCategory ? "" : "active"}" data-prompt-template-category="" type="button">${translate("templates.all")}</button>`,
       ...categories.map((category) => `
-      <button class="prompt-template-category ${state13.promptTemplateCategory === category.id ? "active" : ""}" data-prompt-template-category="${escapeHtml11(category.id)}" type="button">
-        ${escapeHtml11(promptTemplateCategoryLabel(category.name))}
+      <button class="prompt-template-category ${state16.promptTemplateCategory === category.id ? "active" : ""}" data-prompt-template-category="${escapeHtml12(category.id)}" type="button">
+        ${escapeHtml12(promptTemplateCategoryLabel(category.name))}
       </button>
     `)
     ].join("");
@@ -44017,45 +45274,45 @@ ${hint}` : hint;
     return key ? translate(key) : name;
   }
   function renderPromptTemplateCategoryPanel() {
-    if (!els15.promptTemplateCategoryPanel) return;
-    const categories = normalizePromptTemplateCategoryList(state13.promptTemplateCategories);
-    els15.promptTemplateCategoryPanel.innerHTML = `
+    if (!els20.promptTemplateCategoryPanel) return;
+    const categories = normalizePromptTemplateCategoryList(state16.promptTemplateCategories);
+    els20.promptTemplateCategoryPanel.innerHTML = `
     <div class="prompt-template-category-create">
-      <input class="control" type="text" maxlength="32" placeholder="${escapeHtml11(translate("templates.newCategory"))}" data-prompt-template-category-new>
-      <button class="ghost-button text-sm" type="button" data-prompt-template-category-create>${escapeHtml11(translate("action.add"))}</button>
+      <input class="control" type="text" maxlength="32" placeholder="${escapeHtml12(translate("templates.newCategory"))}" data-prompt-template-category-new>
+      <button class="ghost-button text-sm" type="button" data-prompt-template-category-create>${escapeHtml12(translate("action.add"))}</button>
     </div>
     <div class="prompt-template-category-manage-list">
       ${categories.map((category) => `
-        <div class="prompt-template-category-manage-row" data-prompt-template-category-row="${escapeHtml11(category.id)}">
-          <input class="control" type="text" maxlength="32" value="${escapeHtml11(category.name)}" data-prompt-template-category-name>
-          <button class="ghost-button text-sm" type="button" data-prompt-template-category-rename>${escapeHtml11(translate("action.save"))}</button>
-          <button class="ghost-button text-sm quiet-danger-button" type="button" data-prompt-template-category-delete ${category.id === PROMPT_TEMPLATE_CATEGORY_COMMON ? "disabled" : ""}>${escapeHtml11(translate("action.delete"))}</button>
+        <div class="prompt-template-category-manage-row" data-prompt-template-category-row="${escapeHtml12(category.id)}">
+          <input class="control" type="text" maxlength="32" value="${escapeHtml12(category.name)}" data-prompt-template-category-name>
+          <button class="ghost-button text-sm" type="button" data-prompt-template-category-rename>${escapeHtml12(translate("action.save"))}</button>
+          <button class="ghost-button text-sm quiet-danger-button" type="button" data-prompt-template-category-delete ${category.id === PROMPT_TEMPLATE_CATEGORY_COMMON ? "disabled" : ""}>${escapeHtml12(translate("action.delete"))}</button>
         </div>
       `).join("")}
     </div>
   `;
   }
   function togglePromptTemplateCategoryPanel() {
-    if (!els15.promptTemplateCategoryPanel) return;
-    const isHidden = els15.promptTemplateCategoryPanel.classList.contains("hidden");
+    if (!els20.promptTemplateCategoryPanel) return;
+    const isHidden = els20.promptTemplateCategoryPanel.classList.contains("hidden");
     if (isHidden) {
       renderPromptTemplateCategoryPanel();
-      els15.promptTemplateCategoryPanel.classList.remove("hidden");
-      els15.promptTemplateCategoryManageButton?.setAttribute("aria-expanded", "true");
+      els20.promptTemplateCategoryPanel.classList.remove("hidden");
+      els20.promptTemplateCategoryManageButton?.setAttribute("aria-expanded", "true");
     } else {
       hidePromptTemplateCategoryPanel();
     }
   }
   function hidePromptTemplateCategoryPanel() {
-    els15.promptTemplateCategoryPanel?.classList.add("hidden");
-    els15.promptTemplateCategoryManageButton?.setAttribute("aria-expanded", "false");
+    els20.promptTemplateCategoryPanel?.classList.add("hidden");
+    els20.promptTemplateCategoryManageButton?.setAttribute("aria-expanded", "false");
   }
   function promptTemplatesForDisplay() {
-    const query = String(state13.promptTemplateQuery || "").trim().toLowerCase();
-    return (state13.promptTemplates || []).filter((template) => {
-      if (state13.promptTemplateFilter === "favorite" && !template.favorite) return false;
-      if (state13.promptTemplateFilter === "recent" && !template.last_used_at) return false;
-      if (state13.promptTemplateCategory && template.category !== state13.promptTemplateCategory) return false;
+    const query = String(state16.promptTemplateQuery || "").trim().toLowerCase();
+    return (state16.promptTemplates || []).filter((template) => {
+      if (state16.promptTemplateFilter === "favorite" && !template.favorite) return false;
+      if (state16.promptTemplateFilter === "recent" && !template.last_used_at) return false;
+      if (state16.promptTemplateCategory && template.category !== state16.promptTemplateCategory) return false;
       if (!query) return true;
       return [
         template.title,
@@ -44069,28 +45326,28 @@ ${hint}` : hint;
     });
   }
   function renderPromptTemplateList() {
-    if (!els15.promptTemplateList) return;
+    if (!els20.promptTemplateList) return;
     const templates = promptTemplatesForDisplay();
-    const statusHtml = promptTemplateLoading ? `<div class="prompt-template-load-state is-loading" role="status">${escapeHtml11(translate("history.loading"))}</div>` : promptTemplateLoadError ? `<div class="prompt-template-load-state is-error" role="alert">
-          <span>${escapeHtml11(promptTemplateLoadError)}</span>
-          <button class="ghost-button text-sm" type="button" data-prompt-template-retry>${escapeHtml11(translate("action.refresh"))}</button>
+    const statusHtml = promptTemplateLoading ? `<div class="prompt-template-load-state is-loading" role="status">${escapeHtml12(translate("history.loading"))}</div>` : promptTemplateLoadError ? `<div class="prompt-template-load-state is-error" role="alert">
+          <span>${escapeHtml12(promptTemplateLoadError)}</span>
+          <button class="ghost-button text-sm" type="button" data-prompt-template-retry>${escapeHtml12(translate("action.refresh"))}</button>
         </div>` : "";
-    if (els15.promptTemplateSummary) {
-      els15.promptTemplateSummary.className = `prompt-template-summary${promptTemplateLoadError ? " is-error" : ""}`;
-      els15.promptTemplateSummary.textContent = promptTemplateLoadError ? promptTemplateLoadError : templates.length ? formatTranslation("templates.availableCount", { count: templates.length }) : translate("templates.noMatch");
+    if (els20.promptTemplateSummary) {
+      els20.promptTemplateSummary.className = `prompt-template-summary${promptTemplateLoadError ? " is-error" : ""}`;
+      els20.promptTemplateSummary.textContent = promptTemplateLoadError ? promptTemplateLoadError : templates.length ? formatTranslation("templates.availableCount", { count: templates.length }) : translate("templates.noMatch");
     }
     if (!templates.length) {
-      els15.promptTemplateList.innerHTML = statusHtml || `<div class="prompt-template-empty">${translate("templates.empty")}</div>`;
+      els20.promptTemplateList.innerHTML = statusHtml || `<div class="prompt-template-empty">${translate("templates.empty")}</div>`;
       return;
     }
-    els15.promptTemplateList.innerHTML = statusHtml + templates.map((template) => `
-    <button class="prompt-template-card" type="button" data-prompt-template-id="${escapeHtml11(template.id)}">
-      ${template.thumbnail_url ? `<span class="prompt-template-card-thumb"><img src="${escapeHtml11(template.thumbnail_url)}" alt="" loading="lazy" decoding="async"></span>` : ""}
-      <span class="prompt-template-card-title">${escapeHtml11(promptTemplateCardTitle(template))}</span>
-      ${promptTemplateCardSubtitle(template) ? `<span class="prompt-template-card-subtitle">${escapeHtml11(promptTemplateCardSubtitle(template))}</span>` : ""}
-      <span class="prompt-template-card-preview">${escapeHtml11(promptTemplatePreview(template.content, 64))}</span>
+    els20.promptTemplateList.innerHTML = statusHtml + templates.map((template) => `
+    <button class="prompt-template-card" type="button" data-prompt-template-id="${escapeHtml12(template.id)}">
+      ${template.thumbnail_url ? `<span class="prompt-template-card-thumb"><img src="${escapeHtml12(template.thumbnail_url)}" alt="" loading="lazy" decoding="async"></span>` : ""}
+      <span class="prompt-template-card-title">${escapeHtml12(promptTemplateCardTitle(template))}</span>
+      ${promptTemplateCardSubtitle(template) ? `<span class="prompt-template-card-subtitle">${escapeHtml12(promptTemplateCardSubtitle(template))}</span>` : ""}
+      <span class="prompt-template-card-preview">${escapeHtml12(promptTemplatePreview(template.content, 64))}</span>
       <span class="prompt-template-card-meta">
-        <span>${escapeHtml11(promptTemplateCategoryLabel(template.category))}</span>
+        <span>${escapeHtml12(promptTemplateCategoryLabel(template.category))}</span>
         <span>${template.favorite ? translate("templates.favoriteBadge") : formatTranslation("templates.usageCount", { count: template.usage_count || 0 })}</span>
       </span>
     </button>
@@ -44106,49 +45363,49 @@ ${hint}` : hint;
     return title && title !== primaryTitle ? title : "";
   }
   function renderPromptTemplateRecentDock() {
-    if (!els15.promptTemplateRecentDock) return;
-    const recent = (state13.promptTemplates || []).filter((template) => template.last_used_at || template.favorite).slice(0, 4);
+    if (!els20.promptTemplateRecentDock) return;
+    const recent = (state16.promptTemplates || []).filter((template) => template.last_used_at || template.favorite).slice(0, 4);
     if (!recent.length) {
-      els15.promptTemplateRecentDock.classList.add("hidden");
-      els15.promptTemplateRecentDock.innerHTML = "";
+      els20.promptTemplateRecentDock.classList.add("hidden");
+      els20.promptTemplateRecentDock.innerHTML = "";
       return;
     }
-    els15.promptTemplateRecentDock.innerHTML = recent.map((template) => `
-    <button class="prompt-template-recent-chip" type="button" data-prompt-template-insert="${escapeHtml11(template.id)}">
-      ${escapeHtml11(template.short_title)}
+    els20.promptTemplateRecentDock.innerHTML = recent.map((template) => `
+    <button class="prompt-template-recent-chip" type="button" data-prompt-template-insert="${escapeHtml12(template.id)}">
+      ${escapeHtml12(template.short_title)}
     </button>
   `).join("");
-    els15.promptTemplateRecentDock.classList.remove("hidden");
+    els20.promptTemplateRecentDock.classList.remove("hidden");
   }
   function selectPromptTemplate(templateId) {
     const template = findPromptTemplateById(templateId);
-    if (!template || !els15.promptTemplateDetail) return;
-    state13.selectedPromptTemplateId = template.id;
+    if (!template || !els20.promptTemplateDetail) return;
+    state16.selectedPromptTemplateId = template.id;
     hidePromptTemplateForm();
-    els15.promptTemplateDetail.innerHTML = `
+    els20.promptTemplateDetail.innerHTML = `
     <div class="prompt-template-detail-header">
       <button class="ghost-button prompt-template-detail-back" type="button" data-prompt-template-back>${translate("templates.back")}</button>
-      <button class="ghost-button prompt-template-detail-edit" type="button" data-prompt-template-edit="${escapeHtml11(template.id)}">${translate("templates.edit")}</button>
+      <button class="ghost-button prompt-template-detail-edit" type="button" data-prompt-template-edit="${escapeHtml12(template.id)}">${translate("templates.edit")}</button>
     </div>
-    ${template.thumbnail_url ? `<img class="prompt-template-detail-thumb" src="${escapeHtml11(template.thumbnail_url)}" alt="" loading="lazy" decoding="async">` : ""}
-    <h3>${escapeHtml11(template.title)}</h3>
+    ${template.thumbnail_url ? `<img class="prompt-template-detail-thumb" src="${escapeHtml12(template.thumbnail_url)}" alt="" loading="lazy" decoding="async">` : ""}
+    <h3>${escapeHtml12(template.title)}</h3>
     <div class="prompt-template-detail-meta">
-      <span>${escapeHtml11(promptTemplateCategoryLabel(template.category))}</span>
-      <span>${escapeHtml11(template.model_hint)}</span>
+      <span>${escapeHtml12(promptTemplateCategoryLabel(template.category))}</span>
+      <span>${escapeHtml12(template.model_hint)}</span>
       ${template.favorite ? `<span>${translate("templates.favoriteBadge")}</span>` : ""}
     </div>
-    <div class="prompt-template-detail-content">${escapeHtml11(template.content)}</div>
-    ${template.notes ? `<p class="prompt-template-detail-notes">${escapeHtml11(template.notes)}</p>` : ""}
+    <div class="prompt-template-detail-content">${escapeHtml12(template.content)}</div>
+    ${template.notes ? `<p class="prompt-template-detail-notes">${escapeHtml12(template.notes)}</p>` : ""}
     <div class="prompt-template-detail-actions">
       <div class="prompt-template-detail-secondary-actions">
-        <button class="ghost-button text-sm" type="button" data-prompt-template-copy="${escapeHtml11(template.id)}">${translate("templates.copy")}</button>
-        <button class="ghost-button text-sm" type="button" data-prompt-template-insert="${escapeHtml11(template.id)}">${translate("templates.insert")}</button>
+        <button class="ghost-button text-sm" type="button" data-prompt-template-copy="${escapeHtml12(template.id)}">${translate("templates.copy")}</button>
+        <button class="ghost-button text-sm" type="button" data-prompt-template-insert="${escapeHtml12(template.id)}">${translate("templates.insert")}</button>
       </div>
-      <button class="ghost-button text-sm prompt-template-detail-replace" type="button" data-prompt-template-replace="${escapeHtml11(template.id)}">${translate("action.replace")}</button>
+      <button class="ghost-button text-sm prompt-template-detail-replace" type="button" data-prompt-template-replace="${escapeHtml12(template.id)}">${translate("action.replace")}</button>
     </div>
   `;
-    els15.promptTemplateList?.classList.add("hidden");
-    els15.promptTemplateDetail.classList.remove("hidden");
+    els20.promptTemplateList?.classList.add("hidden");
+    els20.promptTemplateDetail.classList.remove("hidden");
   }
   async function applyPromptTemplate(template, mode) {
     if (!template) return;
@@ -44163,7 +45420,7 @@ ${hint}` : hint;
       syncPromptFromEditor2();
     }
     updatePromptCount3();
-    updateRequestPreview7();
+    updateRequestPreview8();
     await afterPromptTemplateApplied(template);
     closePromptTemplateDrawer();
   }
@@ -44187,7 +45444,7 @@ ${hint}` : hint;
     }
   }
   function renderPromptTemplateForm(template = null) {
-    if (!els15.promptTemplateForm) return;
+    if (!els20.promptTemplateForm) return;
     const value = template || {
       id: "",
       title: "",
@@ -44200,61 +45457,61 @@ ${hint}` : hint;
       favorite: false
     };
     hidePromptTemplateDetail();
-    els15.promptTemplateList?.classList.add("hidden");
+    els20.promptTemplateList?.classList.add("hidden");
     const categories = promptTemplateCategoriesForSelect(value.category);
-    els15.promptTemplateForm.innerHTML = `
-    <form class="prompt-template-form" data-prompt-template-form-id="${escapeHtml11(value.id || "")}">
+    els20.promptTemplateForm.innerHTML = `
+    <form class="prompt-template-form" data-prompt-template-form-id="${escapeHtml12(value.id || "")}">
       <div class="prompt-template-form-header">
-        <button class="ghost-button text-sm" type="button" data-prompt-template-back>${escapeHtml11(translate("templates.back"))}</button>
-        ${value.id ? `<button class="ghost-button text-sm danger-button" type="button" data-prompt-template-delete="${escapeHtml11(value.id)}">${escapeHtml11(translate("action.delete"))}</button>` : ""}
+        <button class="ghost-button text-sm" type="button" data-prompt-template-back>${escapeHtml12(translate("templates.back"))}</button>
+        ${value.id ? `<button class="ghost-button text-sm danger-button" type="button" data-prompt-template-delete="${escapeHtml12(value.id)}">${escapeHtml12(translate("action.delete"))}</button>` : ""}
       </div>
       <label class="prompt-template-field">
-        <span>${escapeHtml11(translate("templates.formTitle"))}</span>
-        <input class="control" type="text" maxlength="80" value="${escapeHtml11(value.title || "")}" data-prompt-template-title>
+        <span>${escapeHtml12(translate("templates.formTitle"))}</span>
+        <input class="control" type="text" maxlength="80" value="${escapeHtml12(value.title || "")}" data-prompt-template-title>
       </label>
       <label class="prompt-template-field">
-        <span>${escapeHtml11(translate("templates.formShortTitle"))}</span>
-        <input class="control" type="text" maxlength="12" value="${escapeHtml11(value.short_title || "")}" data-prompt-template-short-title>
+        <span>${escapeHtml12(translate("templates.formShortTitle"))}</span>
+        <input class="control" type="text" maxlength="12" value="${escapeHtml12(value.short_title || "")}" data-prompt-template-short-title>
       </label>
       <label class="prompt-template-field">
-        <span>${escapeHtml11(translate("templates.formCategory"))}</span>
+        <span>${escapeHtml12(translate("templates.formCategory"))}</span>
         <select class="control" data-prompt-template-category-input>
-          ${categories.map((category) => `<option value="${escapeHtml11(category.id)}" ${category.id === value.category ? "selected" : ""}>${escapeHtml11(promptTemplateCategoryLabel(category.name))}</option>`).join("")}
+          ${categories.map((category) => `<option value="${escapeHtml12(category.id)}" ${category.id === value.category ? "selected" : ""}>${escapeHtml12(promptTemplateCategoryLabel(category.name))}</option>`).join("")}
         </select>
       </label>
       <label class="prompt-template-field prompt-template-field-full">
-        <span>${escapeHtml11(translate("templates.formTags"))}</span>
-        <input class="control" type="text" value="${escapeHtml11((value.tags || []).join("\uFF0C"))}" data-prompt-template-tags>
+        <span>${escapeHtml12(translate("templates.formTags"))}</span>
+        <input class="control" type="text" value="${escapeHtml12((value.tags || []).join("\uFF0C"))}" data-prompt-template-tags>
       </label>
       <div class="prompt-template-field prompt-template-field-full prompt-template-thumbnail-field">
-        <span>${escapeHtml11(translate("templates.formThumbnail"))}</span>
-        <input type="hidden" value="${escapeHtml11(value.thumbnail_url || "")}" data-prompt-template-thumbnail-url>
+        <span>${escapeHtml12(translate("templates.formThumbnail"))}</span>
+        <input type="hidden" value="${escapeHtml12(value.thumbnail_url || "")}" data-prompt-template-thumbnail-url>
         <div class="prompt-template-thumbnail-row">
           <div class="prompt-template-thumbnail-preview" data-prompt-template-thumbnail-preview></div>
-          <button class="ghost-button text-sm" type="button" data-prompt-template-thumbnail-clear>${escapeHtml11(translate("templates.thumbnailClear"))}</button>
+          <button class="ghost-button text-sm" type="button" data-prompt-template-thumbnail-clear>${escapeHtml12(translate("templates.thumbnailClear"))}</button>
         </div>
         <div class="prompt-template-thumbnail-picker" data-prompt-template-thumbnail-picker></div>
       </div>
       <label class="prompt-template-field prompt-template-field-full">
-        <span>${escapeHtml11(translate("templates.formContent"))}</span>
-        <textarea class="control prompt-template-textarea" maxlength="8000" data-prompt-template-content>${escapeHtml11(value.content || "")}</textarea>
+        <span>${escapeHtml12(translate("templates.formContent"))}</span>
+        <textarea class="control prompt-template-textarea" maxlength="8000" data-prompt-template-content>${escapeHtml12(value.content || "")}</textarea>
       </label>
       <label class="prompt-template-field prompt-template-field-full">
-        <span>${escapeHtml11(translate("templates.formNotes"))}</span>
-        <textarea class="control prompt-template-notes" maxlength="500" data-prompt-template-notes>${escapeHtml11(value.notes || "")}</textarea>
+        <span>${escapeHtml12(translate("templates.formNotes"))}</span>
+        <textarea class="control prompt-template-notes" maxlength="500" data-prompt-template-notes>${escapeHtml12(value.notes || "")}</textarea>
       </label>
       <label class="prompt-template-check">
         <input type="checkbox" ${value.favorite ? "checked" : ""} data-prompt-template-favorite>
-        <span>${escapeHtml11(translate("templates.formFavorite"))}</span>
+        <span>${escapeHtml12(translate("templates.formFavorite"))}</span>
       </label>
-      <button class="run-button prompt-template-save" type="submit">${escapeHtml11(translate("action.save"))}</button>
+      <button class="run-button prompt-template-save" type="submit">${escapeHtml12(translate("action.save"))}</button>
     </form>
   `;
-    els15.promptTemplateForm.classList.remove("hidden");
+    els20.promptTemplateForm.classList.remove("hidden");
     renderPromptTemplateThumbnailPicker(value.thumbnail_url || "");
   }
   function promptTemplateCategoriesForSelect(selectedCategory) {
-    const categories = normalizePromptTemplateCategoryList(state13.promptTemplateCategories);
+    const categories = normalizePromptTemplateCategoryList(state16.promptTemplateCategories);
     const selected = String(selectedCategory || "").trim();
     if (selected && !categories.some((category) => category.id === selected)) {
       categories.push({ id: selected, name: selected, order: categories.length * 10 + 10 });
@@ -44264,7 +45521,7 @@ ${hint}` : hint;
   function historyTemplateThumbnails() {
     const seen = /* @__PURE__ */ new Set();
     const items = [];
-    (state13.tasks || []).forEach((task) => {
+    (state16.tasks || []).forEach((task) => {
       const urls = [];
       if (Array.isArray(task?.outputs)) {
         task.outputs.forEach((output) => {
@@ -44285,24 +45542,24 @@ ${hint}` : hint;
     return items.slice(0, 16);
   }
   function renderPromptTemplateThumbnailPicker(selectedUrl = "") {
-    const form = els15.promptTemplateForm?.querySelector(".prompt-template-form");
+    const form = els20.promptTemplateForm?.querySelector(".prompt-template-form");
     if (!form) return;
     const picker = form.querySelector("[data-prompt-template-thumbnail-picker]");
     const preview = form.querySelector("[data-prompt-template-thumbnail-preview]");
     const input = form.querySelector("[data-prompt-template-thumbnail-url]");
     if (input) input.value = selectedUrl;
     if (preview) {
-      preview.innerHTML = selectedUrl ? `<img src="${escapeHtml11(selectedUrl)}" alt=""><span>${escapeHtml11(promptTemplatePreview(selectedUrl, 30))}</span>` : `<span>${escapeHtml11(translate("templates.thumbnailNone"))}</span>`;
+      preview.innerHTML = selectedUrl ? `<img src="${escapeHtml12(selectedUrl)}" alt=""><span>${escapeHtml12(promptTemplatePreview(selectedUrl, 30))}</span>` : `<span>${escapeHtml12(translate("templates.thumbnailNone"))}</span>`;
     }
     if (!picker) return;
     const thumbnails = historyTemplateThumbnails();
     if (!thumbnails.length) {
-      picker.innerHTML = `<div class="prompt-template-thumbnail-empty">${escapeHtml11(translate("templates.thumbnailEmpty"))}</div>`;
+      picker.innerHTML = `<div class="prompt-template-thumbnail-empty">${escapeHtml12(translate("templates.thumbnailEmpty"))}</div>`;
       return;
     }
     picker.innerHTML = thumbnails.map((item) => `
-    <button class="prompt-template-thumbnail-option ${item.url === selectedUrl ? "active" : ""}" type="button" data-prompt-template-thumbnail-select="${escapeHtml11(item.url)}" title="${escapeHtml11(item.label)}">
-      <img src="${escapeHtml11(item.url)}" alt="">
+    <button class="prompt-template-thumbnail-option ${item.url === selectedUrl ? "active" : ""}" type="button" data-prompt-template-thumbnail-select="${escapeHtml12(item.url)}" title="${escapeHtml12(item.label)}">
+      <img src="${escapeHtml12(item.url)}" alt="">
     </button>
   `).join("");
   }
@@ -44310,12 +45567,12 @@ ${hint}` : hint;
     renderPromptTemplateThumbnailPicker(String(url || "").trim());
   }
   function setPromptTemplateSummary(message, type = "") {
-    if (!els15.promptTemplateSummary) return;
-    els15.promptTemplateSummary.textContent = message;
-    els15.promptTemplateSummary.className = ["prompt-template-summary", type].filter(Boolean).join(" ");
+    if (!els20.promptTemplateSummary) return;
+    els20.promptTemplateSummary.textContent = message;
+    els20.promptTemplateSummary.className = ["prompt-template-summary", type].filter(Boolean).join(" ");
   }
   async function savePromptTemplateFromDrawer() {
-    const form = els15.promptTemplateForm?.querySelector(".prompt-template-form");
+    const form = els20.promptTemplateForm?.querySelector(".prompt-template-form");
     if (!form) return;
     const templateId = form.dataset.promptTemplateFormId || "";
     const payload2 = {
@@ -44426,7 +45683,7 @@ ${hint}` : hint;
     }
   }
   async function exportPromptTemplatePack() {
-    const button = els15.promptTemplateExportButton;
+    const button = els20.promptTemplateExportButton;
     if (button) button.disabled = true;
     try {
       const response = await fetch(PROMPT_TEMPLATE_EXPORT_ENDPOINT, {
@@ -44465,51 +45722,51 @@ ${hint}` : hint;
     }
   }
   function hidePromptTemplateDetail() {
-    if (!els15.promptTemplateDetail) return;
-    els15.promptTemplateDetail.classList.add("hidden");
-    els15.promptTemplateDetail.innerHTML = "";
-    els15.promptTemplateList?.classList.remove("hidden");
+    if (!els20.promptTemplateDetail) return;
+    els20.promptTemplateDetail.classList.add("hidden");
+    els20.promptTemplateDetail.innerHTML = "";
+    els20.promptTemplateList?.classList.remove("hidden");
   }
   function hidePromptTemplateForm() {
-    if (!els15.promptTemplateForm) return;
-    els15.promptTemplateForm.classList.add("hidden");
-    els15.promptTemplateForm.innerHTML = "";
-    els15.promptTemplateList?.classList.remove("hidden");
+    if (!els20.promptTemplateForm) return;
+    els20.promptTemplateForm.classList.add("hidden");
+    els20.promptTemplateForm.innerHTML = "";
+    els20.promptTemplateList?.classList.remove("hidden");
   }
   function findPromptTemplateById(id) {
-    return (state13.promptTemplates || []).find((template) => template.id === id) || null;
+    return (state16.promptTemplates || []).find((template) => template.id === id) || null;
   }
   function promptTemplatePreview(text, length = 80) {
     const clean = String(text || "").replace(/\s+/g, " ").trim();
     return clean.length > length ? `${clean.slice(0, length)}...` : clean;
   }
   function bindPromptTemplateEvents() {
-    els15.promptTemplateButton?.addEventListener("click", openPromptTemplateDrawer);
-    els15.promptTemplateDrawerClose?.addEventListener("click", closePromptTemplateDrawer);
-    els15.promptTemplateDrawerBackdrop?.addEventListener("click", closePromptTemplateDrawer);
-    els15.promptTemplateCreateButton?.addEventListener("click", () => renderPromptTemplateForm());
-    els15.promptTemplateCategoryManageButton?.addEventListener("click", togglePromptTemplateCategoryPanel);
-    els15.promptTemplateImportButton?.addEventListener("click", () => els15.promptTemplateImportInput?.click());
-    els15.promptTemplateExportButton?.addEventListener("click", () => {
+    els20.promptTemplateButton?.addEventListener("click", openPromptTemplateDrawer);
+    els20.promptTemplateDrawerClose?.addEventListener("click", closePromptTemplateDrawer);
+    els20.promptTemplateDrawerBackdrop?.addEventListener("click", closePromptTemplateDrawer);
+    els20.promptTemplateCreateButton?.addEventListener("click", () => renderPromptTemplateForm());
+    els20.promptTemplateCategoryManageButton?.addEventListener("click", togglePromptTemplateCategoryPanel);
+    els20.promptTemplateImportButton?.addEventListener("click", () => els20.promptTemplateImportInput?.click());
+    els20.promptTemplateExportButton?.addEventListener("click", () => {
       void exportPromptTemplatePack();
     });
-    els15.promptTemplateImportInput?.addEventListener("change", () => {
-      const input = els15.promptTemplateImportInput;
+    els20.promptTemplateImportInput?.addEventListener("change", () => {
+      const input = els20.promptTemplateImportInput;
       const file = input?.files?.[0];
       void importPromptTemplatePack(file);
       if (input) input.value = "";
     });
-    els15.promptTemplateSearchClearButton?.addEventListener("click", clearPromptTemplateSearch);
-    els15.promptTemplateSearch?.addEventListener("pointerdown", (event) => {
-      const input = els15.promptTemplateSearch;
+    els20.promptTemplateSearchClearButton?.addEventListener("click", clearPromptTemplateSearch);
+    els20.promptTemplateSearch?.addEventListener("pointerdown", (event) => {
+      const input = els20.promptTemplateSearch;
       if (!input?.readOnly) return;
       event.preventDefault();
       setPromptTemplateSearchLocked(false);
       syncPromptTemplateSearchInput();
       input.focus({ preventScroll: true });
     });
-    els15.promptTemplateSearch?.addEventListener("keydown", (event) => {
-      const input = els15.promptTemplateSearch;
+    els20.promptTemplateSearch?.addEventListener("keydown", (event) => {
+      const input = els20.promptTemplateSearch;
       if (input?.readOnly && !event.metaKey && !event.ctrlKey && !event.altKey) {
         const key = event.key || "";
         const isPrintable = key.length === 1;
@@ -44520,7 +45777,7 @@ ${hint}` : hint;
           promptTemplateSearchAcceptManualInput = true;
           const nextValue = isClearKey ? "" : key;
           input.value = nextValue;
-          state13.promptTemplateQuery = nextValue;
+          state16.promptTemplateQuery = nextValue;
           updatePromptTemplateSearchClearButton();
           renderPromptTemplateList();
         }
@@ -44528,31 +45785,31 @@ ${hint}` : hint;
       }
       promptTemplateSearchAcceptManualInput = true;
     });
-    els15.promptTemplateSearch?.addEventListener("paste", () => {
+    els20.promptTemplateSearch?.addEventListener("paste", () => {
       promptTemplateSearchAcceptManualInput = true;
     });
-    els15.promptTemplateSearch?.addEventListener("drop", () => {
+    els20.promptTemplateSearch?.addEventListener("drop", () => {
       promptTemplateSearchAcceptManualInput = true;
     });
-    els15.promptTemplateSearch?.addEventListener("blur", () => {
+    els20.promptTemplateSearch?.addEventListener("blur", () => {
       promptTemplateSearchAcceptManualInput = false;
       setPromptTemplateSearchLocked(true);
     });
-    els15.promptTemplateSearch?.addEventListener("input", () => {
+    els20.promptTemplateSearch?.addEventListener("input", () => {
       if (!promptTemplateSearchAcceptManualInput) {
         syncPromptTemplateSearchInput();
         guardPromptTemplateSearchInput([120, 360, 900]);
         return;
       }
-      state13.promptTemplateQuery = els15.promptTemplateSearch?.value || "";
+      state16.promptTemplateQuery = els20.promptTemplateSearch?.value || "";
       updatePromptTemplateSearchClearButton();
       renderPromptTemplateList();
     });
-    els15.promptTemplateSearch?.addEventListener("focus", () => {
+    els20.promptTemplateSearch?.addEventListener("focus", () => {
       promptTemplateSearchAcceptManualInput = false;
       guardPromptTemplateSearchInput();
     });
-    els15.promptTemplateDrawer?.addEventListener("click", (event) => {
+    els20.promptTemplateDrawer?.addEventListener("click", (event) => {
       const target = event.target;
       const retry = target?.closest("[data-prompt-template-retry]");
       const filter = target?.closest("[data-prompt-template-filter]");
@@ -44574,21 +45831,21 @@ ${hint}` : hint;
         return;
       }
       if (filter) {
-        state13.promptTemplateFilter = filter.dataset.promptTemplateFilter || "all";
-        els15.promptTemplateDrawer?.querySelectorAll("[data-prompt-template-filter]").forEach((button) => {
+        state16.promptTemplateFilter = filter.dataset.promptTemplateFilter || "all";
+        els20.promptTemplateDrawer?.querySelectorAll("[data-prompt-template-filter]").forEach((button) => {
           button.classList.toggle("active", button === filter);
         });
         renderPromptTemplateList();
         return;
       }
       if (category) {
-        state13.promptTemplateCategory = category.dataset.promptTemplateCategory || "";
+        state16.promptTemplateCategory = category.dataset.promptTemplateCategory || "";
         renderPromptTemplateCategories();
         renderPromptTemplateList();
         return;
       }
       if (categoryCreate) {
-        const input = els15.promptTemplateCategoryPanel?.querySelector("[data-prompt-template-category-new]");
+        const input = els20.promptTemplateCategoryPanel?.querySelector("[data-prompt-template-category-new]");
         void createPromptTemplateCategory(input?.value || "");
         return;
       }
@@ -44632,11 +45889,11 @@ ${hint}` : hint;
         selectPromptTemplate(card.dataset.promptTemplateId);
       }
     });
-    els15.promptTemplateForm?.addEventListener("submit", (event) => {
+    els20.promptTemplateForm?.addEventListener("submit", (event) => {
       event.preventDefault();
       void savePromptTemplateFromDrawer();
     });
-    els15.promptTemplateRecentDock?.addEventListener("click", (event) => {
+    els20.promptTemplateRecentDock?.addEventListener("click", (event) => {
       const button = event.target?.closest("[data-prompt-template-insert]");
       if (!button) return;
       const template = findPromptTemplateById(button.dataset.promptTemplateInsert);
@@ -44648,8 +45905,8 @@ ${hint}` : hint;
       if (promptTemplateDrawerIsOpen()) {
         renderPromptTemplateCategories();
         renderPromptTemplateList();
-        if (state13.selectedPromptTemplateId && !els15.promptTemplateDetail?.classList.contains("hidden")) {
-          selectPromptTemplate(state13.selectedPromptTemplateId);
+        if (state16.selectedPromptTemplateId && !els20.promptTemplateDetail?.classList.contains("hidden")) {
+          selectPromptTemplate(state16.selectedPromptTemplateId);
         }
       }
     });
@@ -44691,9 +45948,9 @@ ${hint}` : hint;
   }
 
   // codex_image/webui/frontend/src/prompt-serialization.ts
-  var bridge15 = getLegacyBridge();
-  var els16 = bridge15.els;
-  function legacyMethod20(name, ...args) {
+  var bridge18 = getLegacyBridge();
+  var els21 = bridge18.els;
+  function legacyMethod23(name, ...args) {
     const method = getLegacyBridge().methods[name];
     if (typeof method !== "function") {
       throw new Error("Legacy method " + name + " is not initialized");
@@ -44701,47 +45958,47 @@ ${hint}` : hint;
     return method(...args);
   }
   function createGalleryChip(item) {
-    return legacyMethod20("createGalleryChip", item);
+    return legacyMethod23("createGalleryChip", item);
   }
   function createColorChip2(colorCode) {
-    return legacyMethod20("createColorChip", colorCode);
+    return legacyMethod23("createColorChip", colorCode);
   }
   function normalizeHexColor3(value) {
-    return legacyMethod20("normalizeHexColor", value);
+    return legacyMethod23("normalizeHexColor", value);
   }
   function findPromptSnippetRefAt2(promptText, cursor) {
-    return legacyMethod20("findPromptSnippetRefAt", promptText, cursor);
+    return legacyMethod23("findPromptSnippetRefAt", promptText, cursor);
   }
   function createPromptSnippetChip2(snippet) {
-    return legacyMethod20("createPromptSnippetChip", snippet);
+    return legacyMethod23("createPromptSnippetChip", snippet);
   }
   function updatePromptChipSelectionState() {
-    legacyMethod20("updatePromptChipSelectionState");
+    legacyMethod23("updatePromptChipSelectionState");
   }
   function galleryRefsByMentionLength(refs) {
-    return legacyMethod20("galleryRefsByMentionLength", refs);
+    return legacyMethod23("galleryRefsByMentionLength", refs);
   }
   function findGalleryRefMentionAt(promptText, cursor, refs) {
-    return legacyMethod20("findGalleryRefMentionAt", promptText, cursor, refs);
+    return legacyMethod23("findGalleryRefMentionAt", promptText, cursor, refs);
   }
   function hideMentionSuggest() {
-    legacyMethod20("hideMentionSuggest");
+    legacyMethod23("hideMentionSuggest");
   }
   function hideColorSuggest2() {
-    legacyMethod20("hideColorSuggest");
+    legacyMethod23("hideColorSuggest");
   }
   function hidePromptSnippetSuggest2() {
-    legacyMethod20("hidePromptSnippetSuggest");
+    legacyMethod23("hidePromptSnippetSuggest");
   }
   function hidePromptSnippetSelectionButton2() {
-    legacyMethod20("hidePromptSnippetSelectionButton");
+    legacyMethod23("hidePromptSnippetSelectionButton");
   }
   function closePromptSnippetPopover2() {
-    legacyMethod20("closePromptSnippetPopover");
+    legacyMethod23("closePromptSnippetPopover");
   }
   function getPromptText5() {
-    if (!els16.promptEditor) return els16.prompt.value;
-    return normalizePromptEditorText(promptTextFromNode(els16.promptEditor).replace(/\u00a0/g, " ")).trim();
+    if (!els21.promptEditor) return els21.prompt.value;
+    return normalizePromptEditorText(promptTextFromNode(els21.promptEditor).replace(/\u00a0/g, " ")).trim();
   }
   function normalizePromptEditorText(value) {
     return String(value || "").replace(/\r\n?/g, "\n");
@@ -44794,11 +46051,11 @@ ${hint}` : hint;
   }
   function promptSelectionText() {
     const selection = window.getSelection();
-    if (!selection || !selection.rangeCount || !els16.promptEditor) return "";
+    if (!selection || !selection.rangeCount || !els21.promptEditor) return "";
     const parts = [];
     for (let index = 0; index < selection.rangeCount; index += 1) {
       const range = selection.getRangeAt(index);
-      if (range.collapsed || !rangeIntersectsNode2(range, els16.promptEditor)) continue;
+      if (range.collapsed || !rangeIntersectsNode2(range, els21.promptEditor)) continue;
       parts.push(promptTextFromRange2(range));
     }
     return parts.join("").replace(/\u00a0/g, " ");
@@ -44816,10 +46073,10 @@ ${hint}` : hint;
     }
   }
   function selectPromptEditorContents() {
-    if (!els16.promptEditor) return;
-    els16.promptEditor.focus();
+    if (!els21.promptEditor) return;
+    els21.promptEditor.focus();
     const range = document.createRange();
-    range.selectNodeContents(els16.promptEditor);
+    range.selectNodeContents(els21.promptEditor);
     const selection = window.getSelection();
     if (!selection) return;
     selection.removeAllRanges();
@@ -44828,12 +46085,12 @@ ${hint}` : hint;
   }
   function setPromptText2(text) {
     const normalized = normalizePromptEditorText(text);
-    if (els16.promptEditor) {
-      els16.promptEditor.innerHTML = "";
+    if (els21.promptEditor) {
+      els21.promptEditor.innerHTML = "";
       const { fragment } = createPromptTextFragment(normalized);
-      els16.promptEditor.append(fragment);
+      els21.promptEditor.append(fragment);
     }
-    els16.prompt.value = normalized;
+    els21.prompt.value = normalized;
     hideMentionSuggest();
     hideColorSuggest2();
     hidePromptSnippetSuggest2();
@@ -44841,7 +46098,7 @@ ${hint}` : hint;
     closePromptSnippetPopover2();
   }
   function setPromptWithGalleryRefs(text, refs) {
-    if (!els16.promptEditor) {
+    if (!els21.promptEditor) {
       setPromptText2(text);
       return;
     }
@@ -44849,14 +46106,14 @@ ${hint}` : hint;
     const sortedRefs = galleryRefsByMentionLength(refList);
     const promptText = normalizePromptEditorText(text);
     clearPromptEditorSelection();
-    els16.promptEditor.innerHTML = "";
+    els21.promptEditor.innerHTML = "";
     let cursor = 0;
     let plainStart = 0;
     while (cursor < promptText.length) {
       const refMatch = findGalleryRefMentionAt(promptText, cursor, sortedRefs);
       if (refMatch) {
         appendPromptText4(promptText.slice(plainStart, cursor));
-        els16.promptEditor.append(createGalleryChip(refMatch.ref));
+        els21.promptEditor.append(createGalleryChip(refMatch.ref));
         cursor = refMatch.end;
         plainStart = cursor;
         continue;
@@ -44866,7 +46123,7 @@ ${hint}` : hint;
         const match = colorMatch;
         const colorCode = normalizeHexColor3(match[0]);
         appendPromptText4(promptText.slice(plainStart, cursor));
-        els16.promptEditor.append(createColorChip2(colorCode));
+        els21.promptEditor.append(createColorChip2(colorCode));
         cursor += match[0].length;
         plainStart = cursor;
         continue;
@@ -44874,7 +46131,7 @@ ${hint}` : hint;
       const snippetMatch = findPromptSnippetRefAt2(promptText, cursor);
       if (snippetMatch) {
         appendPromptText4(promptText.slice(plainStart, cursor));
-        els16.promptEditor.append(createPromptSnippetChip2(snippetMatch.snippet));
+        els21.promptEditor.append(createPromptSnippetChip2(snippetMatch.snippet));
         cursor = snippetMatch.end;
         plainStart = cursor;
         continue;
@@ -44891,23 +46148,23 @@ ${hint}` : hint;
   }
   function clearPromptEditorSelection() {
     const selection = window.getSelection();
-    if (!selection?.rangeCount || !els16.promptEditor) return;
-    const intersectsEditor = Array.from({ length: selection.rangeCount }, (_, index) => selection.getRangeAt(index)).some((range) => rangeIntersectsNode2(range, els16.promptEditor));
+    if (!selection?.rangeCount || !els21.promptEditor) return;
+    const intersectsEditor = Array.from({ length: selection.rangeCount }, (_, index) => selection.getRangeAt(index)).some((range) => rangeIntersectsNode2(range, els21.promptEditor));
     if (intersectsEditor) selection.removeAllRanges();
   }
   function appendPromptText4(text) {
     const { fragment } = createPromptTextFragment(text);
-    els16.promptEditor.append(fragment);
+    els21.promptEditor.append(fragment);
   }
   function clearPromptEditorIfEmpty() {
-    if (!els16.promptEditor) return;
-    const visibleText = promptTextFromNode(els16.promptEditor).replace(/\u00a0/g, " ").trim();
+    if (!els21.promptEditor) return;
+    const visibleText = promptTextFromNode(els21.promptEditor).replace(/\u00a0/g, " ").trim();
     if (!visibleText) {
-      els16.promptEditor.textContent = "";
+      els21.promptEditor.textContent = "";
     }
   }
   function syncPromptFromEditor3() {
-    els16.prompt.value = getPromptText5();
+    els21.prompt.value = getPromptText5();
   }
   function initPromptSerializationFeature() {
     Object.assign(getLegacyBridge().methods, {
@@ -44928,69 +46185,69 @@ ${hint}` : hint;
   }
 
   // codex_image/webui/frontend/src/prompt-gallery-chips.ts
-  var bridge16 = getLegacyBridge();
-  var state14 = bridge16.state;
-  var els17 = bridge16.els;
-  function legacyMethod21(name, ...args) {
+  var bridge19 = getLegacyBridge();
+  var state17 = bridge19.state;
+  var els22 = bridge19.els;
+  function legacyMethod24(name, ...args) {
     const method = getLegacyBridge().methods[name];
     if (typeof method !== "function") {
       throw new Error("Legacy method " + name + " is not initialized");
     }
     return method(...args);
   }
-  function escapeHtml12(value) {
-    return legacyMethod21("escapeHtml", value);
+  function escapeHtml13(value) {
+    return legacyMethod24("escapeHtml", value);
   }
   function categoryLabel5(category) {
-    return legacyMethod21("categoryLabel", category);
+    return legacyMethod24("categoryLabel", category);
   }
   function categoryPromptRole2(category) {
-    return legacyMethod21("categoryPromptRole", category);
+    return legacyMethod24("categoryPromptRole", category);
   }
   function findGalleryItem5(itemId) {
-    return legacyMethod21("findGalleryItem", itemId);
+    return legacyMethod24("findGalleryItem", itemId);
   }
   function addGalleryInput4(item, options) {
-    legacyMethod21("addGalleryInput", item, options);
+    legacyMethod24("addGalleryInput", item, options);
   }
   function gallerySource3(item) {
-    return legacyMethod21("gallerySource", item);
+    return legacyMethod24("gallerySource", item);
   }
   function galleryInputs2() {
-    return legacyMethod21("galleryInputs");
+    return legacyMethod24("galleryInputs");
   }
   function renderImageStrip5() {
-    legacyMethod21("renderImageStrip");
+    legacyMethod24("renderImageStrip");
   }
-  function setMode3(mode) {
-    legacyMethod21("setMode", mode);
+  function setMode4(mode) {
+    legacyMethod24("setMode", mode);
   }
   function updatePromptCount4() {
-    legacyMethod21("updatePromptCount");
+    legacyMethod24("updatePromptCount");
   }
-  function updateRequestPreview8() {
-    legacyMethod21("updateRequestPreview");
+  function updateRequestPreview9() {
+    legacyMethod24("updateRequestPreview");
   }
   function getPromptText6() {
-    return legacyMethod21("getPromptText");
+    return legacyMethod24("getPromptText");
   }
   function appendPromptText5(text) {
-    legacyMethod21("appendPromptText", text);
+    legacyMethod24("appendPromptText", text);
   }
   function syncPromptFromEditor4() {
-    legacyMethod21("syncPromptFromEditor");
+    legacyMethod24("syncPromptFromEditor");
   }
   function clearPromptEditorIfEmpty2() {
-    legacyMethod21("clearPromptEditorIfEmpty");
+    legacyMethod24("clearPromptEditorIfEmpty");
   }
   function hideColorSuggest3() {
-    legacyMethod21("hideColorSuggest");
+    legacyMethod24("hideColorSuggest");
   }
   function setCaretAfterNode3(node) {
-    legacyMethod21("setCaretAfterNode", node);
+    legacyMethod24("setCaretAfterNode", node);
   }
   function mentionRangeRect3(range) {
-    return legacyMethod21("mentionRangeRect", range);
+    return legacyMethod24("mentionRangeRect", range);
   }
   function galleryRefsByMentionLength2(refs) {
     return (Array.isArray(refs) ? refs : []).filter((ref) => ref?.name && !ref.missing && ref.image_url).slice().sort((left, right) => String(right.name || "").length - String(left.name || "").length);
@@ -45008,26 +46265,26 @@ ${hint}` : hint;
     return null;
   }
   function updateMentionSuggest() {
-    if (!els17.mentionSuggest || !els17.promptEditor) return;
+    if (!els22.mentionSuggest || !els22.promptEditor) return;
     const match = activeMentionMatch();
     if (!match) {
       hideMentionSuggest2();
       return;
     }
     const query = match.query.toLowerCase();
-    const items = state14.galleryItems.filter((item) => item.name.toLowerCase().includes(query)).slice(0, 8);
+    const items = state17.galleryItems.filter((item) => item.name.toLowerCase().includes(query)).slice(0, 8);
     if (!items.length) {
       hideMentionSuggest2();
       return;
     }
-    els17.mentionSuggest.innerHTML = items.map((item) => `
-    <button type="button" class="mention-option" data-mention-id="${escapeHtml12(item.id)}">
-      <img src="${escapeHtml12(item.image_url)}" alt="">
-      <span>@${escapeHtml12(item.name)}</span>
-      <small>${escapeHtml12(categoryLabel5(item.category))}</small>
+    els22.mentionSuggest.innerHTML = items.map((item) => `
+    <button type="button" class="mention-option" data-mention-id="${escapeHtml13(item.id)}">
+      <img src="${escapeHtml13(item.image_url)}" alt="">
+      <span>@${escapeHtml13(item.name)}</span>
+      <small>${escapeHtml13(categoryLabel5(item.category))}</small>
     </button>
   `).join("");
-    els17.mentionSuggest.querySelectorAll("[data-mention-id]").forEach((button) => {
+    els22.mentionSuggest.querySelectorAll("[data-mention-id]").forEach((button) => {
       button.addEventListener("mousedown", (event) => {
         event.preventDefault();
         const item = findGalleryItem5(button.dataset.mentionId);
@@ -45035,12 +46292,12 @@ ${hint}` : hint;
       });
     });
     positionMentionSuggestAtCaret(match);
-    els17.mentionSuggest.classList.remove("hidden");
+    els22.mentionSuggest.classList.remove("hidden");
   }
   function activeMentionMatch() {
     const selection = window.getSelection();
-    if (!selection || !selection.rangeCount || !selection.isCollapsed || !els17.promptEditor) return null;
-    if (!els17.promptEditor.contains(selection.anchorNode)) return null;
+    if (!selection || !selection.rangeCount || !selection.isCollapsed || !els22.promptEditor) return null;
+    if (!els22.promptEditor.contains(selection.anchorNode)) return null;
     const selectionRange = selection.getRangeAt(0);
     let container = selectionRange.startContainer;
     let offset = selectionRange.startOffset;
@@ -45077,24 +46334,24 @@ ${hint}` : hint;
       if (currentText && !/\s$/.test(currentText)) {
         appendPromptText5(" ");
       }
-      els17.promptEditor.append(createGalleryChip2(item));
+      els22.promptEditor.append(createGalleryChip2(item));
       trailingSpace = document.createTextNode(" ");
-      els17.promptEditor.append(trailingSpace);
+      els22.promptEditor.append(trailingSpace);
     }
     addGalleryInput4(item, { syncPrompt: false });
     syncPromptFromEditor4();
     updatePromptCount4();
-    updateRequestPreview8();
+    updateRequestPreview9();
     hideMentionSuggest2();
     hideColorSuggest3();
     setCaretAfterNode3(trailingSpace);
   }
   function positionMentionSuggestAtCaret(match) {
-    if (!els17.mentionSuggest || !els17.promptEditor || !match?.range) return;
-    const host = els17.promptEditor.closest(".prompt-editor-wrap") || els17.promptEditor;
-    const anchorRect = mentionRangeRect3(match.range) || els17.promptEditor.getBoundingClientRect();
+    if (!els22.mentionSuggest || !els22.promptEditor || !match?.range) return;
+    const host = els22.promptEditor.closest(".prompt-editor-wrap") || els22.promptEditor;
+    const anchorRect = mentionRangeRect3(match.range) || els22.promptEditor.getBoundingClientRect();
     positionPromptPopoverAtAnchor(
-      els17.mentionSuggest,
+      els22.mentionSuggest,
       host,
       anchorRect,
       {
@@ -45141,7 +46398,7 @@ ${hint}` : hint;
     return chip;
   }
   function removePromptGalleryChip3(chip) {
-    if (!chip || !els17.promptEditor?.contains(chip)) return;
+    if (!chip || !els22.promptEditor?.contains(chip)) return;
     const nextNode = chip.nextSibling;
     chip.remove();
     if (nextNode?.nodeType === Node.TEXT_NODE && !nextNode.textContent.trim()) {
@@ -45151,19 +46408,19 @@ ${hint}` : hint;
     syncPromptFromEditor4();
     updatePromptCount4();
     const galleryInputsChanged = syncGalleryInputsFromPrompt();
-    if (!galleryInputsChanged) updateRequestPreview8();
+    if (!galleryInputsChanged) updateRequestPreview9();
     hideMentionSuggest2();
     hideColorSuggest3();
-    setCaretToEnd(els17.promptEditor);
+    setCaretToEnd(els22.promptEditor);
   }
   function currentPromptGalleryIds() {
-    if (!els17.promptEditor) return /* @__PURE__ */ new Set();
+    if (!els22.promptEditor) return /* @__PURE__ */ new Set();
     return new Set(
-      Array.from(els17.promptEditor.querySelectorAll(".gallery-chip[data-gallery-id]")).map((chip) => chip.dataset.galleryId).filter(Boolean)
+      Array.from(els22.promptEditor.querySelectorAll(".gallery-chip[data-gallery-id]")).map((chip) => chip.dataset.galleryId).filter(Boolean)
     );
   }
   function ensurePromptGalleryMention(item) {
-    if (!item || !els17.promptEditor || currentPromptGalleryIds().has(item.id)) {
+    if (!item || !els22.promptEditor || currentPromptGalleryIds().has(item.id)) {
       syncPromptFromEditor4();
       return;
     }
@@ -45171,7 +46428,7 @@ ${hint}` : hint;
     if (currentText && !/\s$/.test(currentText)) {
       appendPromptText5(" ");
     }
-    els17.promptEditor.append(createGalleryChip2(item));
+    els22.promptEditor.append(createGalleryChip2(item));
     appendPromptText5(" ");
     syncPromptFromEditor4();
     updatePromptCount4();
@@ -45179,11 +46436,11 @@ ${hint}` : hint;
     hideColorSuggest3();
   }
   function syncGalleryInputsFromPrompt() {
-    const chips = Array.from(els17.promptEditor?.querySelectorAll(".gallery-chip[data-gallery-id]") || []);
+    const chips = Array.from(els22.promptEditor?.querySelectorAll(".gallery-chip[data-gallery-id]") || []);
     const mentionedIds = new Set(chips.map((chip) => chip.dataset.galleryId).filter(Boolean));
-    const beforeKey = imageSourcesKey(state14.images);
-    const uploads = state14.images.filter((source) => source.kind !== "gallery");
-    const existingById = new Map(state14.images.filter((source) => source.kind === "gallery").map((source) => [source.id, source]));
+    const beforeKey = imageSourcesKey(state17.images);
+    const uploads = state17.images.filter((source) => source.kind !== "gallery");
+    const existingById = new Map(state17.images.filter((source) => source.kind === "gallery").map((source) => [source.id, source]));
     const galleries = chips.map((chip) => {
       const itemId = chip.dataset.galleryId;
       const existing = existingById.get(itemId);
@@ -45201,13 +46458,13 @@ ${hint}` : hint;
         missing: true
       });
     }).filter((source) => source.id && mentionedIds.has(source.id));
-    state14.images = [...uploads, ...galleries];
-    if (imageSourcesKey(state14.images) === beforeKey) return false;
-    if (!state14.images.length) {
-      setMode3("generate");
+    state17.images = [...uploads, ...galleries];
+    if (imageSourcesKey(state17.images) === beforeKey) return false;
+    if (!state17.images.length) {
+      setMode4("generate");
     }
     renderImageStrip5();
-    updateRequestPreview8();
+    updateRequestPreview9();
     return true;
   }
   function imageSourcesKey(sources) {
@@ -45218,10 +46475,10 @@ ${hint}` : hint;
     ]));
   }
   function syncPromptGalleryMentionsFromInputs() {
-    if (!els17.promptEditor) return false;
+    if (!els22.promptEditor) return false;
     const selectedGalleryIds = new Set(galleryInputs2().map((source) => source.id));
     let changed = false;
-    els17.promptEditor.querySelectorAll(".gallery-chip[data-gallery-id]").forEach((chip) => {
+    els22.promptEditor.querySelectorAll(".gallery-chip[data-gallery-id]").forEach((chip) => {
       if (!selectedGalleryIds.has(chip.dataset.galleryId)) {
         chip.remove();
         changed = true;
@@ -45234,16 +46491,16 @@ ${hint}` : hint;
     return true;
   }
   function hideMentionSuggest2() {
-    if (!els17.mentionSuggest) return;
-    els17.mentionSuggest.classList.add("hidden");
-    els17.mentionSuggest.innerHTML = "";
-    els17.mentionSuggest.style.removeProperty("--mention-left");
-    els17.mentionSuggest.style.removeProperty("--mention-top");
-    els17.mentionSuggest.style.removeProperty("--mention-width");
-    els17.mentionSuggest.style.removeProperty("--prompt-popover-max-height");
+    if (!els22.mentionSuggest) return;
+    els22.mentionSuggest.classList.add("hidden");
+    els22.mentionSuggest.innerHTML = "";
+    els22.mentionSuggest.style.removeProperty("--mention-left");
+    els22.mentionSuggest.style.removeProperty("--mention-top");
+    els22.mentionSuggest.style.removeProperty("--mention-width");
+    els22.mentionSuggest.style.removeProperty("--prompt-popover-max-height");
   }
   function setCaretToEnd(element2) {
-    legacyMethod21("setCaretToEnd", element2);
+    legacyMethod24("setCaretToEnd", element2);
   }
   function initPromptGalleryChipsFeature() {
     Object.assign(getLegacyBridge().methods, {
@@ -45265,9 +46522,9 @@ ${hint}` : hint;
   }
 
   // codex_image/webui/frontend/src/prompt-editor-paste.ts
-  var bridge17 = getLegacyBridge();
-  var els18 = bridge17.els;
-  function legacyMethod22(name, ...args) {
+  var bridge20 = getLegacyBridge();
+  var els23 = bridge20.els;
+  function legacyMethod25(name, ...args) {
     const method = getLegacyBridge().methods[name];
     if (typeof method !== "function") {
       throw new Error("Legacy method " + name + " is not initialized");
@@ -45275,25 +46532,25 @@ ${hint}` : hint;
     return method(...args);
   }
   function rangeIntersectsNode3(range, node) {
-    return legacyMethod22("rangeIntersectsNode", range, node);
+    return legacyMethod25("rangeIntersectsNode", range, node);
   }
   function createPromptTextFragment2(text) {
-    return legacyMethod22("createPromptTextFragment", text);
+    return legacyMethod25("createPromptTextFragment", text);
   }
   function setCaretAfterNode4(node) {
-    legacyMethod22("setCaretAfterNode", node);
+    legacyMethod25("setCaretAfterNode", node);
   }
   function syncPromptAfterChipMutation3() {
-    legacyMethod22("syncPromptAfterChipMutation");
+    legacyMethod25("syncPromptAfterChipMutation");
   }
   function updateMentionSuggest2() {
-    legacyMethod22("updateMentionSuggest");
+    legacyMethod25("updateMentionSuggest");
   }
   function updateColorSuggest3() {
-    legacyMethod22("updateColorSuggest");
+    legacyMethod25("updateColorSuggest");
   }
   function updatePromptSnippetSuggest2() {
-    legacyMethod22("updatePromptSnippetSuggest");
+    legacyMethod25("updatePromptSnippetSuggest");
   }
   function clipboardHasImageFile(data) {
     return Array.from(data.items || []).some((item) => item.kind === "file" && item.type?.startsWith("image/"));
@@ -45333,21 +46590,21 @@ ${hint}` : hint;
     return html ? promptPlainTextFromHtml(html) : "";
   }
   function insertPlainPromptText(text) {
-    if (!els18.promptEditor) return;
+    if (!els23.promptEditor) return;
     const normalized = normalizePromptPasteText(text);
     if (!normalized) return;
-    els18.promptEditor.focus();
+    els23.promptEditor.focus();
     const { fragment, lastNode } = createPromptTextFragment2(normalized);
     if (!lastNode) return;
     const selection = window.getSelection();
     if (!selection || !selection.rangeCount) {
-      els18.promptEditor.append(fragment);
+      els23.promptEditor.append(fragment);
       setCaretAfterNode4(lastNode);
       return;
     }
     const range = selection.getRangeAt(0);
-    if (!rangeIntersectsNode3(range, els18.promptEditor)) {
-      els18.promptEditor.append(fragment);
+    if (!rangeIntersectsNode3(range, els23.promptEditor)) {
+      els23.promptEditor.append(fragment);
       setCaretAfterNode4(lastNode);
       return;
     }
@@ -45356,7 +46613,7 @@ ${hint}` : hint;
     setCaretAfterNode4(lastNode);
   }
   function handlePromptEditorPaste(event) {
-    if (!event.clipboardData || !els18.promptEditor?.contains(event.target)) return;
+    if (!event.clipboardData || !els23.promptEditor?.contains(event.target)) return;
     if (clipboardHasImageFile(event.clipboardData)) return;
     const text = promptPasteTextFromClipboard(event.clipboardData);
     if (!text) return;
@@ -45369,10 +46626,10 @@ ${hint}` : hint;
   }
 
   // codex_image/webui/frontend/src/prompt-editor-events.ts
-  var bridge18 = getLegacyBridge();
-  var state15 = bridge18.state;
-  var els19 = bridge18.els;
-  function legacyMethod23(name, ...args) {
+  var bridge21 = getLegacyBridge();
+  var state18 = bridge21.state;
+  var els24 = bridge21.els;
+  function legacyMethod26(name, ...args) {
     const method = getLegacyBridge().methods[name];
     if (typeof method !== "function") {
       throw new Error("Legacy method " + name + " is not initialized");
@@ -45380,82 +46637,82 @@ ${hint}` : hint;
     return method(...args);
   }
   function getPromptText7() {
-    return legacyMethod23("getPromptText");
+    return legacyMethod26("getPromptText");
   }
   function promptTextFromNode2(node) {
-    return legacyMethod23("promptTextFromNode", node);
+    return legacyMethod26("promptTextFromNode", node);
   }
   function promptSelectionText2() {
-    return legacyMethod23("promptSelectionText");
+    return legacyMethod26("promptSelectionText");
   }
   function rangeIntersectsNode4(range, node) {
-    return legacyMethod23("rangeIntersectsNode", range, node);
+    return legacyMethod26("rangeIntersectsNode", range, node);
   }
   function selectPromptEditorContents2() {
-    legacyMethod23("selectPromptEditorContents");
+    legacyMethod26("selectPromptEditorContents");
   }
   function syncGalleryInputsFromPrompt2() {
-    return legacyMethod23("syncGalleryInputsFromPrompt");
+    return legacyMethod26("syncGalleryInputsFromPrompt");
   }
   function updateMentionSuggest3() {
-    legacyMethod23("updateMentionSuggest");
+    legacyMethod26("updateMentionSuggest");
   }
   function hideMentionSuggest3() {
-    legacyMethod23("hideMentionSuggest");
+    legacyMethod26("hideMentionSuggest");
   }
   function hideColorSuggest4() {
-    legacyMethod23("hideColorSuggest");
+    legacyMethod26("hideColorSuggest");
   }
   function updateColorSuggest4() {
-    legacyMethod23("updateColorSuggest");
+    legacyMethod26("updateColorSuggest");
   }
   function insertColorCode2(colorCode) {
-    legacyMethod23("insertColorCode", colorCode);
+    legacyMethod26("insertColorCode", colorCode);
   }
   function openColorChipEditor2(chip) {
-    legacyMethod23("openColorChipEditor", chip);
+    legacyMethod26("openColorChipEditor", chip);
   }
   function hidePromptSnippetSuggest3() {
-    legacyMethod23("hidePromptSnippetSuggest");
+    legacyMethod26("hidePromptSnippetSuggest");
   }
   function hidePromptSnippetSelectionButton3() {
-    legacyMethod23("hidePromptSnippetSelectionButton");
+    legacyMethod26("hidePromptSnippetSelectionButton");
   }
   function closePromptSnippetPopover3() {
-    legacyMethod23("closePromptSnippetPopover");
+    legacyMethod26("closePromptSnippetPopover");
   }
   function promptSnippetSuggestElement2() {
-    return legacyMethod23("promptSnippetSuggestElement");
+    return legacyMethod26("promptSnippetSuggestElement");
   }
   function findPromptSnippetById2(id) {
-    return legacyMethod23("findPromptSnippetById", id);
+    return legacyMethod26("findPromptSnippetById", id);
   }
   function insertPromptSnippet2(snippet) {
-    legacyMethod23("insertPromptSnippet", snippet);
+    legacyMethod26("insertPromptSnippet", snippet);
   }
   function updatePromptSnippetSuggest3() {
-    legacyMethod23("updatePromptSnippetSuggest");
+    legacyMethod26("updatePromptSnippetSuggest");
   }
   function updatePromptSnippetSelectionButton2() {
-    legacyMethod23("updatePromptSnippetSelectionButton");
+    legacyMethod26("updatePromptSnippetSelectionButton");
   }
   function openPromptSnippetChipPopover2(chip) {
-    legacyMethod23("openPromptSnippetChipPopover", chip);
+    legacyMethod26("openPromptSnippetChipPopover", chip);
   }
   function updatePromptCount5() {
-    legacyMethod23("updatePromptCount");
+    legacyMethod26("updatePromptCount");
   }
-  function updateRequestPreview9() {
-    legacyMethod23("updateRequestPreview");
+  function updateRequestPreview10() {
+    legacyMethod26("updateRequestPreview");
   }
   function removePromptGalleryChip4(chip) {
-    legacyMethod23("removePromptGalleryChip", chip);
+    legacyMethod26("removePromptGalleryChip", chip);
   }
   function findGalleryItem6(itemId) {
-    return legacyMethod23("findGalleryItem", itemId);
+    return legacyMethod26("findGalleryItem", itemId);
   }
   function insertGalleryMention2(item) {
-    legacyMethod23("insertGalleryMention", item);
+    legacyMethod26("insertGalleryMention", item);
   }
   function handlePromptEditorCopy(event) {
     if (!event.clipboardData) return;
@@ -45466,17 +46723,17 @@ ${hint}` : hint;
   }
   function promptEditorFocusInside() {
     const activeElement = document.activeElement;
-    return Boolean(activeElement && els19.promptEditor && els19.promptEditor.contains(activeElement));
+    return Boolean(activeElement && els24.promptEditor && els24.promptEditor.contains(activeElement));
   }
   function updatePromptChipSelectionState2() {
-    const chips = Array.from(els19.promptEditor?.querySelectorAll(".gallery-chip, .color-chip, .prompt-snippet-chip") || []);
+    const chips = Array.from(els24.promptEditor?.querySelectorAll(".gallery-chip, .color-chip, .prompt-snippet-chip") || []);
     if (!chips.length) return;
     const selection = window.getSelection();
     const ranges = [];
-    if (selection && !selection.isCollapsed && selection.rangeCount && els19.promptEditor) {
+    if (selection && !selection.isCollapsed && selection.rangeCount && els24.promptEditor) {
       for (let index = 0; index < selection.rangeCount; index += 1) {
         const range = selection.getRangeAt(index);
-        if (rangeIntersectsNode4(range, els19.promptEditor)) ranges.push(range);
+        if (rangeIntersectsNode4(range, els24.promptEditor)) ranges.push(range);
       }
     }
     chips.forEach((chip) => {
@@ -45485,7 +46742,7 @@ ${hint}` : hint;
     });
   }
   function syncPromptFromEditor5() {
-    els19.prompt.value = getPromptText7();
+    els24.prompt.value = getPromptText7();
   }
   function handlePromptEditorKeydown(event) {
     if (isPromptEditorArrowKey(event.key)) {
@@ -45513,14 +46770,14 @@ ${hint}` : hint;
       closePromptSnippetPopover3();
       return;
     }
-    if (event.key === "Enter" && !els19.colorSuggest.classList.contains("hidden")) {
+    if (event.key === "Enter" && !els24.colorSuggest.classList.contains("hidden")) {
       event.preventDefault();
-      const input = els19.colorSuggest.querySelector("[data-color-hex-input]");
-      insertColorCode2(input?.value || state15.selectedColorCode);
+      const input = els24.colorSuggest.querySelector("[data-color-hex-input]");
+      insertColorCode2(input?.value || state18.selectedColorCode);
       return;
     }
-    if (event.key === "Enter" && !els19.mentionSuggest.classList.contains("hidden")) {
-      const first = els19.mentionSuggest.querySelector("[data-mention-id]");
+    if (event.key === "Enter" && !els24.mentionSuggest.classList.contains("hidden")) {
+      const first = els24.mentionSuggest.querySelector("[data-mention-id]");
       if (first) {
         event.preventDefault();
         const item = findGalleryItem6(first.dataset.mentionId);
@@ -45549,21 +46806,21 @@ ${hint}` : hint;
       return;
     }
     const removeButton = event.target.closest?.("[data-remove-gallery-chip], [data-remove-color-chip], [data-remove-prompt-snippet-chip]");
-    if (removeButton && els19.promptEditor.contains(removeButton)) {
+    if (removeButton && els24.promptEditor.contains(removeButton)) {
       event.preventDefault();
       event.stopPropagation();
       removePromptGalleryChip4(removeButton.closest(".gallery-chip, .color-chip, .prompt-snippet-chip"));
       return;
     }
     const editColorButton = event.target.closest?.("[data-edit-color-chip]");
-    if (editColorButton && els19.promptEditor.contains(editColorButton)) {
+    if (editColorButton && els24.promptEditor.contains(editColorButton)) {
       event.preventDefault();
       event.stopPropagation();
       openColorChipEditor2(editColorButton.closest(".color-chip"));
       return;
     }
     const snippetChip = event.target.closest?.(".prompt-snippet-chip");
-    if (snippetChip && els19.promptEditor.contains(snippetChip) && !event.target.closest?.("[data-remove-prompt-snippet-chip]")) {
+    if (snippetChip && els24.promptEditor.contains(snippetChip) && !event.target.closest?.("[data-remove-prompt-snippet-chip]")) {
       event.preventDefault();
       event.stopPropagation();
       openPromptSnippetChipPopover2(snippetChip);
@@ -45571,8 +46828,8 @@ ${hint}` : hint;
   }
   function promptChipAtCaretForDeletion(key) {
     const selection = window.getSelection();
-    if (!selection || !selection.rangeCount || !selection.isCollapsed || !els19.promptEditor) return null;
-    if (!els19.promptEditor.contains(selection.anchorNode)) return null;
+    if (!selection || !selection.rangeCount || !selection.isCollapsed || !els24.promptEditor) return null;
+    if (!els24.promptEditor.contains(selection.anchorNode)) return null;
     const range = selection.getRangeAt(0);
     const isBackspace = key === "Backspace";
     const container = range.startContainer;
@@ -45592,10 +46849,10 @@ ${hint}` : hint;
     return null;
   }
   function promptChipFallbackForDeletion(key) {
-    if (!els19.promptEditor) return null;
-    const chips = Array.from(els19.promptEditor.querySelectorAll(".gallery-chip[data-gallery-id], .color-chip[data-color-code], .prompt-snippet-chip[data-prompt-snippet-tag]"));
+    if (!els24.promptEditor) return null;
+    const chips = Array.from(els24.promptEditor.querySelectorAll(".gallery-chip[data-gallery-id], .color-chip[data-color-code], .prompt-snippet-chip[data-prompt-snippet-tag]"));
     if (!chips.length) return null;
-    const textWithoutChips = Array.from(els19.promptEditor.childNodes).reduce((text, child) => {
+    const textWithoutChips = Array.from(els24.promptEditor.childNodes).reduce((text, child) => {
       if (child.nodeType === Node.ELEMENT_NODE && isPromptAtomicChip(child)) {
         return text;
       }
@@ -45609,7 +46866,7 @@ ${hint}` : hint;
   }
   function promptChipFromEvent(event) {
     const chip = event.target.closest?.(".gallery-chip, .color-chip, .prompt-snippet-chip");
-    if (!chip || !els19.promptEditor?.contains(chip)) return null;
+    if (!chip || !els24.promptEditor?.contains(chip)) return null;
     return chip;
   }
   function handlePromptChipDragStart(event) {
@@ -45618,13 +46875,13 @@ ${hint}` : hint;
       event.preventDefault();
       return;
     }
-    state15.draggedPromptChip = chip;
+    state18.draggedPromptChip = chip;
     chip.classList.add("prompt-chip-dragging");
     event.dataTransfer.effectAllowed = "move";
     event.dataTransfer.setData("text/plain", promptTextFromNode2(chip));
   }
   function handlePromptChipDragOver(event) {
-    if (!state15.draggedPromptChip) return;
+    if (!state18.draggedPromptChip) return;
     event.preventDefault();
     event.dataTransfer.dropEffect = "move";
     clearPromptChipDropClasses();
@@ -45636,20 +46893,20 @@ ${hint}` : hint;
     handlePromptChipDrop(event);
   }
   function handlePromptChipDrop(event) {
-    const chip = state15.draggedPromptChip;
-    if (!chip || !els19.promptEditor?.contains(chip)) return;
+    const chip = state18.draggedPromptChip;
+    if (!chip || !els24.promptEditor?.contains(chip)) return;
     event.preventDefault();
     clearPromptChipDropClasses();
     const targetChip = promptDropTargetChip(event);
     if (targetChip) {
       const insertBefore = promptDropPlacement(event, targetChip) === "before" ? targetChip : targetChip.nextSibling;
-      els19.promptEditor.insertBefore(chip, insertBefore);
+      els24.promptEditor.insertBefore(chip, insertBefore);
     } else {
       const range = promptRangeFromPoint(event.clientX, event.clientY);
-      if (range && els19.promptEditor.contains(range.startContainer)) {
+      if (range && els24.promptEditor.contains(range.startContainer)) {
         range.insertNode(chip);
       } else {
-        els19.promptEditor.append(chip);
+        els24.promptEditor.append(chip);
       }
     }
     const trailingBoundary = normalizePromptChipBoundaries(chip);
@@ -45657,13 +46914,13 @@ ${hint}` : hint;
     setCaretAfterNode5(trailingBoundary || chip);
   }
   function handlePromptChipDragEnd() {
-    state15.draggedPromptChip?.classList.remove("prompt-chip-dragging");
-    state15.draggedPromptChip = null;
+    state18.draggedPromptChip?.classList.remove("prompt-chip-dragging");
+    state18.draggedPromptChip = null;
     clearPromptChipDropClasses();
   }
   function promptDropTargetChip(event) {
     const chip = promptChipFromEvent(event);
-    if (!chip || chip === state15.draggedPromptChip) return null;
+    if (!chip || chip === state18.draggedPromptChip) return null;
     return chip;
   }
   function promptDropPlacement(event, chip) {
@@ -45674,7 +46931,7 @@ ${hint}` : hint;
     return position < size / 2 ? "before" : "after";
   }
   function clearPromptChipDropClasses() {
-    els19.promptEditor?.querySelectorAll(".prompt-chip-drop-before, .prompt-chip-drop-after").forEach((chip) => {
+    els24.promptEditor?.querySelectorAll(".prompt-chip-drop-before, .prompt-chip-drop-after").forEach((chip) => {
       chip.classList.remove("prompt-chip-drop-before", "prompt-chip-drop-after");
     });
   }
@@ -45693,7 +46950,7 @@ ${hint}` : hint;
     return null;
   }
   function normalizePromptChipBoundaries(chip) {
-    if (!chip || !els19.promptEditor?.contains(chip)) return null;
+    if (!chip || !els24.promptEditor?.contains(chip)) return null;
     ensurePromptChipLeadingBoundary(chip);
     return ensurePromptChipTrailingBoundary(chip);
   }
@@ -45703,7 +46960,7 @@ ${hint}` : hint;
     if (previousNode.nodeType === Node.TEXT_NODE && /[\s\u00a0]$/.test(previousNode.textContent || "")) {
       return null;
     }
-    els19.promptEditor.insertBefore(document.createTextNode(" "), chip);
+    els24.promptEditor.insertBefore(document.createTextNode(" "), chip);
     return chip.previousSibling;
   }
   function ensurePromptChipTrailingBoundary(chip) {
@@ -45715,7 +46972,7 @@ ${hint}` : hint;
     if (nextNode.nodeType === Node.TEXT_NODE && /^[\s\u00a0]/.test(nextNode.textContent || "")) {
       return null;
     }
-    els19.promptEditor.insertBefore(document.createTextNode(" "), nextNode);
+    els24.promptEditor.insertBefore(document.createTextNode(" "), nextNode);
     return chip.nextSibling;
   }
   function syncPromptAfterChipMutation4() {
@@ -45723,7 +46980,7 @@ ${hint}` : hint;
     syncPromptFromEditor5();
     updatePromptCount5();
     const galleryInputsChanged = syncGalleryInputsFromPrompt2();
-    if (!galleryInputsChanged) updateRequestPreview9();
+    if (!galleryInputsChanged) updateRequestPreview10();
     hideMentionSuggest3();
     hideColorSuggest4();
     hidePromptSnippetSuggest3();
@@ -45735,10 +46992,10 @@ ${hint}` : hint;
     return rects.length ? rects[0] : null;
   }
   function clearPromptEditorIfEmpty3() {
-    if (!els19.promptEditor) return;
-    const visibleText = promptTextFromNode2(els19.promptEditor).replace(/\u00a0/g, " ").trim();
+    if (!els24.promptEditor) return;
+    const visibleText = promptTextFromNode2(els24.promptEditor).replace(/\u00a0/g, " ").trim();
     if (!visibleText) {
-      els19.promptEditor.textContent = "";
+      els24.promptEditor.textContent = "";
     }
   }
   function setCaretToEnd2(element2) {
@@ -45764,39 +47021,39 @@ ${hint}` : hint;
     if (!selection) return;
     selection.removeAllRanges();
     selection.addRange(range);
-    els19.promptEditor?.focus();
+    els24.promptEditor?.focus();
   }
   function bindPromptEditorEvents() {
-    els19.promptEditor?.addEventListener("input", () => {
+    els24.promptEditor?.addEventListener("input", () => {
       syncPromptFromEditor5();
       updatePromptCount5();
       const galleryInputsChanged = syncGalleryInputsFromPrompt2();
       updateMentionSuggest3();
       updateColorSuggest4();
       updatePromptSnippetSuggest3();
-      if (!galleryInputsChanged) updateRequestPreview9();
+      if (!galleryInputsChanged) updateRequestPreview10();
     });
-    els19.promptEditor?.addEventListener("keyup", (event) => {
+    els24.promptEditor?.addEventListener("keyup", (event) => {
       if (event.key === "Escape") return;
       updateMentionSuggest3();
       updateColorSuggest4();
       updatePromptSnippetSuggest3();
       updatePromptSnippetSelectionButton2();
     });
-    els19.promptEditor?.addEventListener("keydown", handlePromptEditorKeydown);
-    els19.promptEditor?.addEventListener("copy", handlePromptEditorCopy);
-    els19.promptEditor?.addEventListener("paste", handlePromptEditorPaste);
-    els19.promptEditor?.addEventListener("click", handlePromptEditorClick);
-    els19.promptEditor?.addEventListener("dragstart", handlePromptChipDragStart);
-    els19.promptEditor?.addEventListener("dragover", handlePromptChipDragOver);
-    els19.promptEditor?.addEventListener("drop", handlePromptChipDrop);
-    els19.promptEditor?.addEventListener("dragend", handlePromptChipDragEnd);
-    els19.promptEditor?.addEventListener("mouseup", updatePromptSnippetSelectionButton2);
-    els19.promptEditor?.addEventListener("blur", () => {
+    els24.promptEditor?.addEventListener("keydown", handlePromptEditorKeydown);
+    els24.promptEditor?.addEventListener("copy", handlePromptEditorCopy);
+    els24.promptEditor?.addEventListener("paste", handlePromptEditorPaste);
+    els24.promptEditor?.addEventListener("click", handlePromptEditorClick);
+    els24.promptEditor?.addEventListener("dragstart", handlePromptChipDragStart);
+    els24.promptEditor?.addEventListener("dragover", handlePromptChipDragOver);
+    els24.promptEditor?.addEventListener("drop", handlePromptChipDrop);
+    els24.promptEditor?.addEventListener("dragend", handlePromptChipDragEnd);
+    els24.promptEditor?.addEventListener("mouseup", updatePromptSnippetSelectionButton2);
+    els24.promptEditor?.addEventListener("blur", () => {
       window.setTimeout(() => {
         hideMentionSuggest3();
         hidePromptSnippetSuggest3();
-        if (!els19.colorSuggest?.contains(document.activeElement) && !promptEditorFocusInside()) hideColorSuggest4();
+        if (!els24.colorSuggest?.contains(document.activeElement) && !promptEditorFocusInside()) hideColorSuggest4();
       }, 160);
     });
     document.addEventListener("selectionchange", () => {
@@ -45842,9 +47099,9 @@ ${hint}` : hint;
   }
 
   // codex_image/webui/frontend/src/prompt-model.ts
-  var bridge19 = getLegacyBridge();
-  var els20 = bridge19.els;
-  function legacyMethod24(name, ...args) {
+  var bridge22 = getLegacyBridge();
+  var els25 = bridge22.els;
+  function legacyMethod27(name, ...args) {
     const method = getLegacyBridge().methods[name];
     if (typeof method !== "function") {
       throw new Error("Legacy method " + name + " is not initialized");
@@ -45852,22 +47109,22 @@ ${hint}` : hint;
     return method(...args);
   }
   function getPromptText8() {
-    return legacyMethod24("getPromptText");
+    return legacyMethod27("getPromptText");
   }
   function expandPromptSnippets2(prompt) {
-    return legacyMethod24("expandPromptSnippets", prompt);
+    return legacyMethod27("expandPromptSnippets", prompt);
   }
   function galleryInputs3() {
-    return legacyMethod24("galleryInputs");
+    return legacyMethod27("galleryInputs");
   }
   function uploadInputs2() {
-    return legacyMethod24("uploadInputs");
+    return legacyMethod27("uploadInputs");
   }
   function referenceAssetInputs2() {
-    return legacyMethod24("referenceAssetInputs");
+    return legacyMethod27("referenceAssetInputs");
   }
   function categoryPromptRole3(category) {
-    return legacyMethod24("categoryPromptRole", category);
+    return legacyMethod27("categoryPromptRole", category);
   }
   function promptTokenReplacement(prompt) {
     return expandPromptSnippets2(prompt);
@@ -45900,11 +47157,11 @@ ${galleryText}`;
   }
   function currentPromptForModel() {
     if (!supportsGptPromptProcessing()) return buildPromptForModel();
-    return currentPromptFidelity() === "original" ? expandPromptSnippets2(getPromptText8()) : buildPromptForModel();
+    return currentPromptFidelity2() === "original" ? expandPromptSnippets2(getPromptText8()) : buildPromptForModel();
   }
-  function currentPromptFidelity() {
+  function currentPromptFidelity2() {
     if (!supportsGptPromptProcessing()) return "off";
-    const value = els20.promptFidelity?.value || "off";
+    const value = els25.promptFidelity?.value || "off";
     return ["strict", "original", "off"].includes(value) ? value : "off";
   }
   function supportsGptPromptProcessing() {
@@ -45918,16 +47175,16 @@ ${galleryText}`;
       buildPromptForModel,
       galleryReferenceInstruction,
       currentPromptForModel,
-      currentPromptFidelity,
+      currentPromptFidelity: currentPromptFidelity2,
       supportsGptPromptProcessing
     });
   }
 
   // codex_image/webui/frontend/src/prompt.ts
-  var bridge20 = getLegacyBridge();
-  var els21 = bridge20.els;
+  var bridge23 = getLegacyBridge();
+  var els26 = bridge23.els;
   var promptFeatureInitialized = false;
-  function legacyMethod25(name, ...args) {
+  function legacyMethod28(name, ...args) {
     const method = getLegacyBridge().methods[name];
     if (typeof method !== "function") {
       throw new Error("Legacy method " + name + " is not initialized");
@@ -45935,16 +47192,16 @@ ${galleryText}`;
     return method(...args);
   }
   function closePromptColorSuggest() {
-    legacyMethod25("hideColorSuggest");
+    legacyMethod28("hideColorSuggest");
   }
   function handlePromptSnippetDocumentClick2(target) {
-    legacyMethod25("handlePromptSnippetDocumentClick", target);
+    legacyMethod28("handlePromptSnippetDocumentClick", target);
   }
   function handlePromptDocumentClick(event) {
     const target = event.target;
-    if (els21.colorSuggest && !els21.colorSuggest.classList.contains("hidden")) {
-      const clickedColorSuggest = els21.colorSuggest.contains(target);
-      const clickedPromptEditor = els21.promptEditor?.contains(target);
+    if (els26.colorSuggest && !els26.colorSuggest.classList.contains("hidden")) {
+      const clickedColorSuggest = els26.colorSuggest.contains(target);
+      const clickedPromptEditor = els26.promptEditor?.contains(target);
       if (!clickedColorSuggest && !clickedPromptEditor) {
         closePromptColorSuggest();
       }
@@ -45977,7 +47234,7 @@ ${galleryText}`;
     if (authSource === "codex") return currentCodexMode3() === "responses" ? "responses" : "images";
     return "images";
   }
-  function currentPromptFidelity2() {
+  function currentPromptFidelity3() {
     const value = document.querySelector("#promptFidelity")?.value;
     return value === "original" || value === "strict" ? value : "off";
   }
@@ -45998,7 +47255,7 @@ ${galleryText}`;
   function renderPromptFidelityHelp() {
     const popover = ensurePromptFidelityHelpPopover();
     const transport = promptTransport();
-    const activeMode = currentPromptFidelity2();
+    const activeMode = currentPromptFidelity3();
     const modes = [
       { value: "original", label: translate("output.modeOriginal") },
       { value: "strict", label: translate("output.modeStrict") },
@@ -46116,13 +47373,13 @@ ${galleryText}`;
   }
 
   // codex_image/webui/frontend/src/prompt-find-replace.ts
-  var bridge21 = getLegacyBridge();
-  var els22 = bridge21.els;
+  var bridge24 = getLegacyBridge();
+  var els27 = bridge24.els;
   var PROMPT_FIND_ELEMENT_NODE = 1;
   var PROMPT_FIND_TEXT_NODE = 3;
   var promptFindInitialized = false;
   var promptFindMatches = [];
-  function legacyMethod26(name, ...args) {
+  function legacyMethod29(name, ...args) {
     const method = getLegacyBridge().methods[name];
     if (typeof method !== "function") {
       throw new Error("Legacy method " + name + " is not initialized");
@@ -46130,22 +47387,22 @@ ${galleryText}`;
     return method(...args);
   }
   function syncPromptAfterFindMutation() {
-    legacyMethod26("syncPromptFromEditor");
-    legacyMethod26("syncGalleryInputsFromPrompt");
-    legacyMethod26("updatePromptCount");
-    legacyMethod26("updateRequestPreview");
+    legacyMethod29("syncPromptFromEditor");
+    legacyMethod29("syncGalleryInputsFromPrompt");
+    legacyMethod29("updatePromptCount");
+    legacyMethod29("updateRequestPreview");
   }
   function promptFindCell() {
-    return els22.promptFindPanel?.closest(".prompt-template-recent-cell") || null;
+    return els27.promptFindPanel?.closest(".prompt-template-recent-cell") || null;
   }
   function promptFindQuery() {
-    return String(els22.promptFindInput?.value || "");
+    return String(els27.promptFindInput?.value || "");
   }
   function promptFindReplacement() {
-    return String(els22.promptReplaceInput?.value || "");
+    return String(els27.promptReplaceInput?.value || "");
   }
   function isPromptFindOpen() {
-    return Boolean(els22.promptFindPanel && !els22.promptFindPanel.classList.contains("hidden"));
+    return Boolean(els27.promptFindPanel && !els27.promptFindPanel.classList.contains("hidden"));
   }
   function isNodeInsidePromptAtomicChip(node) {
     const element2 = node.nodeType === PROMPT_FIND_ELEMENT_NODE ? node : node.parentElement || (node.parentNode?.nodeType === PROMPT_FIND_ELEMENT_NODE ? node.parentNode : null);
@@ -46166,7 +47423,7 @@ ${galleryText}`;
     Array.from(node.childNodes || []).forEach((child) => collectPromptFindMatchesFromNode(child, needle, matches));
   }
   function collectPromptFindMatches(query = promptFindQuery()) {
-    const root = els22.promptEditor;
+    const root = els27.promptEditor;
     const needle = String(query || "");
     if (!root || !needle) return [];
     root.normalize();
@@ -46175,14 +47432,14 @@ ${galleryText}`;
     return matches;
   }
   function promptFindActionButtons() {
-    return Array.from(els22.promptFindPanel?.querySelectorAll("[data-prompt-find-action]") || []);
+    return Array.from(els27.promptFindPanel?.querySelectorAll("[data-prompt-find-action]") || []);
   }
   function setPromptFindStatus(message) {
-    if (els22.promptFindStatus) els22.promptFindStatus.textContent = message;
+    if (els27.promptFindStatus) els27.promptFindStatus.textContent = message;
   }
   function setPromptFindCount(count = promptFindMatches.length) {
-    if (els22.promptFindCount) {
-      els22.promptFindCount.textContent = formatTranslation("prompt.matchCount", { count });
+    if (els27.promptFindCount) {
+      els27.promptFindCount.textContent = formatTranslation("prompt.matchCount", { count });
     }
   }
   function updatePromptFindControls() {
@@ -46227,17 +47484,17 @@ ${galleryText}`;
     updatePromptFindControls();
   }
   function setPromptFindOpen(open) {
-    if (!els22.promptFindPanel) return;
-    els22.promptFindPanel.classList.toggle("hidden", !open);
+    if (!els27.promptFindPanel) return;
+    els27.promptFindPanel.classList.toggle("hidden", !open);
     promptFindCell()?.classList.toggle("find-active", open);
-    els22.promptFindButton?.setAttribute("aria-expanded", open ? "true" : "false");
+    els27.promptFindButton?.setAttribute("aria-expanded", open ? "true" : "false");
     if (open) {
       clearPromptFindResult();
-      els22.promptFindInput?.focus({ preventScroll: true });
+      els27.promptFindInput?.focus({ preventScroll: true });
       return;
     }
     clearPromptFindResult();
-    els22.promptFindButton?.focus({ preventScroll: true });
+    els27.promptFindButton?.focus({ preventScroll: true });
   }
   function handlePromptFindAction(action) {
     if (action === "count") {
@@ -46266,8 +47523,8 @@ ${galleryText}`;
       return;
     }
     const activeElement = document.activeElement;
-    const insidePromptEditor = Boolean(activeElement && els22.promptEditor?.contains(activeElement));
-    const insideFindPanel = Boolean(activeElement && els22.promptFindPanel?.contains(activeElement));
+    const insidePromptEditor = Boolean(activeElement && els27.promptEditor?.contains(activeElement));
+    const insideFindPanel = Boolean(activeElement && els27.promptFindPanel?.contains(activeElement));
     if (!insidePromptEditor && !insideFindPanel) return;
     event.preventDefault();
     setPromptFindOpen(true);
@@ -46275,1227 +47532,22 @@ ${galleryText}`;
   function initPromptFindReplaceFeature() {
     if (promptFindInitialized) return;
     promptFindInitialized = true;
-    if (!els22.promptFindButton || !els22.promptFindPanel || !els22.promptFindInput) return;
-    els22.promptFindButton.addEventListener("click", () => setPromptFindOpen(!isPromptFindOpen()));
+    if (!els27.promptFindButton || !els27.promptFindPanel || !els27.promptFindInput) return;
+    els27.promptFindButton.addEventListener("click", () => setPromptFindOpen(!isPromptFindOpen()));
     bindPromptFindActionButtons();
-    els22.promptFindClose?.addEventListener("click", () => setPromptFindOpen(false));
-    els22.promptFindPanel.addEventListener("keydown", handlePromptFindKeydown);
-    els22.promptFindInput.addEventListener("input", () => {
+    els27.promptFindClose?.addEventListener("click", () => setPromptFindOpen(false));
+    els27.promptFindPanel.addEventListener("keydown", handlePromptFindKeydown);
+    els27.promptFindInput.addEventListener("input", () => {
       clearPromptFindResult();
     });
-    els22.promptReplaceInput?.addEventListener("input", () => {
+    els27.promptReplaceInput?.addEventListener("input", () => {
       setPromptFindStatus("");
       updatePromptFindControls();
     });
-    els22.clearPromptButton?.addEventListener("click", () => {
+    els27.clearPromptButton?.addEventListener("click", () => {
       if (isPromptFindOpen()) window.setTimeout(() => clearPromptFindResult(), 0);
     });
     document.addEventListener("keydown", handlePromptFindShortcut);
-  }
-
-  // codex_image/webui/frontend/src/output-controls.ts
-  var { els: els23 } = getLegacyBridge();
-  function legacyMethod27(name, ...args) {
-    const method = getLegacyBridge().methods[name];
-    if (typeof method !== "function") {
-      throw new Error("Legacy method " + name + " is not initialized");
-    }
-    return method(...args);
-  }
-  function buildPreviewRequest() {
-    return legacyMethod27("buildPreviewRequest");
-  }
-  function updateRangeProgress(input) {
-    if (!input) return;
-    const min = Number(input.min || 0);
-    const max = Number(input.max || 100);
-    const value = Number(input.value || min);
-    const progress = max > min ? (value - min) / (max - min) * 100 : 0;
-    input.style.setProperty("--range-progress", `${Math.max(0, Math.min(100, progress))}%`);
-  }
-  function currentQuantity() {
-    const value = Number.parseInt(els23.nInput?.value || "1", 10);
-    if (Number.isNaN(value)) return 1;
-    return Math.min(4, Math.max(1, value));
-  }
-  function updateQuantity() {
-    if (!els23.nInput) return;
-    els23.nInput.value = String(currentQuantity());
-    if (els23.nValue) {
-      els23.nValue.textContent = els23.nInput.value;
-    }
-    if (els23.nInput.matches?.('input[type="range"]')) {
-      updateRangeProgress(els23.nInput);
-    }
-  }
-  function updateCompression() {
-    const compressionEnabled = els23.outputFormat.value !== "png";
-    els23.compression.disabled = !compressionEnabled;
-    if (!compressionEnabled) {
-      closeCompressionPopover();
-    }
-    els23.compressionValue.textContent = `${els23.compression.value}%`;
-    updateRangeProgress(els23.compression);
-  }
-  function openCompressionPopover() {
-    if (!els23.compressionPopover || els23.outputFormat.value === "png") return;
-    els23.compressionPopover.classList.remove("hidden");
-    els23.compressionPopover.setAttribute("aria-hidden", "false");
-  }
-  function closeCompressionPopover() {
-    if (!els23.compressionPopover) return;
-    els23.compressionPopover.classList.add("hidden");
-    els23.compressionPopover.setAttribute("aria-hidden", "true");
-  }
-  function handleOutputFormatDoubleClick(event) {
-    const button = event.target.closest("[data-val]");
-    if (!button || !["jpeg", "webp"].includes(button.dataset.val)) return;
-    openCompressionPopover();
-  }
-  function syncRadioButtons(...selects) {
-    selects.filter(Boolean).forEach((select) => {
-      select.dispatchEvent(new Event("change"));
-    });
-  }
-  function updateRequestPreview10() {
-    if (!els23.requestJson) return;
-    els23.requestJson.textContent = JSON.stringify(buildPreviewRequest(), null, 2);
-  }
-
-  // codex_image/webui/frontend/src/main-model-combobox.ts
-  var DEFAULT_MAIN_MODEL = "gpt-5.4-mini";
-  var MAIN_MODEL_OPTIONS = [
-    "gpt-6-astra",
-    "gpt-5.6-sol",
-    "gpt-5.6-terra",
-    "gpt-5.6-luna",
-    "gpt-5.5",
-    "gpt-5.4",
-    "gpt-5.4-mini",
-    "gpt-5.3-codex",
-    "gpt-5.2"
-  ];
-  var RETIRED_MAIN_MODEL_OPTIONS = /* @__PURE__ */ new Set(["gpt-5.3-codex-spark"]);
-  var MAIN_MODEL_STORAGE_KEY = "codex-image-main-model";
-  var bridge22 = getLegacyBridge();
-  var state16 = bridge22.state;
-  var els24 = bridge22.els;
-  function legacyMethod28(name, ...args) {
-    const method = getLegacyBridge().methods[name];
-    if (typeof method !== "function") {
-      throw new Error("Legacy method " + name + " is not initialized");
-    }
-    return method(...args);
-  }
-  function escapeHtml13(value) {
-    return legacyMethod28("escapeHtml", value);
-  }
-  function mainModelOptionsForQuery(query) {
-    const normalized = String(query || "").trim().toLowerCase();
-    if (!normalized) return MAIN_MODEL_OPTIONS.slice();
-    return MAIN_MODEL_OPTIONS.filter((model) => model.toLowerCase().includes(normalized));
-  }
-  function openMainModelCombobox({ showAll = false } = {}) {
-    if (!els24.mainModel || !els24.mainModelOptions || !els24.mainModelCombobox) return;
-    if (showAll) {
-      state16.mainModelShowAllOptions = true;
-      const selectedIndex = MAIN_MODEL_OPTIONS.indexOf(currentMainModel());
-      state16.mainModelOptionIndex = selectedIndex >= 0 ? selectedIndex : 0;
-    }
-    state16.mainModelComboboxOpen = true;
-    renderMainModelOptions();
-    els24.mainModelOptions.classList.remove("hidden");
-    els24.mainModelCombobox.setAttribute("aria-expanded", "true");
-    els24.mainModel.setAttribute("aria-expanded", "true");
-  }
-  function closeMainModelCombobox() {
-    state16.mainModelComboboxOpen = false;
-    state16.mainModelOptionIndex = 0;
-    state16.mainModelShowAllOptions = false;
-    els24.mainModelOptions?.classList.add("hidden");
-    els24.mainModelCombobox?.setAttribute("aria-expanded", "false");
-    els24.mainModel?.setAttribute("aria-expanded", "false");
-    els24.mainModel?.removeAttribute("aria-activedescendant");
-  }
-  function renderMainModelOptions() {
-    if (!els24.mainModel || !els24.mainModelOptions) return;
-    const query = state16.mainModelShowAllOptions ? "" : els24.mainModel.value;
-    const options = mainModelOptionsForQuery(query);
-    state16.mainModelOptionIndex = Math.min(Math.max(0, state16.mainModelOptionIndex), Math.max(0, options.length - 1));
-    if (!options.length) {
-      els24.mainModelOptions.innerHTML = `<div class="model-combobox-empty" role="option" aria-disabled="true">${escapeHtml13(translate("output.mainModelCustomForInput"))}</div>`;
-      els24.mainModel.removeAttribute("aria-activedescendant");
-      return;
-    }
-    els24.mainModelOptions.innerHTML = options.map((model, index) => {
-      const active = index === state16.mainModelOptionIndex;
-      const selected = model === currentMainModel();
-      return `
-      <button
-        id="mainModelOption-${index}"
-        class="model-combobox-option${active ? " active" : ""}${selected ? " selected" : ""}"
-        type="button"
-        role="option"
-        aria-selected="${selected ? "true" : "false"}"
-        data-main-model-option="${escapeHtml13(model)}"
-      >${escapeHtml13(model)}</button>
-    `;
-    }).join("");
-    els24.mainModel.setAttribute("aria-activedescendant", `mainModelOption-${state16.mainModelOptionIndex}`);
-    els24.mainModelOptions.querySelectorAll("[data-main-model-option]").forEach((button) => {
-      button.addEventListener("mousedown", (event) => event.preventDefault());
-      button.addEventListener("click", () => selectMainModelOption(button.dataset.mainModelOption));
-    });
-  }
-  function selectMainModelOption(model) {
-    if (!els24.mainModel || !model) return;
-    els24.mainModel.value = model;
-    persistMainModel();
-    updateRequestPreview10();
-    closeMainModelCombobox();
-    els24.mainModel.focus();
-  }
-  function handleMainModelKeydown(event) {
-    if (!els24.mainModelOptions) return;
-    const options = mainModelOptionsForQuery(els24.mainModel?.value || "");
-    if (event.key === "ArrowDown") {
-      event.preventDefault();
-      if (!state16.mainModelComboboxOpen) {
-        state16.mainModelShowAllOptions = true;
-        state16.mainModelOptionIndex = 0;
-        openMainModelCombobox();
-        return;
-      }
-      if (options.length) state16.mainModelOptionIndex = (state16.mainModelOptionIndex + 1) % options.length;
-      renderMainModelOptions();
-    } else if (event.key === "ArrowUp") {
-      event.preventDefault();
-      if (!state16.mainModelComboboxOpen) {
-        state16.mainModelShowAllOptions = true;
-        state16.mainModelOptionIndex = Math.max(0, MAIN_MODEL_OPTIONS.length - 1);
-        openMainModelCombobox();
-        return;
-      }
-      if (options.length) state16.mainModelOptionIndex = (state16.mainModelOptionIndex - 1 + options.length) % options.length;
-      renderMainModelOptions();
-    } else if (event.key === "Enter" && state16.mainModelComboboxOpen && options.length) {
-      event.preventDefault();
-      selectMainModelOption(options[state16.mainModelOptionIndex]);
-    } else if (event.key === "Escape") {
-      closeMainModelCombobox();
-    }
-  }
-  function currentMainModel() {
-    return (els24.mainModel?.value || DEFAULT_MAIN_MODEL).trim() || DEFAULT_MAIN_MODEL;
-  }
-  function restoreMainModel() {
-    if (!els24.mainModel) return;
-    try {
-      const saved = localStorage.getItem(MAIN_MODEL_STORAGE_KEY);
-      let model = (saved || DEFAULT_MAIN_MODEL).trim() || DEFAULT_MAIN_MODEL;
-      if (RETIRED_MAIN_MODEL_OPTIONS.has(model)) {
-        model = DEFAULT_MAIN_MODEL;
-        localStorage.setItem(MAIN_MODEL_STORAGE_KEY, model);
-      }
-      els24.mainModel.value = model;
-    } catch {
-      els24.mainModel.value = DEFAULT_MAIN_MODEL;
-    }
-    renderMainModelOptions();
-  }
-  function persistMainModel() {
-    if (!els24.mainModel) return;
-    try {
-      localStorage.setItem(MAIN_MODEL_STORAGE_KEY, currentMainModel());
-    } catch {
-    }
-  }
-
-  // codex_image/webui/frontend/src/size-presets.ts
-  var DEFAULT_RESOLUTION = "standard";
-  var DEFAULT_RATIO = "1:1";
-  var DEFAULT_ORIENTATION = "square";
-  var RATIO_ORIENTATION = {
-    None: "square",
-    "1:1": "square",
-    "4:5": "portrait",
-    "5:4": "landscape",
-    "3:4": "portrait",
-    "4:3": "landscape",
-    "2:3": "portrait",
-    "3:2": "landscape",
-    "9:16": "portrait",
-    "16:9": "landscape",
-    "9:21": "portrait",
-    "21:9": "landscape"
-  };
-  var RATIO_COUNTERPARTS = {
-    None: "None",
-    "1:1": "1:1",
-    "4:5": "5:4",
-    "5:4": "4:5",
-    "3:4": "4:3",
-    "4:3": "3:4",
-    "2:3": "3:2",
-    "3:2": "2:3",
-    "9:16": "16:9",
-    "16:9": "9:16",
-    "9:21": "21:9",
-    "21:9": "9:21"
-  };
-  var ORIENTATION_DEFAULT_RATIOS = {
-    square: "1:1",
-    portrait: "2:3",
-    landscape: "3:2"
-  };
-  var GPT_IMAGE_2_SIZE_PRESETS = {
-    standard: {
-      "1:1": [1024, 1024],
-      "4:5": [1024, 1280],
-      "5:4": [1280, 1024],
-      "3:4": [1152, 1536],
-      "4:3": [1536, 1152],
-      "2:3": [1024, 1536],
-      "3:2": [1536, 1024],
-      "9:16": [864, 1536],
-      "16:9": [1536, 864],
-      "9:21": [672, 1568],
-      "21:9": [1568, 672]
-    },
-    "2k": {
-      "1:1": [2048, 2048],
-      "4:5": [1600, 2e3],
-      "5:4": [2e3, 1600],
-      "3:4": [1536, 2048],
-      "4:3": [2048, 1536],
-      "2:3": [1344, 2016],
-      "3:2": [2016, 1344],
-      "9:16": [1152, 2048],
-      "16:9": [2048, 1152],
-      "9:21": [1152, 2688],
-      "21:9": [2688, 1152]
-    },
-    "4k": {
-      "1:1": [2880, 2880],
-      "4:5": [2560, 3200],
-      "5:4": [3200, 2560],
-      "3:4": [2448, 3264],
-      "4:3": [3264, 2448],
-      "2:3": [2336, 3504],
-      "3:2": [3504, 2336],
-      "9:16": [2160, 3840],
-      "16:9": [3840, 2160],
-      "9:21": [1632, 3808],
-      "21:9": [3808, 1632]
-    }
-  };
-  var GPT_IMAGE_2_MIN_PIXELS = 655360;
-  var GPT_IMAGE_2_MAX_PIXELS = 8294400;
-  var GPT_IMAGE_2_MAX_LONG_SHORT_RATIO = 3;
-  var { els: els25 } = getLegacyBridge();
-  function legacyMethod29(name, ...args) {
-    const method = getLegacyBridge().methods[name];
-    if (typeof method !== "function") {
-      throw new Error("Legacy method " + name + " is not initialized");
-    }
-    return method(...args);
-  }
-  function currentPromptFidelity3() {
-    return legacyMethod29("currentPromptFidelity");
-  }
-  function currentCustomRatio() {
-    const width = String(els25.customRatioWidth?.value || "").trim();
-    const height = String(els25.customRatioHeight?.value || "").trim();
-    if (!/^[1-9]$/.test(width) || !/^[1-9]$/.test(height)) {
-      return "";
-    }
-    return `${width}:${height}`;
-  }
-  function presetDimensions(resolution, ratio) {
-    const defaultPreset = GPT_IMAGE_2_SIZE_PRESETS[DEFAULT_RESOLUTION];
-    const preset = GPT_IMAGE_2_SIZE_PRESETS[resolution] || defaultPreset;
-    const dimensions2 = preset[ratio] || preset[DEFAULT_RATIO] || defaultPreset[DEFAULT_RATIO] || [1024, 1024];
-    return dimensions2;
-  }
-  function sizeForPreset(resolution, ratio) {
-    if (ratio === "None" || ratio === "none" || ratio === "auto") {
-      return "auto";
-    }
-    const [width, height] = presetDimensions(resolution, ratio);
-    return `${width}x${height}`;
-  }
-  function orientationForDimensions(width, height) {
-    const numericWidth = Number(width);
-    const numericHeight = Number(height);
-    if (numericWidth === numericHeight) return "square";
-    return numericWidth > numericHeight ? "landscape" : "portrait";
-  }
-  function normalizeCustomDimension(value) {
-    const rawValue = String(value ?? "").trim();
-    if (!rawValue) return null;
-    const numericValue = Number(rawValue);
-    if (!Number.isInteger(numericValue)) return null;
-    return numericValue;
-  }
-  function customDimensionValue(input) {
-    return normalizeCustomDimension(input?.value);
-  }
-  function customSizeValidationMessage(width = customDimensionValue(els25.customWidth), height = customDimensionValue(els25.customHeight)) {
-    if (width === null || height === null) return translate("output.customSizeRequired");
-    if (width < 16 || width > 3840 || height < 16 || height > 3840) return translate("output.customSizeBounds");
-    if (width % 16 !== 0 || height % 16 !== 0) return translate("output.customSizeMultiple");
-    if (Math.max(width, height) / Math.min(width, height) > GPT_IMAGE_2_MAX_LONG_SHORT_RATIO) return translate("output.customSizeRatio");
-    const totalPixels = width * height;
-    if (totalPixels < GPT_IMAGE_2_MIN_PIXELS || totalPixels > GPT_IMAGE_2_MAX_PIXELS) return translate("output.customSizePixels");
-    return "";
-  }
-  function findPresetForSize(size) {
-    for (const [resolution, ratios] of Object.entries(GPT_IMAGE_2_SIZE_PRESETS)) {
-      for (const [ratio, dimensions2] of Object.entries(ratios)) {
-        if (`${dimensions2[0]}x${dimensions2[1]}` === size) {
-          return { resolution, ratio, orientation: RATIO_ORIENTATION[ratio] || orientationForDimensions(dimensions2[0], dimensions2[1]) };
-        }
-      }
-    }
-    return null;
-  }
-  function currentSize() {
-    if (els25.size.value !== "custom") return els25.size.value;
-    return `${els25.customWidth.value}x${els25.customHeight.value}`;
-  }
-  function currentImageToolModel() {
-    return currentAuthSource2() === "api" ? currentApiImageModel() : els25.model.value;
-  }
-  function webSearchSupportedForCurrentBackend() {
-    const authSource = currentAuthSource2();
-    if (authSource === "api") return currentApiMode3() === "responses";
-    if (authSource === "codex") return currentCodexMode3() === "responses";
-    return true;
-  }
-  function currentWebSearchEnabled() {
-    return Boolean(els25.webSearch?.checked && webSearchSupportedForCurrentBackend());
-  }
-  function currentTaskParams() {
-    const params = {
-      model: currentImageToolModel(),
-      size: currentSize(),
-      n: currentQuantity(),
-      quality: els25.quality.value,
-      output_format: els25.outputFormat.value,
-      moderation: els25.moderation.value,
-      output_compression: els25.outputFormat.value === "png" ? null : Number(els25.compression.value)
-    };
-    const { state: state33 } = getLegacyBridge();
-    if (!state33.generationCatalog || state33.selectedModelId === "gpt-image-2") {
-      params.main_model = currentMainModel();
-      params.prompt_fidelity = currentPromptFidelity3();
-    }
-    if (currentWebSearchEnabled()) {
-      params.web_search = true;
-    }
-    if (isChatGPTWebProvider()) {
-      params["chatgpt.delete_chat_after_gen"] = Boolean(els25.chatgptDeleteChat?.checked ?? true);
-      params["chatgpt.browser"] = currentChatGPTBrowser();
-    }
-    const presetMatch = findPresetForSize(params.size);
-    if (presetMatch) {
-      params.resolution = presetMatch.resolution;
-      params.ratio = presetMatch.ratio;
-      if (els25.ratio?.value === "None") {
-        params.ratio = "None";
-      }
-      params.orientation = presetMatch.orientation;
-    } else {
-      const customRatio = currentCustomRatio();
-      if (customRatio) {
-        params.ratio = customRatio;
-      } else if (els25.ratio?.value === "None") {
-        params.ratio = "None";
-      }
-      const dimensions2 = String(params.size || "").split("x").map((value) => Number(value));
-      if (dimensions2.length === 2 && dimensions2.every((value) => Number.isFinite(value) && value > 0)) {
-        params.orientation = orientationForDimensions(dimensions2[0], dimensions2[1]);
-      }
-    }
-    if (currentAuthSource2() === "api") {
-      params.api_provider_id = currentApiProviderId();
-      params.api_mode = currentApiMode3();
-      params.api_images_concurrency = currentApiImagesConcurrency();
-    } else if (currentAuthSource2() === "codex") {
-      params.codex_mode = currentCodexMode3();
-    }
-    return params;
-  }
-
-  // codex_image/webui/frontend/src/custom-size-controls.ts
-  var CUSTOM_SIZE_TRANSITION_MS = 220;
-  var CUSTOM_SIZE_HEIGHT_SNAP_TOLERANCE = 4;
-  var bridge23 = getLegacyBridge();
-  var state17 = bridge23.state;
-  var els26 = bridge23.els;
-  var customSizeTransitionTimers = /* @__PURE__ */ new WeakMap();
-  function saveCurrentModelParameterDraft2() {
-    bridge23.methods.saveCurrentModelParameterDraft?.();
-  }
-  function measuredElementHeight2(element2) {
-    if (!element2) return 0;
-    return Math.ceil(element2.getBoundingClientRect().height);
-  }
-  function handleSizeModeEvent(event) {
-    const button = event.target.closest?.("[data-custom-size-mode]");
-    if (!button || !els26.sizeModeGroup?.contains(button)) return;
-    setCustomSizeMode(button.dataset.customSizeMode === "custom");
-  }
-  function setCustomSizeMode(isCustom) {
-    if (els26.customSizeToggle) els26.customSizeToggle.checked = Boolean(isCustom);
-    updateSizeFromPreset();
-    saveCurrentModelParameterDraft2();
-  }
-  function swapCustomSizeDimensions(event) {
-    event?.preventDefault?.();
-    if (!els26.customWidth || !els26.customHeight) return;
-    const width = els26.customWidth.value;
-    els26.customWidth.value = els26.customHeight.value;
-    els26.customHeight.value = width;
-    if (typeof swapCustomRatioDigits === "function") swapCustomRatioDigits();
-    updateCustomSize();
-    updatePixelPreview("custom");
-    updateRequestPreview10();
-    saveCurrentModelParameterDraft2();
-  }
-  function sanitizeCustomRatioInput(input) {
-    const value = String(input?.value ?? "");
-    const digit = value.match(/[1-9]/)?.[0] || "";
-    if (input && input.value !== digit) input.value = digit;
-    return digit;
-  }
-  function customRatioDigitValue(input) {
-    const digit = sanitizeCustomRatioInput(input);
-    return digit ? Number(digit) : null;
-  }
-  function customAspectRatioFromManualInputs() {
-    const widthRatio = customRatioDigitValue(els26.customRatioWidth);
-    const heightRatio = customRatioDigitValue(els26.customRatioHeight);
-    if (!widthRatio || !heightRatio) return null;
-    return widthRatio / heightRatio;
-  }
-  function normalizeAspectDimension(value) {
-    const steppedValue = Math.round(value / 16) * 16;
-    const boundedValue = Math.min(3840, Math.max(16, steppedValue));
-    return String(boundedValue);
-  }
-  function updateCustomRatioFieldState() {
-    const locked2 = Boolean(state17.customAspectRatioLocked);
-    els26.customRatioField?.classList.toggle("active", locked2);
-  }
-  function setCustomAspectRatioFromManualInputs() {
-    const ratio = customAspectRatioFromManualInputs();
-    state17.customAspectRatioLocked = Boolean(ratio);
-    state17.customAspectRatioValue = ratio;
-    state17.customAspectRatioSource = "manual";
-    updateCustomRatioFieldState();
-  }
-  function applyCustomAspectRatioFromWidth() {
-    if (!state17.customAspectRatioLocked || !state17.customAspectRatioValue) return;
-    if (!els26.customWidth || !els26.customHeight) return;
-    const width = customDimensionValue(els26.customWidth);
-    if (!width) return;
-    els26.customHeight.value = normalizeAspectDimension(width / state17.customAspectRatioValue);
-  }
-  function handleCustomRatioInput(input) {
-    sanitizeCustomRatioInput(input);
-    setCustomAspectRatioFromManualInputs();
-    applyCustomAspectRatioFromWidth();
-  }
-  function singleDigitAspectRatioForDimensions(width, height) {
-    const numericWidth = Number(width);
-    const numericHeight = Number(height);
-    if (!Number.isFinite(numericWidth) || !Number.isFinite(numericHeight) || numericWidth <= 0 || numericHeight <= 0) return null;
-    function gcd(left, right) {
-      let a = Math.round(Math.abs(left));
-      let b = Math.round(Math.abs(right));
-      while (b) {
-        const remainder = a % b;
-        a = b;
-        b = remainder;
-      }
-      return a || 1;
-    }
-    const divisor = gcd(numericWidth, numericHeight);
-    const reducedWidth = Math.round(numericWidth / divisor);
-    const reducedHeight = Math.round(numericHeight / divisor);
-    if (reducedWidth >= 1 && reducedWidth <= 9 && reducedHeight >= 1 && reducedHeight <= 9) {
-      return { width: reducedWidth, height: reducedHeight };
-    }
-    const targetRatio = numericWidth / numericHeight;
-    let best = { width: 1, height: 1, error: Number.POSITIVE_INFINITY };
-    for (let widthRatio = 1; widthRatio <= 9; widthRatio += 1) {
-      for (let heightRatio = 1; heightRatio <= 9; heightRatio += 1) {
-        const candidateRatio = widthRatio / heightRatio;
-        const error = Math.abs(Math.log(candidateRatio / targetRatio));
-        if (error < best.error) {
-          best = { width: widthRatio, height: heightRatio, error };
-        }
-      }
-    }
-    return { width: best.width, height: best.height };
-  }
-  function firstReferenceImageSource() {
-    return (Array.isArray(state17.images) ? state17.images : []).find((source) => source && !source.missing && Boolean(sourceUrlForAspectRatio(source)));
-  }
-  function updateCustomRatioReferenceButtonState() {
-    if (!els26.customRatioFromImageButton) return;
-    const enabled = Boolean(firstReferenceImageSource());
-    els26.customRatioFromImageButton.disabled = !enabled;
-    els26.customRatioFromImageButton.setAttribute("aria-disabled", enabled ? "false" : "true");
-  }
-  function sourceUrlForAspectRatio(source) {
-    if (!source || source.missing) return "";
-    if (source.kind === "upload") return source.previewUrl || "";
-    return source.image_url || source.previewUrl || "";
-  }
-  function loadImageDimensions(url) {
-    return new Promise((resolve, reject) => {
-      const image = new Image();
-      image.onload = () => {
-        const width = image.naturalWidth || image.width;
-        const height = image.naturalHeight || image.height;
-        if (width > 0 && height > 0) {
-          resolve({ width, height });
-        } else {
-          reject(new Error(formatTranslation("output.imageSizeUnavailable")));
-        }
-      };
-      image.onerror = () => reject(new Error(formatTranslation("output.imageLoadFailed")));
-      image.src = String(url || "");
-    });
-  }
-  function applyCustomAspectRatioDigits(widthRatio, heightRatio) {
-    if (!els26.customRatioWidth || !els26.customRatioHeight) return;
-    els26.customRatioWidth.value = String(widthRatio || "");
-    els26.customRatioHeight.value = String(heightRatio || "");
-    setCustomAspectRatioFromManualInputs();
-    applyCustomAspectRatioFromWidth();
-    const numericWidthRatio = Number(widthRatio);
-    const numericHeightRatio = Number(heightRatio);
-    if (Number.isFinite(numericWidthRatio) && Number.isFinite(numericHeightRatio) && numericWidthRatio > 0 && numericHeightRatio > 0 && Math.max(numericWidthRatio, numericHeightRatio) / Math.min(numericWidthRatio, numericHeightRatio) <= GPT_IMAGE_2_MAX_LONG_SHORT_RATIO && els26.customWidth && els26.customHeight) {
-      const baseWidth = numericWidthRatio * 16;
-      const baseHeight = numericHeightRatio * 16;
-      const basePixels = baseWidth * baseHeight;
-      const minUnitByPixels = Math.max(1, Math.ceil(Math.sqrt(GPT_IMAGE_2_MIN_PIXELS / basePixels)));
-      const maxUnitByPixels = Math.floor(Math.sqrt(GPT_IMAGE_2_MAX_PIXELS / basePixels));
-      const maxUnitByBounds = Math.floor(Math.min(3840 / baseWidth, 3840 / baseHeight));
-      const maxUnit = Math.min(maxUnitByPixels, maxUnitByBounds);
-      if (maxUnit >= minUnitByPixels) {
-        const currentWidth = customDimensionValue(els26.customWidth);
-        const preferredUnit = Math.max(1, Math.round((currentWidth || baseWidth * minUnitByPixels) / baseWidth));
-        const unit = Math.min(maxUnit, Math.max(minUnitByPixels, preferredUnit));
-        els26.customWidth.value = String(baseWidth * unit);
-        els26.customHeight.value = String(baseHeight * unit);
-      }
-    }
-    updateCustomSize();
-    updatePixelPreview("custom");
-    updateRequestPreview10();
-  }
-  async function applyFirstReferenceImageAspectRatio(event) {
-    event?.preventDefault?.();
-    const source = firstReferenceImageSource();
-    updateCustomRatioReferenceButtonState();
-    if (!source) return;
-    const url = sourceUrlForAspectRatio(source);
-    if (!url) return;
-    return loadImageDimensions(url).catch(() => null).then((dimensions2) => {
-      if (!dimensions2) return;
-      const ratio = singleDigitAspectRatioForDimensions(dimensions2.width, dimensions2.height);
-      if (!ratio) return;
-      applyCustomAspectRatioDigits(ratio.width, ratio.height);
-      saveCurrentModelParameterDraft2();
-    });
-  }
-  function handleCustomDimensionInput(input) {
-    if (!state17.customAspectRatioLocked || !state17.customAspectRatioValue) return;
-    if (!els26.customWidth || !els26.customHeight) return;
-    const value = customDimensionValue(input);
-    if (!value) return;
-    if (input === els26.customWidth) {
-      els26.customHeight.value = normalizeAspectDimension(value / state17.customAspectRatioValue);
-      return;
-    }
-    if (input === els26.customHeight) {
-      els26.customWidth.value = normalizeAspectDimension(value * state17.customAspectRatioValue);
-    }
-  }
-  function swapCustomRatioDigits() {
-    if (!els26.customRatioWidth || !els26.customRatioHeight) return;
-    const widthRatio = els26.customRatioWidth.value;
-    els26.customRatioWidth.value = els26.customRatioHeight.value;
-    els26.customRatioHeight.value = widthRatio;
-    setCustomAspectRatioFromManualInputs();
-  }
-  function updateSizeFromPreset(event = null) {
-    const changedControl = sizeControlName(event?.target);
-    syncRatioAndOrientation(changedControl);
-    if (els26.customSizeToggle?.checked) {
-      if (els26.size?.value !== "custom") {
-        populateCustomSizeFromCurrentPreset();
-      }
-      els26.size.value = "custom";
-      if (typeof setCustomAspectRatioFromManualInputs === "function") setCustomAspectRatioFromManualInputs();
-      if (typeof applyCustomAspectRatioFromWidth === "function") applyCustomAspectRatioFromWidth();
-      updateCustomSize();
-      updatePixelPreview("custom");
-      updateRequestPreview10();
-      return;
-    }
-    const size = sizeForPreset(els26.resolution?.value, els26.ratio?.value);
-    els26.size.value = size;
-    updatePixelPreview(size);
-    updateCustomSize();
-    updateRequestPreview10();
-  }
-  function populateCustomSizeFromCurrentPreset() {
-    if (!els26.customWidth || !els26.customHeight) return;
-    const presetSize = sizeForPreset(els26.resolution?.value, els26.ratio?.value);
-    const [width, height] = (presetSize === "auto" ? "1024x1024" : presetSize).split("x");
-    if (!width || !height) return;
-    els26.customWidth.value = width;
-    els26.customHeight.value = height;
-  }
-  function sizeControlName(target) {
-    if (target === els26.resolution) return "resolution";
-    if (target === els26.ratio) return "ratio";
-    if (target === els26.orientation) return "orientation";
-    return null;
-  }
-  function syncRatioAndOrientation(changedControl) {
-    if (!els26.resolution || !els26.ratio || !els26.orientation) return;
-    if (els26.ratio.value === "None") {
-      if (changedControl === "orientation") {
-        const orientation = els26.orientation.value;
-        if (orientation === "square") {
-          setSizeControlValue(els26.ratio, DEFAULT_RATIO);
-        } else {
-          setSizeControlValue(els26.ratio, ORIENTATION_DEFAULT_RATIOS[orientation] || DEFAULT_RATIO);
-        }
-      }
-      return;
-    }
-    if (!GPT_IMAGE_2_SIZE_PRESETS[els26.resolution.value]) {
-      setSizeControlValue(els26.resolution, DEFAULT_RESOLUTION);
-    }
-    if (!RATIO_ORIENTATION[els26.ratio.value]) {
-      setSizeControlValue(els26.ratio, DEFAULT_RATIO);
-    }
-    if (!ORIENTATION_DEFAULT_RATIOS[els26.orientation.value]) {
-      setSizeControlValue(els26.orientation, RATIO_ORIENTATION[els26.ratio.value] || DEFAULT_ORIENTATION);
-    }
-    if (changedControl === "orientation") {
-      syncRatioFromOrientation();
-      return;
-    }
-    syncOrientationFromRatio();
-  }
-  function syncOrientationFromRatio() {
-    const nextOrientation = RATIO_ORIENTATION[els26.ratio.value] || DEFAULT_ORIENTATION;
-    setSizeControlValue(els26.orientation, nextOrientation);
-  }
-  function syncRatioFromOrientation() {
-    if (els26.ratio.value === "None") return;
-    const orientation = els26.orientation.value;
-    if (orientation === "square") {
-      setSizeControlValue(els26.ratio, DEFAULT_RATIO);
-      return;
-    }
-    if (RATIO_ORIENTATION[els26.ratio.value] === orientation) return;
-    const counterpart = RATIO_COUNTERPARTS[els26.ratio.value];
-    if (counterpart && RATIO_ORIENTATION[counterpart] === orientation) {
-      setSizeControlValue(els26.ratio, counterpart);
-      return;
-    }
-    setSizeControlValue(els26.ratio, ORIENTATION_DEFAULT_RATIOS[orientation] || DEFAULT_RATIO);
-  }
-  function setSizeControlValue(select, value) {
-    if (!select || select.value === value) return false;
-    select.value = value;
-    select.dispatchEvent(new Event("change", { bubbles: true }));
-    return true;
-  }
-  function updatePixelPreview(size) {
-    if (!els26.pixelPreview) return;
-    if (size === "auto") {
-      els26.pixelPreview.textContent = formatTranslation("output.pixelPreviewAuto");
-      return;
-    }
-    if (size === "custom") {
-      const message = customSizeValidationMessage();
-      if (message) {
-        els26.pixelPreview.textContent = formatTranslation("output.pixelPreviewValue", { value: message });
-        return;
-      }
-      els26.pixelPreview.textContent = formatTranslation("output.pixelPreviewValue", {
-        value: `${customDimensionValue(els26.customWidth)} x ${customDimensionValue(els26.customHeight)} px`
-      });
-      return;
-    }
-    const [width, height] = String(size).split("x");
-    els26.pixelPreview.textContent = formatTranslation("output.pixelPreviewValue", { value: `${width} x ${height} px` });
-  }
-  document.addEventListener(LOCALE_CHANGE_EVENT, () => updatePixelPreview(els26.size?.value || ""));
-  function syncSizeControlsFromSize(size) {
-    if (!size || size === "auto") {
-      if (els26.customSizeToggle) els26.customSizeToggle.checked = false;
-      if (els26.resolution) els26.resolution.value = DEFAULT_RESOLUTION;
-      if (els26.ratio && els26.ratio.value !== "None") els26.ratio.value = DEFAULT_RATIO;
-      if (els26.orientation) els26.orientation.value = DEFAULT_ORIENTATION;
-      updateSizeFromPreset();
-      syncRadioButtons(els26.resolution, els26.ratio, els26.orientation);
-      return;
-    }
-    const presetMatch = findPresetForSize(size);
-    if (presetMatch) {
-      if (els26.customSizeToggle) els26.customSizeToggle.checked = false;
-      els26.resolution.value = presetMatch.resolution;
-      if (els26.ratio?.value !== "None") {
-        els26.ratio.value = presetMatch.ratio;
-      }
-      els26.orientation.value = presetMatch.orientation;
-      updateSizeFromPreset();
-      syncRadioButtons(els26.resolution, els26.ratio, els26.orientation);
-      return;
-    }
-    const [width, height] = String(size).split("x");
-    if (width && height) {
-      if (els26.customSizeToggle) els26.customSizeToggle.checked = true;
-      els26.size.value = "custom";
-      els26.customWidth.value = width;
-      els26.customHeight.value = height;
-      updatePixelPreview("custom");
-      updateCustomSize();
-      updateRequestPreview10();
-    }
-  }
-  function setCustomSizeModeLayout(isCustom) {
-    els26.customSize?.classList.toggle("hidden", !isCustom);
-    els26.customSize?.classList.toggle("custom-size-collapsed", !isCustom);
-    els26.customSize?.setAttribute("aria-hidden", isCustom ? "false" : "true");
-    els26.settingsGrid?.classList.toggle("custom-size-mode", isCustom);
-  }
-  function measureCustomSizeModeHeight(isCustom) {
-    const grid = els26.settingsGrid;
-    const customSize = els26.customSize;
-    if (!grid) return 0;
-    const originalHeight = grid.style.height;
-    const originalGridTransition = grid.style.transition;
-    const originalCustomTransition = customSize?.style.transition || "";
-    const originalCustomMode = grid.classList.contains("custom-size-mode");
-    const originalCustomHidden = customSize?.classList.contains("hidden") || false;
-    const originalCustomCollapsed = customSize?.classList.contains("custom-size-collapsed") || false;
-    const originalCustomAriaHidden = customSize?.getAttribute("aria-hidden");
-    grid.style.transition = "none";
-    grid.style.height = "";
-    if (customSize) customSize.style.transition = "none";
-    setCustomSizeModeLayout(isCustom);
-    const height = measuredElementHeight2(grid);
-    grid.classList.toggle("custom-size-mode", originalCustomMode);
-    if (customSize) {
-      customSize.classList.toggle("hidden", originalCustomHidden);
-      customSize.classList.toggle("custom-size-collapsed", originalCustomCollapsed);
-      if (originalCustomAriaHidden === null) {
-        customSize.removeAttribute("aria-hidden");
-      } else {
-        customSize.setAttribute("aria-hidden", originalCustomAriaHidden);
-      }
-      customSize.style.transition = originalCustomTransition;
-    }
-    grid.style.height = originalHeight;
-    grid.style.transition = originalGridTransition;
-    return height;
-  }
-  function transitionCustomSizeMode(isCustom) {
-    const grid = els26.settingsGrid;
-    const customSize = els26.customSize;
-    if (!grid || !customSize) {
-      setCustomSizeModeLayout(isCustom);
-      state17.customSizeMode = isCustom;
-      return;
-    }
-    if (state17.customSizeMode === null) {
-      state17.customSizeMode = isCustom;
-      grid.style.height = "";
-      grid.classList.remove("is-size-transitioning");
-      setCustomSizeModeLayout(isCustom);
-      return;
-    }
-    const pendingTimerId = customSizeTransitionTimers.get(grid);
-    if (state17.customSizeMode === isCustom && !pendingTimerId) {
-      grid.style.height = "";
-      grid.classList.remove("is-size-transitioning");
-      setCustomSizeModeLayout(isCustom);
-      return;
-    }
-    state17.customSizeMode = isCustom;
-    state17.customSizeTransitionSeq += 1;
-    const transitionSeq = state17.customSizeTransitionSeq;
-    if (pendingTimerId) {
-      window.clearTimeout(pendingTimerId);
-      customSizeTransitionTimers.delete(grid);
-    }
-    const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
-    if (reduceMotion) {
-      grid.style.height = "";
-      grid.classList.remove("is-size-transitioning");
-      setCustomSizeModeLayout(isCustom);
-      return;
-    }
-    const fromHeight = measuredElementHeight2(grid);
-    const targetHeight = measureCustomSizeModeHeight(isCustom);
-    if (Math.abs(targetHeight - fromHeight) <= CUSTOM_SIZE_HEIGHT_SNAP_TOLERANCE) {
-      grid.style.height = "";
-      grid.classList.remove("is-size-transitioning");
-      setCustomSizeModeLayout(isCustom);
-      return;
-    }
-    grid.style.height = `${fromHeight}px`;
-    grid.classList.add("is-size-transitioning");
-    if (isCustom) {
-      customSize.classList.remove("hidden");
-      customSize.classList.add("custom-size-collapsed");
-      customSize.setAttribute("aria-hidden", "false");
-      grid.classList.add("custom-size-mode");
-      void grid.offsetHeight;
-      window.requestAnimationFrame(() => {
-        if (transitionSeq !== state17.customSizeTransitionSeq) return;
-        customSize.classList.remove("custom-size-collapsed");
-        grid.style.height = `${targetHeight}px`;
-      });
-    } else {
-      customSize.classList.remove("hidden");
-      customSize.classList.remove("custom-size-collapsed");
-      customSize.setAttribute("aria-hidden", "false");
-      grid.classList.add("custom-size-mode");
-      void grid.offsetHeight;
-      window.requestAnimationFrame(() => {
-        if (transitionSeq !== state17.customSizeTransitionSeq) return;
-        customSize.classList.add("custom-size-collapsed");
-        grid.classList.remove("custom-size-mode");
-        grid.style.height = `${targetHeight}px`;
-      });
-    }
-    const timerId = window.setTimeout(() => {
-      if (transitionSeq !== state17.customSizeTransitionSeq) return;
-      setCustomSizeModeLayout(isCustom);
-      grid.style.height = "";
-      grid.classList.remove("is-size-transitioning");
-      customSizeTransitionTimers.delete(grid);
-    }, CUSTOM_SIZE_TRANSITION_MS);
-    customSizeTransitionTimers.set(grid, timerId);
-  }
-  function updateCustomSize() {
-    const isCustom = els26.size?.value === "custom";
-    transitionCustomSizeMode(isCustom);
-    if (els26.customSizeToggle) els26.customSizeToggle.checked = isCustom;
-    els26.sizeModeGroup?.querySelectorAll("[data-custom-size-mode]").forEach((button) => {
-      const active = button.dataset.customSizeMode === (isCustom ? "custom" : "preset");
-      button.classList.toggle("active", active);
-      button.setAttribute("aria-pressed", active ? "true" : "false");
-    });
-    const message = isCustom ? customSizeValidationMessage() : "";
-    els26.customSize?.classList.toggle("has-error", Boolean(message));
-    if (els26.customSizeHint) {
-      els26.customSizeHint.textContent = message || formatTranslation("output.customSizeHint");
-    }
-    updateCustomRatioFieldState();
-  }
-
-  // codex_image/webui/frontend/src/form-controls.ts
-  var bridge24 = getLegacyBridge();
-  var state18 = bridge24.state;
-  var els27 = bridge24.els;
-  var formControlsInitialized = false;
-  var formControlEventsBound = false;
-  var CHATGPT_DELETE_CHAT_STORAGE_KEY = "codex-image-chatgpt-delete-chat";
-  var CHATGPT_BROWSER_STORAGE_KEY = "codex-image-chatgpt-browser";
-  function syncChatGPTBrowserState(browser) {
-    const current = browser || (els27.chatgptBrowser?.value === "chrome" ? "chrome" : "edge");
-    if (els27.chatgptBrowser) {
-      els27.chatgptBrowser.value = current;
-    }
-    if (els27.chatgptBrowserGroup) {
-      const buttons = els27.chatgptBrowserGroup.querySelectorAll(".radio-btn");
-      buttons.forEach((btn) => {
-        const active = (btn.getAttribute("data-browser") || "edge") === current;
-        btn.classList.toggle("active", active);
-        btn.setAttribute("aria-pressed", String(active));
-      });
-    }
-  }
-  function restoreChatGPTBrowserState() {
-    const provider = activeChatGPTProvider();
-    const providerSetting = typeof provider?.browser === "string" ? provider.browser.toLowerCase() : null;
-    const saved = localStorage.getItem(CHATGPT_BROWSER_STORAGE_KEY);
-    const browser = providerSetting === "chrome" || saved === "chrome" ? "chrome" : "edge";
-    syncChatGPTBrowserState(browser);
-    localStorage.setItem(CHATGPT_BROWSER_STORAGE_KEY, browser);
-  }
-  function persistChatGPTBrowserState(browser) {
-    localStorage.setItem(CHATGPT_BROWSER_STORAGE_KEY, browser);
-    syncChatGPTBrowserState(browser);
-    const provider = activeChatGPTProvider();
-    if (provider && state18.apiSettings?.providers) {
-      const target = state18.apiSettings.providers.find((p) => p.id === provider.id);
-      if (target && target.browser !== browser) {
-        target.browser = browser;
-        const methods = getLegacyBridge().methods;
-        if (typeof methods?.persistApiSettings === "function") {
-          methods.persistApiSettings();
-        }
-        if (typeof methods?.queueApiSettingsAutosave === "function") {
-          methods.queueApiSettingsAutosave();
-        }
-      }
-    }
-  }
-  function currentChatGPTBrowser() {
-    return els27.chatgptBrowser?.value === "chrome" ? "chrome" : "edge";
-  }
-  function syncChatGPTDeleteChatState() {
-    if (!els27.chatgptDeleteChat) return;
-    const isChecked = Boolean(els27.chatgptDeleteChat.checked);
-    if (els27.chatgptDeleteChatStatus) {
-      els27.chatgptDeleteChatStatus.textContent = translate(
-        isChecked ? "output.chatgptDeleteChatToggle" : "output.chatgptDeleteChatToggleOff"
-      );
-    }
-  }
-  function syncChatGPTVisibleBrowserState() {
-  }
-  function activeChatGPTProvider() {
-    const providerId = state18.selectedProviderId || state18.apiSettings?.active_provider_id;
-    const providers = state18.apiSettings?.providers || state18.generationCatalog?.providers || [];
-    return providers.find((item) => item.id === providerId) || providers.find((item) => item.id === "default") || providers.find((item) => (item.name || "").toLowerCase().includes("chatgpt")) || null;
-  }
-  function restoreChatGPTDeleteChatState() {
-    if (!els27.chatgptDeleteChat) return;
-    const provider = activeChatGPTProvider();
-    const providerSetting = typeof provider?.delete_chat_after_gen === "boolean" ? provider.delete_chat_after_gen : null;
-    const saved = localStorage.getItem(CHATGPT_DELETE_CHAT_STORAGE_KEY);
-    const enabled = providerSetting !== null ? providerSetting : saved !== null ? saved !== "false" : true;
-    els27.chatgptDeleteChat.checked = enabled;
-    localStorage.setItem(CHATGPT_DELETE_CHAT_STORAGE_KEY, String(enabled));
-    syncChatGPTDeleteChatState();
-  }
-  function restoreChatGPTVisibleBrowserState() {
-  }
-  function persistChatGPTDeleteChatState() {
-    if (!els27.chatgptDeleteChat) return;
-    const enabled = Boolean(els27.chatgptDeleteChat.checked);
-    localStorage.setItem(CHATGPT_DELETE_CHAT_STORAGE_KEY, String(enabled));
-    syncChatGPTDeleteChatState();
-    const provider = activeChatGPTProvider();
-    if (provider && state18.apiSettings?.providers) {
-      const target = state18.apiSettings.providers.find((p) => p.id === provider.id);
-      if (target && target.delete_chat_after_gen !== enabled) {
-        target.delete_chat_after_gen = enabled;
-        const methods = getLegacyBridge().methods;
-        if (typeof methods?.persistApiSettings === "function") {
-          methods.persistApiSettings();
-        }
-        if (typeof methods?.queueApiSettingsAutosave === "function") {
-          methods.queueApiSettingsAutosave();
-        }
-      }
-    }
-    if (els27.apiProviderDeleteChat) {
-      els27.apiProviderDeleteChat.checked = enabled;
-    }
-  }
-  function persistChatGPTVisibleBrowserState() {
-  }
-  function currentChatGPTDeleteChatEnabled() {
-    return Boolean(els27.chatgptDeleteChat?.checked ?? true);
-  }
-  function currentChatGPTVisibleBrowserEnabled() {
-    return true;
-  }
-  function syncRunButtonLabel2() {
-    if (!els27.runButton || state18.runTimerId) return;
-    const mode = state18.mode === "edit" ? "edit" : "generate";
-    els27.runButton.textContent = translate(mode === "edit" ? "prompt.runEdit" : "prompt.run");
-    els27.runButton.title = translate(mode === "edit" ? "prompt.runEditTitle" : "prompt.runTitle");
-  }
-  function bindFormControlEvents() {
-    if (formControlEventsBound) return;
-    formControlEventsBound = true;
-    restoreChatGPTDeleteChatState();
-    restoreChatGPTBrowserState();
-    const handleChatGPTDeleteChatChange = () => {
-      persistChatGPTDeleteChatState();
-      updateRequestPreview10();
-    };
-    els27.chatgptDeleteChat?.addEventListener("input", handleChatGPTDeleteChatChange);
-    els27.chatgptDeleteChat?.addEventListener("change", handleChatGPTDeleteChatChange);
-    els27.chatgptBrowserGroup?.addEventListener("click", (event) => {
-      const button = event.target.closest(".radio-btn");
-      if (!button || button.disabled || button.classList.contains("disabled")) return;
-      const browser = button.getAttribute("data-browser") === "edge" ? "edge" : "chrome";
-      persistChatGPTBrowserState(browser);
-      updateRequestPreview10();
-    });
-    document.querySelectorAll("[data-mode]").forEach((button) => {
-      button.addEventListener("click", () => setMode4(button.dataset.mode));
-    });
-    [
-      els27.mainModel,
-      els27.webSearch,
-      els27.model,
-      els27.size,
-      els27.customWidth,
-      els27.customHeight,
-      els27.quality,
-      els27.outputFormat,
-      els27.moderation,
-      els27.compression,
-      els27.nInput,
-      els27.promptFidelity
-    ].filter(Boolean).forEach((element2) => {
-      const handleParameterChange = () => {
-        persistMainModel();
-        updateQuantity();
-        updateCompression();
-        if (element2 === els27.customWidth || element2 === els27.customHeight) handleCustomDimensionInput(element2);
-        updateCustomSize();
-        if (element2 === els27.customWidth || element2 === els27.customHeight) updatePixelPreview("custom");
-        updateRequestPreview10();
-        saveCurrentModelParameterDraft();
-      };
-      element2.addEventListener("input", handleParameterChange);
-      element2.addEventListener("change", handleParameterChange);
-    });
-    els27.mainModel?.addEventListener("focus", () => openMainModelCombobox({ showAll: true }));
-    els27.mainModel?.addEventListener("click", () => {
-      if (!state18.mainModelComboboxOpen) openMainModelCombobox({ showAll: true });
-    });
-    els27.mainModel?.addEventListener("input", () => {
-      state18.mainModelShowAllOptions = false;
-      openMainModelCombobox();
-      renderMainModelOptions();
-    });
-    els27.mainModel?.addEventListener("keydown", handleMainModelKeydown);
-    els27.mainModelToggle?.addEventListener("click", (event) => {
-      event.preventDefault();
-      if (state18.mainModelComboboxOpen) {
-        closeMainModelCombobox();
-      } else {
-        openMainModelCombobox({ showAll: true });
-        els27.mainModel?.focus();
-      }
-    });
-    document.addEventListener("click", (event) => {
-      if (!els27.mainModelCombobox || els27.mainModelCombobox.contains(event.target)) return;
-      closeMainModelCombobox();
-    });
-    [els27.resolution, els27.ratio, els27.orientation].filter(Boolean).forEach((element2) => {
-      element2.addEventListener("input", () => {
-        updateSizeFromPreset();
-        saveCurrentModelParameterDraft();
-      });
-      element2.addEventListener("change", () => {
-        updateSizeFromPreset();
-        saveCurrentModelParameterDraft();
-      });
-    });
-    [els27.customRatioWidth, els27.customRatioHeight].filter(Boolean).forEach((element2) => {
-      element2.addEventListener("input", () => {
-        handleCustomRatioInput(element2);
-        updateCustomSize();
-        updatePixelPreview("custom");
-        updateRequestPreview10();
-        saveCurrentModelParameterDraft();
-      });
-    });
-    els27.sizeModeGroup?.addEventListener("click", handleSizeModeEvent);
-    els27.swapCustomSizeButton?.addEventListener("click", swapCustomSizeDimensions);
-    els27.customRatioFromImageButton?.addEventListener("click", (event) => {
-      void applyFirstReferenceImageAspectRatio(event);
-    });
-    if (els27.customSizeToggle) {
-      els27.customSizeToggle.addEventListener("change", updateSizeFromPreset);
-    }
-    els27.outputFormatGroup?.addEventListener("dblclick", handleOutputFormatDoubleClick);
-  }
-  function setMode4(mode) {
-    saveCurrentModelParameterDraft();
-    state18.mode = mode;
-    document.querySelectorAll("[data-mode]").forEach((button) => {
-      button.classList.toggle("active", button.dataset.mode === mode);
-    });
-    if (!state18.runTimerId) {
-      syncRunButtonLabel2();
-    }
-    syncRadioButtons(els27.quality, els27.outputFormat, els27.moderation);
-    bridge24.methods.renderProviderSelection?.();
-    restoreCurrentModelParameterDraft();
-    bridge24.methods.updateModeSpecificSettings?.();
-    bridge24.methods.updateRequestPreview?.();
-  }
-  function initFormControlsFeature() {
-    if (formControlsInitialized) return;
-    formControlsInitialized = true;
-    document.addEventListener(LOCALE_CHANGE_EVENT, syncRunButtonLabel2);
-    document.addEventListener(LOCALE_CHANGE_EVENT, syncChatGPTDeleteChatState);
-    document.addEventListener(LOCALE_CHANGE_EVENT, syncChatGPTVisibleBrowserState);
-    Object.assign(getLegacyBridge().methods, {
-      bindFormControlEvents,
-      syncChatGPTDeleteChatState,
-      restoreChatGPTDeleteChatState,
-      persistChatGPTDeleteChatState,
-      currentChatGPTDeleteChatEnabled,
-      syncChatGPTVisibleBrowserState,
-      restoreChatGPTVisibleBrowserState,
-      persistChatGPTVisibleBrowserState,
-      currentChatGPTVisibleBrowserEnabled,
-      syncChatGPTBrowserState,
-      restoreChatGPTBrowserState,
-      persistChatGPTBrowserState,
-      currentChatGPTBrowser,
-      setMode: setMode4,
-      syncRunButtonLabel: syncRunButtonLabel2,
-      updateQuantity,
-      updateCompression,
-      openCompressionPopover,
-      closeCompressionPopover,
-      currentSize,
-      currentTaskParams,
-      currentMainModel,
-      currentQuantity,
-      currentImageToolModel,
-      currentWebSearchEnabled,
-      webSearchSupportedForCurrentBackend,
-      restoreMainModel,
-      persistMainModel,
-      syncSizeControlsFromSize,
-      updateSizeFromPreset,
-      updateCustomSize,
-      updateCustomRatioFieldState,
-      updateCustomRatioReferenceButtonState,
-      updatePixelPreview,
-      customSizeValidationMessage,
-      syncRadioButtons,
-      updateRequestPreview: updateRequestPreview10,
-      mainModelOptionsForQuery,
-      openMainModelCombobox,
-      closeMainModelCombobox,
-      renderMainModelOptions,
-      selectMainModelOption,
-      handleMainModelKeydown,
-      handleSizeModeEvent,
-      handleCustomDimensionInput,
-      handleCustomRatioInput,
-      applyFirstReferenceImageAspectRatio,
-      swapCustomSizeDimensions,
-      handleOutputFormatDoubleClick
-    });
   }
 
   // codex_image/webui/frontend/src/output-settings-lock.ts

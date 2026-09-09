@@ -1,7 +1,7 @@
 # Overview
 - Tôi fork repo này về và nhét thêm chatgpt bridge để dùng được tạo ảnh trên web. Hãy lưu ý rằng trong codebase vẫn còn những chi tiết của author cũ
 - Dev đang tập trung vào làm phần chatgpt web chứ không phải codex hay gemini, hãy mặc định là đang code phần chatgpt web khi đang làm việc
-- Cơ chế tạo ảnh của chatgpt.com đã thay đổi rất nhiều so với data training của bạn, mọi quy trình trong project này đang phục vụ cho cơ chế tạo ảnh mới nhất đó, hãy thật cẩn trọng trong việc xác thực thông tin mới nhất 
+- Quy trình Cơ chế tạo ảnh trên chatgpt.com đã thay đổi rất nhiều so với data training của bạn, mọi quy trình trong project này đang phục vụ cho cơ chế tạo ảnh mới nhất đó, hãy thật cẩn trọng trong việc xác thực thông tin mới nhất (không còn là dalle, không còn là 1 turn chỉ có thể nhả duy nhất 1 ảnh,etc...)
 - Project này reverse engineer, giả lập user thật, vào web chatgpt.com để tạo ảnh
 - start-all.bat : chỉ chạy cái này để bật app, user đã bật sẵn
 

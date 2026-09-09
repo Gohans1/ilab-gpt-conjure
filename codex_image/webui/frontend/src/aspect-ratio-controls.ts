@@ -62,7 +62,8 @@ export function aspectRatioSlots(values: string[]): AspectRatioSlot[] {
 }
 
 export function aspectRatioRect(value: string): AspectRatioRect | null {
-  if (value === "None" || value === "none" || value === "auto") {
+  const normalized = String(value || "").trim().toLowerCase();
+  if (normalized === "none" || normalized === "auto") {
     return {
       x: 5,
       y: 5,
@@ -106,7 +107,7 @@ export function createAspectRatioIcon(value: string): SVGSVGElement | null {
   rect.setAttribute("stroke", "currentColor");
   rect.setAttribute("stroke-width", "1.35");
   rect.setAttribute("vector-effect", "non-scaling-stroke");
-  if (value === "None" || value === "none") {
+  if (String(value || "").trim().toLowerCase() === "none") {
     rect.setAttribute("stroke-dasharray", "2 2");
   }
   svg.append(rect);

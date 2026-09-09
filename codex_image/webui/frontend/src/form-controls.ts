@@ -40,6 +40,7 @@ import {
   updateSizeFromPreset,
   updateCustomRatioFieldState,
   updateCustomRatioReferenceButtonState,
+  isProgrammaticSizeSync,
 } from "./custom-size-controls";
 import { LOCALE_CHANGE_EVENT, translate } from "./i18n";
 import { restoreCurrentModelParameterDraft, saveCurrentModelParameterDraft } from "./model-parameter-drafts";
@@ -255,12 +256,14 @@ export function bindFormControlEvents(): void {
   });
 
   [els.resolution, els.ratio, els.orientation].filter(Boolean).forEach((element: any) => {
-    element.addEventListener("input", () => {
-      updateSizeFromPreset();
+    element.addEventListener("input", (event: any) => {
+      if (isProgrammaticSizeSync()) return;
+      updateSizeFromPreset(event);
       saveCurrentModelParameterDraft();
     });
-    element.addEventListener("change", () => {
-      updateSizeFromPreset();
+    element.addEventListener("change", (event: any) => {
+      if (isProgrammaticSizeSync()) return;
+      updateSizeFromPreset(event);
       saveCurrentModelParameterDraft();
     });
   });

@@ -14,6 +14,7 @@ import {
   customSizeValidationMessage,
   findPresetForSize,
   orientationForDimensions,
+  presetDimensions,
   sizeForPreset,
 } from "./size-presets";
 import { syncRadioButtons, updateRequestPreview } from "./output-controls";
@@ -261,6 +262,22 @@ function swapCustomRatioDigits(): void {
   setCustomAspectRatioFromManualInputs();
 }
 
+let programmaticSync = false;
+
+export function isProgrammaticSizeSync(): boolean {
+  return programmaticSync;
+}
+
+export function withProgrammaticSizeSync<T>(action: () => T): T {
+  const previous = programmaticSync;
+  programmaticSync = true;
+  try {
+    return action();
+  } finally {
+    programmaticSync = previous;
+  }
+}
+
 export function updateSizeFromPreset(event: any = null): void {
   const changedControl = sizeControlName(event?.target);
   syncRatioAndOrientation(changedControl);
@@ -279,7 +296,7 @@ export function updateSizeFromPreset(event: any = null): void {
   }
 
   const size = sizeForPreset(els.resolution?.value, els.ratio?.value);
-  els.size.value = size;
+  if (els.size) els.size.value = size;
   updatePixelPreview(size);
   updateCustomSize();
   updateRequestPreview();
@@ -287,8 +304,12 @@ export function updateSizeFromPreset(event: any = null): void {
 
 export function populateCustomSizeFromCurrentPreset(): void {
   if (!els.customWidth || !els.customHeight) return;
-  const presetSize = sizeForPreset(els.resolution?.value, els.ratio?.value);
-  const [width, height] = (presetSize === "auto" ? "1024x1024" : presetSize).split("x");
+  let presetSize = sizeForPreset(els.resolution?.value, els.ratio?.value);
+  if (presetSize === "auto") {
+    const [w, h] = presetDimensions(els.resolution?.value, DEFAULT_RATIO);
+    presetSize = `${w}x${h}`;
+  }
+  const [width, height] = presetSize.toLowerCase().split("x");
   if (!width || !height) return;
   els.customWidth.value = width;
   els.customHeight.value = height;
@@ -302,16 +323,23 @@ export function sizeControlName(target: any): string | null {
 }
 
 export function syncRatioAndOrientation(changedControl: any): void {
+  if (isProgrammaticSizeSync()) return;
   if (!els.resolution || !els.ratio || !els.orientation) return;
 
-  if (els.ratio.value === "None") {
+  const rawRatio = String(els.ratio.value || "").trim().toLowerCase();
+  const isNoneOrAuto = rawRatio === "none" || rawRatio === "auto";
+
+  if (isNoneOrAuto) {
     if (changedControl === "orientation") {
       const orientation = els.orientation.value;
-      if (orientation === "square") {
-        setSizeControlValue(els.ratio, DEFAULT_RATIO);
-      } else {
-        setSizeControlValue(els.ratio, ORIENTATION_DEFAULT_RATIOS[orientation] || DEFAULT_RATIO);
-      }
+      setSizeControlValue(els.ratio, ORIENTATION_DEFAULT_RATIOS[orientation] || DEFAULT_RATIO);
+      return;
+    }
+    if (changedControl === "ratio") {
+      withProgrammaticSizeSync(() => {
+        setSizeControlValue(els.orientation, DEFAULT_ORIENTATION);
+      });
+      return;
     }
     return;
   }
@@ -339,7 +367,8 @@ export function syncOrientationFromRatio(): void {
 }
 
 export function syncRatioFromOrientation(): void {
-  if (els.ratio.value === "None") return;
+  const rawRatio = String(els.ratio?.value || "").trim().toLowerCase();
+  if (rawRatio === "none" || rawRatio === "auto") return;
   const orientation = els.orientation.value;
   if (orientation === "square") {
     setSizeControlValue(els.ratio, DEFAULT_RATIO);
@@ -364,11 +393,12 @@ export function setSizeControlValue(select: any, value: any): boolean {
 
 export function updatePixelPreview(size: any): void {
   if (!els.pixelPreview) return;
-  if (size === "auto") {
+  const normalized = String(size || "").trim().toLowerCase();
+  if (normalized === "auto") {
     els.pixelPreview.textContent = formatTranslation("output.pixelPreviewAuto");
     return;
   }
-  if (size === "custom") {
+  if (normalized === "custom") {
     const message = customSizeValidationMessage();
     if (message) {
       els.pixelPreview.textContent = formatTranslation("output.pixelPreviewValue", { value: message });
@@ -379,46 +409,55 @@ export function updatePixelPreview(size: any): void {
     });
     return;
   }
-  const [width, height] = String(size).split("x");
-  els.pixelPreview.textContent = formatTranslation("output.pixelPreviewValue", { value: `${width} x ${height} px` });
+  const [width, height] = String(size || "").toLowerCase().split("x");
+  if (width && height) {
+    els.pixelPreview.textContent = formatTranslation("output.pixelPreviewValue", { value: `${width} x ${height} px` });
+  } else {
+    els.pixelPreview.textContent = "";
+  }
 }
 
-document.addEventListener(LOCALE_CHANGE_EVENT, () => updatePixelPreview(els.size?.value || ""));
+if (typeof document !== "undefined" && typeof document.addEventListener === "function") {
+  document.addEventListener(LOCALE_CHANGE_EVENT, () => updatePixelPreview(els.size?.value || ""));
+}
 
 export function syncSizeControlsFromSize(size: any): void {
-  if (!size || size === "auto") {
-    if (els.customSizeToggle) els.customSizeToggle.checked = false;
-    if (els.resolution) els.resolution.value = DEFAULT_RESOLUTION;
-    if (els.ratio && els.ratio.value !== "None") els.ratio.value = DEFAULT_RATIO;
-    if (els.orientation) els.orientation.value = DEFAULT_ORIENTATION;
-    updateSizeFromPreset();
-    syncRadioButtons(els.resolution, els.ratio, els.orientation);
-    return;
-  }
-
-  const presetMatch = findPresetForSize(size);
-  if (presetMatch) {
-    if (els.customSizeToggle) els.customSizeToggle.checked = false;
-    els.resolution.value = presetMatch.resolution;
-    if (els.ratio?.value !== "None") {
-      els.ratio.value = presetMatch.ratio;
+  withProgrammaticSizeSync(() => {
+    const normalizedSize = String(size || "").trim().toLowerCase();
+    if (!size || normalizedSize === "auto") {
+      if (els.customSizeToggle) els.customSizeToggle.checked = false;
+      if (els.resolution && !els.resolution.value) els.resolution.value = DEFAULT_RESOLUTION;
+      if (els.ratio) els.ratio.value = "None";
+      if (els.orientation && !els.orientation.value) els.orientation.value = DEFAULT_ORIENTATION;
+      updateSizeFromPreset();
+      syncRadioButtons(els.resolution, els.ratio, els.orientation);
+      return;
     }
-    els.orientation.value = presetMatch.orientation;
-    updateSizeFromPreset();
-    syncRadioButtons(els.resolution, els.ratio, els.orientation);
-    return;
-  }
 
-  const [width, height] = String(size).split("x");
-  if (width && height) {
-    if (els.customSizeToggle) els.customSizeToggle.checked = true;
-    els.size.value = "custom";
-    els.customWidth.value = width;
-    els.customHeight.value = height;
-    updatePixelPreview("custom");
-    updateCustomSize();
-    updateRequestPreview();
-  }
+    const presetMatch = findPresetForSize(normalizedSize);
+    if (presetMatch) {
+      if (els.customSizeToggle) els.customSizeToggle.checked = false;
+      if (els.resolution) els.resolution.value = presetMatch.resolution;
+      if (els.ratio) {
+        els.ratio.value = presetMatch.ratio;
+      }
+      if (els.orientation) els.orientation.value = presetMatch.orientation;
+      updateSizeFromPreset();
+      syncRadioButtons(els.resolution, els.ratio, els.orientation);
+      return;
+    }
+
+    const [width, height] = normalizedSize.split("x");
+    if (width && height && /^\d+$/.test(width) && /^\d+$/.test(height)) {
+      if (els.customSizeToggle) els.customSizeToggle.checked = true;
+      if (els.size) els.size.value = "custom";
+      if (els.customWidth) els.customWidth.value = width;
+      if (els.customHeight) els.customHeight.value = height;
+      updatePixelPreview("custom");
+      updateCustomSize();
+      updateRequestPreview();
+    }
+  });
 }
 
 export { orientationForDimensions };

@@ -91,9 +91,17 @@ export const GPT_IMAGE_2_SIZE_PRESETS: Record<string, Record<string, [number, nu
 
 export const GPT_IMAGE_2_POPULAR_SIZE_EXAMPLES = ["1024x1024", "1024x1280", "1280x1024", "1024x1536", "1536x1024", "2048x1152", "3840x2160", "2160x3840", "1568x672"];
 
-export const GPT_IMAGE_2_MIN_PIXELS = 655360;
-export const GPT_IMAGE_2_MAX_PIXELS = 8294400;
-export const GPT_IMAGE_2_MAX_LONG_SHORT_RATIO = 3;
+import {
+  GPT_IMAGE_2_MIN_PIXELS,
+  GPT_IMAGE_2_MAX_PIXELS,
+  GPT_IMAGE_2_MAX_LONG_SHORT_RATIO,
+} from "./model-parameters";
+
+export {
+  GPT_IMAGE_2_MIN_PIXELS,
+  GPT_IMAGE_2_MAX_PIXELS,
+  GPT_IMAGE_2_MAX_LONG_SHORT_RATIO,
+};
 
 const { els } = getLegacyBridge();
 
@@ -124,7 +132,8 @@ export function presetDimensions(resolution: any, ratio: any): [number, number] 
 }
 
 export function sizeForPreset(resolution: any, ratio: any): string {
-  if (ratio === "None" || ratio === "none" || ratio === "auto") {
+  const normalized = String(ratio || "").trim().toLowerCase();
+  if (normalized === "none" || normalized === "auto") {
     return "auto";
   }
   const [width, height] = presetDimensions(resolution, ratio);
@@ -165,9 +174,10 @@ export function customSizeValidationMessage(width: any = customDimensionValue(el
 }
 
 export function findPresetForSize(size: any): any {
+  const normalized = String(size || "").trim().toLowerCase();
   for (const [resolution, ratios] of Object.entries(GPT_IMAGE_2_SIZE_PRESETS)) {
     for (const [ratio, dimensions] of Object.entries(ratios)) {
-      if (`${dimensions[0]}x${dimensions[1]}` === size) {
+      if (`${dimensions[0]}x${dimensions[1]}` === normalized) {
         return { resolution, ratio, orientation: RATIO_ORIENTATION[ratio] || orientationForDimensions(dimensions[0], dimensions[1]) };
       }
     }
@@ -217,24 +227,31 @@ export function currentTaskParams(): any {
     params["chatgpt.delete_chat_after_gen"] = Boolean(els.chatgptDeleteChat?.checked ?? true);
     params["chatgpt.browser"] = currentChatGPTBrowser();
   }
-  const presetMatch = findPresetForSize(params.size);
-  if (presetMatch) {
-    params.resolution = presetMatch.resolution;
-    params.ratio = presetMatch.ratio;
-    if (els.ratio?.value === "None") {
-      params.ratio = "None";
-    }
-    params.orientation = presetMatch.orientation;
-  } else {
+  const isCustomMode = Boolean(els.customSizeToggle?.checked || els.size?.value === "custom");
+  if (isCustomMode) {
     const customRatio = currentCustomRatio();
     if (customRatio) {
       params.ratio = customRatio;
-    } else if (els.ratio?.value === "None") {
-      params.ratio = "None";
     }
     const dimensions = String(params.size || "").split("x").map((value) => Number(value));
     if (dimensions.length === 2 && dimensions.every((value) => Number.isFinite(value) && value > 0)) {
       params.orientation = orientationForDimensions(dimensions[0], dimensions[1]);
+    }
+  } else {
+    const presetMatch = findPresetForSize(params.size);
+    const rawRatio = String(els.ratio?.value || "").trim().toLowerCase();
+    const isNoneOrAuto = rawRatio === "none" || rawRatio === "auto";
+    if (presetMatch) {
+      params.resolution = presetMatch.resolution;
+      params.ratio = presetMatch.ratio;
+      if (isNoneOrAuto) {
+        params.ratio = "None";
+      }
+      params.orientation = presetMatch.orientation;
+    } else {
+      params.resolution = els.resolution?.value || DEFAULT_RESOLUTION;
+      params.ratio = isNoneOrAuto ? "None" : (els.ratio?.value || undefined);
+      params.orientation = els.orientation?.value || DEFAULT_ORIENTATION;
     }
   }
   if (currentAuthSource() === "api") {

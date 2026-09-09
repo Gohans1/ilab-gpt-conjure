@@ -17921,12 +17921,27 @@
   };
 
   // codex_image/webui/frontend/src/state.ts
+  var fallbackBridge = null;
   function getLegacyBridge() {
-    const bridge7 = window.__codexImageWebUI;
-    if (!bridge7) {
+    const globalRef = typeof globalThis !== "undefined" ? globalThis : void 0;
+    const bridge10 = (typeof window !== "undefined" ? window.__codexImageWebUI : void 0) ?? globalRef?.window?.__codexImageWebUI ?? globalRef?.__codexImageWebUI;
+    if (!bridge10) {
+      if (typeof window === "undefined" && !globalRef?.window) {
+        if (!fallbackBridge) {
+          fallbackBridge = {
+            state: {},
+            els: {},
+            methods: {},
+            constants: {},
+            boot() {
+            }
+          };
+        }
+        return fallbackBridge;
+      }
       throw new Error("WebUI legacy bridge is not initialized");
     }
-    return bridge7;
+    return bridge10;
   }
   function getState() {
     return getLegacyBridge().state;
@@ -18443,98 +18458,98 @@
       "#promptTemplateDrawer.open, #galleryDrawer.open, .modal-overlay:not(.hidden), .prompt-popover:not(.hidden), .confirm-popover:not(.hidden), .compression-popover:not(.hidden), .task-notification-center:not(.hidden)"
     ));
   }
-  function handleRunTaskShortcut(event, els9, methods) {
+  function handleRunTaskShortcut(event, els14, methods) {
     if (!isRunTaskShortcut(event)) return;
-    if (hasOpenShortcutBlockingLayer() || els9.runButton.disabled) return;
+    if (hasOpenShortcutBlockingLayer() || els14.runButton.disabled) return;
     event.preventDefault();
     void call(methods, "runTask");
   }
   var systemSettingsBackdropPointerDown = false;
-  function bindSharedTopNavSettingsEvents(els9, methods) {
-    els9.systemSettingsModalClose?.addEventListener("click", () => call(methods, "closeSystemSettingsModal"));
-    els9.systemSettingsModal?.addEventListener("pointerdown", (event) => {
-      systemSettingsBackdropPointerDown = event.target === els9.systemSettingsModal;
+  function bindSharedTopNavSettingsEvents(els14, methods) {
+    els14.systemSettingsModalClose?.addEventListener("click", () => call(methods, "closeSystemSettingsModal"));
+    els14.systemSettingsModal?.addEventListener("pointerdown", (event) => {
+      systemSettingsBackdropPointerDown = event.target === els14.systemSettingsModal;
     });
-    els9.systemSettingsModal?.addEventListener("click", (event) => {
-      if (event.target === els9.systemSettingsModal && systemSettingsBackdropPointerDown) {
+    els14.systemSettingsModal?.addEventListener("click", (event) => {
+      if (event.target === els14.systemSettingsModal && systemSettingsBackdropPointerDown) {
         call(methods, "closeSystemSettingsModal");
       }
       systemSettingsBackdropPointerDown = false;
     });
-    els9.saveSettingsButton?.addEventListener("click", () => call(methods, "saveSettings"));
-    els9.authSourceGroup?.addEventListener("click", (event) => call(methods, "handleAuthSourceClick", event));
-    els9.apiDirectSettingsButton?.addEventListener("click", () => call(methods, "openApiSettingsModal"));
-    els9.modelFamilyOptions?.addEventListener("click", (event) => {
+    els14.saveSettingsButton?.addEventListener("click", () => call(methods, "saveSettings"));
+    els14.authSourceGroup?.addEventListener("click", (event) => call(methods, "handleAuthSourceClick", event));
+    els14.apiDirectSettingsButton?.addEventListener("click", () => call(methods, "openApiSettingsModal"));
+    els14.modelFamilyOptions?.addEventListener("click", (event) => {
       const item = event.target?.closest?.("[data-family-id]");
       if (item?.dataset.familyId) call(methods, "selectModelFamily", item.dataset.familyId);
     });
-    els9.modelFamilyOptions?.addEventListener("keydown", (event) => call(methods, "handleModelFamilyOptionsKeydown", event));
-    els9.concreteModelSelect?.addEventListener("change", () => call(methods, "selectConcreteModel", els9.concreteModelSelect.value));
-    els9.generationProviderSelect?.addEventListener("change", () => call(methods, "selectGenerationProvider", els9.generationProviderSelect.value));
-    els9.generationProviderSettingsButton?.addEventListener("click", () => call(methods, "openGenerationProviderSettings"));
-    els9.apiProviderQuick?.addEventListener("change", () => {
-      call(methods, "selectApiProvider", els9.apiProviderQuick?.value || call(methods, "currentApiProviderId"));
+    els14.modelFamilyOptions?.addEventListener("keydown", (event) => call(methods, "handleModelFamilyOptionsKeydown", event));
+    els14.concreteModelSelect?.addEventListener("change", () => call(methods, "selectConcreteModel", els14.concreteModelSelect.value));
+    els14.generationProviderSelect?.addEventListener("change", () => call(methods, "selectGenerationProvider", els14.generationProviderSelect.value));
+    els14.generationProviderSettingsButton?.addEventListener("click", () => call(methods, "openGenerationProviderSettings"));
+    els14.apiProviderQuick?.addEventListener("change", () => {
+      call(methods, "selectApiProvider", els14.apiProviderQuick?.value || call(methods, "currentApiProviderId"));
     });
-    els9.apiProvider?.addEventListener("change", () => {
-      call(methods, "selectApiProvider", els9.apiProvider?.value || call(methods, "currentApiProviderId"));
+    els14.apiProvider?.addEventListener("change", () => {
+      call(methods, "selectApiProvider", els14.apiProvider?.value || call(methods, "currentApiProviderId"));
     });
-    els9.apiProviderSearch?.addEventListener("input", () => call(methods, "renderApiProviderList"));
-    els9.apiProviderList?.addEventListener("click", (event) => {
+    els14.apiProviderSearch?.addEventListener("input", () => call(methods, "renderApiProviderList"));
+    els14.apiProviderList?.addEventListener("click", (event) => {
       if (event.target?.closest?.("[data-api-provider-sort-handle]")) return;
       const button = event.target?.closest?.("[data-api-provider-id]");
       if (!button) return;
       call(methods, "selectApiProvider", button.dataset.apiProviderId);
     });
-    els9.editApiProviderButton?.addEventListener("click", () => call(methods, "editApiProvider"));
-    els9.copyApiProviderButton?.addEventListener("click", () => call(methods, "copyApiProvider"));
-    els9.addApiProviderButton?.addEventListener("click", () => call(methods, "addApiProvider"));
-    els9.sortApiProvidersButton?.addEventListener("click", () => call(methods, "toggleApiProviderSortMode"));
-    els9.deleteApiProviderButton?.addEventListener("click", () => call(methods, "confirmDeleteApiProvider", els9.deleteApiProviderButton));
-    els9.cancelApiProviderEditButton?.addEventListener("click", () => call(methods, "cancelApiProviderEdit"));
-    els9.saveApiProviderEditButton?.addEventListener("click", () => call(methods, "saveApiProviderEdit"));
-    els9.addProviderBindingButton?.addEventListener("click", () => call(methods, "addProviderBinding"));
-    els9.apiProviderBindings?.addEventListener("click", (event) => {
+    els14.editApiProviderButton?.addEventListener("click", () => call(methods, "editApiProvider"));
+    els14.copyApiProviderButton?.addEventListener("click", () => call(methods, "copyApiProvider"));
+    els14.addApiProviderButton?.addEventListener("click", () => call(methods, "addApiProvider"));
+    els14.sortApiProvidersButton?.addEventListener("click", () => call(methods, "toggleApiProviderSortMode"));
+    els14.deleteApiProviderButton?.addEventListener("click", () => call(methods, "confirmDeleteApiProvider", els14.deleteApiProviderButton));
+    els14.cancelApiProviderEditButton?.addEventListener("click", () => call(methods, "cancelApiProviderEdit"));
+    els14.saveApiProviderEditButton?.addEventListener("click", () => call(methods, "saveApiProviderEdit"));
+    els14.addProviderBindingButton?.addEventListener("click", () => call(methods, "addProviderBinding"));
+    els14.apiProviderBindings?.addEventListener("click", (event) => {
       const button = event.target?.closest?.("[data-remove-provider-binding]");
       if (button?.dataset.removeProviderBinding) call(methods, "removeProviderBinding", button.dataset.removeProviderBinding);
     });
-    els9.apiProviderBindings?.addEventListener("change", (event) => call(methods, "handleProviderBindingEditorChange", event));
-    els9.apiKeyRevealButton?.addEventListener("pointerdown", (event) => call(methods, "revealApiKeyWhilePressed", event));
-    els9.apiKeyRevealButton?.addEventListener("pointerup", () => call(methods, "hideApiKeyReveal"));
-    els9.apiKeyRevealButton?.addEventListener("pointercancel", () => call(methods, "hideApiKeyReveal"));
-    els9.apiKeyRevealButton?.addEventListener("pointerleave", () => call(methods, "hideApiKeyReveal"));
-    els9.apiKeyRevealButton?.addEventListener("blur", () => call(methods, "hideApiKeyReveal"));
-    els9.apiKeyRevealButton?.addEventListener("keydown", (event) => {
+    els14.apiProviderBindings?.addEventListener("change", (event) => call(methods, "handleProviderBindingEditorChange", event));
+    els14.apiKeyRevealButton?.addEventListener("pointerdown", (event) => call(methods, "revealApiKeyWhilePressed", event));
+    els14.apiKeyRevealButton?.addEventListener("pointerup", () => call(methods, "hideApiKeyReveal"));
+    els14.apiKeyRevealButton?.addEventListener("pointercancel", () => call(methods, "hideApiKeyReveal"));
+    els14.apiKeyRevealButton?.addEventListener("pointerleave", () => call(methods, "hideApiKeyReveal"));
+    els14.apiKeyRevealButton?.addEventListener("blur", () => call(methods, "hideApiKeyReveal"));
+    els14.apiKeyRevealButton?.addEventListener("keydown", (event) => {
       if (event.key === " " || event.key === "Enter") call(methods, "revealApiKeyWhilePressed", event);
     });
-    els9.apiKeyRevealButton?.addEventListener("keyup", () => call(methods, "hideApiKeyReveal"));
-    els9.apiKey?.addEventListener("input", () => call(methods, "updateApiKeyRevealButton"));
-    els9.apiBaseUrl?.addEventListener("input", () => call(methods, "updateApiRequestEndpointPreview"));
+    els14.apiKeyRevealButton?.addEventListener("keyup", () => call(methods, "hideApiKeyReveal"));
+    els14.apiKey?.addEventListener("input", () => call(methods, "updateApiKeyRevealButton"));
+    els14.apiBaseUrl?.addEventListener("input", () => call(methods, "updateApiRequestEndpointPreview"));
     call(methods, "bindOverlayPopoverEvents");
   }
-  function bindWebUIEvents(state5, els9, methods) {
+  function bindWebUIEvents(state8, els14, methods) {
     call(methods, "bindShellUiEvents");
     call(methods, "bindFormControlEvents");
-    els9.clearPromptButton.addEventListener("click", () => {
+    els14.clearPromptButton.addEventListener("click", () => {
       call(methods, "setPromptText", "");
       call(methods, "syncGalleryInputsFromPrompt");
       call(methods, "updatePromptCount");
       call(methods, "updateRequestPreview");
     });
-    els9.quickGalleryRail?.addEventListener("mouseover", (event) => call(methods, "handleQuickGalleryCategoryEvent", event));
-    els9.quickGalleryRail?.addEventListener("focusin", (event) => call(methods, "handleQuickGalleryCategoryEvent", event));
-    els9.quickGalleryRail?.addEventListener("click", (event) => call(methods, "handleQuickGalleryCategoryEvent", event));
-    els9.quickGalleryList?.addEventListener("scroll", () => call(methods, "scheduleQuickGalleryFocusUpdate"));
-    els9.quickGalleryList?.addEventListener("wheel", (event) => call(methods, "handleQuickGalleryBoundaryWheel", event), { passive: false });
-    els9.addGalleryCategoryButton?.addEventListener("click", () => call(methods, "createGalleryCategory"));
-    els9.addToGalleryClose?.addEventListener("click", () => call(methods, "closeAddToGallery"));
-    els9.addToGalleryModal?.addEventListener("click", (event) => {
-      if (event.target === els9.addToGalleryModal) call(methods, "closeAddToGallery");
+    els14.quickGalleryRail?.addEventListener("mouseover", (event) => call(methods, "handleQuickGalleryCategoryEvent", event));
+    els14.quickGalleryRail?.addEventListener("focusin", (event) => call(methods, "handleQuickGalleryCategoryEvent", event));
+    els14.quickGalleryRail?.addEventListener("click", (event) => call(methods, "handleQuickGalleryCategoryEvent", event));
+    els14.quickGalleryList?.addEventListener("scroll", () => call(methods, "scheduleQuickGalleryFocusUpdate"));
+    els14.quickGalleryList?.addEventListener("wheel", (event) => call(methods, "handleQuickGalleryBoundaryWheel", event), { passive: false });
+    els14.addGalleryCategoryButton?.addEventListener("click", () => call(methods, "createGalleryCategory"));
+    els14.addToGalleryClose?.addEventListener("click", () => call(methods, "closeAddToGallery"));
+    els14.addToGalleryModal?.addEventListener("click", (event) => {
+      if (event.target === els14.addToGalleryModal) call(methods, "closeAddToGallery");
     });
-    els9.saveToGalleryButton?.addEventListener("click", () => call(methods, "saveUploadToGallery"));
-    bindSharedTopNavSettingsEvents(els9, methods);
-    els9.runButton.addEventListener("click", () => call(methods, "runTask"));
-    document.addEventListener("keydown", (event) => handleRunTaskShortcut(event, els9, methods));
-    els9.refreshButton.addEventListener("click", () => {
+    els14.saveToGalleryButton?.addEventListener("click", () => call(methods, "saveUploadToGallery"));
+    bindSharedTopNavSettingsEvents(els14, methods);
+    els14.runButton.addEventListener("click", () => call(methods, "runTask"));
+    document.addEventListener("keydown", (event) => handleRunTaskShortcut(event, els14, methods));
+    els14.refreshButton.addEventListener("click", () => {
       void handleRefreshButtonClick(methods);
     });
     call(methods, "bindTaskListControlEvents");
@@ -18544,8 +18559,8 @@
   function call2(methods, name, ...args) {
     return methods[name]?.(...args);
   }
-  function bootWebUI(state5, els9, methods) {
-    bindWebUIEvents(state5, els9, methods);
+  function bootWebUI(state8, els14, methods) {
+    bindWebUIEvents(state8, els14, methods);
     call2(methods, "restoreThemePreference");
     call2(methods, "restoreSidebarWidth");
     call2(methods, "restoreMainModel");
@@ -18937,9 +18952,9 @@
   }
 
   // codex_image/webui/frontend/src/legacy-bridge.ts
-  function installLegacyBridge(bridge7) {
-    window.__codexImageWebUI = bridge7;
-    return bridge7;
+  function installLegacyBridge(bridge10) {
+    window.__codexImageWebUI = bridge10;
+    return bridge10;
   }
   function bindBridgeMethod(name, options = {}) {
     const proxy2 = (...args) => {
@@ -19003,21 +19018,21 @@
   var getPromptText = (...args) => legacyMethod("getPromptText", ...args);
   var syncRunButtonLabel = (...args) => legacyMethod("syncRunButtonLabel", ...args);
   function updateTaskInState(task) {
-    const state5 = getLegacyBridge().state;
+    const state8 = getLegacyBridge().state;
     if (!task?.task_id) return false;
     const taskId = String(task.task_id);
-    const previousIndex = state5.tasks.findIndex((item) => String(item.task_id) === taskId);
+    const previousIndex = state8.tasks.findIndex((item) => String(item.task_id) === taskId);
     if (previousIndex === -1) {
-      state5.tasks.unshift(task);
+      state8.tasks.unshift(task);
       return true;
     }
-    const previousTask = state5.tasks[previousIndex];
+    const previousTask = state8.tasks[previousIndex];
     if (previousTask?.local_pending) {
       revokeTaskUploadPreviewUrls(previousTask);
     }
-    state5.tasks = state5.tasks.map((item, index) => index === previousIndex ? task : item);
-    if (state5.pendingTaskId && String(state5.pendingTaskId) === taskId && !task.local_pending) {
-      state5.pendingTaskId = null;
+    state8.tasks = state8.tasks.map((item, index) => index === previousIndex ? task : item);
+    if (state8.pendingTaskId && String(state8.pendingTaskId) === taskId && !task.local_pending) {
+      state8.pendingTaskId = null;
     }
     return true;
   }
@@ -19043,25 +19058,25 @@
   }
   var uiClockVisibilityBound = false;
   function startUiClock() {
-    const state5 = getLegacyBridge().state;
+    const state8 = getLegacyBridge().state;
     if (!uiClockVisibilityBound) {
       uiClockVisibilityBound = true;
       document.addEventListener("visibilitychange", handleUiClockVisibilityChange);
     }
-    if (state5.uiClockTimerId || document.hidden) return;
-    state5.uiClockTimerId = window.setInterval(updateElapsedDisplays, 100);
+    if (state8.uiClockTimerId || document.hidden) return;
+    state8.uiClockTimerId = window.setInterval(updateElapsedDisplays, 100);
   }
   function handleUiClockVisibilityChange() {
-    const state5 = getLegacyBridge().state;
+    const state8 = getLegacyBridge().state;
     if (document.hidden) {
-      if (state5.uiClockTimerId) {
-        window.clearInterval(state5.uiClockTimerId);
-        state5.uiClockTimerId = null;
+      if (state8.uiClockTimerId) {
+        window.clearInterval(state8.uiClockTimerId);
+        state8.uiClockTimerId = null;
       }
       return;
     }
-    if (!state5.uiClockTimerId) {
-      state5.uiClockTimerId = window.setInterval(updateElapsedDisplays, 100);
+    if (!state8.uiClockTimerId) {
+      state8.uiClockTimerId = window.setInterval(updateElapsedDisplays, 100);
       updateElapsedDisplays();
     }
   }
@@ -19078,8 +19093,8 @@
   function setTextIfChanged(element, text) {
     if (element.textContent !== text) element.textContent = text;
   }
-  function activeElapsedTaskCards(els9, taskId) {
-    const roots = [els9.taskActiveList, els9.taskList].filter((root) => root instanceof HTMLElement);
+  function activeElapsedTaskCards(els14, taskId) {
+    const roots = [els14.taskActiveList, els14.taskList].filter((root) => root instanceof HTMLElement);
     const cards = roots.flatMap(
       (root) => Array.from(root.querySelectorAll(`.task-card[data-task-id="${cssEscape(taskId)}"]`))
     );
@@ -19108,19 +19123,19 @@
     });
   }
   function updateTaskElapsedDisplays() {
-    const { state: state5, els: els9 } = getLegacyBridge();
-    const activeTasks = state5.tasks.filter((task) => taskNeedsElapsedTick(task));
+    const { state: state8, els: els14 } = getLegacyBridge();
+    const activeTasks = state8.tasks.filter((task) => taskNeedsElapsedTick(task));
     if (!activeTasks.length) return;
     activeTasks.forEach((task) => {
       const taskId = String(task.task_id || "");
       if (!taskId) return;
-      activeElapsedTaskCards(els9, taskId).forEach((card) => updateTaskElapsedCard(card, task));
+      activeElapsedTaskCards(els14, taskId).forEach((card) => updateTaskElapsedCard(card, task));
     });
   }
   function updatePreviewElapsedDisplay() {
-    const { els: els9 } = getLegacyBridge();
-    if (!els9.previewGrid) return;
-    els9.previewGrid.querySelectorAll("[data-preview-elapsed]").forEach((element) => {
+    const { els: els14 } = getLegacyBridge();
+    if (!els14.previewGrid) return;
+    els14.previewGrid.querySelectorAll("[data-preview-elapsed]").forEach((element) => {
       updateElapsedTimerElement(element, elapsedMillisecondsSince(element.dataset.previewStart));
     });
   }
@@ -19156,72 +19171,72 @@
     }
   }
   function updatePromptCount() {
-    const { els: els9 } = getLegacyBridge();
-    if (!els9.charCount) return;
-    els9.charCount.textContent = `${getPromptText().length} / 4000`;
+    const { els: els14 } = getLegacyBridge();
+    if (!els14.charCount) return;
+    els14.charCount.textContent = `${getPromptText().length} / 4000`;
   }
   function addPendingTask(task) {
-    const state5 = getLegacyBridge().state;
-    state5.historyTaskReveal = null;
-    state5.historyTaskRevealSeq += 1;
-    state5.pendingTaskId = task.task_id;
-    state5.selectedTaskId = task.task_id;
-    state5.tasks = [task, ...state5.tasks.filter((item) => item.task_id !== task.task_id)];
+    const state8 = getLegacyBridge().state;
+    state8.historyTaskReveal = null;
+    state8.historyTaskRevealSeq += 1;
+    state8.pendingTaskId = task.task_id;
+    state8.selectedTaskId = task.task_id;
+    state8.tasks = [task, ...state8.tasks.filter((item) => item.task_id !== task.task_id)];
     renderTasks();
     renderPreview(task);
   }
   function replacePendingTask(pendingTaskId, completedTask) {
-    const state5 = getLegacyBridge().state;
-    const removedPendingTasks = state5.tasks.filter((task) => task?.local_pending && (task.task_id === completedTask.task_id || task.task_id === pendingTaskId));
-    state5.tasks = [
+    const state8 = getLegacyBridge().state;
+    const removedPendingTasks = state8.tasks.filter((task) => task?.local_pending && (task.task_id === completedTask.task_id || task.task_id === pendingTaskId));
+    state8.tasks = [
       completedTask,
-      ...state5.tasks.filter((task) => task.task_id !== completedTask.task_id && task.task_id !== pendingTaskId)
+      ...state8.tasks.filter((task) => task.task_id !== completedTask.task_id && task.task_id !== pendingTaskId)
     ];
     removedPendingTasks.forEach(revokeTaskUploadPreviewUrls);
-    state5.selectedTaskId = completedTask.task_id;
-    state5.pendingTaskId = null;
+    state8.selectedTaskId = completedTask.task_id;
+    state8.pendingTaskId = null;
     renderTasks();
     renderPreview(completedTask);
   }
   function markPendingTaskFailed(pendingTaskId, message) {
-    const state5 = getLegacyBridge().state;
-    const task = state5.tasks.find((item) => item.task_id === pendingTaskId);
+    const state8 = getLegacyBridge().state;
+    const task = state8.tasks.find((item) => item.task_id === pendingTaskId);
     if (!task) return;
     task.status = "failed";
     task.error = message;
     task.updated_at = (/* @__PURE__ */ new Date()).toISOString();
-    state5.selectedTaskId = pendingTaskId;
-    state5.pendingTaskId = null;
+    state8.selectedTaskId = pendingTaskId;
+    state8.pendingTaskId = null;
     renderTasks();
     renderPreview(task);
   }
   function startRunFeedback(task, actionLabel = null) {
-    const { state: state5 } = getLegacyBridge();
+    const { state: state8 } = getLegacyBridge();
     stopRunFeedback();
-    state5.runFeedbackAction = actionLabel;
-    state5.runStartedAt = timestampMs(task.started_at || task.created_at) || Date.now();
-    state5.runTimerId = window.setInterval(updateRunFeedback, 100);
+    state8.runFeedbackAction = actionLabel;
+    state8.runStartedAt = timestampMs(task.started_at || task.created_at) || Date.now();
+    state8.runTimerId = window.setInterval(updateRunFeedback, 100);
     updateRunFeedback();
   }
   function updateRunFeedback() {
-    const { state: state5 } = getLegacyBridge();
-    if (!state5.runStartedAt) return;
-    const elapsed = formatDurationTenths(elapsedMillisecondsSince(state5.runStartedAt));
-    const action = state5.runFeedbackAction || (state5.mode === "edit" ? translate("runFeedback.editing") : translate("runFeedback.generating"));
+    const { state: state8 } = getLegacyBridge();
+    if (!state8.runStartedAt) return;
+    const elapsed = formatDurationTenths(elapsedMillisecondsSince(state8.runStartedAt));
+    const action = state8.runFeedbackAction || (state8.mode === "edit" ? translate("runFeedback.editing") : translate("runFeedback.generating"));
     setStatus(formatTranslation("runFeedback.status", { action, elapsed }), "running");
     updateElapsedDisplays();
-    if (state5.selectedTaskId === state5.pendingTaskId) {
+    if (state8.selectedTaskId === state8.pendingTaskId) {
       renderPreview();
     }
   }
   function stopRunFeedback() {
-    const { state: state5 } = getLegacyBridge();
-    if (state5.runTimerId) {
-      window.clearInterval(state5.runTimerId);
+    const { state: state8 } = getLegacyBridge();
+    if (state8.runTimerId) {
+      window.clearInterval(state8.runTimerId);
     }
-    state5.runTimerId = null;
-    state5.runStartedAt = null;
-    state5.runFeedbackAction = null;
+    state8.runTimerId = null;
+    state8.runStartedAt = null;
+    state8.runFeedbackAction = null;
     syncRunButtonLabel();
   }
 
@@ -19237,7 +19252,7 @@
   var DEFAULT_CODEX_MODE = "images";
   var DEFAULT_API_IMAGES_CONCURRENCY = 4;
   var API_SETTINGS_STORAGE_KEY = "codex-image-api-settings";
-  var DEFAULT_DOCUMENT_TITLE = document.title || "iLab CONJURE";
+  var DEFAULT_DOCUMENT_TITLE = (typeof document !== "undefined" ? document.title : "") || "iLab CONJURE";
   function defaultGalleryCategories() {
     return DEFAULT_GALLERY_CATEGORIES.map((category) => ({ ...category }));
   }
@@ -19669,23 +19684,23 @@
     return eligible[0]?.id ?? null;
   }
   function selectedProviderBinding() {
-    const { state: state5 } = getLegacyBridge();
-    const provider = state5.generationCatalog?.providers.find((item) => item.id === state5.selectedProviderId);
-    const candidates = provider?.bindings.filter((binding) => binding.canonical_model_id === state5.selectedModelId && binding.operations.includes(state5.mode) && binding.available !== false) || [];
-    return candidates.find((binding) => binding.id === state5.selectedProviderBindingId) || candidates[0] || null;
+    const { state: state8 } = getLegacyBridge();
+    const provider = state8.generationCatalog?.providers.find((item) => item.id === state8.selectedProviderId);
+    const candidates = provider?.bindings.filter((binding) => binding.canonical_model_id === state8.selectedModelId && binding.operations.includes(state8.mode) && binding.available !== false) || [];
+    return candidates.find((binding) => binding.id === state8.selectedProviderBindingId) || candidates[0] || null;
   }
   function syncCodexCatalogMode(mode) {
-    const { state: state5 } = getLegacyBridge();
-    const catalog = state5.generationCatalog;
+    const { state: state8 } = getLegacyBridge();
+    const catalog = state8.generationCatalog;
     if (!catalog) return;
     catalog.codex.mode = mode;
-    if (state5.selectedProviderId !== "codex") return;
+    if (state8.selectedProviderId !== "codex") return;
     const selected = preferredProviderBinding(
-      eligibleProviderBindings(catalog, state5.selectedModelId, state5.mode),
+      eligibleProviderBindings(catalog, state8.selectedModelId, state8.mode),
       "codex",
       mode
     );
-    if (selected) state5.selectedProviderBindingId = selected.binding.id;
+    if (selected) state8.selectedProviderBindingId = selected.binding.id;
     renderProviderSelection();
   }
   function settingsTabForProvider(_providerId) {
@@ -19706,20 +19721,20 @@
     }
   }
   function renderProviderSelection() {
-    const { state: state5, els: els9 } = getLegacyBridge();
-    const select = els9.generationProviderSelect;
-    const catalog = state5.generationCatalog;
-    const entries = catalog ? eligibleProviderBindings(catalog, state5.selectedModelId, state5.mode) : [];
+    const { state: state8, els: els14 } = getLegacyBridge();
+    const select = els14.generationProviderSelect;
+    const catalog = state8.generationCatalog;
+    const entries = catalog ? eligibleProviderBindings(catalog, state8.selectedModelId, state8.mode) : [];
     const resolved = catalog ? resolveProviderSelection(
       entries,
-      state5.lastProviderSelectionByModel[state5.selectedModelId || ""],
-      state5.lastProviderByModel[state5.selectedModelId || ""],
-      catalog.default_provider_by_model[state5.selectedModelId || ""],
+      state8.lastProviderSelectionByModel[state8.selectedModelId || ""],
+      state8.lastProviderByModel[state8.selectedModelId || ""],
+      catalog.default_provider_by_model[state8.selectedModelId || ""],
       catalog.codex.mode
     ) : null;
-    state5.selectedProviderId = resolved?.provider.id || null;
-    state5.selectedProviderBindingId = resolved?.binding.id || null;
-    state5.authAvailable = Boolean(resolved);
+    state8.selectedProviderId = resolved?.provider.id || null;
+    state8.selectedProviderBindingId = resolved?.binding.id || null;
+    state8.authAvailable = Boolean(resolved);
     if (select) {
       select.replaceChildren();
       if (!entries.length) {
@@ -19743,30 +19758,30 @@
       syncThemedSelect(select);
     }
     syncChatGPTDeleteChatControl();
-    if (els9.runButton) els9.runButton.disabled = !resolved;
+    if (els14.runButton) els14.runButton.disabled = !resolved;
   }
   function isChatGPTWebProvider() {
-    const { state: state5 } = getLegacyBridge();
-    const providerId = state5.selectedProviderId;
+    const { state: state8 } = getLegacyBridge();
+    const providerId = state8.selectedProviderId;
     if (!providerId) return false;
     if (providerId === "default") return true;
-    const provider = state5.generationCatalog?.providers.find((item) => item.id === providerId);
+    const provider = state8.generationCatalog?.providers.find((item) => item.id === providerId);
     if (provider?.name?.toLowerCase().includes("chatgpt web")) return true;
-    const providerSettings = state5.apiSettings?.providers?.find((item) => item.id === providerId);
+    const providerSettings = state8.apiSettings?.providers?.find((item) => item.id === providerId);
     if (providerSettings?.name?.toLowerCase().includes("chatgpt web")) return true;
     if (typeof providerSettings?.base_url === "string" && providerSettings.base_url.includes(":3000")) return true;
     return false;
   }
   function syncChatGPTDeleteChatControl() {
-    const { els: els9, methods } = getLegacyBridge();
+    const { els: els14, methods } = getLegacyBridge();
     const isChatGPT = isChatGPTWebProvider();
-    if (els9.chatgptDeleteChatField) {
-      els9.chatgptDeleteChatField.style.display = isChatGPT ? "" : "none";
-      els9.chatgptDeleteChatField.classList.toggle("hidden", !isChatGPT);
+    if (els14.chatgptDeleteChatField) {
+      els14.chatgptDeleteChatField.style.display = isChatGPT ? "" : "none";
+      els14.chatgptDeleteChatField.classList.toggle("hidden", !isChatGPT);
     }
-    if (els9.chatgptBrowserField) {
-      els9.chatgptBrowserField.style.display = isChatGPT ? "" : "none";
-      els9.chatgptBrowserField.classList.toggle("hidden", !isChatGPT);
+    if (els14.chatgptBrowserField) {
+      els14.chatgptBrowserField.style.display = isChatGPT ? "" : "none";
+      els14.chatgptBrowserField.classList.toggle("hidden", !isChatGPT);
     }
     if (isChatGPT && typeof methods.restoreChatGPTDeleteChatState === "function") {
       methods.restoreChatGPTDeleteChatState();
@@ -19774,25 +19789,25 @@
     if (isChatGPT && typeof methods.restoreChatGPTBrowserState === "function") {
       methods.restoreChatGPTBrowserState();
     }
-    if (els9.webSearchField) {
-      els9.webSearchField.style.display = isChatGPT ? "none" : "";
-      if (isChatGPT) els9.webSearchField.classList.add("hidden");
+    if (els14.webSearchField) {
+      els14.webSearchField.style.display = isChatGPT ? "none" : "";
+      if (isChatGPT) els14.webSearchField.classList.add("hidden");
     }
   }
   function selectGenerationProvider(selectionOrProviderId) {
-    const { state: state5 } = getLegacyBridge();
-    const catalog = state5.generationCatalog;
-    if (!catalog || !state5.selectedModelId) return;
-    const entries = eligibleProviderBindings(catalog, state5.selectedModelId, state5.mode);
+    const { state: state8 } = getLegacyBridge();
+    const catalog = state8.generationCatalog;
+    if (!catalog || !state8.selectedModelId) return;
+    const entries = eligibleProviderBindings(catalog, state8.selectedModelId, state8.mode);
     const selected = entries.find((entry) => entry.selectionKey === selectionOrProviderId) || preferredProviderBinding(entries, selectionOrProviderId, catalog.codex.mode);
     if (!selected) {
       renderProviderSelection();
       return;
     }
-    state5.selectedProviderId = selected.provider.id;
-    state5.selectedProviderBindingId = selected.binding.id;
-    state5.lastProviderByModel[state5.selectedModelId] = selected.provider.id;
-    state5.lastProviderSelectionByModel[state5.selectedModelId] = selected.selectionKey;
+    state8.selectedProviderId = selected.provider.id;
+    state8.selectedProviderBindingId = selected.binding.id;
+    state8.lastProviderByModel[state8.selectedModelId] = selected.provider.id;
+    state8.lastProviderSelectionByModel[state8.selectedModelId] = selected.selectionKey;
     getLegacyBridge().methods.persistModelSelection?.();
     renderProviderSelection();
     getLegacyBridge().methods.updateModeSpecificSettings?.();
@@ -20136,7 +20151,8 @@
     return slots;
   }
   function aspectRatioRect(value) {
-    if (value === "None" || value === "none" || value === "auto") {
+    const normalized = String(value || "").trim().toLowerCase();
+    if (normalized === "none" || normalized === "auto") {
       return {
         x: 5,
         y: 5,
@@ -20178,7 +20194,7 @@
     rect.setAttribute("stroke", "currentColor");
     rect.setAttribute("stroke-width", "1.35");
     rect.setAttribute("vector-effect", "non-scaling-stroke");
-    if (value === "None" || value === "none") {
+    if (String(value || "").trim().toLowerCase() === "none") {
       rect.setAttribute("stroke-dasharray", "2 2");
     }
     svg.append(rect);
@@ -20286,6 +20302,9 @@
   }
 
   // codex_image/webui/frontend/src/model-parameters.ts
+  var GPT_IMAGE_2_MIN_PIXELS = 655360;
+  var GPT_IMAGE_2_MAX_PIXELS = 8294400;
+  var GPT_IMAGE_2_MAX_LONG_SHORT_RATIO = 3;
   function cloneValue(value) {
     if (Array.isArray(value)) return value.map(cloneValue);
     if (value && typeof value === "object") {
@@ -20295,16 +20314,18 @@
   }
   function gptSizeValid(value) {
     if (typeof value !== "string") return false;
-    const match = value.match(/^(\d+)x(\d+)$/i);
+    const normalized = value.trim().toLowerCase();
+    if (normalized === "auto") return true;
+    const match = normalized.match(/^(\d+)x(\d+)$/);
     if (!match) return false;
     const width = Number(match[1]);
     const height = Number(match[2]);
     if (!Number.isInteger(width) || !Number.isInteger(height)) return false;
     if (width < 16 || width > 3840 || height < 16 || height > 3840) return false;
     if (width % 16 !== 0 || height % 16 !== 0) return false;
-    if (Math.max(width, height) / Math.min(width, height) > 3) return false;
+    if (Math.max(width, height) / Math.min(width, height) > GPT_IMAGE_2_MAX_LONG_SHORT_RATIO) return false;
     const pixels = width * height;
-    return pixels >= 655360 && pixels <= 8294400;
+    return pixels >= GPT_IMAGE_2_MIN_PIXELS && pixels <= GPT_IMAGE_2_MAX_PIXELS;
   }
   function parameterValueValid(definition, value) {
     if (definition.id === "canvas.size" && definition.allowed_values.length === 0) {
@@ -20408,8 +20429,8 @@
   }
   function interactiveModel(context) {
     if (context.readOnly) return context.model;
-    const { state: state5 } = getLegacyBridge();
-    return state5.generationCatalog?.models.find((model) => model.id === state5.selectedModelId) || context.model;
+    const { state: state8 } = getLegacyBridge();
+    return state8.generationCatalog?.models.find((model) => model.id === state8.selectedModelId) || context.model;
   }
   function commitValue(context, definition, value, rerender = false) {
     if (context.readOnly) return;
@@ -20588,12 +20609,12 @@
     return renderNumeric(definition, value, context, false);
   }
   function setValidationError(modelId, parameterId, message) {
-    const { state: state5, els: els9 } = getLegacyBridge();
-    const errors = state5.parameterValidationErrorsByModel[modelId] || {};
+    const { state: state8, els: els14 } = getLegacyBridge();
+    const errors = state8.parameterValidationErrorsByModel[modelId] || {};
     if (message) errors[parameterId] = message;
     else delete errors[parameterId];
-    state5.parameterValidationErrorsByModel[modelId] = errors;
-    if (els9.runButton) els9.runButton.disabled = !state5.authAvailable || Object.keys(errors).length > 0;
+    state8.parameterValidationErrorsByModel[modelId] = errors;
+    if (els14.runButton) els14.runButton.disabled = !state8.authAvailable || Object.keys(errors).length > 0;
   }
   function renderText(definition, value, context) {
     const field = fieldShell(definition);
@@ -20863,70 +20884,70 @@
     refreshSegmentedIndicators();
   }
   function ensureModelDraft(model) {
-    const { state: state5 } = getLegacyBridge();
-    const previous = state5.parameterDraftsByModel[model.id] || {};
+    const { state: state8 } = getLegacyBridge();
+    const previous = state8.parameterDraftsByModel[model.id] || {};
     const report = initializeParameterDraft(model, previous);
-    state5.parameterDraftsByModel[model.id] = report.values;
-    state5.parameterDraftVersionsByModel[model.id] = model.version;
+    state8.parameterDraftsByModel[model.id] = report.values;
+    state8.parameterDraftVersionsByModel[model.id] = model.version;
     return report;
   }
   function renderModelParameters(model, options = { readOnly: false }) {
-    const { state: state5, els: els9 } = getLegacyBridge();
-    const root = options.root || els9.modelParameterGrid;
+    const { state: state8, els: els14 } = getLegacyBridge();
+    const root = options.root || els14.modelParameterGrid;
     if (!root) return;
     if (options.readOnly) {
-      renderParameterDefinitionsInto(root, model, options.values || {}, { readOnly: true, operation: state5.mode });
+      renderParameterDefinitionsInto(root, model, options.values || {}, { readOnly: true, operation: state8.mode });
       return;
     }
     ensureModelDraft(model);
-    const visibility = legacyParameterVisibility(model.id, els9.size?.value);
+    const visibility = legacyParameterVisibility(model.id, els14.size?.value);
     const legacyGpt = visibility.legacyGpt;
-    state5.customSizeTransitionSeq += 1;
-    state5.customSizeMode = visibility.customSize;
+    state8.customSizeTransitionSeq += 1;
+    state8.customSizeMode = visibility.customSize;
     const legacyElements = [
-      els9.sizeModeGroup?.closest(".custom-size-control"),
-      els9.orientation?.closest(".orientation-field"),
-      els9.resolution?.closest(".resolution-field"),
-      els9.ratio?.closest(".ratio-field"),
-      els9.quality?.closest(".quantity-quality-row"),
-      els9.pixelPreview,
-      els9.outputFormatField,
-      els9.moderation?.closest(".moderation-field")
+      els14.sizeModeGroup?.closest(".custom-size-control"),
+      els14.orientation?.closest(".orientation-field"),
+      els14.resolution?.closest(".resolution-field"),
+      els14.ratio?.closest(".ratio-field"),
+      els14.quality?.closest(".quantity-quality-row"),
+      els14.pixelPreview,
+      els14.outputFormatField,
+      els14.moderation?.closest(".moderation-field")
     ].filter(Boolean);
     legacyElements.forEach((element) => {
       element.classList.toggle("hidden", !legacyGpt);
     });
-    if (els9.customSize) {
-      els9.customSize.classList.toggle("hidden", !visibility.customSize);
-      els9.customSize.classList.toggle("custom-size-collapsed", !visibility.customSize);
-      els9.customSize.setAttribute("aria-hidden", visibility.customSize ? "false" : "true");
+    if (els14.customSize) {
+      els14.customSize.classList.toggle("hidden", !visibility.customSize);
+      els14.customSize.classList.toggle("custom-size-collapsed", !visibility.customSize);
+      els14.customSize.setAttribute("aria-hidden", visibility.customSize ? "false" : "true");
     }
-    els9.settingsGrid?.classList.toggle("custom-size-mode", visibility.customSize);
-    els9.webSearchField?.classList.toggle("hidden", !legacyGpt);
+    els14.settingsGrid?.classList.toggle("custom-size-mode", visibility.customSize);
+    els14.webSearchField?.classList.toggle("hidden", !legacyGpt);
     syncChatGPTDeleteChatControl();
     root.classList.toggle("hidden", legacyGpt);
     if (legacyGpt) root.replaceChildren();
     else renderInteractiveParameterDefinitionsInto(
       root,
       model,
-      state5.parameterDraftsByModel[model.id] || {},
-      state5.mode
+      state8.parameterDraftsByModel[model.id] || {},
+      state8.mode
     );
   }
   function setParameterValue(modelId, parameterId, value) {
-    const { state: state5 } = getLegacyBridge();
-    const model = state5.generationCatalog?.models.find((item) => item.id === modelId);
+    const { state: state8 } = getLegacyBridge();
+    const model = state8.generationCatalog?.models.find((item) => item.id === modelId);
     const definition = model?.parameters.find((item) => item.id === parameterId);
     if (!model || !definition || !parameterValueValid(definition, value)) return;
-    state5.parameterDraftsByModel[modelId] = {
-      ...state5.parameterDraftsByModel[modelId] || {},
+    state8.parameterDraftsByModel[modelId] = {
+      ...state8.parameterDraftsByModel[modelId] || {},
       [parameterId]: cloneValue(value)
     };
     if (definition.scope === "application") {
-      state5.generationCatalog?.models.forEach((item) => {
+      state8.generationCatalog?.models.forEach((item) => {
         if (item.parameters.some((parameter) => parameter.id === parameterId)) {
-          state5.parameterDraftsByModel[item.id] = {
-            ...state5.parameterDraftsByModel[item.id] || {},
+          state8.parameterDraftsByModel[item.id] = {
+            ...state8.parameterDraftsByModel[item.id] || {},
             [parameterId]: cloneValue(value)
           };
         }
@@ -20936,9 +20957,87 @@
     getLegacyBridge().methods.updateRequestPreview?.();
   }
   function renderCurrentModelParameters() {
-    const { state: state5 } = getLegacyBridge();
-    const model = state5.generationCatalog?.models.find((item) => item.id === state5.selectedModelId);
+    const { state: state8 } = getLegacyBridge();
+    const model = state8.generationCatalog?.models.find((item) => item.id === state8.selectedModelId);
     if (model) renderModelParameters(model, { readOnly: false });
+  }
+
+  // codex_image/webui/frontend/src/output-controls.ts
+  var { els: els4 } = getLegacyBridge();
+
+  // codex_image/webui/frontend/src/main-model-combobox.ts
+  var bridge3 = getLegacyBridge();
+  var state3 = bridge3.state;
+  var els5 = bridge3.els;
+
+  // codex_image/webui/frontend/src/form-controls.ts
+  var bridge4 = getLegacyBridge();
+  var state4 = bridge4.state;
+  var els6 = bridge4.els;
+
+  // codex_image/webui/frontend/src/size-presets.ts
+  var { els: els7 } = getLegacyBridge();
+  function normalizeCustomDimension(value) {
+    const rawValue = String(value ?? "").trim();
+    if (!rawValue) return null;
+    const numericValue = Number(rawValue);
+    if (!Number.isInteger(numericValue)) return null;
+    return numericValue;
+  }
+  function customDimensionValue(input) {
+    return normalizeCustomDimension(input?.value);
+  }
+  function customSizeValidationMessage(width = customDimensionValue(els7.customWidth), height = customDimensionValue(els7.customHeight)) {
+    if (width === null || height === null) return translate("output.customSizeRequired");
+    if (width < 16 || width > 3840 || height < 16 || height > 3840) return translate("output.customSizeBounds");
+    if (width % 16 !== 0 || height % 16 !== 0) return translate("output.customSizeMultiple");
+    if (Math.max(width, height) / Math.min(width, height) > GPT_IMAGE_2_MAX_LONG_SHORT_RATIO) return translate("output.customSizeRatio");
+    const totalPixels = width * height;
+    if (totalPixels < GPT_IMAGE_2_MIN_PIXELS || totalPixels > GPT_IMAGE_2_MAX_PIXELS) return translate("output.customSizePixels");
+    return "";
+  }
+
+  // codex_image/webui/frontend/src/custom-size-controls.ts
+  var bridge5 = getLegacyBridge();
+  var state5 = bridge5.state;
+  var els8 = bridge5.els;
+  var programmaticSync = false;
+  function withProgrammaticSizeSync(action) {
+    const previous = programmaticSync;
+    programmaticSync = true;
+    try {
+      return action();
+    } finally {
+      programmaticSync = previous;
+    }
+  }
+  function updatePixelPreview(size) {
+    if (!els8.pixelPreview) return;
+    const normalized = String(size || "").trim().toLowerCase();
+    if (normalized === "auto") {
+      els8.pixelPreview.textContent = formatTranslation("output.pixelPreviewAuto");
+      return;
+    }
+    if (normalized === "custom") {
+      const message = customSizeValidationMessage();
+      if (message) {
+        els8.pixelPreview.textContent = formatTranslation("output.pixelPreviewValue", { value: message });
+        return;
+      }
+      els8.pixelPreview.textContent = formatTranslation("output.pixelPreviewValue", {
+        value: `${customDimensionValue(els8.customWidth)} x ${customDimensionValue(els8.customHeight)} px`
+      });
+      return;
+    }
+    const [width, height] = String(size || "").toLowerCase().split("x");
+    if (width && height) {
+      els8.pixelPreview.textContent = formatTranslation("output.pixelPreviewValue", { value: `${width} x ${height} px` });
+    } else {
+      els8.pixelPreview.textContent = "";
+    }
+  }
+  if (typeof document !== "undefined" && typeof document.addEventListener === "function") {
+    document.addEventListener(LOCALE_CHANGE_EVENT, () => updatePixelPreview(els8.size?.value || ""));
   }
 
   // codex_image/webui/frontend/src/model-parameter-drafts.ts
@@ -20967,39 +21066,24 @@
     }
     return Object.fromEntries(Object.entries(values).filter(([, value]) => value !== void 0 && value !== null));
   }
-  function parameterValueValid2(parameter, value) {
-    const typeValid = parameter.value_type === "string" ? typeof value === "string" : parameter.value_type === "integer" ? typeof value === "number" && Number.isInteger(value) : parameter.value_type === "boolean" ? typeof value === "boolean" : parameter.value_type === "object" ? Boolean(value) && typeof value === "object" && !Array.isArray(value) : false;
-    if (!typeValid) return false;
-    if (parameter.allowed_values.length && !parameter.allowed_values.includes(value)) return false;
-    if (typeof value === "number") {
-      if (parameter.minimum !== null && value < parameter.minimum) return false;
-      if (parameter.maximum !== null && value > parameter.maximum) return false;
-      if (parameter.step !== null) {
-        const base = parameter.minimum ?? 0;
-        const quotient = (value - base) / parameter.step;
-        if (Math.abs(quotient - Math.round(quotient)) > 1e-9) return false;
-      }
-    }
-    return true;
-  }
   function migratePortableModelDraft(sourceModel, targetModel, sourceDraft, targetDraft) {
     const sourceIds = new Set(sourceModel.parameters.map((definition) => definition.id));
     return Object.fromEntries(targetModel.parameters.map((definition) => {
       if (sourceIds.has(definition.id)) {
         const sourceValue = sourceDraft[definition.id];
         return [definition.id, cloneValue2(
-          parameterValueValid2(definition, sourceValue) ? sourceValue : definition.default
+          parameterValueValid(definition, sourceValue) ? sourceValue : definition.default
         )];
       }
       const targetValue = targetDraft[definition.id];
       return [definition.id, cloneValue2(
-        parameterValueValid2(definition, targetValue) ? targetValue : definition.default
+        parameterValueValid(definition, targetValue) ? targetValue : definition.default
       )];
     }));
   }
   function saveCurrentModelParameterDraft() {
-    const { state: state5, methods } = getLegacyBridge();
-    const model = state5.generationCatalog?.models.find((item) => item.id === state5.selectedModelId);
+    const { state: state8, methods } = getLegacyBridge();
+    const model = state8.generationCatalog?.models.find((item) => item.id === state8.selectedModelId);
     if (!model || typeof methods.currentTaskParams !== "function") return;
     if (model.id !== "gpt-image-2") {
       methods.persistModelSelection?.();
@@ -21011,45 +21095,49 @@
       "canvas.aspect_ratio",
       "canvas.resolution"
     ]);
-    state5.parameterDraftsByModel[model.id] = {
-      ...state5.parameterDraftsByModel[model.id] || {},
+    state8.parameterDraftsByModel[model.id] = {
+      ...state8.parameterDraftsByModel[model.id] || {},
       ...Object.fromEntries(Object.entries(values).filter(([id]) => allowed.has(id)))
     };
     methods.persistModelSelection?.();
   }
   function restoreCurrentModelParameterDraft() {
-    const { state: state5, els: els9, methods } = getLegacyBridge();
-    const modelId = state5.selectedModelId || "";
-    const model = state5.generationCatalog?.models.find((item) => item.id === modelId);
+    const { state: state8, els: els14, methods } = getLegacyBridge();
+    const modelId = state8.selectedModelId || "";
+    const model = state8.generationCatalog?.models.find((item) => item.id === modelId);
     if (!model) return;
     if (model.id !== "gpt-image-2") {
       renderCurrentModelParameters();
       return;
     }
-    const draft = {
-      ...Object.fromEntries(model.parameters.map((parameter) => [parameter.id, parameter.default])),
-      ...state5.parameterDraftsByModel[modelId] || {}
-    };
-    if (typeof draft["canvas.resolution"] === "string" && els9.resolution) els9.resolution.value = draft["canvas.resolution"];
-    if (typeof draft["canvas.aspect_ratio"] === "string" && els9.ratio) els9.ratio.value = draft["canvas.aspect_ratio"];
-    if ((draft["canvas.resolution"] || draft["canvas.aspect_ratio"]) && typeof methods.updateSizeFromPreset === "function") {
-      methods.updateSizeFromPreset();
-    }
-    if (typeof draft["canvas.size"] === "string" && draft["canvas.aspect_ratio"] !== "None") {
-      methods.syncSizeControlsFromSize?.(draft["canvas.size"]);
-    }
-    if (typeof draft["gpt.quality"] === "string" && els9.quality) els9.quality.value = draft["gpt.quality"];
-    if (typeof draft["output.format"] === "string" && els9.outputFormat) els9.outputFormat.value = draft["output.format"];
-    if (typeof draft["gpt.moderation"] === "string" && els9.moderation) els9.moderation.value = draft["gpt.moderation"];
-    if (typeof draft["gpt.output_compression"] === "number" && els9.compression) els9.compression.value = String(draft["gpt.output_compression"]);
-    if (typeof draft["gpt.web_search"] === "boolean" && els9.webSearch) {
-      els9.webSearch.checked = draft["gpt.web_search"] && (selectedProviderBinding()?.protocol_profile || "").endsWith("_responses");
-    }
-    if (typeof draft["output.count"] === "number" && els9.nInput) els9.nInput.value = String(draft["output.count"]);
-    methods.syncRadioButtons?.(els9.quality, els9.outputFormat, els9.moderation);
-    methods.updateQuantity?.();
-    methods.updateCompression?.();
-    renderCurrentModelParameters();
+    withProgrammaticSizeSync(() => {
+      const draft = {
+        ...Object.fromEntries(model.parameters.map((parameter) => [parameter.id, parameter.default])),
+        ...state8.parameterDraftsByModel[modelId] || {}
+      };
+      if (typeof draft["canvas.resolution"] === "string" && els14.resolution) els14.resolution.value = draft["canvas.resolution"];
+      if (typeof draft["canvas.aspect_ratio"] === "string" && els14.ratio) els14.ratio.value = draft["canvas.aspect_ratio"];
+      const rawRatio = String(draft["canvas.aspect_ratio"] || "").trim().toLowerCase();
+      const isNoneRatio = rawRatio === "none" || rawRatio === "auto";
+      const effectiveSize = isNoneRatio && draft["canvas.size"] === "1024x1024" ? "auto" : draft["canvas.size"];
+      if (typeof effectiveSize === "string") {
+        methods.syncSizeControlsFromSize?.(effectiveSize);
+      } else if ((draft["canvas.resolution"] || draft["canvas.aspect_ratio"]) && typeof methods.updateSizeFromPreset === "function") {
+        methods.updateSizeFromPreset();
+      }
+      if (typeof draft["gpt.quality"] === "string" && els14.quality) els14.quality.value = draft["gpt.quality"];
+      if (typeof draft["output.format"] === "string" && els14.outputFormat) els14.outputFormat.value = draft["output.format"];
+      if (typeof draft["gpt.moderation"] === "string" && els14.moderation) els14.moderation.value = draft["gpt.moderation"];
+      if (typeof draft["gpt.output_compression"] === "number" && els14.compression) els14.compression.value = String(draft["gpt.output_compression"]);
+      if (typeof draft["gpt.web_search"] === "boolean" && els14.webSearch) {
+        els14.webSearch.checked = draft["gpt.web_search"] && (selectedProviderBinding()?.protocol_profile || "").endsWith("_responses");
+      }
+      if (typeof draft["output.count"] === "number" && els14.nInput) els14.nInput.value = String(draft["output.count"]);
+      methods.syncRadioButtons?.(els14.quality, els14.outputFormat, els14.moderation);
+      methods.updateQuantity?.();
+      methods.updateCompression?.();
+      renderCurrentModelParameters();
+    });
   }
 
   // codex_image/webui/frontend/src/model-family-icons.ts
@@ -21083,23 +21171,23 @@
     return models.length > 1;
   }
   function selectConcreteModel(modelId) {
-    const { state: state5 } = getLegacyBridge();
-    const model = state5.generationCatalog?.models.find((item) => item.id === modelId);
+    const { state: state8 } = getLegacyBridge();
+    const model = state8.generationCatalog?.models.find((item) => item.id === modelId);
     if (!model) return;
-    const sourceModel = state5.generationCatalog?.models.find((item) => item.id === state5.selectedModelId);
+    const sourceModel = state8.generationCatalog?.models.find((item) => item.id === state8.selectedModelId);
     const familyChanged = sourceModel?.family_id !== model.family_id;
     saveCurrentModelParameterDraft();
     if (sourceModel?.family_id === model.family_id) {
-      state5.parameterDraftsByModel[model.id] = migratePortableModelDraft(
+      state8.parameterDraftsByModel[model.id] = migratePortableModelDraft(
         sourceModel,
         model,
-        state5.parameterDraftsByModel[sourceModel.id] || {},
-        state5.parameterDraftsByModel[model.id] || {}
+        state8.parameterDraftsByModel[sourceModel.id] || {},
+        state8.parameterDraftsByModel[model.id] || {}
       );
     }
-    state5.selectedModelId = model.id;
-    state5.selectedFamilyId = model.family_id;
-    state5.lastModelByFamily[model.family_id] = model.id;
+    state8.selectedModelId = model.id;
+    state8.selectedFamilyId = model.family_id;
+    state8.lastModelByFamily[model.family_id] = model.id;
     getLegacyBridge().methods.persistModelSelection?.();
     if (familyChanged) renderModelSelectors();
     else updateConcreteModelSelection(model.id);
@@ -21111,25 +21199,25 @@
     getLegacyBridge().methods.updateRequestPreview?.();
   }
   function updateConcreteModelSelection(modelId) {
-    const { state: state5, els: els9 } = getLegacyBridge();
-    const modelSelect = els9.concreteModelSelect;
-    const modelOptions = els9.concreteModelOptions;
+    const { state: state8, els: els14 } = getLegacyBridge();
+    const modelSelect = els14.concreteModelSelect;
+    const modelOptions = els14.concreteModelOptions;
     if (modelSelect) modelSelect.value = modelId;
     modelOptions?.querySelectorAll("[data-model-id]").forEach((button) => {
       const active = button.dataset.modelId === modelId;
       button.classList.toggle("active", active);
       button.setAttribute("aria-pressed", active ? "true" : "false");
     });
-    const model = state5.generationCatalog?.models.find((item) => item.id === modelId);
+    const model = state8.generationCatalog?.models.find((item) => item.id === modelId);
     if (modelSelect) modelSelect.title = model?.display_name || "";
     refreshSegmentedIndicators();
   }
   function renderModelSelectors() {
-    const { state: state5, els: els9 } = getLegacyBridge();
-    const catalog = state5.generationCatalog;
-    const familyOptions = els9.modelFamilyOptions;
-    const modelSelect = els9.concreteModelSelect;
-    const modelOptions = els9.concreteModelOptions;
+    const { state: state8, els: els14 } = getLegacyBridge();
+    const catalog = state8.generationCatalog;
+    const familyOptions = els14.modelFamilyOptions;
+    const modelSelect = els14.concreteModelSelect;
+    const modelOptions = els14.concreteModelOptions;
     const modelField = modelSelect?.closest(".concrete-model-field");
     if (!catalog) {
       if (familyOptions) {
@@ -21142,7 +21230,7 @@
       modelField?.classList.add("hidden");
       return;
     }
-    const selectedFamily = catalog.families.find((family) => family.id === state5.selectedFamilyId);
+    const selectedFamily = catalog.families.find((family) => family.id === state8.selectedFamilyId);
     if (familyOptions) {
       familyOptions.querySelectorAll("[data-family-id]").forEach((item) => item.remove());
       familyOptions.removeAttribute("aria-disabled");
@@ -21150,7 +21238,7 @@
         const item = document.createElement("button");
         item.type = "button";
         item.role = "radio";
-        const active = family.id === state5.selectedFamilyId;
+        const active = family.id === state8.selectedFamilyId;
         item.className = `model-family-segment radio-btn${active ? " active" : ""}`;
         item.dataset.familyId = family.id;
         item.title = family.display_name;
@@ -21179,9 +21267,9 @@
         option2.title = model.display_name;
         modelSelect.append(option2);
       });
-      modelSelect.value = state5.selectedModelId || "";
+      modelSelect.value = state8.selectedModelId || "";
       modelSelect.disabled = modelSelect.options.length === 0;
-      modelSelect.title = catalog.models.find((model) => model.id === state5.selectedModelId)?.display_name || "";
+      modelSelect.title = catalog.models.find((model) => model.id === state8.selectedModelId)?.display_name || "";
       modelSelect.classList.toggle("hidden", expanded);
       if (modelOptions) {
         modelOptions.replaceChildren();
@@ -21189,7 +21277,7 @@
         if (expanded) {
           familyModels.forEach((model) => {
             const button = document.createElement("button");
-            const active = model.id === state5.selectedModelId;
+            const active = model.id === state8.selectedModelId;
             button.type = "button";
             button.className = `radio-btn${active ? " active" : ""}`;
             button.dataset.modelId = model.id;
@@ -21237,26 +21325,26 @@
   function restoreModelSelection() {
     try {
       const stored = JSON.parse(localStorage.getItem(MODEL_SELECTION_STORAGE_KEY) || "{}");
-      const { state: state5 } = getLegacyBridge();
-      state5.selectedModelId = typeof stored.selectedModelId === "string" ? stored.selectedModelId : null;
-      state5.lastModelByFamily = stringRecord(stored.lastModelByFamily);
-      state5.lastProviderByModel = stringRecord(stored.lastProviderByModel);
-      state5.lastProviderSelectionByModel = stringRecord(stored.lastProviderSelectionByModel);
-      state5.parameterDraftsByModel = draftRecord(stored.parameterDraftsByModel);
-      state5.parameterDraftVersionsByModel = positiveIntegerRecord(stored.parameterDraftVersionsByModel);
+      const { state: state8 } = getLegacyBridge();
+      state8.selectedModelId = typeof stored.selectedModelId === "string" ? stored.selectedModelId : null;
+      state8.lastModelByFamily = stringRecord(stored.lastModelByFamily);
+      state8.lastProviderByModel = stringRecord(stored.lastProviderByModel);
+      state8.lastProviderSelectionByModel = stringRecord(stored.lastProviderSelectionByModel);
+      state8.parameterDraftsByModel = draftRecord(stored.parameterDraftsByModel);
+      state8.parameterDraftVersionsByModel = positiveIntegerRecord(stored.parameterDraftVersionsByModel);
     } catch {
       localStorage.removeItem(MODEL_SELECTION_STORAGE_KEY);
     }
   }
   function persistModelSelection() {
-    const { state: state5 } = getLegacyBridge();
+    const { state: state8 } = getLegacyBridge();
     const stored = {
-      ...state5.selectedModelId ? { selectedModelId: state5.selectedModelId } : {},
-      lastModelByFamily: stringRecord(state5.lastModelByFamily),
-      lastProviderByModel: stringRecord(state5.lastProviderByModel),
-      lastProviderSelectionByModel: stringRecord(state5.lastProviderSelectionByModel),
-      parameterDraftsByModel: draftRecord(state5.parameterDraftsByModel),
-      parameterDraftVersionsByModel: positiveIntegerRecord(state5.parameterDraftVersionsByModel)
+      ...state8.selectedModelId ? { selectedModelId: state8.selectedModelId } : {},
+      lastModelByFamily: stringRecord(state8.lastModelByFamily),
+      lastProviderByModel: stringRecord(state8.lastProviderByModel),
+      lastProviderSelectionByModel: stringRecord(state8.lastProviderSelectionByModel),
+      parameterDraftsByModel: draftRecord(state8.parameterDraftsByModel),
+      parameterDraftVersionsByModel: positiveIntegerRecord(state8.parameterDraftVersionsByModel)
     };
     localStorage.setItem(MODEL_SELECTION_STORAGE_KEY, JSON.stringify(stored));
   }
@@ -21328,36 +21416,36 @@
     };
   }
   async function refreshGenerationCatalog() {
-    const { state: state5 } = getLegacyBridge();
+    const { state: state8 } = getLegacyBridge();
     try {
       const response = await fetch("/api/generation-catalog", { headers: { Accept: "application/json" } });
       const payload = await response.json();
       if (!response.ok || !isGenerationCatalog(payload)) throw new Error("generation catalog unavailable");
-      state5.generationCatalog = payload;
-      state5.generationCatalogError = null;
+      state8.generationCatalog = payload;
+      state8.generationCatalogError = null;
       const selection = initialCatalogSelection(
         payload,
-        state5.selectedModelId,
-        state5.lastProviderByModel,
-        state5.mode,
-        state5.lastProviderSelectionByModel
+        state8.selectedModelId,
+        state8.lastProviderByModel,
+        state8.mode,
+        state8.lastProviderSelectionByModel
       );
-      state5.selectedFamilyId = selection.familyId;
-      state5.selectedModelId = selection.modelId;
-      state5.selectedProviderId = selection.providerId;
-      state5.selectedProviderBindingId = selection.bindingId;
+      state8.selectedFamilyId = selection.familyId;
+      state8.selectedModelId = selection.modelId;
+      state8.selectedProviderId = selection.providerId;
+      state8.selectedProviderBindingId = selection.bindingId;
       if (selection.modelId && selection.providerId && selection.bindingId) {
-        state5.lastProviderByModel[selection.modelId] = selection.providerId;
-        state5.lastProviderSelectionByModel[selection.modelId] = `${selection.providerId}::${selection.bindingId}`;
+        state8.lastProviderByModel[selection.modelId] = selection.providerId;
+        state8.lastProviderSelectionByModel[selection.modelId] = `${selection.providerId}::${selection.bindingId}`;
       }
       persistModelSelection();
     } catch (error) {
-      state5.generationCatalog = null;
-      state5.generationCatalogError = error instanceof Error ? error.message : "generation catalog unavailable";
-      state5.selectedFamilyId = null;
-      state5.selectedModelId = null;
-      state5.selectedProviderId = null;
-      state5.selectedProviderBindingId = null;
+      state8.generationCatalog = null;
+      state8.generationCatalogError = error instanceof Error ? error.message : "generation catalog unavailable";
+      state8.selectedFamilyId = null;
+      state8.selectedModelId = null;
+      state8.selectedProviderId = null;
+      state8.selectedProviderBindingId = null;
     }
     renderModelSelectors();
     renderProviderSelection();
@@ -21393,12 +21481,12 @@
     return void 0;
   }
   function systemSettingsPanel() {
-    const { els: els9 } = getLegacyBridge();
-    return els9.systemSettingsModal?.querySelector(".system-settings-modal-panel") || null;
+    const { els: els14 } = getLegacyBridge();
+    return els14.systemSettingsModal?.querySelector(".system-settings-modal-panel") || null;
   }
   function shouldAnimateSystemSettingsHeight() {
-    const { els: els9 } = getLegacyBridge();
-    if (els9.systemSettingsModal?.classList.contains("hidden")) return false;
+    const { els: els14 } = getLegacyBridge();
+    if (els14.systemSettingsModal?.classList.contains("hidden")) return false;
     return !window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
   }
   function clearSystemSettingsHeightAnimation(panel) {
@@ -21411,8 +21499,8 @@
     panel.style.height = "";
   }
   function positionSystemSettingsModal() {
-    const { els: els9 } = getLegacyBridge();
-    const modal = els9.systemSettingsModal;
+    const { els: els14 } = getLegacyBridge();
+    const modal = els14.systemSettingsModal;
     const panel = systemSettingsPanel();
     if (!modal || !panel || modal.classList.contains("hidden")) return;
     const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
@@ -21461,12 +21549,12 @@
   function setSystemSettingsTab(tab, options = {}) {
     if (userConfigBackupOpen) closeUserConfigBackupView({ restoreFocus: false, force: true });
     const selected = normalizedTab(tab);
-    const { els: els9 } = getLegacyBridge();
+    const { els: els14 } = getLegacyBridge();
     const panel = systemSettingsPanel();
     const animateHeight = Boolean(panel && shouldAnimateSystemSettingsHeight());
     const beforeHeight = animateHeight && panel ? panel.getBoundingClientRect().height : 0;
     if (animateHeight && panel) clearSystemSettingsHeightAnimation(panel);
-    const buttons = Array.from(els9.systemSettingsTabs?.querySelectorAll("[data-system-settings-tab]") || []);
+    const buttons = Array.from(els14.systemSettingsTabs?.querySelectorAll("[data-system-settings-tab]") || []);
     buttons.forEach((button) => {
       const active = button.dataset.systemSettingsTab === selected;
       button.classList.toggle("active", active);
@@ -21474,10 +21562,10 @@
       button.tabIndex = active ? 0 : -1;
     });
     [
-      ["api", els9.systemSettingsApiPanel],
-      ["network", els9.systemSettingsNetworkPanel],
-      ["language", els9.systemSettingsLanguagePanel],
-      ["storage", els9.systemSettingsStoragePanel]
+      ["api", els14.systemSettingsApiPanel],
+      ["network", els14.systemSettingsNetworkPanel],
+      ["language", els14.systemSettingsLanguagePanel],
+      ["storage", els14.systemSettingsStoragePanel]
     ].forEach(([name, panel2]) => {
       if (!panel2) return;
       const active = name === selected;
@@ -21499,76 +21587,76 @@
     return userConfigBackupOpen;
   }
   function openUserConfigBackupView(trigger) {
-    const { els: els9 } = getLegacyBridge();
+    const { els: els14 } = getLegacyBridge();
     if (userConfigBackupOpen) return;
     setSystemSettingsTab("storage");
     userConfigBackupOpen = true;
     userConfigBackupTrigger = trigger ?? (document.activeElement instanceof HTMLElement ? document.activeElement : null);
-    storagePanelScrollTop = Number(els9.systemSettingsStoragePanel?.scrollTop || 0);
+    storagePanelScrollTop = Number(els14.systemSettingsStoragePanel?.scrollTop || 0);
     const panel = systemSettingsPanel();
     const animateHeight = Boolean(panel && shouldAnimateSystemSettingsHeight());
     const beforeHeight = animateHeight && panel ? panel.getBoundingClientRect().height : 0;
     if (animateHeight && panel) clearSystemSettingsHeightAnimation(panel);
-    if (els9.systemSettingsTabs instanceof HTMLElement) {
-      els9.systemSettingsTabs.hidden = true;
-      els9.systemSettingsTabs.inert = true;
-      els9.systemSettingsTabs.setAttribute("aria-hidden", "true");
+    if (els14.systemSettingsTabs instanceof HTMLElement) {
+      els14.systemSettingsTabs.hidden = true;
+      els14.systemSettingsTabs.inert = true;
+      els14.systemSettingsTabs.setAttribute("aria-hidden", "true");
     }
     [
-      els9.systemSettingsApiPanel,
-      els9.systemSettingsNetworkPanel,
-      els9.systemSettingsLanguagePanel,
-      els9.systemSettingsStoragePanel
+      els14.systemSettingsApiPanel,
+      els14.systemSettingsNetworkPanel,
+      els14.systemSettingsLanguagePanel,
+      els14.systemSettingsStoragePanel
     ].forEach((settingsPanel) => {
       if (!settingsPanel) return;
       settingsPanel.hidden = true;
       settingsPanel.inert = true;
       settingsPanel.setAttribute("aria-hidden", "true");
     });
-    if (els9.userConfigBackupView instanceof HTMLElement) {
-      els9.userConfigBackupView.hidden = false;
-      els9.userConfigBackupView.inert = false;
-      els9.userConfigBackupView.setAttribute("aria-hidden", "false");
+    if (els14.userConfigBackupView instanceof HTMLElement) {
+      els14.userConfigBackupView.hidden = false;
+      els14.userConfigBackupView.inert = false;
+      els14.userConfigBackupView.setAttribute("aria-hidden", "false");
     }
-    els9.userConfigBackupBackButton?.classList.remove("hidden");
-    if (els9.systemSettingsTitle) {
-      els9.systemSettingsTitle.dataset.i18n = "userConfigBackup.title";
-      els9.systemSettingsTitle.textContent = translate("userConfigBackup.title");
+    els14.userConfigBackupBackButton?.classList.remove("hidden");
+    if (els14.systemSettingsTitle) {
+      els14.systemSettingsTitle.dataset.i18n = "userConfigBackup.title";
+      els14.systemSettingsTitle.textContent = translate("userConfigBackup.title");
     }
     maybeCall("openUserConfigBackupController");
     refreshSegmentedIndicators();
     if (animateHeight && panel) animateSystemSettingsPanelHeight(panel, beforeHeight);
-    els9.userConfigBackupBackButton?.focus({ preventScroll: true });
+    els14.userConfigBackupBackButton?.focus({ preventScroll: true });
   }
   function closeUserConfigBackupView(options = {}) {
     if (!userConfigBackupOpen) return true;
     if (!options.force && maybeCall("guardUserConfigBackupClose", options.closeModal === true) === false) return false;
-    const { els: els9 } = getLegacyBridge();
+    const { els: els14 } = getLegacyBridge();
     const panel = systemSettingsPanel();
     const animateHeight = Boolean(panel && shouldAnimateSystemSettingsHeight());
     const beforeHeight = animateHeight && panel ? panel.getBoundingClientRect().height : 0;
     if (animateHeight && panel) clearSystemSettingsHeightAnimation(panel);
     userConfigBackupOpen = false;
-    if (els9.userConfigBackupView instanceof HTMLElement) {
-      els9.userConfigBackupView.hidden = true;
-      els9.userConfigBackupView.inert = true;
-      els9.userConfigBackupView.setAttribute("aria-hidden", "true");
+    if (els14.userConfigBackupView instanceof HTMLElement) {
+      els14.userConfigBackupView.hidden = true;
+      els14.userConfigBackupView.inert = true;
+      els14.userConfigBackupView.setAttribute("aria-hidden", "true");
     }
-    if (els9.systemSettingsTabs instanceof HTMLElement) {
-      els9.systemSettingsTabs.hidden = false;
-      els9.systemSettingsTabs.inert = false;
-      els9.systemSettingsTabs.setAttribute("aria-hidden", "false");
+    if (els14.systemSettingsTabs instanceof HTMLElement) {
+      els14.systemSettingsTabs.hidden = false;
+      els14.systemSettingsTabs.inert = false;
+      els14.systemSettingsTabs.setAttribute("aria-hidden", "false");
     }
-    els9.userConfigBackupBackButton?.classList.add("hidden");
-    if (els9.systemSettingsTitle) {
-      els9.systemSettingsTitle.dataset.i18n = "systemSettings.title";
-      els9.systemSettingsTitle.textContent = translate("systemSettings.title");
+    els14.userConfigBackupBackButton?.classList.add("hidden");
+    if (els14.systemSettingsTitle) {
+      els14.systemSettingsTitle.dataset.i18n = "systemSettings.title";
+      els14.systemSettingsTitle.textContent = translate("systemSettings.title");
     }
     [
-      ["api", els9.systemSettingsApiPanel],
-      ["network", els9.systemSettingsNetworkPanel],
-      ["language", els9.systemSettingsLanguagePanel],
-      ["storage", els9.systemSettingsStoragePanel]
+      ["api", els14.systemSettingsApiPanel],
+      ["network", els14.systemSettingsNetworkPanel],
+      ["language", els14.systemSettingsLanguagePanel],
+      ["storage", els14.systemSettingsStoragePanel]
     ].forEach(([name, settingsPanel]) => {
       if (!(settingsPanel instanceof HTMLElement)) return;
       settingsPanel.inert = false;
@@ -21577,7 +21665,7 @@
       settingsPanel.setAttribute("aria-hidden", active ? "false" : "true");
     });
     setSystemSettingsTab("storage", { refresh: false });
-    if (els9.systemSettingsStoragePanel) els9.systemSettingsStoragePanel.scrollTop = storagePanelScrollTop;
+    if (els14.systemSettingsStoragePanel) els14.systemSettingsStoragePanel.scrollTop = storagePanelScrollTop;
     maybeCall("closeUserConfigBackupController");
     refreshSegmentedIndicators();
     if (animateHeight && panel) animateSystemSettingsPanelHeight(panel, beforeHeight);
@@ -21588,8 +21676,8 @@
     return true;
   }
   function openSystemSettingsModal(tab = "api") {
-    const { els: els9 } = getLegacyBridge();
-    const modal = els9.systemSettingsModal;
+    const { els: els14 } = getLegacyBridge();
+    const modal = els14.systemSettingsModal;
     const wasHidden = modal?.classList.contains("hidden") ?? true;
     if (wasHidden) {
       const activeElement = document.activeElement;
@@ -21607,8 +21695,8 @@
       force: options.force === true,
       closeModal: true
     })) return;
-    const { els: els9 } = getLegacyBridge();
-    const modal = els9.systemSettingsModal;
+    const { els: els14 } = getLegacyBridge();
+    const modal = els14.systemSettingsModal;
     const activeElement = document.activeElement;
     if (modal && activeElement instanceof HTMLElement && modal.contains(activeElement)) {
       const returnFocus = systemSettingsReturnFocus;
@@ -21657,10 +21745,10 @@
   function initSystemSettingsFeature() {
     if (systemSettingsFeatureInitialized) return;
     systemSettingsFeatureInitialized = true;
-    const { els: els9 } = getLegacyBridge();
-    els9.systemSettingsTabs?.addEventListener("click", handleSystemSettingsTabClick);
-    els9.openUserConfigBackupButton?.addEventListener("click", handleUserConfigBackupEntry);
-    els9.userConfigBackupBackButton?.addEventListener("click", () => closeUserConfigBackupView());
+    const { els: els14 } = getLegacyBridge();
+    els14.systemSettingsTabs?.addEventListener("click", handleSystemSettingsTabClick);
+    els14.openUserConfigBackupButton?.addEventListener("click", handleUserConfigBackupEntry);
+    els14.userConfigBackupBackButton?.addEventListener("click", () => closeUserConfigBackupView());
     window.addEventListener("resize", handleSystemSettingsResize);
     document.addEventListener("keydown", handleSystemSettingsKeydown, true);
     Object.assign(getLegacyBridge().methods, {
@@ -21752,8 +21840,8 @@
     return Array.from(list.querySelectorAll(".api-provider-sort-row[data-api-provider-id]")).map((row) => row.dataset.apiProviderId || "").filter(Boolean);
   }
   function sortModeEnabled() {
-    const bridge7 = getLegacyBridge();
-    return Boolean(bridge7.state.apiProviderSortMode && providerList?.classList.contains("is-sorting"));
+    const bridge10 = getLegacyBridge();
+    return Boolean(bridge10.state.apiProviderSortMode && providerList?.classList.contains("is-sorting"));
   }
   function sameOrder(left, right) {
     return left.length === right.length && left.every((id, index) => id === right[index]);
@@ -22392,9 +22480,9 @@
   }
 
   // codex_image/webui/frontend/src/api-provider-settings.ts
-  var bridge3 = getLegacyBridge();
-  var state3 = bridge3.state;
-  var els4 = bridge3.els;
+  var bridge6 = getLegacyBridge();
+  var state6 = bridge6.state;
+  var els9 = bridge6.els;
   var apiSettingsAutosaveTimerId = null;
   function legacyMethod4(name, ...args) {
     const method = getLegacyBridge().methods[name];
@@ -22406,7 +22494,7 @@
   function setStatus3(message, type) {
     legacyMethod4("setStatus", message, type);
   }
-  function updateRequestPreview2() {
+  function updateRequestPreview3() {
     legacyMethod4("updateRequestPreview");
   }
   function closePromptPopover() {
@@ -22475,7 +22563,7 @@
   function normalizeCodexMode(value) {
     return value === "responses" ? "responses" : DEFAULT_CODEX_MODE;
   }
-  function providerById(providerId, settings = state3.apiSettings) {
+  function providerById(providerId, settings = state6.apiSettings) {
     const normalized = normalizeApiSettings(settings);
     return normalized.providers.find((provider) => provider.id === providerId) || normalized.providers[0];
   }
@@ -22490,13 +22578,13 @@
     return baseUrl || DEFAULT_API_BASE_URL;
   }
   function updateApiRequestEndpointPreview() {
-    if (!els4.apiRequestEndpointPreview) return;
-    const provider = state3.apiProviderDraft || activeApiProvider();
-    const baseUrl = apiBaseUrlForEndpoint(els4.apiBaseUrl?.value || provider?.base_url);
-    const bindingCount = readProviderBindingCards(els4.apiProviderBindings).length || provider?.bindings?.length || 0;
+    if (!els9.apiRequestEndpointPreview) return;
+    const provider = state6.apiProviderDraft || activeApiProvider();
+    const baseUrl = apiBaseUrlForEndpoint(els9.apiBaseUrl?.value || provider?.base_url);
+    const bindingCount = readProviderBindingCards(els9.apiProviderBindings).length || provider?.bindings?.length || 0;
     const preview = `${baseUrl} \xB7 ${bindingCount} \xB7 ${translate("apiSettings.modelBindings")}`;
-    els4.apiRequestEndpointPreview.textContent = preview;
-    els4.apiRequestEndpointPreview.title = preview;
+    els9.apiRequestEndpointPreview.textContent = preview;
+    els9.apiRequestEndpointPreview.title = preview;
   }
   function providerHasApiKey(provider) {
     return Boolean(provider?.api_key || provider?.api_key_set);
@@ -22515,7 +22603,7 @@
   }
   function uniqueCopiedProviderId(provider) {
     const base = String(provider?.id || provider?.name || "provider").trim().toLowerCase().replace(/[^a-z0-9_-]+/g, "-").replace(/^-+|-+$/g, "") || "provider";
-    const existing = new Set((state3.apiSettings.providers || []).map((item) => item.id));
+    const existing = new Set((state6.apiSettings.providers || []).map((item) => item.id));
     const root = `${base}-copy`;
     if (!existing.has(root)) return root;
     for (let index = 2; index < 1e3; index += 1) {
@@ -22527,7 +22615,7 @@
   function copiedProviderName(provider) {
     const sourceName = String(provider?.name || provider?.id || translate("apiSettings.newProvider")).trim();
     const rootName = formatTranslation("apiSettings.copyProviderName", { name: sourceName });
-    const existing = new Set((state3.apiSettings.providers || []).map((item) => String(item.name || "").trim()));
+    const existing = new Set((state6.apiSettings.providers || []).map((item) => String(item.name || "").trim()));
     if (!existing.has(rootName)) return rootName;
     for (let index = 2; index < 1e3; index += 1) {
       const candidate = `${rootName} ${index}`;
@@ -22539,110 +22627,110 @@
     if (element) element.textContent = String(value ?? "");
   }
   function setApiKeyRevealVisible(visible) {
-    if (!els4.apiKey) return;
-    const canReveal = Boolean(els4.apiKey.value);
+    if (!els9.apiKey) return;
+    const canReveal = Boolean(els9.apiKey.value);
     const shouldReveal = Boolean(visible && canReveal);
-    els4.apiKey.type = shouldReveal ? "text" : "password";
-    els4.apiKeyRevealButton?.setAttribute("aria-pressed", shouldReveal ? "true" : "false");
+    els9.apiKey.type = shouldReveal ? "text" : "password";
+    els9.apiKeyRevealButton?.setAttribute("aria-pressed", shouldReveal ? "true" : "false");
     const label = translate(shouldReveal ? "apiSettings.hideApiKey" : "apiSettings.showApiKey");
-    els4.apiKeyRevealButton?.setAttribute("aria-label", label);
-    els4.apiKeyRevealButton?.setAttribute("title", label);
-    els4.apiKeyRevealButton?.classList.toggle("active", shouldReveal);
+    els9.apiKeyRevealButton?.setAttribute("aria-label", label);
+    els9.apiKeyRevealButton?.setAttribute("title", label);
+    els9.apiKeyRevealButton?.classList.toggle("active", shouldReveal);
   }
   function hideApiKeyReveal() {
     setApiKeyRevealVisible(false);
   }
   function updateApiKeyRevealButton() {
-    if (!els4.apiKeyRevealButton) return;
-    const canReveal = Boolean(els4.apiKey?.value);
-    if (canReveal) els4.apiKey?.removeAttribute("aria-invalid");
+    if (!els9.apiKeyRevealButton) return;
+    const canReveal = Boolean(els9.apiKey?.value);
+    if (canReveal) els9.apiKey?.removeAttribute("aria-invalid");
     if (!canReveal) hideApiKeyReveal();
-    els4.apiKeyRevealButton.disabled = !canReveal;
+    els9.apiKeyRevealButton.disabled = !canReveal;
     const label = translate("apiSettings.showApiKey");
-    els4.apiKeyRevealButton.setAttribute("aria-label", label);
-    els4.apiKeyRevealButton.setAttribute("title", label);
+    els9.apiKeyRevealButton.setAttribute("aria-label", label);
+    els9.apiKeyRevealButton.setAttribute("title", label);
   }
   function revealApiKeyWhilePressed(event) {
-    if (!els4.apiKey?.value || els4.apiKeyRevealButton?.disabled) return;
+    if (!els9.apiKey?.value || els9.apiKeyRevealButton?.disabled) return;
     event?.preventDefault();
     setApiKeyRevealVisible(true);
   }
   function scrollApiProviderEditorIntoView() {
     window.requestAnimationFrame(() => {
-      els4.apiProviderEditor?.scrollIntoView?.({ block: "nearest", inline: "nearest" });
+      els9.apiProviderEditor?.scrollIntoView?.({ block: "nearest", inline: "nearest" });
     });
   }
   function setApiProviderEditorVisible(visible) {
-    els4.apiProviderSection?.classList.toggle("editing", visible);
-    els4.apiProviderSection?.setAttribute("aria-hidden", visible ? "true" : "false");
-    if (visible) els4.apiProviderSection?.setAttribute("inert", "");
-    else els4.apiProviderSection?.removeAttribute("inert");
-    els4.apiProviderEditor?.classList.toggle("hidden", !visible);
-    els4.apiProviderEditor?.setAttribute("aria-hidden", visible ? "false" : "true");
-    els4.apiProviderDetail?.classList.toggle("hidden", visible);
-    els4.apiSettingsActions?.classList.toggle("hidden", visible);
-    els4.apiSettingsActions?.setAttribute("aria-hidden", visible ? "true" : "false");
-    if (els4.editApiProviderButton) els4.editApiProviderButton.disabled = visible;
-    if (els4.addApiProviderButton) els4.addApiProviderButton.disabled = visible;
-    if (els4.copyApiProviderButton) els4.copyApiProviderButton.disabled = visible;
-    if (els4.sortApiProvidersButton) els4.sortApiProvidersButton.disabled = visible;
-    if (els4.deleteApiProviderButton) {
-      els4.deleteApiProviderButton.disabled = visible || normalizeApiSettings(state3.apiSettings).providers.length <= 1;
+    els9.apiProviderSection?.classList.toggle("editing", visible);
+    els9.apiProviderSection?.setAttribute("aria-hidden", visible ? "true" : "false");
+    if (visible) els9.apiProviderSection?.setAttribute("inert", "");
+    else els9.apiProviderSection?.removeAttribute("inert");
+    els9.apiProviderEditor?.classList.toggle("hidden", !visible);
+    els9.apiProviderEditor?.setAttribute("aria-hidden", visible ? "false" : "true");
+    els9.apiProviderDetail?.classList.toggle("hidden", visible);
+    els9.apiSettingsActions?.classList.toggle("hidden", visible);
+    els9.apiSettingsActions?.setAttribute("aria-hidden", visible ? "true" : "false");
+    if (els9.editApiProviderButton) els9.editApiProviderButton.disabled = visible;
+    if (els9.addApiProviderButton) els9.addApiProviderButton.disabled = visible;
+    if (els9.copyApiProviderButton) els9.copyApiProviderButton.disabled = visible;
+    if (els9.sortApiProvidersButton) els9.sortApiProvidersButton.disabled = visible;
+    if (els9.deleteApiProviderButton) {
+      els9.deleteApiProviderButton.disabled = visible || normalizeApiSettings(state6.apiSettings).providers.length <= 1;
     }
     if (!visible) hideApiKeyReveal();
   }
   function apiProviderEditorActive() {
-    return Boolean(state3.apiProviderEditingId && state3.apiProviderDraft);
+    return Boolean(state6.apiProviderEditingId && state6.apiProviderDraft);
   }
   function draftProviderFromForm() {
-    const draft = state3.apiProviderDraft || activeApiProvider();
-    const bindingCards = readProviderBindingCards(els4.apiProviderBindings);
+    const draft = state6.apiProviderDraft || activeApiProvider();
+    const bindingCards = readProviderBindingCards(els9.apiProviderBindings);
     return normalizeApiProvider({
       ...draft,
-      name: els4.apiProviderName?.value || draft.name,
-      icon_emoji: els4.apiProviderIconEmoji ? els4.apiProviderIconEmoji.value : draft.icon_emoji,
-      base_url: els4.apiBaseUrl?.value || DEFAULT_API_BASE_URL,
-      api_key: els4.apiKey?.value || "",
-      concurrency: normalizeApiImagesConcurrency(els4.apiImagesConcurrency?.value),
+      name: els9.apiProviderName?.value || draft.name,
+      icon_emoji: els9.apiProviderIconEmoji ? els9.apiProviderIconEmoji.value : draft.icon_emoji,
+      base_url: els9.apiBaseUrl?.value || DEFAULT_API_BASE_URL,
+      api_key: els9.apiKey?.value || "",
+      concurrency: normalizeApiImagesConcurrency(els9.apiImagesConcurrency?.value),
       bindings: bindingCards,
       default_model_ids: bindingCards.filter((binding) => binding.is_default).map((binding) => binding.canonical_model_id),
       api_key_set: Boolean(draft.api_key_set || draft.api_key || draft.api_key_source_provider_id),
       api_key_masked: draft.api_key_masked,
       api_key_source_provider_id: draft.api_key_source_provider_id,
-      delete_chat_after_gen: els4.apiProviderDeleteChat ? Boolean(els4.apiProviderDeleteChat.checked) : draft.delete_chat_after_gen !== false,
+      delete_chat_after_gen: els9.apiProviderDeleteChat ? Boolean(els9.apiProviderDeleteChat.checked) : draft.delete_chat_after_gen !== false,
       visible_browser: typeof draft.visible_browser === "boolean" ? draft.visible_browser : false
     }, 0);
   }
   function writeProviderForm(provider) {
-    if (els4.apiProviderName) els4.apiProviderName.value = provider.name || "";
-    if (els4.apiProviderIconEmoji) els4.apiProviderIconEmoji.value = provider.icon_emoji || "";
-    if (els4.apiBaseUrl) els4.apiBaseUrl.value = provider.base_url || DEFAULT_API_BASE_URL;
-    if (els4.apiImagesConcurrency) els4.apiImagesConcurrency.value = String(normalizeApiImagesConcurrency(provider.concurrency ?? provider.images_concurrency));
-    if (els4.apiProviderDeleteChat) {
-      els4.apiProviderDeleteChat.checked = provider.delete_chat_after_gen !== false;
+    if (els9.apiProviderName) els9.apiProviderName.value = provider.name || "";
+    if (els9.apiProviderIconEmoji) els9.apiProviderIconEmoji.value = provider.icon_emoji || "";
+    if (els9.apiBaseUrl) els9.apiBaseUrl.value = provider.base_url || DEFAULT_API_BASE_URL;
+    if (els9.apiImagesConcurrency) els9.apiImagesConcurrency.value = String(normalizeApiImagesConcurrency(provider.concurrency ?? provider.images_concurrency));
+    if (els9.apiProviderDeleteChat) {
+      els9.apiProviderDeleteChat.checked = provider.delete_chat_after_gen !== false;
     }
-    if (els4.apiProviderDeleteChatField) {
+    if (els9.apiProviderDeleteChatField) {
       const isChatGPT = provider.id === "default" || (provider.name || "").toLowerCase().includes("chatgpt") || typeof provider.base_url === "string" && provider.base_url.includes(":3000");
-      els4.apiProviderDeleteChatField.style.display = isChatGPT ? "" : "none";
+      els9.apiProviderDeleteChatField.style.display = isChatGPT ? "" : "none";
     }
-    if (els4.apiKey) {
-      els4.apiKey.value = provider.api_key || "";
-      els4.apiKey.placeholder = provider.api_key_set && !provider.api_key ? translate("apiSettings.savedKeyPlaceholder") : "sk-...";
+    if (els9.apiKey) {
+      els9.apiKey.value = provider.api_key || "";
+      els9.apiKey.placeholder = provider.api_key_set && !provider.api_key ? translate("apiSettings.savedKeyPlaceholder") : "sk-...";
     }
     hideApiKeyReveal();
     updateApiKeyRevealButton();
     renderProviderBindingCards(
-      els4.apiProviderBindings,
+      els9.apiProviderBindings,
       provider.bindings || [],
-      state3.generationCatalog?.models || [],
+      state6.generationCatalog?.models || [],
       provider.id,
-      state3.apiSettings.default_provider_by_model || {}
+      state6.apiSettings.default_provider_by_model || {}
     );
     updateApiRequestEndpointPreview();
     resetApiAdvancedSettings();
   }
   function defaultsForProviderDraft(provider) {
-    const defaults = { ...state3.apiSettings.default_provider_by_model || {} };
+    const defaults = { ...state6.apiSettings.default_provider_by_model || {} };
     (provider.default_model_ids || []).forEach((modelId) => {
       defaults[modelId] = provider.id;
     });
@@ -22650,25 +22738,25 @@
   }
   function renderApiProviderList() {
     cancelApiProviderSortInteraction(true);
-    const settings = normalizeApiSettings(state3.apiSettings);
-    state3.apiSettings = settings;
-    const sorting = Boolean(state3.apiProviderSortMode && settings.providers.length > 1);
+    const settings = normalizeApiSettings(state6.apiSettings);
+    state6.apiSettings = settings;
+    const sorting = Boolean(state6.apiProviderSortMode && settings.providers.length > 1);
     const searchQuery = updateApiProviderListPresentation(settings.providers.length, sorting);
-    setElementText(els4.apiProviderCount, formatTranslation("apiSettings.providerCount", {
+    setElementText(els9.apiProviderCount, formatTranslation("apiSettings.providerCount", {
       count: String(settings.providers.length)
     }));
-    if (els4.sortApiProvidersButton) {
+    if (els9.sortApiProvidersButton) {
       const canSort = settings.providers.length > 1;
-      els4.sortApiProvidersButton.classList.toggle("hidden", !canSort);
-      els4.sortApiProvidersButton.classList.toggle("active", sorting);
-      els4.sortApiProvidersButton.disabled = apiProviderEditorActive() || !canSort;
-      els4.sortApiProvidersButton.textContent = translate(sorting ? "apiSettings.finishSortProviders" : "apiSettings.sortProviders");
-      els4.sortApiProvidersButton.setAttribute("aria-pressed", sorting ? "true" : "false");
+      els9.sortApiProvidersButton.classList.toggle("hidden", !canSort);
+      els9.sortApiProvidersButton.classList.toggle("active", sorting);
+      els9.sortApiProvidersButton.disabled = apiProviderEditorActive() || !canSort;
+      els9.sortApiProvidersButton.textContent = translate(sorting ? "apiSettings.finishSortProviders" : "apiSettings.sortProviders");
+      els9.sortApiProvidersButton.setAttribute("aria-pressed", sorting ? "true" : "false");
     }
-    els4.addApiProviderButton?.classList.toggle("hidden", sorting || apiProviderEditorActive());
-    if (!els4.apiProviderList) return;
-    els4.apiProviderList.classList.toggle("is-sorting", sorting);
-    els4.apiProviderList.setAttribute("role", sorting ? "list" : "listbox");
+    els9.addApiProviderButton?.classList.toggle("hidden", sorting || apiProviderEditorActive());
+    if (!els9.apiProviderList) return;
+    els9.apiProviderList.classList.toggle("is-sorting", sorting);
+    els9.apiProviderList.setAttribute("role", sorting ? "list" : "listbox");
     if (sorting) {
       const rows = settings.providers.map((provider) => {
         const row = document.createElement("div");
@@ -22703,7 +22791,7 @@
         row.append(content, handle);
         return row;
       });
-      els4.apiProviderList.replaceChildren(...rows);
+      els9.apiProviderList.replaceChildren(...rows);
       return;
     }
     const visibleProviders = settings.providers.filter((provider) => apiProviderMatchesSearch(provider, searchQuery));
@@ -22727,29 +22815,29 @@
       const empty = document.createElement("div");
       empty.className = "api-provider-search-empty";
       empty.textContent = translate("apiSettings.noProviderSearchResults");
-      els4.apiProviderList.replaceChildren(empty);
+      els9.apiProviderList.replaceChildren(empty);
       return;
     }
-    els4.apiProviderList.replaceChildren(...buttons);
+    els9.apiProviderList.replaceChildren(...buttons);
     if (!searchQuery) scrollActiveApiProviderCardIntoView(settings.active_provider_id, "center");
   }
   function renderApiProviderDetail() {
     const provider = activeApiProvider();
-    setElementText(els4.apiProviderDetailBaseUrl, provider.base_url || DEFAULT_API_BASE_URL);
-    setElementText(els4.apiProviderDetailKey, providerKeyLabel(provider));
+    setElementText(els9.apiProviderDetailBaseUrl, provider.base_url || DEFAULT_API_BASE_URL);
+    setElementText(els9.apiProviderDetailKey, providerKeyLabel(provider));
     setElementText(
-      els4.apiProviderDetailMode,
+      els9.apiProviderDetailMode,
       `${provider.bindings?.length || 0} \xB7 ${translate("apiSettings.modelBindings")}`
     );
-    setElementText(els4.apiProviderDetailConcurrency, normalizeApiImagesConcurrency(provider.concurrency ?? provider.images_concurrency));
+    setElementText(els9.apiProviderDetailConcurrency, normalizeApiImagesConcurrency(provider.concurrency ?? provider.images_concurrency));
   }
   function renderApiProviderEditor() {
     const editing = apiProviderEditorActive();
     setApiProviderEditorVisible(editing);
     if (!editing) return;
-    const isNew = Boolean(state3.apiProviderDraftIsNew);
-    setElementText(els4.apiProviderEditorTitle, translate(isNew ? "apiSettings.newProviderTitle" : "apiSettings.editProvider"));
-    writeProviderForm(state3.apiProviderDraft);
+    const isNew = Boolean(state6.apiProviderDraftIsNew);
+    setElementText(els9.apiProviderEditorTitle, translate(isNew ? "apiSettings.newProviderTitle" : "apiSettings.editProvider"));
+    writeProviderForm(state6.apiProviderDraft);
   }
   function applyApiProviderDraft(settings) {
     if (!apiProviderEditorActive()) return normalizeApiSettings(settings);
@@ -22774,9 +22862,9 @@
         delete normalized.default_provider_by_model[modelId];
       }
     }
-    state3.apiProviderEditingId = null;
-    state3.apiProviderDraft = null;
-    state3.apiProviderDraftIsNew = false;
+    state6.apiProviderEditingId = null;
+    state6.apiProviderDraft = null;
+    state6.apiProviderDraftIsNew = false;
     return normalizeApiSettings(normalized);
   }
   function normalizeApiSettings(settings = {}) {
@@ -22811,25 +22899,25 @@
     };
   }
   function activeApiProvider() {
-    const settings = normalizeApiSettings(state3.apiSettings);
-    state3.apiSettings = settings;
+    const settings = normalizeApiSettings(state6.apiSettings);
+    state6.apiSettings = settings;
     return settings.providers.find((provider) => provider.id === settings.active_provider_id) || settings.providers[0];
   }
   function restoreApiSettings() {
     try {
       const saved = JSON.parse(localStorage.getItem(API_SETTINGS_STORAGE_KEY) || "{}");
-      state3.apiSettings = normalizeApiSettings(saved);
+      state6.apiSettings = normalizeApiSettings(saved);
     } catch {
-      state3.apiSettings = normalizeApiSettings();
+      state6.apiSettings = normalizeApiSettings();
     }
   }
   function persistApiSettings() {
     try {
       localStorage.setItem(API_SETTINGS_STORAGE_KEY, JSON.stringify({
-        codex_mode: state3.apiSettings.codex_mode,
-        active_provider_id: state3.apiSettings.active_provider_id,
-        default_provider_by_model: state3.apiSettings.default_provider_by_model,
-        providers: state3.apiSettings.providers.map((provider) => ({
+        codex_mode: state6.apiSettings.codex_mode,
+        active_provider_id: state6.apiSettings.active_provider_id,
+        default_provider_by_model: state6.apiSettings.default_provider_by_model,
+        providers: state6.apiSettings.providers.map((provider) => ({
           id: provider.id,
           name: provider.name,
           icon_emoji: provider.icon_emoji || "",
@@ -22846,7 +22934,7 @@
     }
   }
   function mergeApiProviderKeys(serverSettings) {
-    const localById = new Map((state3.apiSettings.providers || []).map((provider) => [provider.id, provider]));
+    const localById = new Map((state6.apiSettings.providers || []).map((provider) => [provider.id, provider]));
     const normalized = normalizeApiSettings(serverSettings);
     normalized.providers = normalized.providers.map((provider) => {
       const local = localById.get(provider.id);
@@ -22859,7 +22947,7 @@
       const response = await fetch("/api/api-settings");
       const data = await response.json();
       if (!response.ok) throw new Error(data.detail || translate("apiSettings.loadFailed"));
-      state3.apiSettings = mergeApiProviderKeys(data.settings || {});
+      state6.apiSettings = mergeApiProviderKeys(data.settings || {});
       populateApiSettingsForm();
       renderAuthSourceAfterProviderChange();
     } catch (error) {
@@ -22868,25 +22956,25 @@
   }
   function populateApiSettingsForm() {
     const provider = activeApiProvider();
-    if (els4.apiProviderQuick) {
-      els4.apiProviderQuick.innerHTML = "";
-      state3.apiSettings.providers.forEach((item) => {
+    if (els9.apiProviderQuick) {
+      els9.apiProviderQuick.innerHTML = "";
+      state6.apiSettings.providers.forEach((item) => {
         const option2 = document.createElement("option");
         option2.value = item.id;
         option2.textContent = item.name || item.id;
-        els4.apiProviderQuick.append(option2);
+        els9.apiProviderQuick.append(option2);
       });
-      els4.apiProviderQuick.value = provider.id;
+      els9.apiProviderQuick.value = provider.id;
     }
-    if (els4.apiProvider) {
-      els4.apiProvider.innerHTML = "";
-      state3.apiSettings.providers.forEach((item) => {
+    if (els9.apiProvider) {
+      els9.apiProvider.innerHTML = "";
+      state6.apiSettings.providers.forEach((item) => {
         const option2 = document.createElement("option");
         option2.value = item.id;
         option2.textContent = item.name || item.id;
-        els4.apiProvider.append(option2);
+        els9.apiProvider.append(option2);
       });
-      els4.apiProvider.value = provider.id;
+      els9.apiProvider.value = provider.id;
     }
     renderApiProviderList();
     renderApiProviderDetail();
@@ -22894,16 +22982,16 @@
     updateModeSpecificSettings();
   }
   function readApiSettingsForm(options = {}) {
-    const settings = normalizeApiSettings(state3.apiSettings);
-    state3.apiSettings = options.applyProviderDraft ? applyApiProviderDraft(settings) : normalizeApiSettings(settings);
-    return state3.apiSettings;
+    const settings = normalizeApiSettings(state6.apiSettings);
+    state6.apiSettings = options.applyProviderDraft ? applyApiProviderDraft(settings) : normalizeApiSettings(settings);
+    return state6.apiSettings;
   }
   function currentApiProviderId() {
-    if (state3.selectedProviderId && state3.selectedProviderId !== "codex") return state3.selectedProviderId;
+    if (state6.selectedProviderId && state6.selectedProviderId !== "codex") return state6.selectedProviderId;
     return activeApiProvider().id;
   }
   function currentApiProviderLabel2() {
-    const selected = state3.generationCatalog?.providers.find((provider2) => provider2.id === state3.selectedProviderId);
+    const selected = state6.generationCatalog?.providers.find((provider2) => provider2.id === state6.selectedProviderId);
     if (selected) return String(selected.name || selected.id);
     const provider = activeApiProvider();
     return String(provider.name || provider.id || "").trim() || provider.id;
@@ -22913,34 +23001,34 @@
       setApiSettingsFeedback(translate("apiSettings.finishEditFirst"), "error");
       return;
     }
-    state3.apiProviderSortMode = false;
+    state6.apiProviderSortMode = false;
     const id = `provider-${Date.now()}`;
-    state3.apiProviderEditingId = id;
-    state3.apiProviderDraftIsNew = true;
-    state3.apiProviderDraft = normalizeApiProvider({
+    state6.apiProviderEditingId = id;
+    state6.apiProviderDraftIsNew = true;
+    state6.apiProviderDraft = normalizeApiProvider({
       id,
       name: translate("apiSettings.newProvider"),
       base_url: DEFAULT_API_BASE_URL,
       concurrency: DEFAULT_API_IMAGES_CONCURRENCY,
       bindings: [bindingFromProtocol(`${id}-gpt-image-2`, "gpt-image-2", DEFAULT_API_IMAGE_MODEL, "openai_images")]
-    }, state3.apiSettings.providers.length);
+    }, state6.apiSettings.providers.length);
     populateApiSettingsForm();
     setApiSettingsFeedback(translate("apiSettings.newDraftStatus"), "running");
     scrollApiProviderEditorIntoView();
-    els4.apiProviderName?.focus();
+    els9.apiProviderName?.focus();
   }
   function copyApiProvider() {
     if (apiProviderEditorActive()) {
       setApiSettingsFeedback(translate("apiSettings.finishEditFirst"), "error");
       return;
     }
-    state3.apiProviderSortMode = false;
+    state6.apiProviderSortMode = false;
     const provider = activeApiProvider();
     const copiesSavedKey = providerHasApiKey(provider);
     const id = uniqueCopiedProviderId(provider);
-    state3.apiProviderEditingId = id;
-    state3.apiProviderDraftIsNew = true;
-    state3.apiProviderDraft = normalizeApiProvider({
+    state6.apiProviderEditingId = id;
+    state6.apiProviderDraftIsNew = true;
+    state6.apiProviderDraft = normalizeApiProvider({
       ...provider,
       bindings: provider.bindings.map((binding, index) => ({ ...binding, id: `${id}-binding-${index + 1}` })),
       id,
@@ -22949,42 +23037,42 @@
       api_key_set: copiesSavedKey,
       api_key_masked: provider.api_key_masked || "",
       api_key_source_provider_id: copiesSavedKey ? provider.id : ""
-    }, state3.apiSettings.providers.length);
+    }, state6.apiSettings.providers.length);
     populateApiSettingsForm();
     setApiSettingsFeedback(translate(copiesSavedKey ? "apiSettings.copyProviderStatus" : "apiSettings.copyProviderWithoutKeyStatus"), "running");
     scrollApiProviderEditorIntoView();
-    els4.apiProviderName?.focus();
+    els9.apiProviderName?.focus();
   }
   function deleteApiProvider() {
     if (apiProviderEditorActive()) {
       setApiSettingsFeedback(translate("apiSettings.finishEditFirst"), "error");
       return;
     }
-    if (state3.apiSettings.providers.length <= 1) return;
-    const activeId = state3.apiSettings.active_provider_id;
-    state3.apiSettings.providers = state3.apiSettings.providers.filter((provider) => provider.id !== activeId);
-    state3.apiSettings.active_provider_id = state3.apiSettings.providers[0]?.id || "default";
-    Object.entries(state3.apiSettings.default_provider_by_model || {}).forEach(([modelId, providerId]) => {
-      if (providerId === activeId) delete state3.apiSettings.default_provider_by_model[modelId];
+    if (state6.apiSettings.providers.length <= 1) return;
+    const activeId = state6.apiSettings.active_provider_id;
+    state6.apiSettings.providers = state6.apiSettings.providers.filter((provider) => provider.id !== activeId);
+    state6.apiSettings.active_provider_id = state6.apiSettings.providers[0]?.id || "default";
+    Object.entries(state6.apiSettings.default_provider_by_model || {}).forEach(([modelId, providerId]) => {
+      if (providerId === activeId) delete state6.apiSettings.default_provider_by_model[modelId];
     });
-    Object.entries(state3.lastProviderByModel || {}).forEach(([modelId, providerId]) => {
-      if (providerId === activeId) delete state3.lastProviderByModel[modelId];
+    Object.entries(state6.lastProviderByModel || {}).forEach(([modelId, providerId]) => {
+      if (providerId === activeId) delete state6.lastProviderByModel[modelId];
     });
-    if (state3.apiSettings.providers.length <= 1) state3.apiProviderSortMode = false;
+    if (state6.apiSettings.providers.length <= 1) state6.apiProviderSortMode = false;
     populateApiSettingsForm();
     persistApiSettings();
     renderAuthSourceAfterProviderChange();
     setApiSettingsFeedback(translate("apiSettings.deleteProviderStatus"), "running");
     queueApiSettingsAutosave();
   }
-  function confirmDeleteApiProvider(anchor = els4.deleteApiProviderButton) {
+  function confirmDeleteApiProvider(anchor = els9.deleteApiProviderButton) {
     if (apiProviderEditorActive()) {
       setApiSettingsFeedback(translate("apiSettings.finishEditFirst"), "error");
       return;
     }
-    if (state3.apiSettings.providers.length <= 1) return;
+    if (state6.apiSettings.providers.length <= 1) return;
     const provider = activeApiProvider();
-    openConfirmPopover(anchor || els4.deleteApiProviderButton, {
+    openConfirmPopover(anchor || els9.deleteApiProviderButton, {
       title: translate("apiSettings.deleteProviderTitle"),
       message: formatTranslation("apiSettings.deleteProviderMessage", {
         provider: provider.name || provider.id
@@ -22996,10 +23084,10 @@
   }
   function openApiSettingsModal() {
     closePromptPopover();
-    state3.apiProviderEditingId = null;
-    state3.apiProviderDraft = null;
-    state3.apiProviderDraftIsNew = false;
-    if (els4.apiProviderSearch) els4.apiProviderSearch.value = "";
+    state6.apiProviderEditingId = null;
+    state6.apiProviderDraft = null;
+    state6.apiProviderDraftIsNew = false;
+    if (els9.apiProviderSearch) els9.apiProviderSearch.value = "";
     populateApiSettingsForm();
     setApiSettingsFeedback("", "");
     openSystemSettingsModal("api");
@@ -23018,11 +23106,11 @@
       setApiSettingsFeedback(translate("apiSettings.finishEditFirst"), "error");
       return;
     }
-    if (state3.apiProviderSortMode) return;
+    if (state6.apiProviderSortMode) return;
     const provider = providerById(id);
     const continueSwitch = () => {
-      state3.apiSettings = normalizeApiSettings({
-        ...state3.apiSettings,
+      state6.apiSettings = normalizeApiSettings({
+        ...state6.apiSettings,
         active_provider_id: provider.id
       });
       populateApiSettingsForm();
@@ -23041,22 +23129,22 @@
   }
   function editApiProvider() {
     if (apiProviderEditorActive()) return;
-    state3.apiProviderSortMode = false;
+    state6.apiProviderSortMode = false;
     const provider = activeApiProvider();
-    state3.apiProviderEditingId = provider.id;
-    state3.apiProviderDraftIsNew = false;
-    state3.apiProviderDraft = normalizeApiProvider({ ...provider }, 0);
+    state6.apiProviderEditingId = provider.id;
+    state6.apiProviderDraftIsNew = false;
+    state6.apiProviderDraft = normalizeApiProvider({ ...provider }, 0);
     populateApiSettingsForm();
     setApiSettingsFeedback(translate("apiSettings.editDraftStatus"), "running");
     scrollApiProviderEditorIntoView();
-    els4.apiProviderName?.focus();
+    els9.apiProviderName?.focus();
   }
   function cancelApiProviderEdit() {
     if (!apiProviderEditorActive()) return;
-    els4.systemSettingsApiTab?.focus({ preventScroll: true });
-    state3.apiProviderEditingId = null;
-    state3.apiProviderDraft = null;
-    state3.apiProviderDraftIsNew = false;
+    els9.systemSettingsApiTab?.focus({ preventScroll: true });
+    state6.apiProviderEditingId = null;
+    state6.apiProviderDraft = null;
+    state6.apiProviderDraftIsNew = false;
     populateApiSettingsForm();
     setApiSettingsFeedback("", "");
     scrollActiveApiProviderCardIntoView(activeApiProvider().id, "center");
@@ -23066,16 +23154,16 @@
       setApiSettingsFeedback(translate("apiSettings.finishEditFirst"), "error");
       return;
     }
-    const settings = normalizeApiSettings(state3.apiSettings);
+    const settings = normalizeApiSettings(state6.apiSettings);
     if (settings.providers.length <= 1) return;
     cancelApiProviderSortInteraction(true);
-    state3.apiProviderSortMode = !state3.apiProviderSortMode;
+    state6.apiProviderSortMode = !state6.apiProviderSortMode;
     renderApiProviderList();
-    if (!state3.apiProviderSortMode) scrollActiveApiProviderCardIntoView(settings.active_provider_id, "center");
-    setApiSettingsFeedback(state3.apiProviderSortMode ? translate("apiSettings.sortProviderModeStatus") : "", state3.apiProviderSortMode ? "running" : "");
+    if (!state6.apiProviderSortMode) scrollActiveApiProviderCardIntoView(settings.active_provider_id, "center");
+    setApiSettingsFeedback(state6.apiProviderSortMode ? translate("apiSettings.sortProviderModeStatus") : "", state6.apiProviderSortMode ? "running" : "");
   }
   function focusedApiProviderSortId() {
-    if (!state3.apiProviderSortMode) return "";
+    if (!state6.apiProviderSortMode) return "";
     const handle = document.activeElement?.closest(
       "button[data-api-provider-sort-handle][data-api-provider-id]"
     );
@@ -23085,12 +23173,12 @@
     if (!providerId) return;
     window.requestAnimationFrame(() => {
       const escapedId = CSS.escape(providerId);
-      els4.apiProviderList?.querySelector(`button[data-api-provider-sort-handle][data-api-provider-id="${escapedId}"]`)?.focus({ preventScroll: true });
+      els9.apiProviderList?.querySelector(`button[data-api-provider-sort-handle][data-api-provider-id="${escapedId}"]`)?.focus({ preventScroll: true });
     });
   }
   function reorderApiProviders(orderedIds, focusProviderId = "") {
-    if (!state3.apiProviderSortMode || apiProviderEditorActive() || !Array.isArray(orderedIds)) return false;
-    const settings = normalizeApiSettings(state3.apiSettings);
+    if (!state6.apiProviderSortMode || apiProviderEditorActive() || !Array.isArray(orderedIds)) return false;
+    const settings = normalizeApiSettings(state6.apiSettings);
     const currentIds = settings.providers.map((provider) => provider.id);
     const candidate = orderedIds.map((id) => String(id || ""));
     if (!isCompleteProviderOrder(candidate, currentIds)) return false;
@@ -23099,7 +23187,7 @@
       settings.providers.map((provider) => [provider.id, provider])
     );
     const providers = candidate.map((id) => providersById.get(id));
-    state3.apiSettings = normalizeApiSettings({
+    state6.apiSettings = normalizeApiSettings({
       ...settings,
       providers,
       active_provider_id: settings.active_provider_id
@@ -23118,7 +23206,7 @@
   function addProviderBinding() {
     if (!apiProviderEditorActive()) return;
     const draft = draftProviderFromForm();
-    const models = state3.generationCatalog?.models || [];
+    const models = state6.generationCatalog?.models || [];
     const model = models.find((item) => !draft.bindings.some((binding) => binding.canonical_model_id === item.id)) || models[0];
     if (!model) {
       setApiSettingsFeedback(translate("apiSettings.catalogRequiredForBinding"), "error");
@@ -23137,12 +23225,12 @@
       protocol,
       [...model.operations]
     ));
-    if (!state3.apiSettings.default_provider_by_model?.[model.id]) {
+    if (!state6.apiSettings.default_provider_by_model?.[model.id]) {
       draft.default_model_ids = [.../* @__PURE__ */ new Set([...draft.default_model_ids || [], model.id])];
     }
-    state3.apiProviderDraft = draft;
+    state6.apiProviderDraft = draft;
     renderProviderBindingCards(
-      els4.apiProviderBindings,
+      els9.apiProviderBindings,
       draft.bindings,
       models,
       draft.id,
@@ -23158,11 +23246,11 @@
       return;
     }
     draft.bindings = draft.bindings.filter((binding) => binding.id !== bindingId);
-    state3.apiProviderDraft = draft;
+    state6.apiProviderDraft = draft;
     renderProviderBindingCards(
-      els4.apiProviderBindings,
+      els9.apiProviderBindings,
       draft.bindings,
-      state3.generationCatalog?.models || [],
+      state6.generationCatalog?.models || [],
       draft.id,
       defaultsForProviderDraft(draft)
     );
@@ -23200,13 +23288,13 @@
       }
       card.dataset.bindingProtocolChanged = "true";
       card.dataset.bindingCompatibilityChanged = "true";
-      if (state3.apiProviderDraftIsNew && defaultProtocol) {
+      if (state6.apiProviderDraftIsNew && defaultProtocol) {
         const suggestion = bindingTemplateSuggestion(bindingTemplateForProtocol(modelId, defaultProtocol));
-        const currentBase = String(els4.apiBaseUrl?.value || "").trim();
-        if (!currentBase || isBindingTemplateBaseUrl(currentBase)) els4.apiBaseUrl.value = suggestion.base_url;
+        const currentBase = String(els9.apiBaseUrl?.value || "").trim();
+        if (!currentBase || isBindingTemplateBaseUrl(currentBase)) els9.apiBaseUrl.value = suggestion.base_url;
       }
       const remoteInput = card.querySelector("[data-binding-remote-model]");
-      const model = state3.generationCatalog?.models.find((item) => item.id === modelId);
+      const model = state6.generationCatalog?.models.find((item) => item.id === modelId);
       if (remoteInput && !remoteInput.value.trim()) remoteInput.value = model?.official_model_id || modelId;
       const existingOperations = String(card.dataset.bindingModelOperations || "").split(",").filter(Boolean);
       card.dataset.bindingModelOperations = (model?.operations || existingOperations).join(",");
@@ -23214,7 +23302,7 @@
     if (target.matches("[data-binding-default]")) {
       const modelId = card.querySelector("[data-binding-model]")?.value;
       if (modelId) {
-        els4.apiProviderBindings?.querySelectorAll("[data-binding-id]").forEach((item) => {
+        els9.apiProviderBindings?.querySelectorAll("[data-binding-id]").forEach((item) => {
           if (item === card) return;
           if (item.querySelector("[data-binding-model]")?.value !== modelId) return;
           const checkbox = item.querySelector("[data-binding-default]");
@@ -23238,16 +23326,16 @@
         syncThemedSelect(compatibilitySelect);
       }
       card.dataset.bindingCompatibilityChanged = "true";
-      if (state3.apiProviderDraftIsNew) {
+      if (state6.apiProviderDraftIsNew) {
         const templateId = bindingTemplateForProtocol(modelId, protocol);
         const suggestion = bindingTemplateSuggestion(templateId);
-        const currentBase = String(els4.apiBaseUrl?.value || "").trim();
-        if (!currentBase || isBindingTemplateBaseUrl(currentBase)) els4.apiBaseUrl.value = suggestion.base_url;
+        const currentBase = String(els9.apiBaseUrl?.value || "").trim();
+        if (!currentBase || isBindingTemplateBaseUrl(currentBase)) els9.apiBaseUrl.value = suggestion.base_url;
       }
     }
     if (target.matches("[data-binding-compatibility]")) {
       card.dataset.bindingCompatibilityChanged = "true";
-      if (state3.apiProviderDraftIsNew) {
+      if (state6.apiProviderDraftIsNew) {
         const modelId = card.querySelector("[data-binding-model]")?.value || "";
         const protocol = card.querySelector("[data-binding-protocol]")?.value || availableProtocolsForModel(modelId)[0];
         const templateId = bindingTemplateForCompatibility(
@@ -23256,21 +23344,21 @@
           target.value
         );
         const suggestion = bindingTemplateSuggestion(templateId);
-        const currentBase = String(els4.apiBaseUrl?.value || "").trim();
-        if (!currentBase || isBindingTemplateBaseUrl(currentBase)) els4.apiBaseUrl.value = suggestion.base_url;
+        const currentBase = String(els9.apiBaseUrl?.value || "").trim();
+        if (!currentBase || isBindingTemplateBaseUrl(currentBase)) els9.apiBaseUrl.value = suggestion.base_url;
       }
     }
     updateApiRequestEndpointPreview();
   }
   function renderAuthSourceAfterProviderChange() {
-    legacyMethod4("renderAuthSource", state3.authStatus);
+    legacyMethod4("renderAuthSource", state6.authStatus);
     legacyMethod4("renderProviderSelection");
     updateModeSpecificSettings();
-    updateRequestPreview2();
+    updateRequestPreview3();
   }
   function currentApiImageModel() {
     const provider = activeApiProvider();
-    const binding = provider.bindings?.find((item) => item.canonical_model_id === state3.selectedModelId) || provider.bindings?.find((item) => item.canonical_model_id === "gpt-image-2") || provider.bindings?.[0];
+    const binding = provider.bindings?.find((item) => item.canonical_model_id === state6.selectedModelId) || provider.bindings?.find((item) => item.canonical_model_id === "gpt-image-2") || provider.bindings?.[0];
     return String(binding?.remote_model_id || provider.image_model || DEFAULT_API_IMAGE_MODEL).trim() || DEFAULT_API_IMAGE_MODEL;
   }
   function currentApiMode3() {
@@ -23280,11 +23368,11 @@
   }
   function currentCodexMode3() {
     const binding = selectedProviderBinding();
-    if (state3.selectedProviderId === "codex" && binding) {
+    if (state6.selectedProviderId === "codex" && binding) {
       return binding.protocol_profile === "codex_responses" ? "responses" : "images";
     }
-    state3.apiSettings = normalizeApiSettings(state3.apiSettings);
-    return normalizeCodexMode(state3.apiSettings.codex_mode);
+    state6.apiSettings = normalizeApiSettings(state6.apiSettings);
+    return normalizeCodexMode(state6.apiSettings.codex_mode);
   }
   function currentApiImagesConcurrency() {
     const provider = activeApiProvider();
@@ -23313,12 +23401,12 @@
   function selectCodexMode(mode, anchor) {
     const normalized = normalizeCodexMode(mode);
     void anchor;
-    state3.apiSettings = normalizeApiSettings({ ...state3.apiSettings, codex_mode: normalized });
+    state6.apiSettings = normalizeApiSettings({ ...state6.apiSettings, codex_mode: normalized });
     legacyMethod4("syncCodexCatalogMode", normalized);
     legacyMethod4("selectGenerationProvider", providerBindingSelectionKey("codex", `codex-gpt-image-2-${normalized}`));
     legacyMethod4("renderProviderSelection");
     updateModeSpecificSettings();
-    updateRequestPreview2();
+    updateRequestPreview3();
     persistApiSettings();
     queueApiSettingsAutosave();
     return true;
@@ -23353,7 +23441,7 @@
     const providerName = String(
       task?.api_provider_name || task?.params?.api_provider_name || task?.request?.webui_api_provider_name || task?.request?.api_provider_name || task?.provider || ""
     ).trim();
-    const configuredProvider = providerId ? state3.apiSettings.providers.find((provider) => provider.id === providerId) : null;
+    const configuredProvider = providerId ? state6.apiSettings.providers.find((provider) => provider.id === providerId) : null;
     const label = providerName || configuredProvider?.name || providerId;
     if (!label) return "";
     return !providerId || label === providerId ? label : `${label} (${providerId})`;
@@ -23368,13 +23456,13 @@
     return [backendLabel, provider].filter(Boolean).join(" \xB7 ");
   }
   function setApiSettingsFeedback(message, type = "") {
-    [els4.apiSettingsStatus].filter(Boolean).forEach((statusElement) => {
+    [els9.apiSettingsStatus].filter(Boolean).forEach((statusElement) => {
       statusElement.textContent = message;
       statusElement.className = `api-settings-feedback settings-action-status ${type || ""}`.trim();
     });
   }
   function saveButtons() {
-    return [els4.saveApiProviderEditButton].filter(Boolean);
+    return [els9.saveApiProviderEditButton].filter(Boolean);
   }
   function setSaveButtonsDisabled(disabled) {
     saveButtons().forEach((button) => {
@@ -23388,23 +23476,23 @@
       failed: translate("apiSettings.saveFailedShort"),
       default: translate("apiSettings.saveProvider")
     }[stateName];
-    if (els4.saveApiProviderEditButton) els4.saveApiProviderEditButton.textContent = providerText;
+    if (els9.saveApiProviderEditButton) els9.saveApiProviderEditButton.textContent = providerText;
   }
   async function saveApiSettings(options = {}) {
     const autoSave = Boolean(options.auto);
     if (autoSave && apiProviderEditorActive()) return true;
     const sortFocusId = autoSave ? focusedApiProviderSortId() : "";
-    if (state3.apiSettingsSaveTimerId) {
-      window.clearTimeout(state3.apiSettingsSaveTimerId);
-      state3.apiSettingsSaveTimerId = null;
+    if (state6.apiSettingsSaveTimerId) {
+      window.clearTimeout(state6.apiSettingsSaveTimerId);
+      state6.apiSettingsSaveTimerId = null;
     }
-    const previousSettings = normalizeApiSettings(state3.apiSettings);
-    const previousEditingId = state3.apiProviderEditingId;
-    const previousDraft = state3.apiProviderDraft ? structuredClone(state3.apiProviderDraft) : null;
-    const previousDraftIsNew = state3.apiProviderDraftIsNew;
+    const previousSettings = normalizeApiSettings(state6.apiSettings);
+    const previousEditingId = state6.apiProviderEditingId;
+    const previousDraft = state6.apiProviderDraft ? structuredClone(state6.apiProviderDraft) : null;
+    const previousDraftIsNew = state6.apiProviderDraftIsNew;
     let confirmedOriginChange = null;
     if (!autoSave && apiProviderEditorActive()) {
-      const bindings = readProviderBindingCards(els4.apiProviderBindings);
+      const bindings = readProviderBindingCards(els9.apiProviderBindings);
       if (!bindings.length || bindings.some((binding) => !binding.canonical_model_id || !binding.remote_model_id || !binding.operations.length)) {
         setApiSettingsFeedback(translate("apiSettings.bindingRequiredFields"), "error");
         return false;
@@ -23415,7 +23503,7 @@
           model: overlap.canonicalModelId,
           operation: overlap.operation
         }), "error");
-        els4.apiProviderBindings?.querySelector(`[data-binding-id="${CSS.escape(overlap.secondBindingId)}"]`)?.scrollIntoView?.({ block: "nearest" });
+        els9.apiProviderBindings?.querySelector(`[data-binding-id="${CSS.escape(overlap.secondBindingId)}"]`)?.scrollIntoView?.({ block: "nearest" });
         return false;
       }
       const providerDraft = draftProviderFromForm();
@@ -23424,15 +23512,15 @@
         previousSettings.providers
       );
       if (credentialDecision.kind === "key_required") {
-        els4.apiKey?.setAttribute("aria-invalid", "true");
+        els9.apiKey?.setAttribute("aria-invalid", "true");
         setApiSettingsFeedback(translate("apiSettings.apiKeyRequired"), "error");
-        els4.apiKey?.focus();
+        els9.apiKey?.focus();
         return false;
       }
       const requestedConfirmation = options.originChangeConfirmation || null;
       if (credentialDecision.kind === "confirm_origin_change") {
         if (!isConfirmedProviderOriginChange(credentialDecision, requestedConfirmation)) {
-          openConfirmPopover(els4.saveApiProviderEditButton, {
+          openConfirmPopover(els9.saveApiProviderEditButton, {
             title: translate("apiSettings.originChangeTitle"),
             message: translate("apiSettings.originChangeMessage"),
             detail: formatTranslation("apiSettings.originChangeDetail", {
@@ -23442,7 +23530,7 @@
             cancelText: translate("apiSettings.enterNewKey"),
             confirmText: translate("apiSettings.keepKeyAndSave"),
             focusCancel: true,
-            onCancel: () => els4.apiKey?.focus(),
+            onCancel: () => els9.apiKey?.focus(),
             onConfirm: () => saveApiSettings({
               originChangeConfirmation: {
                 providerId: credentialDecision.providerId,
@@ -23455,7 +23543,7 @@
         }
         confirmedOriginChange = requestedConfirmation;
       }
-      els4.apiKey?.removeAttribute("aria-invalid");
+      els9.apiKey?.removeAttribute("aria-invalid");
     }
     const settings = readApiSettingsForm({ applyProviderDraft: !autoSave });
     persistApiSettings();
@@ -23506,10 +23594,10 @@
         }
         throw new Error(detail || translate("apiSettings.saveFailed"));
       }
-      state3.apiSettings = clearProviderApiKeyInputs(normalizeApiSettings(data.settings || {}));
-      state3.apiProviderEditingId = null;
-      state3.apiProviderDraft = null;
-      state3.apiProviderDraftIsNew = false;
+      state6.apiSettings = clearProviderApiKeyInputs(normalizeApiSettings(data.settings || {}));
+      state6.apiProviderEditingId = null;
+      state6.apiProviderDraft = null;
+      state6.apiProviderDraftIsNew = false;
       persistApiSettings();
       populateApiSettingsForm();
       focusApiProviderSortHandle(sortFocusId);
@@ -23521,23 +23609,23 @@
         concurrency: currentApiImagesConcurrency()
       }), "ok");
       if (!autoSave) setSaveButtonText("saved");
-      state3.apiSettingsSaveTimerId = window.setTimeout(() => {
+      state6.apiSettingsSaveTimerId = window.setTimeout(() => {
         if (!autoSave) setSaveButtonText("default");
-        state3.apiSettingsSaveTimerId = null;
+        state6.apiSettingsSaveTimerId = null;
       }, 1600);
       setStatus3(translate("apiSettings.savedStatus"), "ok");
       await refreshGenerationCatalog();
       await refreshHealth();
-      if (typeof bridge3.methods.restoreChatGPTDeleteChatState === "function") {
-        bridge3.methods.restoreChatGPTDeleteChatState();
+      if (typeof bridge6.methods.restoreChatGPTDeleteChatState === "function") {
+        bridge6.methods.restoreChatGPTDeleteChatState();
       }
-      updateRequestPreview2();
+      updateRequestPreview3();
       return true;
     } catch (error) {
-      state3.apiSettings = previousSettings;
-      state3.apiProviderEditingId = previousEditingId;
-      state3.apiProviderDraft = previousDraft;
-      state3.apiProviderDraftIsNew = previousDraftIsNew;
+      state6.apiSettings = previousSettings;
+      state6.apiProviderEditingId = previousEditingId;
+      state6.apiProviderDraft = previousDraft;
+      state6.apiProviderDraftIsNew = previousDraftIsNew;
       persistApiSettings();
       populateApiSettingsForm();
       focusApiProviderSortHandle(sortFocusId);
@@ -23547,10 +23635,10 @@
       return false;
     } finally {
       if (!autoSave) setSaveButtonsDisabled(false);
-      if (!autoSave && !state3.apiSettingsSaveTimerId && els4.saveApiProviderEditButton?.textContent !== translate("apiSettings.saveProvider")) {
-        state3.apiSettingsSaveTimerId = window.setTimeout(() => {
+      if (!autoSave && !state6.apiSettingsSaveTimerId && els9.saveApiProviderEditButton?.textContent !== translate("apiSettings.saveProvider")) {
+        state6.apiSettingsSaveTimerId = window.setTimeout(() => {
           setSaveButtonText("default");
-          state3.apiSettingsSaveTimerId = null;
+          state6.apiSettingsSaveTimerId = null;
         }, 1600);
       }
     }
@@ -23562,9 +23650,9 @@
     if (apiSettingsFeatureInitialized) return;
     apiSettingsFeatureInitialized = true;
     document.addEventListener(LOCALE_CHANGE_EVENT, () => {
-      const bridge7 = getLegacyBridge();
-      renderAuthSource(bridge7.state.authStatus);
-      if (!bridge7.els.systemSettingsModal?.classList.contains("hidden") && !bridge7.els.systemSettingsApiPanel?.hidden) {
+      const bridge10 = getLegacyBridge();
+      renderAuthSource(bridge10.state.authStatus);
+      if (!bridge10.els.systemSettingsModal?.classList.contains("hidden") && !bridge10.els.systemSettingsApiPanel?.hidden) {
         setApiSettingsFeedback("", "");
       }
     });
@@ -23692,32 +23780,32 @@
     return `networkEgress.${mode}`;
   }
   function setNetworkEgressFeedback(message, type = "") {
-    const { els: els9 } = getLegacyBridge();
-    if (!els9.networkEgressStatus) return;
-    els9.networkEgressStatus.textContent = message;
-    els9.networkEgressStatus.classList.toggle("ok", type === "ok");
-    els9.networkEgressStatus.classList.toggle("error", type === "error");
-    els9.networkEgressStatus.classList.toggle("running", type === "running");
+    const { els: els14 } = getLegacyBridge();
+    if (!els14.networkEgressStatus) return;
+    els14.networkEgressStatus.textContent = message;
+    els14.networkEgressStatus.classList.toggle("ok", type === "ok");
+    els14.networkEgressStatus.classList.toggle("error", type === "error");
+    els14.networkEgressStatus.classList.toggle("running", type === "running");
   }
   function selectedNetworkEgressMode() {
-    const { els: els9 } = getLegacyBridge();
-    return normalizedMode(els9.networkEgressMode?.value);
+    const { els: els14 } = getLegacyBridge();
+    return normalizedMode(els14.networkEgressMode?.value);
   }
   function clearNetworkRequestPolicyError(field) {
-    const { els: els9 } = getLegacyBridge();
+    const { els: els14 } = getLegacyBridge();
     const fields = field ? [field] : ["timeout", "retry"];
     fields.forEach((name) => {
-      const input = name === "timeout" ? els9.networkEgressTimeoutMinutes : els9.networkEgressRetryCount;
-      const error = name === "timeout" ? els9.networkEgressTimeoutError : els9.networkEgressRetryError;
+      const input = name === "timeout" ? els14.networkEgressTimeoutMinutes : els14.networkEgressRetryCount;
+      const error = name === "timeout" ? els14.networkEgressTimeoutError : els14.networkEgressRetryError;
       input?.removeAttribute("aria-invalid");
       if (error) error.hidden = true;
     });
   }
   function showNetworkRequestPolicyError(result) {
-    const { els: els9 } = getLegacyBridge();
+    const { els: els14 } = getLegacyBridge();
     clearNetworkRequestPolicyError();
-    const input = result.field === "timeout" ? els9.networkEgressTimeoutMinutes : els9.networkEgressRetryCount;
-    const error = result.field === "timeout" ? els9.networkEgressTimeoutError : els9.networkEgressRetryError;
+    const input = result.field === "timeout" ? els14.networkEgressTimeoutMinutes : els14.networkEgressRetryCount;
+    const error = result.field === "timeout" ? els14.networkEgressTimeoutError : els14.networkEgressRetryError;
     input?.setAttribute("aria-invalid", "true");
     if (error) {
       error.textContent = translate(result.errorKey);
@@ -23726,67 +23814,67 @@
     input?.focus();
   }
   function renderNetworkEgressMode(mode) {
-    const { els: els9 } = getLegacyBridge();
-    if (els9.networkEgressMode) els9.networkEgressMode.value = mode;
+    const { els: els14 } = getLegacyBridge();
+    if (els14.networkEgressMode) els14.networkEgressMode.value = mode;
     const buttons = Array.from(
-      els9.systemSettingsNetworkPanel?.querySelectorAll("[data-network-egress-mode]") || []
+      els14.systemSettingsNetworkPanel?.querySelectorAll("[data-network-egress-mode]") || []
     );
     buttons.forEach((button) => {
       const active = button.dataset.networkEgressMode === mode;
       button.classList.toggle("active", active);
       button.setAttribute("aria-pressed", active ? "true" : "false");
     });
-    if (els9.networkEgressCustomProxyField) {
-      els9.networkEgressCustomProxyField.hidden = mode !== "custom";
+    if (els14.networkEgressCustomProxyField) {
+      els14.networkEgressCustomProxyField.hidden = mode !== "custom";
     }
   }
   function renderNetworkEgress(payload) {
-    const { els: els9 } = getLegacyBridge();
+    const { els: els14 } = getLegacyBridge();
     currentNetworkEgress = payload;
     const mode = normalizedMode(payload.settings?.mode);
     renderNetworkEgressMode(mode);
-    if (els9.networkEgressCustomProxy) {
-      els9.networkEgressCustomProxy.value = payload.settings?.custom_proxy_url || "";
+    if (els14.networkEgressCustomProxy) {
+      els14.networkEgressCustomProxy.value = payload.settings?.custom_proxy_url || "";
     }
-    if (els9.networkEgressTimeoutMinutes) {
-      els9.networkEgressTimeoutMinutes.value = String(
+    if (els14.networkEgressTimeoutMinutes) {
+      els14.networkEgressTimeoutMinutes.value = String(
         editableTimeoutMinutes(payload.settings?.image_request_timeout_seconds)
       );
     }
-    if (els9.networkEgressRetryCount) {
-      els9.networkEgressRetryCount.value = String(
+    if (els14.networkEgressRetryCount) {
+      els14.networkEgressRetryCount.value = String(
         payload.settings?.image_request_retry_count ?? 2
       );
     }
     clearNetworkRequestPolicyError();
-    if (els9.networkEgressCompatibilityNotice) {
+    if (els14.networkEgressCompatibilityNotice) {
       const environmentFallback = payload.resolved?.image_request_timeout_source === "environment";
-      els9.networkEgressCompatibilityNotice.hidden = !environmentFallback;
-      els9.networkEgressCompatibilityNotice.textContent = environmentFallback ? formatTranslation("networkEgress.environmentTimeoutActive", {
+      els14.networkEgressCompatibilityNotice.hidden = !environmentFallback;
+      els14.networkEgressCompatibilityNotice.textContent = environmentFallback ? formatTranslation("networkEgress.environmentTimeoutActive", {
         seconds: payload.resolved.image_request_timeout_seconds
       }) : "";
     }
-    if (els9.networkEgressCurrentRoute) {
+    if (els14.networkEgressCurrentRoute) {
       const resolvedMode = normalizedMode(payload.resolved?.mode);
-      els9.networkEgressCurrentRoute.textContent = formatTranslation(
+      els14.networkEgressCurrentRoute.textContent = formatTranslation(
         "networkEgress.currentRoute",
         { route: translate(modeTranslationKey(resolvedMode)) }
       );
     }
   }
   function networkEgressRouteFormPayload() {
-    const { els: els9 } = getLegacyBridge();
+    const { els: els14 } = getLegacyBridge();
     return {
       mode: selectedNetworkEgressMode(),
-      custom_proxy_url: String(els9.networkEgressCustomProxy?.value || "").trim()
+      custom_proxy_url: String(els14.networkEgressCustomProxy?.value || "").trim()
     };
   }
   function networkEgressFormPayload() {
-    const { els: els9 } = getLegacyBridge();
+    const { els: els14 } = getLegacyBridge();
     const routePayload = networkEgressRouteFormPayload();
     const policy = parseNetworkRequestPolicy(
-      String(els9.networkEgressTimeoutMinutes?.value || ""),
-      String(els9.networkEgressRetryCount?.value || "")
+      String(els14.networkEgressTimeoutMinutes?.value || ""),
+      String(els14.networkEgressRetryCount?.value || "")
     );
     if (!policy.ok) return policy;
     return {
@@ -23821,8 +23909,8 @@
     }
   }
   async function saveNetworkEgress() {
-    const { els: els9 } = getLegacyBridge();
-    if (!els9.saveNetworkEgressButton) return;
+    const { els: els14 } = getLegacyBridge();
+    if (!els14.saveNetworkEgressButton) return;
     const routePayload = networkEgressRouteFormPayload();
     if (!networkEgressPayloadIsValid(routePayload)) {
       setNetworkEgressFeedback(translate("networkEgress.saveFailed"), "error");
@@ -23835,7 +23923,7 @@
       return;
     }
     clearNetworkRequestPolicyError();
-    els9.saveNetworkEgressButton.disabled = true;
+    els14.saveNetworkEgressButton.disabled = true;
     try {
       const response = await fetch("/api/network-egress", {
         method: "PATCH",
@@ -23852,21 +23940,21 @@
         "error"
       );
     } finally {
-      els9.saveNetworkEgressButton.disabled = false;
+      els14.saveNetworkEgressButton.disabled = false;
     }
   }
   async function testNetworkEgress() {
-    const { els: els9, state: state5 } = getLegacyBridge();
-    if (!els9.testNetworkEgressButton) return;
+    const { els: els14, state: state8 } = getLegacyBridge();
+    if (!els14.testNetworkEgressButton) return;
     const routePayload = networkEgressRouteFormPayload();
     if (!networkEgressPayloadIsValid(routePayload)) {
       setNetworkEgressFeedback(translate("networkEgress.testFailed"), "error");
       return;
     }
-    els9.testNetworkEgressButton.disabled = true;
+    els14.testNetworkEgressButton.disabled = true;
     setNetworkEgressFeedback(translate("networkEgress.test"), "running");
     try {
-      const selectedProviderId = String(state5.selectedProviderId || "").trim();
+      const selectedProviderId = String(state8.selectedProviderId || "").trim();
       const payload = networkEgressRoutePayload(routePayload);
       const testPayload = {
         ...payload,
@@ -23894,7 +23982,7 @@
         "error"
       );
     } finally {
-      els9.testNetworkEgressButton.disabled = false;
+      els14.testNetworkEgressButton.disabled = false;
     }
   }
   function handleNetworkEgressModeClick(event) {
@@ -23907,17 +23995,17 @@
   function initNetworkEgressSettingsFeature() {
     if (networkEgressFeatureInitialized) return;
     networkEgressFeatureInitialized = true;
-    const { els: els9 } = getLegacyBridge();
-    els9.systemSettingsNetworkPanel?.addEventListener(
+    const { els: els14 } = getLegacyBridge();
+    els14.systemSettingsNetworkPanel?.addEventListener(
       "click",
       handleNetworkEgressModeClick
     );
-    els9.testNetworkEgressButton?.addEventListener("click", testNetworkEgress);
-    els9.saveNetworkEgressButton?.addEventListener("click", saveNetworkEgress);
-    els9.networkEgressTimeoutMinutes?.addEventListener("input", () => {
+    els14.testNetworkEgressButton?.addEventListener("click", testNetworkEgress);
+    els14.saveNetworkEgressButton?.addEventListener("click", saveNetworkEgress);
+    els14.networkEgressTimeoutMinutes?.addEventListener("input", () => {
       clearNetworkRequestPolicyError("timeout");
     });
-    els9.networkEgressRetryCount?.addEventListener("input", () => {
+    els14.networkEgressRetryCount?.addEventListener("input", () => {
       clearNetworkRequestPolicyError("retry");
     });
     document.addEventListener(LOCALE_CHANGE_EVENT, () => {
@@ -23931,8 +24019,8 @@
   }
 
   // codex_image/webui/frontend/src/overlay-popovers.ts
-  var bridge4 = getLegacyBridge();
-  var els5 = bridge4.els;
+  var bridge7 = getLegacyBridge();
+  var els10 = bridge7.els;
   var overlayPopoversInitialized = false;
   var overlayPopoverEventsBound = false;
   var confirmPopoverEl = null;
@@ -23966,7 +24054,7 @@
   function handleGalleryDocumentClick(event) {
     legacyMethod5("handleGalleryDocumentClick", event);
   }
-  function closeCompressionPopover() {
+  function closeCompressionPopover2() {
     legacyMethod5("closeCompressionPopover");
   }
   function handleImageEditorHistoryShortcut(event) {
@@ -24265,9 +24353,9 @@
         closeConfirmPopover();
       }
     }
-    if (!els5.compressionPopover || els5.compressionPopover.classList.contains("hidden")) return;
-    if (els5.compressionPopover.contains(target) || els5.outputFormatField?.contains(target)) return;
-    closeCompressionPopover();
+    if (!els10.compressionPopover || els10.compressionPopover.classList.contains("hidden")) return;
+    if (els10.compressionPopover.contains(target) || els10.outputFormatField?.contains(target)) return;
+    closeCompressionPopover2();
   }
   function handleDocumentKeydown(event) {
     if (handleImageEditorHistoryShortcut(event)) return;
@@ -24276,7 +24364,7 @@
       hideColorSuggest();
       hidePromptSnippetSuggest();
       hidePromptSnippetSelectionButton();
-      closeCompressionPopover();
+      closeCompressionPopover2();
       closePromptPopover2();
       closePromptSnippetPopover();
       closeGalleryEditPopover();
@@ -24340,19 +24428,19 @@
     window.updateQueueElapsedDisplays = updateQueueElapsedDisplays;
   }
   function bindQueueControls() {
-    const els9 = getEls();
-    els9.queueButton?.addEventListener("click", jumpToActiveTaskGroup);
+    const els14 = getEls();
+    els14.queueButton?.addEventListener("click", jumpToActiveTaskGroup);
   }
   function startRealtimeUpdates({ migrateLegacyArchives = false } = {}) {
-    const state5 = getState();
+    const state8 = getState();
     if (!window.EventSource) return false;
     closeRealtimeUpdates();
-    state5.realtimeSnapshotNeedsArchiveMigration = migrateLegacyArchives;
+    state8.realtimeSnapshotNeedsArchiveMigration = migrateLegacyArchives;
     realtimeConnectionNeedsResync = false;
     const source = new EventSource(REALTIME_EVENTS_URL);
-    state5.realtimeSource = source;
+    state8.realtimeSource = source;
     source.onopen = () => {
-      if (state5.realtimeSource !== source) return;
+      if (state8.realtimeSource !== source) return;
       if (!realtimeConnectionNeedsResync) return;
       realtimeConnectionNeedsResync = false;
       void requestRealtimeResync();
@@ -24365,7 +24453,7 @@
       });
     };
     source.onerror = () => {
-      if (state5.realtimeSource !== source) return;
+      if (state8.realtimeSource !== source) return;
       realtimeConnectionNeedsResync = true;
       void requestRealtimeResync();
       getLegacyBridge().methods.setStatus(translate("queue.realtimeDisconnected"), "error");
@@ -24373,20 +24461,20 @@
     return true;
   }
   function closeRealtimeUpdates() {
-    const state5 = getState();
+    const state8 = getState();
     realtimeConnectionNeedsResync = false;
     realtimeResyncRequested = false;
-    if (!state5.realtimeSource) return;
-    state5.realtimeSource.close();
-    state5.realtimeSource = null;
+    if (!state8.realtimeSource) return;
+    state8.realtimeSource.close();
+    state8.realtimeSource = null;
   }
   async function resyncRealtimeState() {
-    const bridge7 = getLegacyBridge();
-    const state5 = bridge7.state;
-    const shouldMigrateArchives = state5.realtimeSnapshotNeedsArchiveMigration;
-    await Promise.all([refreshQueue(), bridge7.methods.refreshTasks({ migrateLegacyArchives: shouldMigrateArchives })]);
+    const bridge10 = getLegacyBridge();
+    const state8 = bridge10.state;
+    const shouldMigrateArchives = state8.realtimeSnapshotNeedsArchiveMigration;
+    await Promise.all([refreshQueue(), bridge10.methods.refreshTasks({ migrateLegacyArchives: shouldMigrateArchives })]);
     if (shouldMigrateArchives) {
-      state5.realtimeSnapshotNeedsArchiveMigration = false;
+      state8.realtimeSnapshotNeedsArchiveMigration = false;
     }
   }
   function requestRealtimeResync() {
@@ -24398,13 +24486,13 @@
         await resyncRealtimeState();
       }
     })().catch((error) => {
-      const bridge7 = getLegacyBridge();
+      const bridge10 = getLegacyBridge();
       if (realtimeConnectionNeedsResync) {
-        bridge7.methods.setStatus(translate("queue.realtimeDisconnected"), "error");
+        bridge10.methods.setStatus(translate("queue.realtimeDisconnected"), "error");
         return;
       }
       console.error(error);
-      bridge7.methods.setStatus(errorMessage(error, translate("queue.realtimeUpdateFailed")), "error");
+      bridge10.methods.setStatus(errorMessage(error, translate("queue.realtimeUpdateFailed")), "error");
     }).finally(() => {
       realtimeResyncPromise = null;
     });
@@ -24412,9 +24500,9 @@
     return resyncPromise;
   }
   function clearRealtimeReconnectStatus() {
-    const bridge7 = getLegacyBridge();
-    if (bridge7.els.statusText?.textContent !== translate("queue.realtimeDisconnected")) return;
-    bridge7.methods.setStatus("", "");
+    const bridge10 = getLegacyBridge();
+    if (bridge10.els.statusText?.textContent !== translate("queue.realtimeDisconnected")) return;
+    bridge10.methods.setStatus("", "");
   }
   async function handleRealtimeMessage(event) {
     if (!event.data) return;
@@ -24422,16 +24510,16 @@
     await handleRealtimePayload(payload);
   }
   async function handleRealtimePayload(payload) {
-    const bridge7 = getLegacyBridge();
-    const state5 = bridge7.state;
+    const bridge10 = getLegacyBridge();
+    const state8 = bridge10.state;
     if (payload?.type === "snapshot") {
       applyQueueState(payload.queue);
-      await bridge7.methods.applyTasksSnapshot(payload.tasks || [], {
-        migrateLegacyArchives: state5.realtimeSnapshotNeedsArchiveMigration,
+      await bridge10.methods.applyTasksSnapshot(payload.tasks || [], {
+        migrateLegacyArchives: state8.realtimeSnapshotNeedsArchiveMigration,
         ...payload.task_groups ? { taskGroups: payload.task_groups } : {}
       });
       applyQueueTasks(payload.queue);
-      state5.realtimeSnapshotNeedsArchiveMigration = false;
+      state8.realtimeSnapshotNeedsArchiveMigration = false;
       return;
     }
     if (payload?.type === "queue") {
@@ -24440,7 +24528,7 @@
       await applyRealtimeTaskPayloads(updatedTasks);
       applyQueueTasks(payload.queue);
       if (!updatedTasks.length && !queueTaskCount(payload.queue)) {
-        bridge7.methods.renderTasks?.({ preserveScroll: true });
+        bridge10.methods.renderTasks?.({ preserveScroll: true });
       }
       return;
     }
@@ -24449,29 +24537,29 @@
     }
   }
   async function applyRealtimeTaskPayloads(tasks) {
-    const bridge7 = getLegacyBridge();
-    const state5 = bridge7.state;
+    const bridge10 = getLegacyBridge();
+    const state8 = bridge10.state;
     for (const task of tasks) {
-      const previousTask = state5.tasks.find((item) => String(item.task_id) === String(task?.task_id));
-      bridge7.methods.notifyTaskUpdate?.(previousTask, task);
-      await bridge7.methods.applyTaskUpdate(task);
+      const previousTask = state8.tasks.find((item) => String(item.task_id) === String(task?.task_id));
+      bridge10.methods.notifyTaskUpdate?.(previousTask, task);
+      await bridge10.methods.applyTaskUpdate(task);
     }
   }
   async function refreshQueue() {
-    const bridge7 = getLegacyBridge();
-    const state5 = bridge7.state;
-    const requestSeq = ++state5.queueRequestSeq;
+    const bridge10 = getLegacyBridge();
+    const state8 = bridge10.state;
+    const requestSeq = ++state8.queueRequestSeq;
     try {
       const response = await fetch("/api/queue");
       const data = await response.json();
-      if (requestSeq !== state5.queueRequestSeq) return;
+      if (requestSeq !== state8.queueRequestSeq) return;
       if (!response.ok) {
         throw new Error(data.detail || translate("queue.readFailed"));
       }
-      state5.queue = normalizeQueueState(data);
+      state8.queue = normalizeQueueState(data);
       renderQueue();
     } catch (error) {
-      bridge7.methods.setStatus(errorMessage(error, translate("queue.readFailed")), "error");
+      bridge10.methods.setStatus(errorMessage(error, translate("queue.readFailed")), "error");
     }
   }
   function defaultQueueState() {
@@ -24489,17 +24577,17 @@
     getState().queueRequestSeq += 1;
   }
   function applyQueueState(queue, { deferTaskListRender = false } = {}) {
-    const state5 = getState();
+    const state8 = getState();
     invalidateQueueRequests();
-    state5.queue = normalizeQueueState(queue);
+    state8.queue = normalizeQueueState(queue);
     renderQueue({ deferTaskListRender });
   }
   function renderQueue({ deferTaskListRender = false } = {}) {
-    const bridge7 = getLegacyBridge();
-    const state5 = bridge7.state;
-    const summary = state5.queue.summary || {};
-    const waitingCount = Number(summary.waiting_count ?? state5.queue.waiting.length ?? 0);
-    const runningCount = Number(summary.running_count ?? state5.queue.running.length ?? 0);
+    const bridge10 = getLegacyBridge();
+    const state8 = bridge10.state;
+    const summary = state8.queue.summary || {};
+    const waitingCount = Number(summary.waiting_count ?? state8.queue.waiting.length ?? 0);
+    const runningCount = Number(summary.running_count ?? state8.queue.running.length ?? 0);
     const channelCount = Number(summary.channel_count ?? 0);
     const usableChannelCount = Number(summary.usable_channel_count ?? channelCount);
     const dispatchPending = isQueueDispatchPending();
@@ -24510,18 +24598,18 @@
       usableChannelCount,
       dispatchPending
     });
-    bridge7.methods.updateDocumentTitle();
+    bridge10.methods.updateDocumentTitle();
     if (dispatchPending) {
       scheduleQueueDispatchSync();
     } else {
       clearQueueDispatchSync();
     }
     const nextRenderKey = queueListRenderKey();
-    if (state5.queueRenderKey === nextRenderKey) {
+    if (state8.queueRenderKey === nextRenderKey) {
       updateQueueElapsedDisplays();
       return;
     }
-    state5.queueRenderKey = nextRenderKey;
+    state8.queueRenderKey = nextRenderKey;
     if (!deferTaskListRender) {
       renderActiveTaskGroupForQueueChange();
     }
@@ -24530,8 +24618,8 @@
     return (Array.isArray(queue?.waiting) ? queue.waiting.length : 0) + (Array.isArray(queue?.running) ? queue.running.length : 0);
   }
   function renderActiveTaskGroupForQueueChange() {
-    const bridge7 = getLegacyBridge();
-    bridge7.methods.renderTasks?.({ preserveScroll: true });
+    const bridge10 = getLegacyBridge();
+    bridge10.methods.renderTasks?.({ preserveScroll: true });
   }
   function renderQueueStatusChip({
     waitingCount,
@@ -24540,55 +24628,55 @@
     usableChannelCount,
     dispatchPending
   }) {
-    const els9 = getEls();
+    const els14 = getEls();
     const total = waitingCount + runningCount;
     const channelText = usableChannelCount === channelCount ? formatTranslation("queue.channel", { count: channelCount }) : formatTranslation("queue.availableChannels", { usable: usableChannelCount, total: channelCount });
     const text = dispatchPending ? formatTranslation("queue.dispatching", { waiting: waitingCount }) : total ? formatTranslation("queue.runningWaiting", { running: runningCount, waiting: waitingCount }) : translate("queue.empty");
     const label = total ? formatTranslation("queue.statusLabel", { text, channelText }) : translate("queue.emptyAria");
-    if (els9.queueStatusText) els9.queueStatusText.textContent = text;
-    if (els9.queueButton) {
-      els9.queueButton.setAttribute("aria-label", label);
-      els9.queueButton.title = total ? translate("queue.jumpTitle") : translate("queue.emptyTitle");
-      els9.queueButton.classList.toggle("has-queue", total > 0 || dispatchPending);
+    if (els14.queueStatusText) els14.queueStatusText.textContent = text;
+    if (els14.queueButton) {
+      els14.queueButton.setAttribute("aria-label", label);
+      els14.queueButton.title = total ? translate("queue.jumpTitle") : translate("queue.emptyTitle");
+      els14.queueButton.classList.toggle("has-queue", total > 0 || dispatchPending);
     }
   }
   function jumpToActiveTaskGroup() {
-    const bridge7 = getLegacyBridge();
-    const state5 = bridge7.state;
-    const hasActiveTasks = Boolean((state5.queue.running || []).length || (state5.queue.waiting || []).length);
+    const bridge10 = getLegacyBridge();
+    const state8 = bridge10.state;
+    const hasActiveTasks = Boolean((state8.queue.running || []).length || (state8.queue.waiting || []).length);
     if (!hasActiveTasks) return;
-    bridge7.methods.revealActiveTaskGroup?.();
+    bridge10.methods.revealActiveTaskGroup?.();
   }
   function isQueueDispatchPending() {
-    const state5 = getState();
-    const summary = state5.queue.summary || {};
-    const waitingCount = Number(summary.waiting_count ?? state5.queue.waiting.length ?? 0);
-    const runningCount = Number(summary.running_count ?? state5.queue.running.length ?? 0);
+    const state8 = getState();
+    const summary = state8.queue.summary || {};
+    const waitingCount = Number(summary.waiting_count ?? state8.queue.waiting.length ?? 0);
+    const runningCount = Number(summary.running_count ?? state8.queue.running.length ?? 0);
     const channelCount = Number(summary.channel_count ?? 0);
     const usableChannelCount = Number(summary.usable_channel_count ?? channelCount);
     return waitingCount > 0 && runningCount === 0 && usableChannelCount > 0;
   }
   function scheduleQueueDispatchSync() {
-    const state5 = getState();
-    if (state5.queueDispatchSyncTimerId) return;
-    state5.queueDispatchSyncTimerId = window.setTimeout(() => {
-      state5.queueDispatchSyncTimerId = null;
+    const state8 = getState();
+    if (state8.queueDispatchSyncTimerId) return;
+    state8.queueDispatchSyncTimerId = window.setTimeout(() => {
+      state8.queueDispatchSyncTimerId = null;
       if (isQueueDispatchPending()) {
         void refreshQueue();
       }
     }, QUEUE_DISPATCH_RESYNC_DELAY_MS);
   }
   function clearQueueDispatchSync() {
-    const state5 = getState();
-    if (!state5.queueDispatchSyncTimerId) return;
-    window.clearTimeout(state5.queueDispatchSyncTimerId);
-    state5.queueDispatchSyncTimerId = null;
+    const state8 = getState();
+    if (!state8.queueDispatchSyncTimerId) return;
+    window.clearTimeout(state8.queueDispatchSyncTimerId);
+    state8.queueDispatchSyncTimerId = null;
   }
   function queueListRenderKey() {
-    const state5 = getState();
+    const state8 = getState();
     return JSON.stringify({
-      summary: state5.queue.summary || {},
-      running: (state5.queue.running || []).map((task) => [
+      summary: state8.queue.summary || {},
+      running: (state8.queue.running || []).map((task) => [
         task.task_id,
         task.status,
         task.viewed_at,
@@ -24598,7 +24686,7 @@
         task.started_at,
         task.attempts
       ]),
-      waiting: (state5.queue.waiting || []).map((task) => [
+      waiting: (state8.queue.waiting || []).map((task) => [
         task.task_id,
         task.status,
         task.prompt,
@@ -24608,7 +24696,7 @@
     });
   }
   function applyQueueTasks(queue) {
-    const bridge7 = getLegacyBridge();
+    const bridge10 = getLegacyBridge();
     const tasks = [
       ...Array.isArray(queue?.waiting) ? queue.waiting : [],
       ...Array.isArray(queue?.running) ? queue.running : []
@@ -24617,37 +24705,37 @@
     const needsTaskReconcile = activeTasksNeedQueueReconcile(queueTaskIds);
     if (!tasks.length) {
       if (needsTaskReconcile) {
-        void bridge7.methods.refreshTasks();
+        void bridge10.methods.refreshTasks();
       }
       return;
     }
     let changed = false;
     tasks.forEach((task) => {
-      const previousTask = bridge7.state.tasks.find((item) => String(item.task_id) === String(task.task_id));
-      bridge7.methods.notifyTaskUpdate?.(previousTask, task);
-      changed = bridge7.methods.updateTaskInState(task) || changed;
-      if (String(task.task_id) === String(bridge7.state.selectedTaskId) && bridge7.methods.taskHasViewableUpdate(task)) {
-        void bridge7.methods.markTaskViewed(task.task_id);
+      const previousTask = bridge10.state.tasks.find((item) => String(item.task_id) === String(task.task_id));
+      bridge10.methods.notifyTaskUpdate?.(previousTask, task);
+      changed = bridge10.methods.updateTaskInState(task) || changed;
+      if (String(task.task_id) === String(bridge10.state.selectedTaskId) && bridge10.methods.taskHasViewableUpdate(task)) {
+        void bridge10.methods.markTaskViewed(task.task_id);
       }
     });
     if (!changed) {
       if (needsTaskReconcile) {
-        void bridge7.methods.refreshTasks();
+        void bridge10.methods.refreshTasks();
       }
       return;
     }
-    bridge7.methods.cleanupSessionSelections();
-    bridge7.methods.renderTasks({ preserveScroll: true });
-    bridge7.methods.renderArchiveButton();
-    bridge7.methods.renderArchiveModal();
-    bridge7.methods.renderPreview();
+    bridge10.methods.cleanupSessionSelections();
+    bridge10.methods.renderTasks({ preserveScroll: true });
+    bridge10.methods.renderArchiveButton();
+    bridge10.methods.renderArchiveModal();
+    bridge10.methods.renderPreview();
     if (needsTaskReconcile) {
-      void bridge7.methods.refreshTasks();
+      void bridge10.methods.refreshTasks();
     }
   }
   function activeTasksNeedQueueReconcile(queueTaskIds) {
-    const bridge7 = getLegacyBridge();
-    return bridge7.state.tasks.some((task) => {
+    const bridge10 = getLegacyBridge();
+    return bridge10.state.tasks.some((task) => {
       const taskId = String(task?.task_id || "");
       if (!taskId || queueTaskIds.has(taskId) || task?.local_pending) return false;
       const status = String(task?.status || "");
@@ -24778,9 +24866,9 @@
   var SIDEBAR_MAX_WIDTH = 520;
   var SIDEBAR_DEFAULT_WIDTH = 347;
   var COMPACT_SHELL_MAX_WIDTH = 1180;
-  var bridge5 = getLegacyBridge();
-  var state4 = bridge5.state;
-  var els6 = bridge5.els;
+  var bridge8 = getLegacyBridge();
+  var state7 = bridge8.state;
+  var els11 = bridge8.els;
   var shellUiInitialized = false;
   var shellUiEventsBound = false;
   var sidebarResizeFrameId = null;
@@ -24822,16 +24910,16 @@
   function setMode(mode) {
     legacyMethod6("setMode", mode);
   }
-  function updateSizeFromPreset() {
+  function updateSizeFromPreset2() {
     legacyMethod6("updateSizeFromPreset");
   }
   function updatePromptCount2() {
     legacyMethod6("updatePromptCount");
   }
-  function updateQuantity() {
+  function updateQuantity2() {
     legacyMethod6("updateQuantity");
   }
-  function updateCompression() {
+  function updateCompression2() {
     legacyMethod6("updateCompression");
   }
   function renderImageStrip() {
@@ -24843,15 +24931,15 @@
   function renderPreview2() {
     legacyMethod6("renderPreview");
   }
-  function updateRequestPreview3() {
+  function updateRequestPreview4() {
     legacyMethod6("updateRequestPreview");
   }
   function clearTaskParameterInspection() {
     legacyMethod6("clearTaskParameterInspection");
   }
   function handleShellLocaleChange() {
-    if (!els6.statusText) return;
-    const current = String(els6.statusText.textContent || "").trim();
+    if (!els11.statusText) return;
+    const current = String(els11.statusText.textContent || "").trim();
     const waitingLabels = [translate("status.waiting", "zh-CN"), translate("status.waiting", "en")];
     if (waitingLabels.includes(current)) {
       setStatus4(translate("status.waiting"), "");
@@ -24861,39 +24949,39 @@
     if (shellUiEventsBound) return;
     shellUiEventsBound = true;
     bindThemeSwitcher(
-      els6.themeSwitcher,
+      els11.themeSwitcher,
       (preference) => applyThemePreference(preference)
     );
     bindSystemThemePreference(handleThemeSystemChange);
     document.addEventListener(LOCALE_CHANGE_EVENT, handleShellLocaleChange);
-    if (els6.copyJsonButton) {
-      els6.copyJsonButton.addEventListener("click", copyJson);
+    if (els11.copyJsonButton) {
+      els11.copyJsonButton.addEventListener("click", copyJson);
     }
-    els6.newTaskButton?.addEventListener("click", resetForm);
-    els6.sidebarResizeHandle?.addEventListener("pointerdown", startSidebarResize);
-    els6.sidebarResizeHandle?.addEventListener("keydown", handleSidebarResizeKeydown);
-    els6.sidebarResizeHandle?.addEventListener("dblclick", resetSidebarWidth);
+    els11.newTaskButton?.addEventListener("click", resetForm);
+    els11.sidebarResizeHandle?.addEventListener("pointerdown", startSidebarResize);
+    els11.sidebarResizeHandle?.addEventListener("keydown", handleSidebarResizeKeydown);
+    els11.sidebarResizeHandle?.addEventListener("dblclick", resetSidebarWidth);
     syncSidebarResizeHandleAria();
   }
   function normalizeThemePreference2(value) {
     return normalizeThemePreference(value);
   }
-  function resolveEffectiveTheme2(preference = state4.themePreference) {
+  function resolveEffectiveTheme2(preference = state7.themePreference) {
     return resolveEffectiveTheme(
       normalizeThemePreference2(preference)
     );
   }
   function updateThemeSwitcher() {
     syncThemeSwitcher(
-      els6.themeSwitcher,
-      state4.themePreference
+      els11.themeSwitcher,
+      state7.themePreference
     );
   }
   function applyThemePreference(preference, { persist = true } = {}) {
-    state4.themePreference = normalizeThemePreference2(preference);
-    applyDocumentTheme(state4.themePreference);
+    state7.themePreference = normalizeThemePreference2(preference);
+    applyDocumentTheme(state7.themePreference);
     if (persist) {
-      persistThemePreference(state4.themePreference);
+      persistThemePreference(state7.themePreference);
     }
     updateThemeSwitcher();
   }
@@ -24904,7 +24992,7 @@
     );
   }
   function handleThemeSystemChange() {
-    if (state4.themePreference === "system") {
+    if (state7.themePreference === "system") {
       applyThemePreference("system", { persist: false });
     }
   }
@@ -24928,7 +25016,7 @@
     return Math.min(sidebarMaxWidth(), Math.max(SIDEBAR_MIN_WIDTH, width));
   }
   function sidebarWidthFromCss() {
-    const widthOwner = els6.sidebar || document.documentElement;
+    const widthOwner = els11.sidebar || document.documentElement;
     const inlineWidth = Number.parseInt(widthOwner.style.getPropertyValue("--sidebar-width") || "", 10);
     if (!Number.isNaN(inlineWidth)) return clampSidebarWidth(inlineWidth);
     const tokenWidth = Number.parseInt(getComputedStyle(widthOwner).getPropertyValue("--sidebar-width") || "", 10);
@@ -24938,7 +25026,7 @@
     return sidebarWidthFromCss() ?? SIDEBAR_DEFAULT_WIDTH;
   }
   function syncSidebarResizeHandleAria(width = null) {
-    const handle = els6.sidebarResizeHandle;
+    const handle = els11.sidebarResizeHandle;
     if (!handle) return;
     const currentWidth = width !== null ? width : currentSidebarWidth();
     handle.setAttribute("aria-valuemin", String(SIDEBAR_MIN_WIDTH));
@@ -24947,7 +25035,7 @@
   }
   function applySidebarWidth(width, { persist = true } = {}) {
     const nextWidth = clampSidebarWidth(width);
-    (els6.sidebar || document.documentElement).style.setProperty("--sidebar-width", `${nextWidth}px`);
+    (els11.sidebar || document.documentElement).style.setProperty("--sidebar-width", `${nextWidth}px`);
     syncSidebarResizeHandleAria(nextWidth);
     if (persist) {
       try {
@@ -24979,48 +25067,48 @@
     applySidebarWidth(width, { persist: true });
   }
   function startSidebarResize(event) {
-    if (!els6.sidebar || event.button !== 0) return;
+    if (!els11.sidebar || event.button !== 0) return;
     event.preventDefault();
     const currentWidth = currentSidebarWidth();
-    state4.sidebarResize = {
+    state7.sidebarResize = {
       pointerId: event.pointerId,
       startX: event.clientX,
       startWidth: currentWidth,
       lastWidth: currentWidth
     };
-    els6.sidebar.classList.add("resizing");
-    if (els6.sidebarResizeShield) {
-      els6.sidebarResizeShield.hidden = false;
+    els11.sidebar.classList.add("resizing");
+    if (els11.sidebarResizeShield) {
+      els11.sidebarResizeShield.hidden = false;
     }
-    els6.sidebarResizeHandle?.setPointerCapture?.(event.pointerId);
+    els11.sidebarResizeHandle?.setPointerCapture?.(event.pointerId);
     window.addEventListener("pointermove", updateSidebarResize);
     window.addEventListener("pointerup", finishSidebarResize);
     window.addEventListener("pointercancel", finishSidebarResize);
   }
   function updateSidebarResize(event) {
-    const resize = state4.sidebarResize;
+    const resize = state7.sidebarResize;
     if (!resize || event.pointerId !== resize.pointerId) return;
     event.preventDefault();
     resize.lastWidth = resize.startWidth + event.clientX - resize.startX;
     scheduleSidebarResizeWidth(resize.lastWidth);
   }
   function finishSidebarResize(event) {
-    const resize = state4.sidebarResize;
+    const resize = state7.sidebarResize;
     if (!resize || event.pointerId !== resize.pointerId) return;
     const nextWidth = resize.lastWidth ?? resize.startWidth;
-    state4.sidebarResize = null;
-    els6.sidebar?.classList.remove("resizing");
-    if (els6.sidebarResizeShield) {
-      els6.sidebarResizeShield.hidden = true;
+    state7.sidebarResize = null;
+    els11.sidebar?.classList.remove("resizing");
+    if (els11.sidebarResizeShield) {
+      els11.sidebarResizeShield.hidden = true;
     }
-    els6.sidebarResizeHandle?.releasePointerCapture?.(event.pointerId);
+    els11.sidebarResizeHandle?.releasePointerCapture?.(event.pointerId);
     window.removeEventListener("pointermove", updateSidebarResize);
     window.removeEventListener("pointerup", finishSidebarResize);
     window.removeEventListener("pointercancel", finishSidebarResize);
     flushSidebarResizeWidth(nextWidth);
   }
   function handleSidebarResizeKeydown(event) {
-    if (!els6.sidebar) return;
+    if (!els11.sidebar) return;
     const step = event.shiftKey ? 32 : 16;
     const currentWidth = currentSidebarWidth();
     if (event.key === "ArrowLeft") {
@@ -25038,9 +25126,9 @@
     }
   }
   function updateDocumentTitle() {
-    const summary = state4.queue.summary || {};
-    const waitingCount = Number(summary.waiting_count ?? state4.queue.waiting.length ?? 0);
-    const runningCount = Number(summary.running_count ?? state4.queue.running.length ?? 0);
+    const summary = state7.queue.summary || {};
+    const waitingCount = Number(summary.waiting_count ?? state7.queue.waiting.length ?? 0);
+    const runningCount = Number(summary.running_count ?? state7.queue.running.length ?? 0);
     const total = waitingCount + runningCount;
     let status = "";
     if (runningCount > 0) {
@@ -25048,7 +25136,7 @@
     } else if (waitingCount > 0) {
       status = formatTranslation("document.queuedWaiting", { count: waitingCount });
     } else {
-      const selected = state4.tasks.find((item) => String(item.task_id) === String(state4.selectedTaskId));
+      const selected = state7.tasks.find((item) => String(item.task_id) === String(state7.selectedTaskId));
       status = selected ? formatTaskStatus2(selected) : "";
     }
     const defaultTitle = getLegacyBridge().constants.defaultDocumentTitle;
@@ -25056,9 +25144,9 @@
     document.title = webAppDocumentTitle(status, fullTitle);
   }
   function setStatus4(message, type) {
-    if (!els6.statusText) return;
-    els6.statusText.textContent = message;
-    els6.statusText.className = `status-text ${type || ""}`;
+    if (!els11.statusText) return;
+    els11.statusText.textContent = message;
+    els11.statusText.className = `status-text ${type || ""}`;
   }
   function resetForm() {
     const outputSettingsLocked = Boolean(legacyMethod6("isOutputSettingsLocked"));
@@ -25067,54 +25155,54 @@
     closeArchiveModal2();
     closeGallery2();
     closeImageEditor2();
-    state4.historyTaskReveal = null;
-    state4.historyTaskRevealSeq += 1;
-    state4.selectedTaskId = null;
+    state7.historyTaskReveal = null;
+    state7.historyTaskRevealSeq += 1;
+    state7.selectedTaskId = null;
     clearTaskParameterInspection();
-    state4.mode = "generate";
-    revokeUploadPreviewUrls(state4.images);
-    state4.images = [];
+    state7.mode = "generate";
+    revokeUploadPreviewUrls(state7.images);
+    state7.images = [];
     legacyMethod6("clearReferenceFiles", { silent: true });
-    state4.batchMode = false;
-    state4.batchSelectedTaskIds = [];
-    state4.batchSelectionAnchorTaskId = null;
+    state7.batchMode = false;
+    state7.batchSelectedTaskIds = [];
+    state7.batchSelectionAnchorTaskId = null;
     finishBatchMarqueeSelection();
     setPromptText("");
     if (!outputSettingsLocked) {
-      if (els6.customSizeToggle) els6.customSizeToggle.checked = false;
-      if (els6.nInput) els6.nInput.value = "1";
-      if (els6.resolution) els6.resolution.value = "standard";
-      if (els6.ratio) els6.ratio.value = "1:1";
-      if (els6.orientation) els6.orientation.value = "square";
-      els6.size.value = "1024x1024";
-      els6.quality.value = "auto";
-      els6.outputFormat.value = "png";
-      els6.moderation.value = "auto";
-      els6.compression.value = "80";
-      if (els6.promptFidelity) els6.promptFidelity.value = "off";
-      if (els6.webSearch) els6.webSearch.checked = false;
-      [els6.nInput, els6.resolution, els6.ratio, els6.orientation, els6.quality, els6.outputFormat, els6.moderation, els6.promptFidelity, els6.webSearch].forEach((sel) => {
+      if (els11.customSizeToggle) els11.customSizeToggle.checked = false;
+      if (els11.nInput) els11.nInput.value = "1";
+      if (els11.resolution) els11.resolution.value = "standard";
+      if (els11.ratio) els11.ratio.value = "1:1";
+      if (els11.orientation) els11.orientation.value = "square";
+      els11.size.value = "1024x1024";
+      els11.quality.value = "auto";
+      els11.outputFormat.value = "png";
+      els11.moderation.value = "auto";
+      els11.compression.value = "80";
+      if (els11.promptFidelity) els11.promptFidelity.value = "off";
+      if (els11.webSearch) els11.webSearch.checked = false;
+      [els11.nInput, els11.resolution, els11.ratio, els11.orientation, els11.quality, els11.outputFormat, els11.moderation, els11.promptFidelity, els11.webSearch].forEach((sel) => {
         if (sel) sel.dispatchEvent(new Event("change"));
       });
-      updateSizeFromPreset();
+      updateSizeFromPreset2();
       if (typeof getLegacyBridge().methods.restoreChatGPTDeleteChatState === "function") {
         legacyMethod6("restoreChatGPTDeleteChatState");
       }
     }
     setMode("generate");
     updatePromptCount2();
-    updateQuantity();
-    updateCompression();
+    updateQuantity2();
+    updateCompression2();
     renderImageStrip();
     renderTasks2();
     renderPreview2();
-    updateRequestPreview3();
+    updateRequestPreview4();
     if (outputSettingsLocked) legacyMethod6("showLockedOutputSettings");
     setStatus4(translate("status.waiting"), "");
   }
   async function copyJson() {
-    if (!els6.requestJson) return;
-    await navigator.clipboard.writeText(els6.requestJson.textContent);
+    if (!els11.requestJson) return;
+    await navigator.clipboard.writeText(els11.requestJson.textContent);
     setStatus4(translate("status.jsonCopied"), "ok");
   }
   function initShellUiFeature() {
@@ -25205,18 +25293,18 @@
     return !getLegacyBridge().state.taskNotificationSeenKeys.has(taskNotificationSeenKey(nextTask, status));
   }
   function openTaskNotificationCenter() {
-    const state5 = getLegacyBridge().state;
-    state5.taskNotificationCenterOpen = true;
-    state5.taskNotifications = state5.taskNotifications.map((notification) => ({
+    const state8 = getLegacyBridge().state;
+    state8.taskNotificationCenterOpen = true;
+    state8.taskNotifications = state8.taskNotifications.map((notification) => ({
       ...notification,
       unread: false
     }));
     renderTaskNotifications();
   }
   function closeTaskNotificationCenter() {
-    const state5 = getLegacyBridge().state;
-    if (!state5.taskNotificationCenterOpen) return;
-    state5.taskNotificationCenterOpen = false;
+    const state8 = getLegacyBridge().state;
+    if (!state8.taskNotificationCenterOpen) return;
+    state8.taskNotificationCenterOpen = false;
     renderTaskNotifications();
   }
   function toggleTaskNotificationCenter() {
@@ -25227,37 +25315,37 @@
     openTaskNotificationCenter();
   }
   function renderTaskNotifications() {
-    const bridge7 = getLegacyBridge();
-    const state5 = bridge7.state;
-    const els9 = bridge7.els;
-    const unreadCount = state5.taskNotifications.filter((notification) => notification.unread).length;
-    state5.taskNotificationUnreadCount = unreadCount;
+    const bridge10 = getLegacyBridge();
+    const state8 = bridge10.state;
+    const els14 = bridge10.els;
+    const unreadCount = state8.taskNotifications.filter((notification) => notification.unread).length;
+    state8.taskNotificationUnreadCount = unreadCount;
     const unreadLabel = unreadCount > 0 ? formatTranslation("notifications.unread", { count: unreadCount }) : translate("notifications.title");
-    if (els9.taskNotificationBadge) {
-      els9.taskNotificationBadge.textContent = "";
-      els9.taskNotificationBadge.setAttribute("aria-hidden", "true");
-      els9.taskNotificationBadge.classList.toggle("hidden", unreadCount === 0);
+    if (els14.taskNotificationBadge) {
+      els14.taskNotificationBadge.textContent = "";
+      els14.taskNotificationBadge.setAttribute("aria-hidden", "true");
+      els14.taskNotificationBadge.classList.toggle("hidden", unreadCount === 0);
     }
-    if (els9.taskNotificationButton) {
-      els9.taskNotificationButton.classList.toggle("has-unread", unreadCount > 0);
-      els9.taskNotificationButton.setAttribute("aria-label", unreadLabel);
-      els9.taskNotificationButton.title = unreadLabel;
-      els9.taskNotificationButton.setAttribute("aria-expanded", state5.taskNotificationCenterOpen ? "true" : "false");
+    if (els14.taskNotificationButton) {
+      els14.taskNotificationButton.classList.toggle("has-unread", unreadCount > 0);
+      els14.taskNotificationButton.setAttribute("aria-label", unreadLabel);
+      els14.taskNotificationButton.title = unreadLabel;
+      els14.taskNotificationButton.setAttribute("aria-expanded", state8.taskNotificationCenterOpen ? "true" : "false");
     }
-    if (els9.taskNotificationUnreadSummary) {
-      els9.taskNotificationUnreadSummary.textContent = formatTranslation("notifications.unreadSummary", { count: unreadCount });
-      els9.taskNotificationUnreadSummary.classList.toggle("hidden", unreadCount === 0);
+    if (els14.taskNotificationUnreadSummary) {
+      els14.taskNotificationUnreadSummary.textContent = formatTranslation("notifications.unreadSummary", { count: unreadCount });
+      els14.taskNotificationUnreadSummary.classList.toggle("hidden", unreadCount === 0);
     }
-    if (els9.taskNotificationCenter) {
-      els9.taskNotificationCenter.classList.toggle("hidden", !state5.taskNotificationCenterOpen);
-      els9.taskNotificationCenter.setAttribute("aria-hidden", state5.taskNotificationCenterOpen ? "false" : "true");
+    if (els14.taskNotificationCenter) {
+      els14.taskNotificationCenter.classList.toggle("hidden", !state8.taskNotificationCenterOpen);
+      els14.taskNotificationCenter.setAttribute("aria-hidden", state8.taskNotificationCenterOpen ? "false" : "true");
     }
-    if (!els9.taskNotificationList) return;
-    if (!state5.taskNotifications.length) {
-      els9.taskNotificationList.innerHTML = `<div class="task-notification-empty">${translate("notifications.empty")}</div>`;
+    if (!els14.taskNotificationList) return;
+    if (!state8.taskNotifications.length) {
+      els14.taskNotificationList.innerHTML = `<div class="task-notification-empty">${translate("notifications.empty")}</div>`;
       return;
     }
-    els9.taskNotificationList.innerHTML = state5.taskNotifications.map((notification) => taskNotificationItemHtml(notification)).join("");
+    els14.taskNotificationList.innerHTML = state8.taskNotifications.map((notification) => taskNotificationItemHtml(notification)).join("");
   }
   async function requestSystemNotificationPermission() {
     if (typeof Notification === "undefined") {
@@ -25278,23 +25366,23 @@
     return true;
   }
   function bindTaskNotificationEvents() {
-    const els9 = getLegacyBridge().els;
-    els9.taskNotificationButton?.addEventListener("click", (event) => {
+    const els14 = getLegacyBridge().els;
+    els14.taskNotificationButton?.addEventListener("click", (event) => {
       event.stopPropagation();
       toggleTaskNotificationCenter();
     });
-    els9.taskNotificationClearButton?.addEventListener("click", (event) => {
+    els14.taskNotificationClearButton?.addEventListener("click", (event) => {
       event.stopPropagation();
       clearTaskNotifications();
     });
-    els9.taskNotificationList?.addEventListener("click", (event) => {
+    els14.taskNotificationList?.addEventListener("click", (event) => {
       const item = eventTargetElement(event)?.closest("[data-task-notification-id]");
       if (!(item instanceof HTMLElement)) return;
       const notification = notificationById(item.dataset.taskNotificationId);
       if (notification) void openNotificationTask(notification);
     });
-    els9.taskNotificationInApp?.addEventListener("change", handleTaskNotificationInAppChange);
-    els9.taskNotificationSystem?.addEventListener("change", (event) => {
+    els14.taskNotificationInApp?.addEventListener("change", handleTaskNotificationInAppChange);
+    els14.taskNotificationSystem?.addEventListener("change", (event) => {
       void handleTaskNotificationSystemChange(event);
     });
     document.addEventListener("click", handleTaskNotificationDocumentClick);
@@ -25303,9 +25391,9 @@
   function handleTaskNotificationInAppChange(event) {
     const input = event.currentTarget;
     if (!(input instanceof HTMLInputElement)) return;
-    const state5 = getLegacyBridge().state;
-    state5.taskNotificationSettings = {
-      ...state5.taskNotificationSettings,
+    const state8 = getLegacyBridge().state;
+    state8.taskNotificationSettings = {
+      ...state8.taskNotificationSettings,
       inApp: input.checked
     };
     persistTaskNotificationSettings();
@@ -25313,40 +25401,40 @@
   async function handleTaskNotificationSystemChange(event) {
     const input = event.currentTarget;
     if (!(input instanceof HTMLInputElement)) return;
-    const state5 = getLegacyBridge().state;
+    const state8 = getLegacyBridge().state;
     if (!input.checked) {
-      state5.taskNotificationSettings = { ...state5.taskNotificationSettings, system: false };
+      state8.taskNotificationSettings = { ...state8.taskNotificationSettings, system: false };
       persistTaskNotificationSettings();
       return;
     }
     const granted = await requestSystemNotificationPermission();
-    state5.taskNotificationSettings = { ...state5.taskNotificationSettings, system: granted };
+    state8.taskNotificationSettings = { ...state8.taskNotificationSettings, system: granted };
     input.checked = granted;
     persistTaskNotificationSettings();
   }
   function handleTaskNotificationDocumentClick(event) {
     const target = event.target;
-    const els9 = getLegacyBridge().els;
+    const els14 = getLegacyBridge().els;
     if (!(target instanceof Node)) return;
-    if (els9.taskNotificationCenter?.contains(target) || els9.taskNotificationButton?.contains(target)) return;
+    if (els14.taskNotificationCenter?.contains(target) || els14.taskNotificationButton?.contains(target)) return;
     closeTaskNotificationCenter();
   }
   function handleTaskNotificationKeydown(event) {
     if (event.key === "Escape") closeTaskNotificationCenter();
   }
   function addTaskNotification(notification) {
-    const state5 = getLegacyBridge().state;
-    state5.taskNotifications = [notification, ...state5.taskNotifications].slice(0, MAX_TASK_NOTIFICATIONS);
+    const state8 = getLegacyBridge().state;
+    state8.taskNotifications = [notification, ...state8.taskNotifications].slice(0, MAX_TASK_NOTIFICATIONS);
     renderTaskNotifications();
   }
   function clearTaskNotifications() {
-    const state5 = getLegacyBridge().state;
-    state5.taskNotifications = [];
+    const state8 = getLegacyBridge().state;
+    state8.taskNotifications = [];
     renderTaskNotifications();
   }
   function showTaskNotificationToast(notification) {
-    const bridge7 = getLegacyBridge();
-    const region = bridge7.els.taskNotificationToastRegion;
+    const bridge10 = getLegacyBridge();
+    const region = bridge10.els.taskNotificationToastRegion;
     if (!region) return;
     const toast = document.createElement("button");
     toast.type = "button";
@@ -25360,9 +25448,9 @@
     region.prepend(toast);
     const timerId = window.setTimeout(() => {
       toast.remove();
-      bridge7.state.taskNotificationToastTimerIds = bridge7.state.taskNotificationToastTimerIds.filter((id) => id !== timerId);
+      bridge10.state.taskNotificationToastTimerIds = bridge10.state.taskNotificationToastTimerIds.filter((id) => id !== timerId);
     }, TASK_NOTIFICATION_TOAST_MS);
-    bridge7.state.taskNotificationToastTimerIds.push(timerId);
+    bridge10.state.taskNotificationToastTimerIds.push(timerId);
   }
   function sendSystemTaskNotification(notification) {
     const settings = getLegacyBridge().state.taskNotificationSettings;
@@ -25377,8 +25465,8 @@
     };
   }
   async function openNotificationTask(notification) {
-    const bridge7 = getLegacyBridge();
-    const task = bridge7.state.tasks.find((item) => String(item.task_id) === String(notification.task_id));
+    const bridge10 = getLegacyBridge();
+    const task = bridge10.state.tasks.find((item) => String(item.task_id) === String(notification.task_id));
     markTaskNotificationRead(notification.id);
     closeTaskNotificationCenter();
     if (!task) {
@@ -25387,7 +25475,7 @@
     }
     window.focus();
     try {
-      const selectTask = bridge7.methods.selectTask;
+      const selectTask = bridge10.methods.selectTask;
       if (typeof selectTask !== "function") throw new Error("selectTask is unavailable");
       await selectTask(task.task_id);
     } catch {
@@ -25395,8 +25483,8 @@
     }
   }
   function markTaskNotificationRead(notificationId) {
-    const state5 = getLegacyBridge().state;
-    state5.taskNotifications = state5.taskNotifications.map((notification) => notification.id === notificationId ? { ...notification, unread: false } : notification);
+    const state8 = getLegacyBridge().state;
+    state8.taskNotifications = state8.taskNotifications.map((notification) => notification.id === notificationId ? { ...notification, unread: false } : notification);
     renderTaskNotifications();
   }
   function notificationById(notificationId) {
@@ -25455,8 +25543,8 @@
     return notification.message;
   }
   function firstTaskThumbnailUrl(task) {
-    const bridge7 = getLegacyBridge();
-    const urls = bridge7.methods.taskThumbnailUrls?.(task);
+    const bridge10 = getLegacyBridge();
+    const urls = bridge10.methods.taskThumbnailUrls?.(task);
     if (Array.isArray(urls) && urls[0]) return String(urls[0]);
     if (Array.isArray(task.thumbnail_urls) && task.thumbnail_urls[0]) return String(task.thumbnail_urls[0]);
     const output = Array.isArray(task.outputs) ? task.outputs.find((record2) => record2?.status === "completed") : null;
@@ -25505,26 +25593,26 @@
     return `${task.task_id}:${status}:${revision}`;
   }
   function rememberTaskNotification(task, status) {
-    const state5 = getLegacyBridge().state;
-    state5.taskNotificationSeenKeys.add(taskNotificationSeenKey(task, status));
-    while (state5.taskNotificationSeenKeys.size > MAX_SEEN_TASK_NOTIFICATION_KEYS) {
-      const firstKey = state5.taskNotificationSeenKeys.values().next().value;
+    const state8 = getLegacyBridge().state;
+    state8.taskNotificationSeenKeys.add(taskNotificationSeenKey(task, status));
+    while (state8.taskNotificationSeenKeys.size > MAX_SEEN_TASK_NOTIFICATION_KEYS) {
+      const firstKey = state8.taskNotificationSeenKeys.values().next().value;
       if (typeof firstKey !== "string") break;
-      state5.taskNotificationSeenKeys.delete(firstKey);
+      state8.taskNotificationSeenKeys.delete(firstKey);
     }
     persistTaskNotificationSeenKeys();
   }
   function restoreTaskNotificationSettings() {
-    const state5 = getLegacyBridge().state;
-    state5.taskNotificationSettings = defaultTaskNotificationSettings();
+    const state8 = getLegacyBridge().state;
+    state8.taskNotificationSettings = defaultTaskNotificationSettings();
     try {
       const stored = JSON.parse(localStorage.getItem(TASK_NOTIFICATION_SETTINGS_KEY) || "{}");
-      state5.taskNotificationSettings = {
+      state8.taskNotificationSettings = {
         inApp: stored.inApp !== false,
         system: stored.system === true && typeof Notification !== "undefined" && Notification.permission === "granted"
       };
     } catch {
-      state5.taskNotificationSettings = defaultTaskNotificationSettings();
+      state8.taskNotificationSettings = defaultTaskNotificationSettings();
     }
     persistTaskNotificationSettings();
     syncTaskNotificationSettingsInputs();
@@ -25540,22 +25628,22 @@
     syncTaskNotificationSettingsInputs();
   }
   function syncTaskNotificationSettingsInputs() {
-    const bridge7 = getLegacyBridge();
-    const settings = bridge7.state.taskNotificationSettings;
-    if (bridge7.els.taskNotificationInApp instanceof HTMLInputElement) {
-      bridge7.els.taskNotificationInApp.checked = settings.inApp;
+    const bridge10 = getLegacyBridge();
+    const settings = bridge10.state.taskNotificationSettings;
+    if (bridge10.els.taskNotificationInApp instanceof HTMLInputElement) {
+      bridge10.els.taskNotificationInApp.checked = settings.inApp;
     }
-    if (bridge7.els.taskNotificationSystem instanceof HTMLInputElement) {
-      bridge7.els.taskNotificationSystem.checked = settings.system;
+    if (bridge10.els.taskNotificationSystem instanceof HTMLInputElement) {
+      bridge10.els.taskNotificationSystem.checked = settings.system;
     }
   }
   function restoreTaskNotificationSeenKeys() {
-    const state5 = getLegacyBridge().state;
+    const state8 = getLegacyBridge().state;
     try {
       const stored = JSON.parse(localStorage.getItem(TASK_NOTIFICATION_SEEN_KEY) || "[]");
-      state5.taskNotificationSeenKeys = new Set(Array.isArray(stored) ? stored.filter((key) => typeof key === "string") : []);
+      state8.taskNotificationSeenKeys = new Set(Array.isArray(stored) ? stored.filter((key) => typeof key === "string") : []);
     } catch {
-      state5.taskNotificationSeenKeys = /* @__PURE__ */ new Set();
+      state8.taskNotificationSeenKeys = /* @__PURE__ */ new Set();
     }
   }
   function persistTaskNotificationSeenKeys() {
@@ -25597,8 +25685,8 @@
   }
 
   // codex_image/webui/frontend/src/storage-settings.ts
-  var bridge6 = getLegacyBridge();
-  var els7 = bridge6.els;
+  var bridge9 = getLegacyBridge();
+  var els12 = bridge9.els;
   var storageSettingsFeatureInitialized = false;
   var previousPaths = {};
   var previousPathsAnnounced = false;
@@ -25609,8 +25697,8 @@
     source_data_root: "settings.sourceDataRoot"
   };
   function renderPreviousPaths() {
-    const details = els7.settingsPreviousPaths;
-    const list = els7.settingsPreviousPathsList;
+    const details = els12.settingsPreviousPaths;
+    const list = els12.settingsPreviousPathsList;
     if (!details || !list) return;
     list.replaceChildren();
     for (const [key, label] of Object.entries(pathLabels)) {
@@ -25639,7 +25727,7 @@
     legacyMethod7("closePromptPopover");
   }
   async function refreshSettings() {
-    if (!els7.settingsInputRoot) return;
+    if (!els12.settingsInputRoot) return;
     try {
       const response = await fetch("/api/settings");
       const data = await response.json();
@@ -25652,50 +25740,50 @@
         showTransientNotice(translate("settings.previousPathsNotice"));
       }
     } catch (error) {
-      if (els7.settingsStatus) els7.settingsStatus.textContent = error.message || translate("settings.loadFailed");
+      if (els12.settingsStatus) els12.settingsStatus.textContent = error.message || translate("settings.loadFailed");
     }
   }
   function populateSettingsForm(settings) {
-    if (els7.settingsInputRoot) els7.settingsInputRoot.value = settings.input_root || "";
-    if (els7.settingsOutputRoot) els7.settingsOutputRoot.value = settings.output_root || "";
-    if (els7.settingsGalleryRoot) els7.settingsGalleryRoot.value = settings.gallery_root || "";
-    if (els7.settingsSourceDataRoot) els7.settingsSourceDataRoot.value = settings.source_data_root || "";
+    if (els12.settingsInputRoot) els12.settingsInputRoot.value = settings.input_root || "";
+    if (els12.settingsOutputRoot) els12.settingsOutputRoot.value = settings.output_root || "";
+    if (els12.settingsGalleryRoot) els12.settingsGalleryRoot.value = settings.gallery_root || "";
+    if (els12.settingsSourceDataRoot) els12.settingsSourceDataRoot.value = settings.source_data_root || "";
   }
   function openSettingsModal() {
     closePromptPopover4();
     refreshSettings();
-    if (els7.settingsStatus) els7.settingsStatus.textContent = translate("settings.status");
+    if (els12.settingsStatus) els12.settingsStatus.textContent = translate("settings.status");
     openSystemSettingsModal("storage");
   }
   function closeSettingsModal() {
     closeSystemSettingsModal();
   }
   async function saveSettings() {
-    if (!els7.saveSettingsButton) return;
-    els7.saveSettingsButton.disabled = true;
+    if (!els12.saveSettingsButton) return;
+    els12.saveSettingsButton.disabled = true;
     try {
       const response = await fetch("/api/settings", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          input_root: els7.settingsInputRoot?.value || "",
-          output_root: els7.settingsOutputRoot?.value || "",
-          gallery_root: els7.settingsGalleryRoot?.value || "",
-          source_data_root: els7.settingsSourceDataRoot?.value || ""
+          input_root: els12.settingsInputRoot?.value || "",
+          output_root: els12.settingsOutputRoot?.value || "",
+          gallery_root: els12.settingsGalleryRoot?.value || "",
+          source_data_root: els12.settingsSourceDataRoot?.value || ""
         })
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.detail || translate("settings.saveFailed"));
       populateSettingsForm(data.settings || {});
-      if (els7.settingsStatus) {
-        els7.settingsStatus.textContent = data.restart_required ? translate("settings.savedRestart") : translate("settings.saved");
+      if (els12.settingsStatus) {
+        els12.settingsStatus.textContent = data.restart_required ? translate("settings.savedRestart") : translate("settings.saved");
       }
       setStatus6(translate("settings.savedRestartStatus"), "ok");
     } catch (error) {
-      if (els7.settingsStatus) els7.settingsStatus.textContent = error.message || translate("settings.saveFailed");
+      if (els12.settingsStatus) els12.settingsStatus.textContent = error.message || translate("settings.saveFailed");
       setStatus6(error.message || translate("settings.saveFailed"), "error");
     } finally {
-      els7.saveSettingsButton.disabled = false;
+      els12.saveSettingsButton.disabled = false;
     }
   }
   function initStorageSettingsFeature() {
@@ -25703,8 +25791,8 @@
     storageSettingsFeatureInitialized = true;
     document.addEventListener(LOCALE_CHANGE_EVENT, () => {
       renderPreviousPaths();
-      if (!els7.systemSettingsModal?.classList.contains("hidden") && !els7.systemSettingsStoragePanel?.hidden && els7.settingsStatus) {
-        els7.settingsStatus.textContent = translate("settings.status");
+      if (!els12.systemSettingsModal?.classList.contains("hidden") && !els12.systemSettingsStoragePanel?.hidden && els12.settingsStatus) {
+        els12.settingsStatus.textContent = translate("settings.status");
       }
     });
     Object.assign(getLegacyBridge().methods, {
@@ -25732,8 +25820,8 @@
   function initializeHistoryShell(options) {
     if (historyShellInitialized) return;
     historyShellInitialized = true;
-    const bridge7 = getLegacyBridge();
-    const methods = bridge7.methods;
+    const bridge10 = getLegacyBridge();
+    const methods = bridge10.methods;
     Object.assign(methods, {
       syncReferenceFileAvailability: () => {
       },
@@ -25752,7 +25840,7 @@
       closeGallery: noOp,
       closePromptTemplateDrawer: noOp,
       applyTasksSnapshot: async (tasks) => {
-        bridge7.state.tasks = Array.isArray(tasks) ? tasks : [];
+        bridge10.state.tasks = Array.isArray(tasks) ? tasks : [];
       },
       applyTaskUpdate: async (task) => {
         if (!task?.task_id) return;
@@ -25765,7 +25853,7 @@
         await options.refreshHistoryTasks?.();
       },
       selectTask: async (taskId) => {
-        bridge7.state.selectedTaskId = String(taskId);
+        bridge10.state.selectedTaskId = String(taskId);
         await options.selectHistoryTask(String(taskId));
       },
       revealActiveTaskGroup: () => {
@@ -25790,7 +25878,7 @@
     initializeQueueFeature();
     initSegmentedIndicatorFeature();
     methods.bindShellUiEvents?.();
-    bindSharedTopNavSettingsEvents(bridge7.els, methods);
+    bindSharedTopNavSettingsEvents(bridge10.els, methods);
     methods.restoreThemePreference?.();
     methods.restoreApiSettings?.();
     methods.restoreModelSelection?.();
@@ -28959,7 +29047,7 @@
   var activeHistoryResizer = null;
   var historyActionPanelExpanded = "";
   var historyDetailReturnFocus = null;
-  var els8 = {
+  var els13 = {
     page: document.querySelector(".history-page"),
     sidebar: document.querySelector(".history-sidebar"),
     mobileFiltersButton: document.querySelector("#historyMobileFiltersButton"),
@@ -29031,7 +29119,7 @@
   var historyPositionSaveController = createHistoryPositionSaveController({
     requestFrame: (callback) => window.requestAnimationFrame(callback),
     cancelFrame: (frameId) => window.cancelAnimationFrame(frameId),
-    capture: () => els8.taskList ? captureHistoryScrollAnchor(els8.taskList) : null,
+    capture: () => els13.taskList ? captureHistoryScrollAnchor(els13.taskList) : null,
     save: saveCurrentHistoryLocation
   });
   function escapeHtml5(value) {
@@ -29072,7 +29160,7 @@
     };
   }
   function historyBackupScope() {
-    const selected = els8.backupDialog?.querySelector('input[name="history-backup-scope"]:checked')?.value;
+    const selected = els13.backupDialog?.querySelector('input[name="history-backup-scope"]:checked')?.value;
     if (selected === "selected") {
       return { kind: "selected", taskIds: [...selectedTaskIdsSnapshot] };
     }
@@ -29081,41 +29169,41 @@
   }
   function renderHistoryBackupScopeEstimates() {
     if (historyBackupDownloaded) {
-      setHistoryTransferHidden(els8.backupScopeEstimate, true);
+      setHistoryTransferHidden(els13.backupScopeEstimate, true);
       return;
     }
     for (const kind2 of ["selected", "filtered", "all"]) {
-      const target = els8.backupDialog?.querySelector(
+      const target = els13.backupDialog?.querySelector(
         `[data-history-backup-scope-count="${kind2}"]`
       ) || null;
       const estimate2 = historyBackupEstimates.get(kind2);
-      const state6 = historyBackupEstimateStates.get(kind2) || "idle";
+      const state9 = historyBackupEstimateStates.get(kind2) || "idle";
       const text = estimate2 ? formatTranslation("historyBackup.scopeCount", {
         eligible: estimate2.eligible_tasks,
         total: estimate2.total_tasks
-      }) : state6 === "loading" ? translate("historyBackup.scopeCounting") : state6 === "unavailable" ? translate("historyBackup.scopeCountUnavailable") : kind2 === "selected" && selectedTaskIdsSnapshot.length === 0 ? translate("historyBackup.scopeNoneSelected") : "";
+      }) : state9 === "loading" ? translate("historyBackup.scopeCounting") : state9 === "unavailable" ? translate("historyBackup.scopeCountUnavailable") : kind2 === "selected" && selectedTaskIdsSnapshot.length === 0 ? translate("historyBackup.scopeNoneSelected") : "";
       setText(target, text);
     }
     const locked = historyBackupViewState(currentBackupJob).scopeLocked;
-    setHistoryTransferHidden(els8.backupScopeEstimate, locked);
+    setHistoryTransferHidden(els13.backupScopeEstimate, locked);
     if (locked) {
-      setText(els8.backupScopeEstimate, "");
+      setText(els13.backupScopeEstimate, "");
       return;
     }
     const kind = historyBackupScope().kind;
     const estimate = historyBackupEstimates.get(kind);
-    const state5 = historyBackupEstimateStates.get(kind) || "idle";
+    const state8 = historyBackupEstimateStates.get(kind) || "idle";
     if (estimate) {
-      setText(els8.backupScopeEstimate, formatTranslation("historyBackup.willBackup", {
+      setText(els13.backupScopeEstimate, formatTranslation("historyBackup.willBackup", {
         eligible: estimate.eligible_tasks,
         excluded: estimate.excluded_nonterminal
       }));
     } else if (kind === "selected" && selectedTaskIdsSnapshot.length === 0) {
-      setText(els8.backupScopeEstimate, translate("historyBackup.selectTasksFirst"));
-    } else if (state5 === "unavailable") {
-      setText(els8.backupScopeEstimate, translate("historyBackup.scopeCountUnavailable"));
+      setText(els13.backupScopeEstimate, translate("historyBackup.selectTasksFirst"));
+    } else if (state8 === "unavailable") {
+      setText(els13.backupScopeEstimate, translate("historyBackup.scopeCountUnavailable"));
     } else {
-      setText(els8.backupScopeEstimate, translate("historyBackup.scopeCounting"));
+      setText(els13.backupScopeEstimate, translate("historyBackup.scopeCounting"));
     }
   }
   async function loadHistoryBackupScopeEstimates() {
@@ -29164,9 +29252,9 @@
     return translate("historyBackup.errorIo");
   }
   function focusHistoryTransferError(kind, message) {
-    const summary = kind === "backup" ? els8.backupLive : els8.importLive;
+    const summary = kind === "backup" ? els13.backupLive : els13.importLive;
     setText(summary, message);
-    if (summary && !(kind === "backup" ? els8.backupDialog : els8.importDialog)?.hidden) {
+    if (summary && !(kind === "backup" ? els13.backupDialog : els13.importDialog)?.hidden) {
       summary.focus();
     }
   }
@@ -29181,13 +29269,13 @@
   }
   function renderHistoryBackupLockedScope(job) {
     const locked = historyBackupViewState(job).scopeLocked;
-    setHistoryTransferHidden(els8.backupScopeState, !locked);
+    setHistoryTransferHidden(els13.backupScopeState, !locked);
     if (!job || !locked) {
-      setText(els8.backupScopeState, "");
+      setText(els13.backupScopeState, "");
       return;
     }
     const countsKnown = Number(job.total_tasks || 0) > 0 || !["queued", "planning"].includes(job.status);
-    setText(els8.backupScopeState, formatTranslation(
+    setText(els13.backupScopeState, formatTranslation(
       countsKnown ? "historyBackup.scopeLocked" : "historyBackup.scopeLockedPending",
       {
         scope: historyBackupScopeText(job.scope_kind),
@@ -29198,62 +29286,62 @@
   function renderHistoryBackupJob(job) {
     currentBackupJob = job;
     if (historyBackupDownloaded) {
-      setHistoryTransferHidden(els8.backupScopeFieldset, true);
-      setHistoryTransferHidden(els8.backupScopeHelp, true);
-      setHistoryTransferHidden(els8.backupScopeEstimate, true);
-      setHistoryTransferHidden(els8.backupScopeState, true);
-      setHistoryTransferHidden(els8.backupProgressSummary, true);
-      setHistoryTransferHidden(els8.backupWarning, true);
-      setHistoryTransferHidden(els8.backupComplete, false);
-      setHistoryTransferHidden(els8.backupStart, true);
-      setHistoryTransferHidden(els8.backupCancel, true);
-      setHistoryTransferHidden(els8.backupDownload, true);
-      setHistoryTransferHidden(els8.backupDismiss, false);
-      els8.backupDismiss?.classList.remove("ghost-button");
-      els8.backupDismiss?.classList.add("run-button");
-      if (els8.backupDismiss) els8.backupDismiss.dataset.i18n = "historyBackup.closePanel";
-      setText(els8.backupDismiss, translate("historyBackup.closePanel"));
+      setHistoryTransferHidden(els13.backupScopeFieldset, true);
+      setHistoryTransferHidden(els13.backupScopeHelp, true);
+      setHistoryTransferHidden(els13.backupScopeEstimate, true);
+      setHistoryTransferHidden(els13.backupScopeState, true);
+      setHistoryTransferHidden(els13.backupProgressSummary, true);
+      setHistoryTransferHidden(els13.backupWarning, true);
+      setHistoryTransferHidden(els13.backupComplete, false);
+      setHistoryTransferHidden(els13.backupStart, true);
+      setHistoryTransferHidden(els13.backupCancel, true);
+      setHistoryTransferHidden(els13.backupDownload, true);
+      setHistoryTransferHidden(els13.backupDismiss, false);
+      els13.backupDismiss?.classList.remove("ghost-button");
+      els13.backupDismiss?.classList.add("run-button");
+      if (els13.backupDismiss) els13.backupDismiss.dataset.i18n = "historyBackup.closePanel";
+      setText(els13.backupDismiss, translate("historyBackup.closePanel"));
       return;
     }
-    setHistoryTransferHidden(els8.backupScopeFieldset, false);
-    setHistoryTransferHidden(els8.backupScopeHelp, false);
-    setHistoryTransferHidden(els8.backupProgressSummary, false);
-    setHistoryTransferHidden(els8.backupComplete, true);
-    els8.backupDismiss?.classList.remove("run-button");
-    els8.backupDismiss?.classList.add("ghost-button");
+    setHistoryTransferHidden(els13.backupScopeFieldset, false);
+    setHistoryTransferHidden(els13.backupScopeHelp, false);
+    setHistoryTransferHidden(els13.backupProgressSummary, false);
+    setHistoryTransferHidden(els13.backupComplete, true);
+    els13.backupDismiss?.classList.remove("run-button");
+    els13.backupDismiss?.classList.add("ghost-button");
     const view = historyBackupViewState(job);
     const missingInputWarning = job && Number(job.missing_input_files || 0) > 0 ? formatTranslation("historyBackup.missingInputsWarning", {
       tasks: Number(job.tasks_with_missing_inputs || 0),
       files: Number(job.missing_input_files || 0)
     }) : "";
-    setHistoryTransferHidden(els8.backupWarning, !missingInputWarning);
-    setText(els8.backupWarning, missingInputWarning);
-    setHistoryTransferHidden(els8.backupStart, view.active || view.ready);
-    setHistoryTransferHidden(els8.backupCancel, !view.active);
-    setHistoryTransferHidden(els8.backupDownload, !view.ready);
-    setHistoryTransferHidden(els8.backupDismiss, !view.dismissible);
+    setHistoryTransferHidden(els13.backupWarning, !missingInputWarning);
+    setText(els13.backupWarning, missingInputWarning);
+    setHistoryTransferHidden(els13.backupStart, view.active || view.ready);
+    setHistoryTransferHidden(els13.backupCancel, !view.active);
+    setHistoryTransferHidden(els13.backupDownload, !view.ready);
+    setHistoryTransferHidden(els13.backupDismiss, !view.dismissible);
     const dismissKey = view.ready ? "historyBackup.discard" : "historyBackup.dismiss";
-    if (els8.backupDismiss) els8.backupDismiss.dataset.i18n = dismissKey;
-    setText(els8.backupDismiss, translate(dismissKey));
-    if (els8.backupScopeFieldset) els8.backupScopeFieldset.disabled = view.scopeLocked;
+    if (els13.backupDismiss) els13.backupDismiss.dataset.i18n = dismissKey;
+    setText(els13.backupDismiss, translate(dismissKey));
+    if (els13.backupScopeFieldset) els13.backupScopeFieldset.disabled = view.scopeLocked;
     renderHistoryBackupLockedScope(job);
     renderHistoryBackupScopeEstimates();
-    setHistoryTransferHidden(els8.backupProgressRegion, view.progressMode === "hidden");
-    if (els8.backupProgress) {
+    setHistoryTransferHidden(els13.backupProgressRegion, view.progressMode === "hidden");
+    if (els13.backupProgress) {
       if (view.progressMode === "indeterminate") {
-        els8.backupProgress.removeAttribute("value");
+        els13.backupProgress.removeAttribute("value");
       } else {
-        els8.backupProgress.value = view.progressValue;
+        els13.backupProgress.value = view.progressValue;
       }
     }
     if (!job) {
-      setText(els8.backupStats, "");
-      setText(els8.backupLive, translate("historyBackup.idle"));
+      setText(els13.backupStats, "");
+      setText(els13.backupLive, translate("historyBackup.idle"));
       return;
     }
     const totalBytes = Number(job.total_bytes || 0);
     const completedBytes = Number(job.completed_bytes || 0);
-    setText(els8.backupStats, formatTranslation("historyBackup.stats", {
+    setText(els13.backupStats, formatTranslation("historyBackup.stats", {
       total: job.total_tasks || 0,
       eligible: job.eligible_tasks || 0,
       excluded: job.excluded_nonterminal || 0,
@@ -29262,7 +29350,7 @@
     const statusAnnouncement = job.status === "failed" ? historyBackupErrorText(String(job.error_code || "")) : job.status === "ready" ? translate("historyBackup.readyDetail") : historyBackupStatusText(job);
     const announcement = missingInputWarning ? `${statusAnnouncement} ${missingInputWarning}` : statusAnnouncement;
     if (announcement !== lastBackupAnnouncement) {
-      setText(els8.backupLive, announcement);
+      setText(els13.backupLive, announcement);
       lastBackupAnnouncement = announcement;
     }
   }
@@ -29271,7 +29359,7 @@
     currentBackupJob = null;
     renderHistoryBackupJob(null);
     lastBackupAnnouncement = translate("historyBackup.downloaded");
-    els8.backupComplete?.focus();
+    els13.backupComplete?.focus();
   }
   function restoreHistoryDialogFocus(kind) {
     const target = kind === "backup" ? historyBackupReturnFocus : historyImportReturnFocus;
@@ -29280,13 +29368,13 @@
     else historyImportReturnFocus = null;
   }
   function syncHistoryTransferModalState() {
-    const backupOpen = Boolean(els8.backupDialog && !els8.backupDialog.hidden);
-    const importOpen = Boolean(els8.importDialog && !els8.importDialog.hidden);
-    if (els8.page) els8.page.inert = backupOpen || importOpen;
+    const backupOpen = Boolean(els13.backupDialog && !els13.backupDialog.hidden);
+    const importOpen = Boolean(els13.importDialog && !els13.importDialog.hidden);
+    if (els13.page) els13.page.inert = backupOpen || importOpen;
   }
   function activeHistoryTransferDialog() {
-    if (els8.backupDialog && !els8.backupDialog.hidden) return els8.backupDialog;
-    if (els8.importDialog && !els8.importDialog.hidden) return els8.importDialog;
+    if (els13.backupDialog && !els13.backupDialog.hidden) return els13.backupDialog;
+    if (els13.importDialog && !els13.importDialog.hidden) return els13.importDialog;
     return null;
   }
   function trapHistoryTransferFocus(event) {
@@ -29315,29 +29403,29 @@
     return true;
   }
   function closeHistoryBackupDialog(options = {}) {
-    if (!els8.backupDialog) return;
+    if (!els13.backupDialog) return;
     historyBackupDownloaded = false;
     historyBackupEstimateGeneration += 1;
-    setHistoryTransferHidden(els8.backupDialog, true);
-    els8.backupDialog.setAttribute("aria-hidden", "true");
+    setHistoryTransferHidden(els13.backupDialog, true);
+    els13.backupDialog.setAttribute("aria-hidden", "true");
     syncHistoryTransferModalState();
     if (options.restoreFocus !== false) restoreHistoryDialogFocus("backup");
   }
   function openHistoryBackupDialog(trigger, taskIds, preferSelected = false) {
-    if (els8.importDialog && !els8.importDialog.hidden) closeHistoryImportDialog({ restoreFocus: false });
+    if (els13.importDialog && !els13.importDialog.hidden) closeHistoryImportDialog({ restoreFocus: false });
     historyBackupReturnFocus = trigger;
     selectedTaskIdsSnapshot = [...taskIds];
     const selectedCount = selectedTaskIdsSnapshot.length;
-    if (els8.backupSelectedScope) {
-      els8.backupSelectedScope.disabled = selectedCount === 0;
-      els8.backupSelectedScope.checked = preferSelected && selectedCount > 0;
+    if (els13.backupSelectedScope) {
+      els13.backupSelectedScope.disabled = selectedCount === 0;
+      els13.backupSelectedScope.checked = preferSelected && selectedCount > 0;
     }
-    if (!els8.backupSelectedScope?.checked) {
-      const filtered = els8.backupDialog?.querySelector('input[name="history-backup-scope"][value="filtered"]');
+    if (!els13.backupSelectedScope?.checked) {
+      const filtered = els13.backupDialog?.querySelector('input[name="history-backup-scope"][value="filtered"]');
       if (filtered) filtered.checked = true;
     }
-    setHistoryTransferHidden(els8.backupDialog, false);
-    els8.backupDialog?.setAttribute("aria-hidden", "false");
+    setHistoryTransferHidden(els13.backupDialog, false);
+    els13.backupDialog?.setAttribute("aria-hidden", "false");
     syncHistoryTransferModalState();
     renderHistoryBackupJob(currentBackupJob);
     if (historyBackupViewState(currentBackupJob).scopeLocked) {
@@ -29348,7 +29436,7 @@
     } else {
       void loadHistoryBackupScopeEstimates();
     }
-    els8.backupTitle?.focus();
+    els13.backupTitle?.focus();
   }
   function importGroupItems(preview, group) {
     if (group === "restorable") return preview.restorable || [];
@@ -29385,14 +29473,14 @@
   }
   function renderHistoryImportPreview(preview) {
     currentImportPreview = preview;
-    setHistoryTransferHidden(els8.importPreview, !preview);
-    if (!preview || !els8.importPreview) {
-      if (els8.importConfirm) els8.importConfirm.disabled = true;
-      setHistoryTransferHidden(els8.importConfirm, true);
+    setHistoryTransferHidden(els13.importPreview, !preview);
+    if (!preview || !els13.importPreview) {
+      if (els13.importConfirm) els13.importConfirm.disabled = true;
+      setHistoryTransferHidden(els13.importConfirm, true);
       return;
     }
     for (const group of ["restorable", "duplicate", "conflict", "invalid"]) {
-      const details = els8.importPreview.querySelector(`[data-history-import-group="${group}"]`);
+      const details = els13.importPreview.querySelector(`[data-history-import-group="${group}"]`);
       const items = importGroupItems(preview, group);
       const summary = details?.querySelector("summary");
       if (summary) summary.textContent = `${translate(`historyImport.${group}`)} \xB7 ${items.length}`;
@@ -29400,14 +29488,14 @@
       if (list) list.innerHTML = items.map((item) => `<li><code>${escapeHtml5(item.task_id)}</code>${item.reason ? ` <span class="history-import-reason">${escapeHtml5(historyImportReasonText(item.reason))}</span>` : ""}</li>`).join("");
     }
     const canRestore = preview.restorable.length > 0;
-    if (els8.importConfirm) els8.importConfirm.disabled = !canRestore;
-    setHistoryTransferHidden(els8.importConfirm, false);
-    setHistoryTransferHidden(els8.importCancel, false);
+    if (els13.importConfirm) els13.importConfirm.disabled = !canRestore;
+    setHistoryTransferHidden(els13.importConfirm, false);
+    setHistoryTransferHidden(els13.importCancel, false);
   }
   function renderHistoryImportResult(result) {
     currentImportResult = result;
-    setHistoryTransferHidden(els8.importResult, !result);
-    if (!result || !els8.importResult) return;
+    setHistoryTransferHidden(els13.importResult, !result);
+    if (!result || !els13.importResult) return;
     const values = {
       restored: result.restored,
       duplicates: result.duplicates,
@@ -29418,7 +29506,7 @@
       cleanup_warnings: result.cleanup_warnings
     };
     for (const [key, items] of Object.entries(values)) {
-      setText(els8.importResult.querySelector(`[data-history-import-result="${key}"] dd`), String(items?.length || 0));
+      setText(els13.importResult.querySelector(`[data-history-import-result="${key}"] dd`), String(items?.length || 0));
     }
   }
   function historyImportPhaseText(phase) {
@@ -29427,29 +29515,29 @@
   }
   function renderHistoryImportPhase(phase) {
     currentImportPhase = phase;
-    setText(els8.importLive, historyImportPhaseText(phase));
+    setText(els13.importLive, historyImportPhaseText(phase));
     const restoring = phase === "restoring";
     const cancellable = ["creating", "uploading", "validating", "validated"].includes(phase);
-    setHistoryTransferHidden(els8.importCancel, !cancellable || restoring);
-    if (els8.importFile) els8.importFile.disabled = restoring;
+    setHistoryTransferHidden(els13.importCancel, !cancellable || restoring);
+    if (els13.importFile) els13.importFile.disabled = restoring;
   }
   function closeHistoryImportDialog(options = {}) {
-    if (!els8.importDialog) return;
-    setHistoryTransferHidden(els8.importDialog, true);
-    els8.importDialog.setAttribute("aria-hidden", "true");
+    if (!els13.importDialog) return;
+    setHistoryTransferHidden(els13.importDialog, true);
+    els13.importDialog.setAttribute("aria-hidden", "true");
     syncHistoryTransferModalState();
     if (options.restoreFocus !== false) restoreHistoryDialogFocus("import");
   }
   function openHistoryImportDialog(trigger) {
-    if (els8.backupDialog && !els8.backupDialog.hidden) closeHistoryBackupDialog({ restoreFocus: false });
+    if (els13.backupDialog && !els13.backupDialog.hidden) closeHistoryBackupDialog({ restoreFocus: false });
     historyImportReturnFocus = trigger;
-    setHistoryTransferHidden(els8.importDialog, false);
-    els8.importDialog?.setAttribute("aria-hidden", "false");
+    setHistoryTransferHidden(els13.importDialog, false);
+    els13.importDialog?.setAttribute("aria-hidden", "false");
     syncHistoryTransferModalState();
     renderHistoryImportPhase(currentImportPhase);
     renderHistoryImportPreview(currentImportPreview);
     renderHistoryImportResult(currentImportResult);
-    els8.importTitle?.focus();
+    els13.importTitle?.focus();
   }
   var backupController = createHistoryBackupController({
     onStatus: (job) => renderHistoryBackupJob(job),
@@ -29465,7 +29553,7 @@
   var importController = createHistoryImportController({
     onPhase: (phase) => renderHistoryImportPhase(phase),
     onProgress: (uploaded, total) => {
-      if (els8.importProgress) els8.importProgress.value = total > 0 ? Math.min(100, Math.round(uploaded * 100 / total)) : 0;
+      if (els13.importProgress) els13.importProgress.value = total > 0 ? Math.min(100, Math.round(uploaded * 100 / total)) : 0;
     }
   });
   async function startHistoryBackup() {
@@ -29489,8 +29577,8 @@
   }
   async function dismissHistoryBackupResult() {
     const job = currentBackupJob;
-    if (!job || !els8.backupDismiss) return;
-    els8.backupDismiss.disabled = true;
+    if (!job || !els13.backupDismiss) return;
+    els13.backupDismiss.disabled = true;
     try {
       if (await backupController.dismiss(job.job_id)) {
         currentBackupJob = null;
@@ -29499,7 +29587,7 @@
     } catch (error) {
       focusHistoryTransferError("backup", historyBackupErrorText(String(error?.code || "")));
     } finally {
-      els8.backupDismiss.disabled = false;
+      els13.backupDismiss.disabled = false;
     }
   }
   function clearHistoryImportUI() {
@@ -29509,13 +29597,13 @@
     currentImportResult = null;
     renderHistoryImportPreview(null);
     renderHistoryImportResult(null);
-    if (els8.importConfirm) els8.importConfirm.disabled = true;
-    setHistoryTransferHidden(els8.importConfirm, true);
-    if (els8.importFile) {
-      els8.importFile.value = "";
-      els8.importFile.disabled = false;
+    if (els13.importConfirm) els13.importConfirm.disabled = true;
+    setHistoryTransferHidden(els13.importConfirm, true);
+    if (els13.importFile) {
+      els13.importFile.value = "";
+      els13.importFile.disabled = false;
     }
-    if (els8.importProgress) els8.importProgress.value = 0;
+    if (els13.importProgress) els13.importProgress.value = 0;
   }
   async function cancelActiveHistoryImport() {
     try {
@@ -29559,13 +29647,13 @@
           };
         }
         focusHistoryTransferError("import", translate("historyImport.reselect"));
-        if (els8.importFile) els8.importFile.disabled = false;
+        if (els13.importFile) els13.importFile.disabled = false;
       }
     }
   }
   async function restoreHistoryImportSelection() {
     if (!currentImportPreview?.restorable.length) return;
-    setHistoryTransferHidden(els8.importCancel, true);
+    setHistoryTransferHidden(els13.importCancel, true);
     const terminalSessionId = importController.activeSessionId();
     try {
       const result = await importController.restore();
@@ -29611,14 +29699,14 @@
       } else if (session.status === "uploading") {
         historyImportResumePending = true;
         renderHistoryImportPhase("uploading");
-        setText(els8.importLive, translate("historyImport.reselect"));
+        setText(els13.importLive, translate("historyImport.reselect"));
       } else if (session.status === "restored") {
         renderHistoryImportPhase("restored");
       } else {
         renderHistoryImportPhase(session.status === "interrupted" ? "interrupted" : "failed");
       }
     } catch {
-      setText(els8.importLive, translate("historyImport.failed"));
+      setText(els13.importLive, translate("historyImport.failed"));
     }
   }
   function applyHistoryLocale() {
@@ -29712,19 +29800,19 @@
     );
     const count = items.length;
     const hidden = count === 0;
-    els8.activeFilters?.classList.toggle("hidden", hidden);
-    els8.activeFilters?.toggleAttribute("hidden", hidden);
-    els8.activeFilters?.setAttribute(
+    els13.activeFilters?.classList.toggle("hidden", hidden);
+    els13.activeFilters?.toggleAttribute("hidden", hidden);
+    els13.activeFilters?.setAttribute(
       "aria-label",
       hidden ? translate("sidebar.filters") : formatTranslation("history.activeFilterCount", { count })
     );
     setText(
-      els8.activeFiltersLabel,
+      els13.activeFiltersLabel,
       hidden ? "" : formatTranslation("history.activeFilterCount", { count })
     );
-    setText(els8.clearAllFilters, translate("history.clearAllFilters"));
-    if (els8.activeFilterList) {
-      els8.activeFilterList.innerHTML = items.map((item) => {
+    setText(els13.clearAllFilters, translate("history.clearAllFilters"));
+    if (els13.activeFilterList) {
+      els13.activeFilterList.innerHTML = items.map((item) => {
         const label = historyActiveFilterLabel(item);
         const removeLabel = formatTranslation(
           "history.removeFilter",
@@ -29746,14 +29834,14 @@
       `;
       }).join("");
     }
-    els8.mobileFilterCount?.classList.toggle("hidden", hidden);
-    els8.mobileFilterCount?.toggleAttribute("hidden", hidden);
-    setText(els8.mobileFilterCount, hidden ? "" : String(count));
-    els8.mobileFiltersButton?.classList.toggle(
+    els13.mobileFilterCount?.classList.toggle("hidden", hidden);
+    els13.mobileFilterCount?.toggleAttribute("hidden", hidden);
+    setText(els13.mobileFilterCount, hidden ? "" : String(count));
+    els13.mobileFiltersButton?.classList.toggle(
       "has-active-filters",
       !hidden
     );
-    els8.mobileFiltersButton?.setAttribute(
+    els13.mobileFiltersButton?.setAttribute(
       "aria-label",
       hidden ? translate("sidebar.filters") : formatTranslation("history.filtersActive", { count })
     );
@@ -29781,7 +29869,7 @@
     };
     resetHistoryTaskSelectionState();
     clearHistoryDeleteConfirmation();
-    if (els8.search) els8.search.value = historyState.q;
+    if (els13.search) els13.search.value = historyState.q;
     syncHistorySearchClear();
     syncHistoryFilterButtonsFromState();
     renderHistoryOrganizationFilters();
@@ -29849,16 +29937,16 @@
     historyState.selectedTaskIds = historyState.selectedTaskId ? /* @__PURE__ */ new Set([historyState.selectedTaskId]) : /* @__PURE__ */ new Set();
     historyState.selectionAnchorTaskId = historyState.selectedTaskId;
     historyState.selectionMode = false;
-    if (els8.search) els8.search.value = historyState.q;
+    if (els13.search) els13.search.value = historyState.q;
     syncHistorySearchClear();
     syncHistorySortMode();
     syncHistoryViewMode();
     renderHistoryActiveFilters();
   }
   function syncHistorySearchClear() {
-    const hasQuery = Boolean(els8.search?.value.trim());
-    els8.searchClear?.classList.toggle("hidden", !hasQuery);
-    els8.searchClear?.toggleAttribute("hidden", !hasQuery);
+    const hasQuery = Boolean(els13.search?.value.trim());
+    els13.searchClear?.classList.toggle("hidden", !hasQuery);
+    els13.searchClear?.toggleAttribute("hidden", !hasQuery);
   }
   function updateHistoryUrl() {
     const params = new URLSearchParams();
@@ -29902,17 +29990,17 @@
       historyOrganizationApiSupported = true;
       historySummary = summary;
       historyTags = Array.isArray(summary.tags) ? summary.tags : [];
-      setText(els8.total, formatTranslation("history.total", { total: summary.total, archived: summary.archived_total }));
+      setText(els13.total, formatTranslation("history.total", { total: summary.total, archived: summary.archived_total }));
       renderHistoryOrganizationFilters(summary);
       renderHistoryTagManager();
-      renderFacetButtons(els8.modeList, "mode", summary.modes || [], translate("history.allTypes"));
-      renderFacetButtons(els8.monthList, "month", summary.months.map((item) => ({ value: item.month, count: item.count })), translate("history.allMonths"));
-      renderFacetButtons(els8.promptModeList, "prompt_mode", summary.prompt_modes || [], translate("history.allPromptModes"));
-      renderFacetButtons(els8.qualityList, "quality", summary.qualities || [], translate("history.allQualities"));
-      renderFacetButtons(els8.ratioList, "ratio", summary.ratios, translate("history.allRatios"));
-      renderFacetButtons(els8.orientationList, "orientation", summary.orientations || [], translate("history.allOrientations"));
-      renderFacetButtons(els8.backendList, "backend", summary.backends || [], translate("history.allBackends"));
-      renderFacetButtons(els8.providerList, "provider", summary.providers || [], translate("history.allProviders"));
+      renderFacetButtons(els13.modeList, "mode", summary.modes || [], translate("history.allTypes"));
+      renderFacetButtons(els13.monthList, "month", summary.months.map((item) => ({ value: item.month, count: item.count })), translate("history.allMonths"));
+      renderFacetButtons(els13.promptModeList, "prompt_mode", summary.prompt_modes || [], translate("history.allPromptModes"));
+      renderFacetButtons(els13.qualityList, "quality", summary.qualities || [], translate("history.allQualities"));
+      renderFacetButtons(els13.ratioList, "ratio", summary.ratios, translate("history.allRatios"));
+      renderFacetButtons(els13.orientationList, "orientation", summary.orientations || [], translate("history.allOrientations"));
+      renderFacetButtons(els13.backendList, "backend", summary.backends || [], translate("history.allBackends"));
+      renderFacetButtons(els13.providerList, "provider", summary.providers || [], translate("history.allProviders"));
       syncArchiveButtons();
       renderHistoryActiveFilters();
     } catch (error) {
@@ -29920,18 +30008,18 @@
         error,
         translate("history.summaryFailed")
       );
-      setText(els8.total, message);
+      setText(els13.total, message);
       if (historyOrganizationApiSupported === false) {
-        setText(els8.resultSummary, message);
+        setText(els13.resultSummary, message);
       }
       if (options.throwOnError) throw error;
     }
   }
   function renderHistoryOrganizationFilters(summary) {
     const counts = summary || historySummary || {};
-    if (els8.favoriteList) {
+    if (els13.favoriteList) {
       const active = historyOrganizationFilters.favorite;
-      els8.favoriteList.innerHTML = `
+      els13.favoriteList.innerHTML = `
       <button
         class="history-filter-button${active ? " active" : ""}"
         type="button"
@@ -29943,10 +30031,10 @@
       </button>
     `;
     }
-    if (!els8.tagFilterList) return;
+    if (!els13.tagFilterList) return;
     const selected = new Set(historyOrganizationFilters.tagIds);
     const untaggedActive = historyOrganizationFilters.untagged;
-    els8.tagFilterList.innerHTML = [
+    els13.tagFilterList.innerHTML = [
       `
       <button
         class="history-filter-button${untaggedActive ? " active" : ""}"
@@ -29975,16 +30063,16 @@
     ].join("");
   }
   function renderHistoryTagManager() {
-    if (!els8.tagManagerList) return;
+    if (!els13.tagManagerList) return;
     if (!historyTags.length) {
-      els8.tagManagerList.innerHTML = `
+      els13.tagManagerList.innerHTML = `
       <div class="history-tag-manager-empty">
         ${escapeHtml5(translate("history.noTags"))}
       </div>
     `;
       return;
     }
-    els8.tagManagerList.innerHTML = historyTags.map((tag) => {
+    els13.tagManagerList.innerHTML = historyTags.map((tag) => {
       const confirming = historyTagDeleteConfirmId === tag.tag_id;
       const affectedDeleteLabel = formatTranslation(
         "history.deleteTagAffected",
@@ -30028,7 +30116,7 @@
   function applyHistoryOrganizationFilterChange(filters) {
     if (historyOrganizationApiSupported === false) {
       setText(
-        els8.resultSummary,
+        els13.resultSummary,
         translate("history.backendRestartRequired")
       );
       return;
@@ -30058,12 +30146,12 @@
   }
   async function createHistoryTagFromManager() {
     if (historyTagManagerCreatePending) return;
-    const name = els8.tagNameInput?.value.trim() || "";
+    const name = els13.tagNameInput?.value.trim() || "";
     if (!name) {
-      els8.tagNameInput?.focus();
+      els13.tagNameInput?.focus();
       return;
     }
-    const form = els8.tagManager?.querySelector(
+    const form = els13.tagManager?.querySelector(
       "[data-history-tag-create]"
     );
     const controls = form?.querySelectorAll("input, button");
@@ -30071,20 +30159,20 @@
     controls?.forEach((control) => {
       control.disabled = true;
     });
-    setText(els8.tagManagerStatus, "");
+    setText(els13.tagManagerStatus, "");
     try {
       const tag = await createHistoryTag(name);
-      if (els8.tagNameInput) els8.tagNameInput.value = "";
+      if (els13.tagNameInput) els13.tagNameInput.value = "";
       await loadSummary();
       setText(
-        els8.tagManagerStatus,
+        els13.tagManagerStatus,
         `${translate("history.createTag")}\uFF1A${tag.name}`
       );
     } catch (error) {
       const message = historyTagCreateErrorMessage(error);
-      setText(els8.tagManagerStatus, message);
+      setText(els13.tagManagerStatus, message);
       setText(
-        els8.resultSummary,
+        els13.resultSummary,
         message
       );
     } finally {
@@ -30095,7 +30183,7 @@
     }
   }
   async function renameHistoryTagFromManager(tagId) {
-    const input = els8.tagManagerList?.querySelector(
+    const input = els13.tagManagerList?.querySelector(
       `[data-history-tag-name="${CSS.escape(tagId)}"]`
     );
     const name = input?.value.trim() || "";
@@ -30118,7 +30206,7 @@
       await loadSummary();
     } catch (error) {
       setText(
-        els8.resultSummary,
+        els13.resultSummary,
         historyTagMutationErrorMessage(error)
       );
     }
@@ -30152,7 +30240,7 @@
       await loadSummary();
     } catch (error) {
       setText(
-        els8.resultSummary,
+        els13.resultSummary,
         errorMessage2(
           error,
           translate("history.organizationFailed")
@@ -30180,7 +30268,7 @@
   function syncHistorySortMode() {
     const sort = historyState.sort === "oldest" ? "oldest" : "newest";
     historyState.sort = sort;
-    els8.sortToggle?.querySelectorAll("[data-history-sort]").forEach((button) => {
+    els13.sortToggle?.querySelectorAll("[data-history-sort]").forEach((button) => {
       const active = button.dataset.historySort === sort;
       button.classList.toggle("active", active);
       button.setAttribute("aria-pressed", active ? "true" : "false");
@@ -30219,9 +30307,9 @@
   function syncHistoryViewMode() {
     const view = historyState.view === "list" ? "list" : "grid";
     historyState.view = view;
-    els8.taskList?.classList.toggle("history-view-grid", view === "grid");
-    els8.taskList?.classList.toggle("history-view-list", view === "list");
-    els8.viewToggle?.querySelectorAll("[data-history-view]").forEach((button) => {
+    els13.taskList?.classList.toggle("history-view-grid", view === "grid");
+    els13.taskList?.classList.toggle("history-view-list", view === "list");
+    els13.viewToggle?.querySelectorAll("[data-history-view]").forEach((button) => {
       const active = button.dataset.historyView === view;
       button.classList.toggle("active", active);
       button.setAttribute("aria-pressed", active ? "true" : "false");
@@ -30240,11 +30328,11 @@
     return { targetHeight: 220, minWidth: 150, maxWidth: 430 };
   }
   function historyTaskCardElement(taskId) {
-    if (!taskId || !els8.taskList) return null;
-    return historyTaskCards(els8.taskList).find((card) => card.dataset.historyTaskCardId === taskId) || null;
+    if (!taskId || !els13.taskList) return null;
+    return historyTaskCards(els13.taskList).find((card) => card.dataset.historyTaskCardId === taskId) || null;
   }
   function isHistoryTaskCardVisible(taskId) {
-    const list = els8.taskList;
+    const list = els13.taskList;
     const card = historyTaskCardElement(taskId);
     if (!list || !card) return false;
     const listRect = list.getBoundingClientRect();
@@ -30277,7 +30365,7 @@
     return Math.min(max, Math.max(min, value));
   }
   function isHistoryResizableLayout() {
-    return Boolean(els8.page) && !window.matchMedia("(max-width: 1100px)").matches;
+    return Boolean(els13.page) && !window.matchMedia("(max-width: 1100px)").matches;
   }
   function readHistoryLayoutPreference() {
     try {
@@ -30293,7 +30381,7 @@
     }
   }
   function historyLayoutMaxCombinedWidth() {
-    const pageWidth = els8.page?.getBoundingClientRect().width || window.innerWidth || 0;
+    const pageWidth = els13.page?.getBoundingClientRect().width || window.innerWidth || 0;
     return Math.max(
       HISTORY_LAYOUT_LIMITS.leftMin + HISTORY_LAYOUT_LIMITS.rightMin,
       pageWidth - HISTORY_LAYOUT_LIMITS.middleMin
@@ -30320,22 +30408,22 @@
   }
   function getCurrentHistoryLayoutWidths() {
     const fromStyle = {
-      left: parseCssPixels(els8.page?.style.getPropertyValue("--history-sidebar-width") || ""),
-      right: parseCssPixels(els8.page?.style.getPropertyValue("--history-detail-width") || "")
+      left: parseCssPixels(els13.page?.style.getPropertyValue("--history-sidebar-width") || ""),
+      right: parseCssPixels(els13.page?.style.getPropertyValue("--history-detail-width") || "")
     };
     if (fromStyle.left && fromStyle.right) return fromStyle;
-    const sidebarWidth = els8.sidebar?.getBoundingClientRect().width || HISTORY_LAYOUT_DEFAULTS.left;
-    const detailWidth = els8.detail?.getBoundingClientRect().width || HISTORY_LAYOUT_DEFAULTS.right;
+    const sidebarWidth = els13.sidebar?.getBoundingClientRect().width || HISTORY_LAYOUT_DEFAULTS.left;
+    const detailWidth = els13.detail?.getBoundingClientRect().width || HISTORY_LAYOUT_DEFAULTS.right;
     return constrainHistoryLayoutWidths(sidebarWidth, detailWidth);
   }
   function applyHistoryLayoutWidths(left, right, options = {}) {
-    if (!els8.page) return;
+    if (!els13.page) return;
     const keepTaskId = options.preserveActiveTask ? activeHistoryTaskVisible() : "";
     const widths = constrainHistoryLayoutWidths(left, right, options.prioritySide || "");
-    els8.page.style.setProperty("--history-sidebar-width", `${widths.left}px`);
-    els8.page.style.setProperty("--history-detail-width", `${widths.right}px`);
-    els8.leftResizer?.setAttribute("aria-valuenow", String(widths.left));
-    els8.rightResizer?.setAttribute("aria-valuenow", String(widths.right));
+    els13.page.style.setProperty("--history-sidebar-width", `${widths.left}px`);
+    els13.page.style.setProperty("--history-detail-width", `${widths.right}px`);
+    els13.leftResizer?.setAttribute("aria-valuenow", String(widths.left));
+    els13.rightResizer?.setAttribute("aria-valuenow", String(widths.right));
     scheduleHistoryGridLayout({ keepTaskId });
     if (options.persist) {
       try {
@@ -30346,7 +30434,7 @@
   }
   function applyPendingHistoryResize(resize = activeHistoryResizer) {
     historyResizeFrame = 0;
-    if (!resize || !els8.page) return;
+    if (!resize || !els13.page) return;
     const delta = resize.latestX - resize.startX;
     const nextLeft = resize.side === "left" ? resize.startLeft + delta : resize.startLeft;
     const nextRight = resize.side === "right" ? resize.startRight - delta : resize.startRight;
@@ -30356,10 +30444,10 @@
       resize.side,
       resize.maxCombinedWidth
     );
-    els8.page.style.setProperty("--history-sidebar-width", `${widths.left}px`);
-    els8.page.style.setProperty("--history-detail-width", `${widths.right}px`);
-    els8.leftResizer?.setAttribute("aria-valuenow", String(widths.left));
-    els8.rightResizer?.setAttribute("aria-valuenow", String(widths.right));
+    els13.page.style.setProperty("--history-sidebar-width", `${widths.left}px`);
+    els13.page.style.setProperty("--history-detail-width", `${widths.right}px`);
+    els13.leftResizer?.setAttribute("aria-valuenow", String(widths.left));
+    els13.rightResizer?.setAttribute("aria-valuenow", String(widths.right));
   }
   function layoutHistoryGridAfterResize(resize = activeHistoryResizer) {
     if (!resize) return;
@@ -30424,7 +30512,7 @@
     closeHistoryContextMenu();
     event.preventDefault();
     element.setPointerCapture?.(event.pointerId);
-    els8.page?.classList.add("history-resizing");
+    els13.page?.classList.add("history-resizing");
   }
   function updateHistoryResize(event) {
     if (!activeHistoryResizer || event.pointerId !== activeHistoryResizer.pointerId) return;
@@ -30454,11 +30542,11 @@
       localStorage.setItem(HISTORY_LAYOUT_STORAGE_KEY, JSON.stringify(widths));
     } catch {
     }
-    els8.page?.classList.remove("history-resizing");
+    els13.page?.classList.remove("history-resizing");
     if (keepTaskId) ensureHistoryTaskCardVisible(keepTaskId);
   }
   function bindHistoryResizerEvents() {
-    for (const resizer of [els8.leftResizer, els8.rightResizer]) {
+    for (const resizer of [els13.leftResizer, els13.rightResizer]) {
       const side = resizer?.dataset.historyResizer;
       if (!resizer || side !== "left" && side !== "right") continue;
       resizer.addEventListener("pointerdown", (event) => startHistoryResize(side, event, resizer));
@@ -30480,7 +30568,7 @@
     });
   }
   function bindHistoryGridResizeObserver() {
-    const root = els8.taskList;
+    const root = els13.taskList;
     if (!root || historyGridResizeObserver || !("ResizeObserver" in window)) return;
     historyGridResizeController = createHistoryGridResizeController({
       isResizing: () => Boolean(activeHistoryResizer),
@@ -30499,7 +30587,7 @@
     })));
   }
   function bindHistoryGridMutationObserver() {
-    const root = els8.taskList;
+    const root = els13.taskList;
     if (!root || historyGridMutationObserver || !("MutationObserver" in window)) return;
     historyGridMutationObserver = new MutationObserver(() => {
       if (historyState.view !== "grid" || !historyGridLayoutIsIncomplete(root)) return;
@@ -30517,7 +30605,7 @@
     return Number.isFinite(ratio) && ratio > 0 ? clampNumber(ratio, 0.42, 3.2) : 1;
   }
   function captureHistoryGridLayoutSnapshot() {
-    const root = els8.taskList;
+    const root = els13.taskList;
     if (!root || historyState.view !== "grid" || !root.classList.contains("history-view-grid")) return null;
     const cards = historyTaskCards(root);
     if (!cards.length) return null;
@@ -30584,18 +30672,18 @@
     historyGridResizeController?.commitLayout(availableWidth);
   }
   function setLoadMoreState(label, options = {}) {
-    if (!els8.sentinel) return;
-    els8.sentinel.textContent = label;
-    els8.sentinel.hidden = Boolean(options.hidden);
-    els8.sentinel.toggleAttribute("aria-busy", Boolean(options.busy));
+    if (!els13.sentinel) return;
+    els13.sentinel.textContent = label;
+    els13.sentinel.hidden = Boolean(options.hidden);
+    els13.sentinel.toggleAttribute("aria-busy", Boolean(options.busy));
   }
   function maybeLoadMoreFromScroll() {
-    if (!els8.taskList || historyState.loading) return;
-    if (els8.taskList.scrollTop <= 320 && !historyState.newerExhausted) {
+    if (!els13.taskList || historyState.loading) return;
+    if (els13.taskList.scrollTop <= 320 && !historyState.newerExhausted) {
       void loadTasks({ direction: "previous" });
       return;
     }
-    const remaining = els8.taskList.scrollHeight - els8.taskList.scrollTop - els8.taskList.clientHeight;
+    const remaining = els13.taskList.scrollHeight - els13.taskList.scrollTop - els13.taskList.clientHeight;
     if (remaining <= 320 && !historyState.exhausted) void loadTasks({ direction: "next" });
   }
   async function loadTasks({
@@ -30639,7 +30727,7 @@
       historyState.selectionMode = false;
       clearHistoryDeleteConfirmation();
       historyState.deleteConfirmTaskId = "";
-      if (els8.taskList) els8.taskList.innerHTML = "";
+      if (els13.taskList) els13.taskList.innerHTML = "";
       renderBulkToolbar();
     }
     setLoadMoreState(translate("history.loadingMore"), { busy: true });
@@ -30681,8 +30769,8 @@
           },
           requestFrame: (callback) => window.requestAnimationFrame(callback),
           restore: (scrollAnchor) => {
-            if (els8.taskList) {
-              restoreHistoryScrollAnchor(els8.taskList, scrollAnchor);
+            if (els13.taskList) {
+              restoreHistoryScrollAnchor(els13.taskList, scrollAnchor);
             }
           },
           enableSave: () => historyPositionSaveController.enable()
@@ -30722,8 +30810,8 @@
     } catch (error) {
       if (requestId === historyState.requestId) {
         const message = errorMessage2(error, translate("history.tasksFailed"));
-        if (els8.taskList && historyTaskCards(els8.taskList).length) {
-          setText(els8.resultSummary, message);
+        if (els13.taskList && historyTaskCards(els13.taskList).length) {
+          setText(els13.resultSummary, message);
         } else {
           renderTaskListMessage("history-error", message);
         }
@@ -30745,15 +30833,15 @@
     await loadTasks({ reset: true, throwOnError: true });
   }
   function taskWindowCursor(reset, direction) {
-    if (reset || !els8.taskList) return null;
-    if (direction === "previous") return historyWindowEdgeCursor(els8.taskList, "top");
-    return historyState.nextCursor || historyWindowEdgeCursor(els8.taskList, "bottom");
+    if (reset || !els13.taskList) return null;
+    if (direction === "previous") return historyWindowEdgeCursor(els13.taskList, "top");
+    return historyState.nextCursor || historyWindowEdgeCursor(els13.taskList, "bottom");
   }
   function renderTasks3(tasks, { position }) {
-    if (!els8.taskList) return;
+    if (!els13.taskList) return;
     syncHistoryViewMode();
-    const anchor = position === "replace" ? null : captureHistoryScrollAnchor(els8.taskList);
-    if (position === "replace") els8.taskList.innerHTML = "";
+    const anchor = position === "replace" ? null : captureHistoryScrollAnchor(els13.taskList);
+    if (position === "replace") els13.taskList.innerHTML = "";
     const uniqueTasks = tasks.filter((task) => {
       if (historyState.loadedTaskIds.has(task.task_id)) return false;
       historyState.loadedTaskIds.add(task.task_id);
@@ -30762,26 +30850,26 @@
     });
     const html = uniqueTasks.map(taskCardHtml).join("");
     if (html) {
-      els8.taskList.querySelector(".history-empty, .history-error")?.remove();
+      els13.taskList.querySelector(".history-empty, .history-error")?.remove();
       if (position === "prepend") {
-        els8.taskList.insertAdjacentHTML("afterbegin", html);
+        els13.taskList.insertAdjacentHTML("afterbegin", html);
       } else {
-        els8.taskList.insertAdjacentHTML("beforeend", html);
+        els13.taskList.insertAdjacentHTML("beforeend", html);
       }
     }
     trimMountedTaskCards(position === "prepend" ? "bottom" : "top");
     layoutJustifiedHistoryGrid();
-    restoreHistoryScrollAnchor(els8.taskList, anchor);
-    if (!els8.taskList.querySelector(".history-task-card")) {
+    restoreHistoryScrollAnchor(els13.taskList, anchor);
+    if (!els13.taskList.querySelector(".history-task-card")) {
       renderTaskListMessage("history-empty", translate("history.noMatches"));
     }
-    setText(els8.resultSummary, formatTranslation("history.loadedCount", { count: historyState.loadedTaskIds.size }));
+    setText(els13.resultSummary, formatTranslation("history.loadedCount", { count: historyState.loadedTaskIds.size }));
     updateTaskSelectionVisuals();
   }
   function captureHistoryScrollAnchorSkipping(taskIds) {
-    if (!els8.taskList) return null;
-    const rootTop = els8.taskList.getBoundingClientRect().top;
-    for (const card of historyTaskCards(els8.taskList)) {
+    if (!els13.taskList) return null;
+    const rootTop = els13.taskList.getBoundingClientRect().top;
+    for (const card of historyTaskCards(els13.taskList)) {
       const taskId = String(card.dataset.historyTaskCardId || "");
       if (!taskId || taskIds.has(taskId)) continue;
       const rect = card.getBoundingClientRect();
@@ -30791,19 +30879,19 @@
     return null;
   }
   function refreshHistoryWindowAfterMutation(mutate, options = {}) {
-    if (!els8.taskList) {
+    if (!els13.taskList) {
       mutate();
       return;
     }
     const removedTaskIds = new Set(options.removedTaskIds || []);
-    const currentAnchor = captureHistoryScrollAnchor(els8.taskList);
+    const currentAnchor = captureHistoryScrollAnchor(els13.taskList);
     const anchor = currentAnchor && !removedTaskIds.has(currentAnchor.taskId) ? currentAnchor : captureHistoryScrollAnchorSkipping(removedTaskIds);
     mutate();
-    if (!els8.taskList.querySelector(".history-task-card")) {
+    if (!els13.taskList.querySelector(".history-task-card")) {
       renderTaskListMessage("history-empty", translate("history.noMatches"));
     }
     layoutJustifiedHistoryGrid();
-    restoreHistoryScrollAnchor(els8.taskList, anchor);
+    restoreHistoryScrollAnchor(els13.taskList, anchor);
     updateTaskSelectionVisuals();
     window.requestAnimationFrame(maybeLoadMoreFromScroll);
   }
@@ -30884,7 +30972,7 @@
       await loadSummary();
     } catch (error) {
       setText(
-        els8.resultSummary,
+        els13.resultSummary,
         errorMessage2(
           error,
           translate("history.organizationFailed")
@@ -30948,12 +31036,12 @@
     });
   }
   function renderTaskListMessage(className, message) {
-    if (!els8.taskList) return;
-    els8.taskList.innerHTML = `<div class="${className}">${escapeHtml5(message)}</div>`;
+    if (!els13.taskList) return;
+    els13.taskList.innerHTML = `<div class="${className}">${escapeHtml5(message)}</div>`;
   }
   function trimMountedTaskCards(edge) {
-    if (!els8.taskList) return;
-    const cards = historyTaskCards(els8.taskList);
+    if (!els13.taskList) return;
+    const cards = historyTaskCards(els13.taskList);
     const overflow = cards.length - MAX_MOUNTED_TASK_CARDS;
     if (overflow <= 0) return;
     const removedCards = edge === "bottom" ? cards.slice(cards.length - overflow) : cards.slice(0, overflow);
@@ -30967,9 +31055,9 @@
       historyState.newerExhausted = false;
     } else {
       historyState.exhausted = false;
-      historyState.nextCursor = historyWindowEdgeCursor(els8.taskList, "bottom") || historyState.nextCursor;
+      historyState.nextCursor = historyWindowEdgeCursor(els13.taskList, "bottom") || historyState.nextCursor;
     }
-    els8.taskList.querySelector(".history-window-notice")?.remove();
+    els13.taskList.querySelector(".history-window-notice")?.remove();
   }
   function historyTaskAccessibleLabel(task) {
     const title = String(task.prompt_preview || task.mode || task.task_id).replace(/\s+/g, " ").trim();
@@ -31115,7 +31203,7 @@
     return `${url}${separator}v=${HISTORY_THUMBNAIL_CACHE_VERSION}`;
   }
   function updateTaskSelectionVisuals(taskId = historyState.selectedTaskId) {
-    els8.taskList?.querySelectorAll(".history-task-card").forEach((card) => {
+    els13.taskList?.querySelectorAll(".history-task-card").forEach((card) => {
       const cardTaskId = card.dataset.historyTaskCardId || "";
       const active = Boolean(historyState.selectedTaskIds.size === 1 && taskId && cardTaskId === taskId);
       const selected = historyState.selectedTaskIds.has(cardTaskId);
@@ -31126,7 +31214,7 @@
     });
   }
   function visibleHistoryTaskIds() {
-    return Array.from(els8.taskList?.querySelectorAll(".history-task-card[data-history-task-card-id]") || []).map((card) => String(card.dataset.historyTaskCardId || "")).filter(Boolean);
+    return Array.from(els13.taskList?.querySelectorAll(".history-task-card[data-history-task-card-id]") || []).map((card) => String(card.dataset.historyTaskCardId || "")).filter(Boolean);
   }
   function focusHistoryTaskButton(taskId) {
     const card = historyTaskCardElement(taskId);
@@ -31140,9 +31228,9 @@
     if (event.altKey || event.metaKey || event.ctrlKey) return false;
     const target = event.target;
     const taskButton = target?.closest("[data-history-task-id]");
-    if (!taskButton || !els8.taskList?.contains(taskButton)) return false;
+    if (!taskButton || !els13.taskList?.contains(taskButton)) return false;
     const taskId = taskButton.dataset.historyTaskId || "";
-    const nextCard = historyTaskArrowTargetCard(els8.taskList, taskId, event.key, historyState.view);
+    const nextCard = historyTaskArrowTargetCard(els13.taskList, taskId, event.key, historyState.view);
     if (!nextCard && historyState.view === "list" && (event.key === "ArrowLeft" || event.key === "ArrowRight")) return false;
     event.preventDefault();
     event.stopPropagation();
@@ -31174,7 +31262,7 @@
       historyState.selectedTaskId
     );
     if (!historyState.selectedTaskId) {
-      els8.page?.classList.remove("history-detail-open");
+      els13.page?.classList.remove("history-detail-open");
     }
   }
   function clearHistoryTaskSelection({ updateVisuals = true } = {}) {
@@ -31237,7 +31325,7 @@
   }
   function historySelectAllShortcutBlocked() {
     return Boolean(
-      els8.backupDialog && !els8.backupDialog.hidden || els8.importDialog && !els8.importDialog.hidden || historyExportPickerEl || historyOrganizePickerEl || historyTagPickerEl || historyContextMenuEl && !historyContextMenuEl.classList.contains("hidden") || isHistoryLightboxOpen()
+      els13.backupDialog && !els13.backupDialog.hidden || els13.importDialog && !els13.importDialog.hidden || historyExportPickerEl || historyOrganizePickerEl || historyTagPickerEl || historyContextMenuEl && !historyContextMenuEl.classList.contains("hidden") || isHistoryLightboxOpen()
     );
   }
   function handleHistorySelectAllShortcut(event) {
@@ -31259,17 +31347,17 @@
       renderBulkToolbar();
     }
     const loadToken = ++historyDetailLoadToken;
-    const keepCurrentDetail = els8.detail?.dataset.historyDetailMode === "task" && Boolean(historyState.detailTask?.task_id);
+    const keepCurrentDetail = els13.detail?.dataset.historyDetailMode === "task" && Boolean(historyState.detailTask?.task_id);
     historyState.selectedTaskId = taskId;
     clearHistoryDeleteConfirmation();
     historyState.deleteConfirmTaskId = "";
     historyState.deleteUnselectedConfirmTaskId = "";
     updateHistoryUrl();
     updateTaskSelectionVisuals(taskId);
-    els8.page?.classList.add("history-detail-open");
+    els13.page?.classList.add("history-detail-open");
     if (keepCurrentDetail) {
-      els8.detail?.classList.add("history-detail-pending");
-      els8.detail?.setAttribute("aria-busy", "true");
+      els13.detail?.classList.add("history-detail-pending");
+      els13.detail?.setAttribute("aria-busy", "true");
     } else {
       renderDetailShell(translate("history.loadingDetail"));
     }
@@ -31286,8 +31374,8 @@
       renderDetailShell(errorMessage2(error, translate("history.detailFailed")), "history-error");
     } finally {
       if (isCurrentHistoryDetailLoad(loadToken, taskId)) {
-        els8.detail?.classList.remove("history-detail-pending");
-        els8.detail?.removeAttribute("aria-busy");
+        els13.detail?.classList.remove("history-detail-pending");
+        els13.detail?.removeAttribute("aria-busy");
       }
     }
   }
@@ -31328,10 +31416,10 @@
     });
   }
   function renderDetailShell(message, className = "history-detail-empty") {
-    if (!els8.detail) return;
-    els8.detail.dataset.historyDetailMode = "empty";
+    if (!els13.detail) return;
+    els13.detail.dataset.historyDetailMode = "empty";
     historyState.detailTask = null;
-    els8.detail.innerHTML = `
+    els13.detail.innerHTML = `
     <div class="history-detail-header">
       <div>
         <h2 class="history-detail-title history-detail-empty-title">${escapeHtml5(translate("history.detail"))}</h2>
@@ -31369,19 +31457,19 @@
     };
   }
   function renderHistoryManagementDetail() {
-    if (!els8.detail) return;
-    els8.detail.dataset.historyDetailMode = "management";
+    if (!els13.detail) return;
+    els13.detail.dataset.historyDetailMode = "management";
     historyState.detailTask = null;
-    els8.detail.innerHTML = historyManagementPanelHtml(historyActionPanelCopy(), {
+    els13.detail.innerHTML = historyManagementPanelHtml(historyActionPanelCopy(), {
       selectionMode: historyState.selectionMode
     });
   }
   function renderSelectionDetail() {
-    if (!els8.detail) return;
+    if (!els13.detail) return;
     const count = historyState.selectedTaskIds.size;
     if (!count) return;
-    els8.detail.dataset.historyDetailMode = "selection";
-    els8.detail.innerHTML = historySelectionPanelHtml({
+    els13.detail.dataset.historyDetailMode = "selection";
+    els13.detail.innerHTML = historySelectionPanelHtml({
       copy: historyActionPanelCopy(),
       count,
       expandedSection: historyActionPanelExpanded,
@@ -31389,7 +31477,7 @@
     });
   }
   function syncHistorySelectionDetail() {
-    if (!els8.detail) return;
+    if (!els13.detail) return;
     const resolution = historySelectionDetailResolution({
       selectedCount: historyState.selectedTaskIds.size,
       selectedTaskId: historyState.selectedTaskId,
@@ -31412,9 +31500,9 @@
     return value || translate("history.detail");
   }
   function renderTaskDetail(task) {
-    if (!els8.detail) return;
+    if (!els13.detail) return;
     historyState.detailTask = task;
-    els8.detail.dataset.historyDetailMode = "task";
+    els13.detail.dataset.historyDetailMode = "task";
     const taskId = String(task.task_id || historyState.selectedTaskId || "");
     const urls = taskOutputRecords(task);
     const selectedCount = taskSelectedOutputIndexes(task).size;
@@ -31445,7 +31533,7 @@
       Array.isArray(task.tags) ? task.tags : [],
       escapeHtml5
     );
-    els8.detail.innerHTML = `
+    els13.detail.innerHTML = `
     <div class="history-detail-header">
       <div>
         <p class="history-detail-kicker">${escapeHtml5(historyTaskModeLabel(task.mode))}</p>
@@ -31491,7 +31579,7 @@
     ${promptCompareHtml(task)}
   `;
     const grounding = createGroundingAttribution(task);
-    const imageGrid = els8.detail.querySelector(".history-detail-images");
+    const imageGrid = els13.detail.querySelector(".history-detail-images");
     if (grounding && imageGrid) imageGrid.insertAdjacentElement("afterend", grounding);
   }
   function detailTitle(task) {
@@ -31612,19 +31700,19 @@
   }
   function renderBulkToolbar() {
     const count = historyState.selectedTaskIds.size;
-    els8.page?.classList.toggle("history-bulk-selecting", count > 1 || historyState.selectionMode);
-    els8.page?.classList.toggle("history-selection-mode", historyState.selectionMode);
-    els8.selectionDock?.classList.toggle("hidden", count === 0);
-    els8.selectionDock?.toggleAttribute("hidden", count === 0);
+    els13.page?.classList.toggle("history-bulk-selecting", count > 1 || historyState.selectionMode);
+    els13.page?.classList.toggle("history-selection-mode", historyState.selectionMode);
+    els13.selectionDock?.classList.toggle("hidden", count === 0);
+    els13.selectionDock?.toggleAttribute("hidden", count === 0);
     setText(
-      els8.selectionDockCount,
+      els13.selectionDockCount,
       count ? formatTranslation("history.selectedCount", { count }) : ""
     );
     if (!count) {
       historyActionPanelExpanded = "";
       closeHistoryOrganizePicker({ restoreFocus: false });
     }
-    if (count && els8.detail?.dataset.historyDetailMode === "selection") renderSelectionDetail();
+    if (count && els13.detail?.dataset.historyDetailMode === "selection") renderSelectionDetail();
   }
   function clearHistoryDeleteConfirmation() {
     historyState.deleteConfirming = false;
@@ -31646,7 +31734,7 @@
   }
   async function archiveHistoryTaskIds(ids, archived) {
     if (!ids.length) return;
-    setText(els8.resultSummary, archived ? translate("archive.archiving") : translate("archive.restoring"));
+    setText(els13.resultSummary, archived ? translate("archive.archiving") : translate("archive.restoring"));
     try {
       const tasks = await Promise.all(ids.map((taskId) => setTaskArchiveState(taskId, archived)));
       ids.forEach((taskId) => historyState.selectedTaskIds.delete(taskId));
@@ -31661,9 +31749,9 @@
       });
       reconcileHistoryTaskSelection();
       await loadSummary();
-      setText(els8.resultSummary, archived ? formatTranslation("batch.archivedCount", { count: ids.length }) : formatTranslation("archive.restoredCount", { count: ids.length }));
+      setText(els13.resultSummary, archived ? formatTranslation("batch.archivedCount", { count: ids.length }) : formatTranslation("archive.restoredCount", { count: ids.length }));
     } catch (error) {
-      setText(els8.resultSummary, errorMessage2(error, archived ? translate("taskActions.archiveFailed") : translate("archive.restoreFailed")));
+      setText(els13.resultSummary, errorMessage2(error, archived ? translate("taskActions.archiveFailed") : translate("archive.restoreFailed")));
     } finally {
       renderBulkToolbar();
       syncHistorySelectionDetail();
@@ -31671,7 +31759,7 @@
   }
   async function archiveSingleTask(taskId, archived) {
     if (!taskId) return;
-    setText(els8.resultSummary, archived ? translate("archive.archiving") : translate("archive.restoring"));
+    setText(els13.resultSummary, archived ? translate("archive.archiving") : translate("archive.restoring"));
     try {
       const task = await setTaskArchiveState(taskId, archived);
       historyState.deleteConfirmTaskId = "";
@@ -31682,9 +31770,9 @@
       }
       upsertHistoryTaskSummaryCard(taskId, task);
       await loadSummary();
-      setText(els8.resultSummary, archived ? translate("taskActions.archived") : translate("archive.restored"));
+      setText(els13.resultSummary, archived ? translate("taskActions.archived") : translate("archive.restored"));
     } catch (error) {
-      setText(els8.resultSummary, errorMessage2(error, archived ? translate("taskActions.archiveFailed") : translate("archive.restoreFailed")));
+      setText(els13.resultSummary, errorMessage2(error, archived ? translate("taskActions.archiveFailed") : translate("archive.restoreFailed")));
     }
   }
   async function deleteSelectedTasks() {
@@ -31701,7 +31789,7 @@
       renderBulkToolbar();
       return;
     }
-    setText(els8.resultSummary, translate("archive.deleting"));
+    setText(els13.resultSummary, translate("archive.deleting"));
     try {
       const results = await Promise.allSettled(ids.map(async (taskId) => {
         const response = await fetch(`/api/tasks/${encodeURIComponent(taskId)}`, { method: "DELETE" });
@@ -31720,12 +31808,12 @@
       await loadSummary();
       if (deletedIds.length) {
         const skipped = failedIds.length ? ` \xB7 ${translate("taskActions.deleteFailed")} ${failedIds.length}` : "";
-        setText(els8.resultSummary, formatTranslation("batch.deletedCount", { count: deletedIds.length, skipped }));
+        setText(els13.resultSummary, formatTranslation("batch.deletedCount", { count: deletedIds.length, skipped }));
       } else {
-        setText(els8.resultSummary, translate("taskActions.deleteFailed"));
+        setText(els13.resultSummary, translate("taskActions.deleteFailed"));
       }
     } catch (error) {
-      setText(els8.resultSummary, errorMessage2(error, translate("taskActions.deleteFailed")));
+      setText(els13.resultSummary, errorMessage2(error, translate("taskActions.deleteFailed")));
     } finally {
       updateTaskSelectionVisuals();
       renderBulkToolbar();
@@ -31743,7 +31831,7 @@
       if (confirmInMenu) rerenderHistoryContextMenu();
       return false;
     }
-    setText(els8.resultSummary, translate("archive.deleting"));
+    setText(els13.resultSummary, translate("archive.deleting"));
     try {
       const response = await fetch(`/api/tasks/${encodeURIComponent(taskId)}`, { method: "DELETE" });
       const data = await response.json().catch(() => ({}));
@@ -31755,10 +31843,10 @@
       historyState.contextMenuDeleteConfirmKey = "";
       removeHistoryTaskIdsFromWindow([taskId]);
       await loadSummary();
-      setText(els8.resultSummary, translate("taskActions.deleted"));
+      setText(els13.resultSummary, translate("taskActions.deleted"));
       return true;
     } catch (error) {
-      setText(els8.resultSummary, errorMessage2(error, translate("taskActions.deleteFailed")));
+      setText(els13.resultSummary, errorMessage2(error, translate("taskActions.deleteFailed")));
       return false;
     } finally {
       renderBulkToolbar();
@@ -31781,7 +31869,7 @@
       historyState.deleteUnselectedConfirmTaskId = "";
       renderTaskDetail(data.task || {});
     } catch (error) {
-      setText(els8.resultSummary, errorMessage2(error, translate("taskContext.actionFailed")));
+      setText(els13.resultSummary, errorMessage2(error, translate("taskContext.actionFailed")));
     }
   }
   async function deleteUnselectedOutputs(taskId) {
@@ -31799,7 +31887,7 @@
       renderTaskDetail(data.task || {});
       upsertHistoryTaskSummaryCard(taskId, data.task || {});
     } catch (error) {
-      setText(els8.resultSummary, errorMessage2(error, translate("taskActions.deleteFailed")));
+      setText(els13.resultSummary, errorMessage2(error, translate("taskActions.deleteFailed")));
     }
   }
   function promptTextForKind(kind) {
@@ -31851,17 +31939,17 @@
       if (button) {
         setPromptCopyButtonFeedback(button, translate("history.noPromptShort"));
       } else {
-        setText(els8.resultSummary, translate("history.noPrompt"));
+        setText(els13.resultSummary, translate("history.noPrompt"));
       }
       return;
     }
     try {
       await writeClipboardText(text);
       if (button) setPromptCopyButtonFeedback(button, translate("history.promptCopiedShort"));
-      setText(els8.resultSummary, translate("history.promptCopied"));
+      setText(els13.resultSummary, translate("history.promptCopied"));
     } catch (error) {
       if (button) setPromptCopyButtonFeedback(button, translate("history.promptCopyFailedShort"));
-      setText(els8.resultSummary, errorMessage2(error, translate("history.promptCopyFailed")));
+      setText(els13.resultSummary, errorMessage2(error, translate("history.promptCopyFailed")));
     }
   }
   async function copyOutputPromptToClipboard(outputIndex, button) {
@@ -31870,17 +31958,17 @@
       if (button) {
         setPromptCopyButtonFeedback(button, translate("history.noPromptShort"));
       } else {
-        setText(els8.resultSummary, translate("history.noPrompt"));
+        setText(els13.resultSummary, translate("history.noPrompt"));
       }
       return;
     }
     try {
       await writeClipboardText(text);
       if (button) setPromptCopyButtonFeedback(button, translate("history.promptCopiedShort"));
-      setText(els8.resultSummary, translate("history.promptCopied"));
+      setText(els13.resultSummary, translate("history.promptCopied"));
     } catch (error) {
       if (button) setPromptCopyButtonFeedback(button, translate("history.promptCopyFailedShort"));
-      setText(els8.resultSummary, errorMessage2(error, translate("history.promptCopyFailed")));
+      setText(els13.resultSummary, errorMessage2(error, translate("history.promptCopyFailed")));
     }
   }
   function reuseHistoryTask(taskId) {
@@ -31895,7 +31983,7 @@
       }));
       window.location.href = "/";
     } catch (error) {
-      setText(els8.resultSummary, errorMessage2(error, translate("taskContext.actionFailed")));
+      setText(els13.resultSummary, errorMessage2(error, translate("taskContext.actionFailed")));
     }
   }
   async function copyHistoryTaskId(taskIds) {
@@ -31903,9 +31991,9 @@
     if (!ids.length) return;
     try {
       await writeClipboardText(ids.join("\n"));
-      setText(els8.resultSummary, ids.length > 1 ? formatTranslation("history.taskIdsCopied", { count: ids.length }) : translate("taskContext.idCopied"));
+      setText(els13.resultSummary, ids.length > 1 ? formatTranslation("history.taskIdsCopied", { count: ids.length }) : translate("taskContext.idCopied"));
     } catch (error) {
-      setText(els8.resultSummary, errorMessage2(error, translate("taskContext.actionFailed")));
+      setText(els13.resultSummary, errorMessage2(error, translate("taskContext.actionFailed")));
     }
   }
   async function copyHistoryTaskPrompts(taskIds) {
@@ -31921,14 +32009,14 @@
       }
     }
     if (!prompts.length) {
-      setText(els8.resultSummary, translate("history.noPrompt"));
+      setText(els13.resultSummary, translate("history.noPrompt"));
       return;
     }
     try {
       await writeClipboardText(prompts.join("\n\n---\n\n"));
-      setText(els8.resultSummary, taskIds.length > 1 ? formatTranslation("history.promptsCopied", { count: prompts.length }) : translate("history.promptCopied"));
+      setText(els13.resultSummary, taskIds.length > 1 ? formatTranslation("history.promptsCopied", { count: prompts.length }) : translate("history.promptCopied"));
     } catch (error) {
-      setText(els8.resultSummary, errorMessage2(error, translate("history.promptCopyFailed")));
+      setText(els13.resultSummary, errorMessage2(error, translate("history.promptCopyFailed")));
     }
   }
   function triggerHistoryDownload(url, filename = "") {
@@ -31965,7 +32053,7 @@
       }
     }
     setText(
-      els8.resultSummary,
+      els13.resultSummary,
       downloaded > 1 ? formatTranslation("history.batchDownloadStarted", { count: downloaded }) : downloaded === 1 ? translate("history.downloadStarted") : translate("history.noDownloadableOutputs")
     );
   }
@@ -32106,7 +32194,7 @@
         await archiveHistoryTaskIds(taskIds, false);
       }
     } catch (error) {
-      setText(els8.resultSummary, errorMessage2(error, translate("taskContext.actionFailed")));
+      setText(els13.resultSummary, errorMessage2(error, translate("taskContext.actionFailed")));
     }
   }
   async function deleteHistoryContextSelectedTasks(taskIds) {
@@ -32203,7 +32291,7 @@
     historyState.deleteConfirmTaskId = "";
     historyState.deleteUnselectedConfirmTaskId = "";
     historyState.detailTask = detail;
-    els8.page?.classList.add("history-detail-open");
+    els13.page?.classList.add("history-detail-open");
     updateHistoryUrl();
     updateTaskSelectionVisuals(taskId);
     renderBulkToolbar();
@@ -32226,11 +32314,11 @@
         nextTaskId = historyAdjacentTaskId(cursorTaskId, direction);
       }
       if (!nextTaskId) {
-        setText(els8.resultSummary, translate("history.noMore"));
+        setText(els13.resultSummary, translate("history.noMore"));
         return;
       }
       if (visitedTaskIds.has(nextTaskId)) {
-        setText(els8.resultSummary, translate("history.noMore"));
+        setText(els13.resultSummary, translate("history.noMore"));
         return;
       }
       visitedTaskIds.add(nextTaskId);
@@ -32247,7 +32335,7 @@
         });
         return;
       } catch (error) {
-        setText(els8.resultSummary, errorMessage2(error, translate("history.detailFailed")));
+        setText(els13.resultSummary, errorMessage2(error, translate("history.detailFailed")));
         return;
       }
     }
@@ -32263,14 +32351,14 @@
         onTaskNavigate: openHistoryTaskLightboxByDirection
       });
     } catch (error) {
-      setText(els8.resultSummary, errorMessage2(error, translate("history.detailFailed")));
+      setText(els13.resultSummary, errorMessage2(error, translate("history.detailFailed")));
     }
   }
   function closeDetail() {
     const narrow = window.matchMedia("(max-width: 1100px)").matches;
-    const mode = els8.detail?.dataset.historyDetailMode || "management";
+    const mode = els13.detail?.dataset.historyDetailMode || "management";
     if (historyDetailCloseEffect({ narrow, mode }) === "dismiss") {
-      els8.page?.classList.remove("history-detail-open");
+      els13.page?.classList.remove("history-detail-open");
       historyDetailReturnFocus?.focus();
       historyDetailReturnFocus = null;
       return;
@@ -32281,7 +32369,7 @@
     historyState.selectionAnchorTaskId = "";
     historyState.selectionMode = false;
     historyState.detailTask = null;
-    els8.page?.classList.remove("history-detail-open");
+    els13.page?.classList.remove("history-detail-open");
     updateHistoryUrl();
     updateTaskSelectionVisuals("");
     renderBulkToolbar();
@@ -32292,15 +32380,15 @@
   function openHistoryManagementPanel(trigger) {
     historyDetailReturnFocus = trigger;
     renderHistoryManagementDetail();
-    els8.page?.classList.add("history-detail-open");
-    requestAnimationFrame(() => els8.detail?.querySelector(".history-detail-title")?.focus());
+    els13.page?.classList.add("history-detail-open");
+    requestAnimationFrame(() => els13.detail?.querySelector(".history-detail-title")?.focus());
   }
   function openHistorySelectionPanel(trigger) {
     if (!historyState.selectedTaskIds.size) return;
     historyDetailReturnFocus = trigger;
     renderSelectionDetail();
-    els8.page?.classList.add("history-detail-open");
-    requestAnimationFrame(() => els8.detail?.querySelector(".history-detail-title")?.focus());
+    els13.page?.classList.add("history-detail-open");
+    requestAnimationFrame(() => els13.detail?.querySelector(".history-detail-title")?.focus());
   }
   function closeHistoryTagPicker({ restoreFocus = true } = {}) {
     historyTagPickerEl?.remove();
@@ -32412,13 +32500,13 @@
       applyHistoryOrganizations(result.organizations);
       await loadSummary();
       setText(
-        els8.resultSummary,
+        els13.resultSummary,
         `${translate("history.createTag")}\uFF1A${result.tag.name}`
       );
     } catch (error) {
       const message = historyTagCreateErrorMessage(error);
       setText(status, message);
-      setText(els8.resultSummary, message);
+      setText(els13.resultSummary, message);
       if (input) input.disabled = false;
       if (submit) submit.disabled = false;
       input?.focus();
@@ -32598,7 +32686,7 @@
       const result = await createHistoryExport(taskIds, mode);
       triggerHistoryExportDownload(result);
       setText(
-        els8.resultSummary,
+        els13.resultSummary,
         `${translate("history.exportStarted")} \xB7 ${formatTranslation(
           "history.exportSummary",
           {
@@ -32615,7 +32703,7 @@
         translate("history.exportFailed")
       );
       setText(statusElement, message);
-      setText(els8.resultSummary, message);
+      setText(els13.resultSummary, message);
     } finally {
       historyExportPending = false;
       actionRoot?.querySelectorAll("button").forEach((button) => {
@@ -32627,38 +32715,38 @@
     bindHistoryResizerEvents();
     bindHistoryGridResizeObserver();
     bindHistoryGridMutationObserver();
-    els8.tagManager?.querySelector(
+    els13.tagManager?.querySelector(
       "[data-history-tag-create]"
     )?.addEventListener("submit", (event) => {
       event.preventDefault();
       void createHistoryTagFromManager();
     });
     let searchTimer = 0;
-    els8.search?.addEventListener("input", () => {
+    els13.search?.addEventListener("input", () => {
       syncHistorySearchClear();
       window.clearTimeout(searchTimer);
       searchTimer = window.setTimeout(() => {
-        historyState.q = els8.search?.value.trim() || "";
+        historyState.q = els13.search?.value.trim() || "";
         resetHistoryTaskSelectionState();
         renderHistoryActiveFilters();
         updateHistoryUrl();
         void loadTasks({ reset: true });
       }, 180);
     });
-    els8.searchClear?.addEventListener("click", () => {
-      if (els8.search) els8.search.value = "";
+    els13.searchClear?.addEventListener("click", () => {
+      if (els13.search) els13.search.value = "";
       syncHistorySearchClear();
-      els8.search?.focus();
+      els13.search?.focus();
       historyState.q = "";
       resetHistoryTaskSelectionState();
       renderHistoryActiveFilters();
       updateHistoryUrl();
       void loadTasks({ reset: true });
     });
-    els8.sortToggle?.addEventListener("click", (event) => {
+    els13.sortToggle?.addEventListener("click", (event) => {
       const target = event.target;
       const button = target?.closest("[data-history-sort]");
-      if (!button || !els8.sortToggle?.contains(button)) return;
+      if (!button || !els13.sortToggle?.contains(button)) return;
       applyHistorySort(button.dataset.historySort || "newest");
     });
     document.addEventListener("change", (event) => {
@@ -32666,13 +32754,13 @@
       const backupScopeInput = target?.closest(
         'input[name="history-backup-scope"]'
       );
-      if (backupScopeInput && els8.backupDialog?.contains(backupScopeInput)) {
+      if (backupScopeInput && els13.backupDialog?.contains(backupScopeInput)) {
         renderHistoryBackupScopeEstimates();
         return;
       }
-      if (target === els8.importFile) {
-        const file = els8.importFile?.files?.[0];
-        if (els8.importFile) els8.importFile.value = "";
+      if (target === els13.importFile) {
+        const file = els13.importFile?.files?.[0];
+        if (els13.importFile) els13.importFile.value = "";
         if (file) void chooseHistoryImport(file);
         return;
       }
@@ -32687,15 +32775,15 @@
     document.addEventListener("click", (event) => {
       const target = event.target;
       if (shouldClearHistoryTaskFromBlankSurface({
-        detailMode: els8.detail?.dataset.historyDetailMode || "management",
+        detailMode: els13.detail?.dataset.historyDetailMode || "management",
         selectedCount: historyState.selectedTaskIds.size,
         selectionMode: historyState.selectionMode,
-        isTaskListBlankSurface: target === els8.taskList,
+        isTaskListBlankSurface: target === els13.taskList,
         button: event.button,
         hasModifier: event.shiftKey || event.metaKey || event.ctrlKey || event.altKey
       })) {
         clearHistoryTaskSelection();
-        els8.page?.classList.remove("history-detail-open");
+        els13.page?.classList.remove("history-detail-open");
         return;
       }
       const removeActiveFilter = target?.closest(
@@ -32740,7 +32828,7 @@
         closeHistoryExportPicker({ restoreFocus: false });
         closeHistoryOrganizePicker({ restoreFocus: false });
         renderSelectionDetail();
-        requestAnimationFrame(() => els8.detail?.querySelector(`[data-history-toggle-action-section="${requested}"]`)?.focus());
+        requestAnimationFrame(() => els13.detail?.querySelector(`[data-history-toggle-action-section="${requested}"]`)?.focus());
         return;
       }
       if (target?.closest("[data-history-close-backup]")) {
@@ -32823,7 +32911,7 @@
       );
       if (exportModeButton) {
         const mode = exportModeButton.dataset.historyExportMode === "images_with_prompts" ? "images_with_prompts" : "images_only";
-        const inlineStatus = els8.detail?.contains(exportModeButton) ? els8.detail.querySelector("[data-history-action-export-status]") : null;
+        const inlineStatus = els13.detail?.contains(exportModeButton) ? els13.detail.querySelector("[data-history-action-export-status]") : null;
         void runHistoryExport(
           mode,
           inlineStatus ? [...historyState.selectedTaskIds] : historyExportTaskIds.slice(),
@@ -32850,16 +32938,16 @@
         "#historyTagManageToggle"
       );
       if (tagManageToggle) {
-        const opening = Boolean(els8.tagManager?.hidden);
-        if (els8.tagManager) {
-          els8.tagManager.hidden = !opening;
-          els8.tagManager.classList.toggle("hidden", !opening);
+        const opening = Boolean(els13.tagManager?.hidden);
+        if (els13.tagManager) {
+          els13.tagManager.hidden = !opening;
+          els13.tagManager.classList.toggle("hidden", !opening);
         }
-        els8.tagManageToggle?.setAttribute(
+        els13.tagManageToggle?.setAttribute(
           "aria-expanded",
           opening ? "true" : "false"
         );
-        if (opening) els8.tagNameInput?.focus();
+        if (opening) els13.tagNameInput?.focus();
         return;
       }
       const renameTagButton = target?.closest(
@@ -33073,28 +33161,28 @@
         }
       }
     });
-    els8.taskList?.addEventListener("contextmenu", (event) => {
+    els13.taskList?.addEventListener("contextmenu", (event) => {
       const target = event.target;
       const card = target?.closest(".history-task-card[data-history-task-card-id]");
-      if (!card || !els8.taskList?.contains(card)) return;
+      if (!card || !els13.taskList?.contains(card)) return;
       event.preventDefault();
       event.stopPropagation();
       openHistoryContextMenu(card.dataset.historyTaskCardId || "", event.clientX, event.clientY);
     });
-    els8.taskList?.addEventListener("dblclick", (event) => {
+    els13.taskList?.addEventListener("dblclick", (event) => {
       const target = event.target;
       const card = target?.closest(".history-task-card[data-history-task-card-id]");
-      if (!card || !els8.taskList?.contains(card)) return;
+      if (!card || !els13.taskList?.contains(card)) return;
       event.preventDefault();
       event.stopPropagation();
       void openHistoryTaskLightbox(card.dataset.historyTaskCardId || "");
     });
-    els8.taskList?.addEventListener("keydown", (event) => {
+    els13.taskList?.addEventListener("keydown", (event) => {
       if (handleHistoryTaskArrowNavigation(event)) return;
       if (event.key !== "ContextMenu" && !(event.shiftKey && event.key === "F10")) return;
       const target = event.target;
       const card = target?.closest(".history-task-card[data-history-task-card-id]");
-      if (!card || !els8.taskList?.contains(card)) return;
+      if (!card || !els13.taskList?.contains(card)) return;
       event.preventDefault();
       const rect = card.getBoundingClientRect();
       openHistoryContextMenu(card.dataset.historyTaskCardId || "", rect.left + 18, rect.top + 18);
@@ -33114,15 +33202,15 @@
       if (target && historyContextMenuEl.contains(target)) return;
       closeHistoryContextMenu();
     }, true);
-    els8.refresh?.addEventListener("click", () => {
+    els13.refresh?.addEventListener("click", () => {
       void loadSummary();
       void loadTasks({ reset: true });
     });
-    els8.taskList?.addEventListener("dragstart", (event) => {
+    els13.taskList?.addEventListener("dragstart", (event) => {
       const target = event.target;
       if (target?.closest(".history-task-thumb img")) event.preventDefault();
     });
-    els8.taskList?.addEventListener("scroll", () => {
+    els13.taskList?.addEventListener("scroll", () => {
       closeHistoryContextMenu();
       maybeLoadMoreFromScroll();
       historyPositionSaveController.schedule();
@@ -33160,11 +33248,11 @@
       if (trapHistoryTransferFocus(event)) return;
       if (handleHistorySelectAllShortcut(event)) return;
       if (event.key !== "Escape") return;
-      if (els8.backupDialog && !els8.backupDialog.hidden) {
+      if (els13.backupDialog && !els13.backupDialog.hidden) {
         closeHistoryBackupDialog();
         return;
       }
-      if (els8.importDialog && !els8.importDialog.hidden) {
+      if (els13.importDialog && !els13.importDialog.hidden) {
         closeHistoryImportDialog();
         return;
       }
@@ -33192,7 +33280,7 @@
         clearHistoryTaskSelection();
         return;
       }
-      if (els8.page?.classList.contains("history-detail-open")) {
+      if (els13.page?.classList.contains("history-detail-open")) {
         closeDetail();
         return;
       }
@@ -33204,17 +33292,17 @@
   }
   async function bootHistoryPage() {
     initializeHistoryMobileFilters({
-      page: els8.page,
-      sidebar: els8.sidebar,
-      trigger: els8.mobileFiltersButton,
-      backdrop: els8.filtersBackdrop
+      page: els13.page,
+      sidebar: els13.sidebar,
+      trigger: els13.mobileFiltersButton,
+      backdrop: els13.filtersBackdrop
     });
     initializeHistoryShell({
       selectHistoryTask: loadTaskDetail,
       refreshHistoryTasks: async (task) => {
         await refreshHistoryForRealtimeTask({
           task,
-          scroller: els8.taskList,
+          scroller: els13.taskList,
           loadSummary,
           reloadNewestWindow: async () => {
             await loadTasks({ reset: true });

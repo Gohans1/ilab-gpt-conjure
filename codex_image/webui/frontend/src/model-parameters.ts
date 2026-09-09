@@ -3,6 +3,10 @@ import { aspectRatioSlots, createAspectRatioIcon } from "./aspect-ratio-controls
 import { refreshSegmentedIndicators } from "./segmented-indicator";
 import { syncChatGPTDeleteChatControl } from "./provider-selection";
 import { getLegacyBridge } from "./state";
+
+export const GPT_IMAGE_2_MIN_PIXELS = 655360;
+export const GPT_IMAGE_2_MAX_PIXELS = 8294400;
+export const GPT_IMAGE_2_MAX_LONG_SHORT_RATIO = 3;
 import type {
   CatalogModel,
   CatalogObjectPreset,
@@ -34,16 +38,18 @@ function cloneValue(value: unknown): unknown {
 
 function gptSizeValid(value: unknown): boolean {
   if (typeof value !== "string") return false;
-  const match = value.match(/^(\d+)x(\d+)$/i);
+  const normalized = value.trim().toLowerCase();
+  if (normalized === "auto") return true;
+  const match = normalized.match(/^(\d+)x(\d+)$/);
   if (!match) return false;
   const width = Number(match[1]);
   const height = Number(match[2]);
   if (!Number.isInteger(width) || !Number.isInteger(height)) return false;
   if (width < 16 || width > 3840 || height < 16 || height > 3840) return false;
   if (width % 16 !== 0 || height % 16 !== 0) return false;
-  if (Math.max(width, height) / Math.min(width, height) > 3) return false;
+  if (Math.max(width, height) / Math.min(width, height) > GPT_IMAGE_2_MAX_LONG_SHORT_RATIO) return false;
   const pixels = width * height;
-  return pixels >= 655360 && pixels <= 8294400;
+  return pixels >= GPT_IMAGE_2_MIN_PIXELS && pixels <= GPT_IMAGE_2_MAX_PIXELS;
 }
 
 export function parameterValueValid(definition: CatalogParameterDefinition, value: unknown): boolean {

@@ -88,9 +88,26 @@ declare global {
   }
 }
 
+let fallbackBridge: LegacyBridge | null = null;
+
 export function getLegacyBridge(): LegacyBridge {
-  const bridge = window.__codexImageWebUI;
+  const globalRef = typeof globalThis !== "undefined" ? (globalThis as any) : undefined;
+  const bridge = (typeof window !== "undefined" ? window.__codexImageWebUI : undefined)
+    ?? globalRef?.window?.__codexImageWebUI
+    ?? globalRef?.__codexImageWebUI;
   if (!bridge) {
+    if (typeof window === "undefined" && !globalRef?.window) {
+      if (!fallbackBridge) {
+        fallbackBridge = {
+          state: {} as any,
+          els: {} as any,
+          methods: {} as any,
+          constants: {} as any,
+          boot() {},
+        };
+      }
+      return fallbackBridge;
+    }
     throw new Error("WebUI legacy bridge is not initialized");
   }
   return bridge;
