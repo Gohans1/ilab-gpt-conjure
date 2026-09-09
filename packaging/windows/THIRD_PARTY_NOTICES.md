@@ -1,8 +1,9 @@
 # Third-Party Notices
 
-This portable package contains iLab CONJURE, CPython for Windows, and Python
-packages installed from `requirements-webui.txt`, and a prebuilt WebUI
-JavaScript bundle that includes frontend npm packages from `package-lock.json`.
+This portable package contains iLab CONJURE, CPython for Windows, Bun, Node.js,
+Python packages installed from `requirements-webui.txt`, the Playwright Core
+runtime, and a prebuilt WebUI JavaScript bundle that includes frontend npm
+packages from `package-lock.json`.
 
 ## CPython
 
@@ -11,6 +12,24 @@ See the Python license documentation included with the runtime and the upstream
 license information at:
 
 https://docs.python.org/3/license.html
+
+## Bun
+
+The Bun runtime is distributed under the MIT license. See the upstream license
+at:
+
+https://github.com/oven-sh/bun/blob/main/LICENSE.md
+
+## Node.js
+
+The Node.js runtime is distributed under the MIT license and includes software
+under compatible third-party licenses. The package includes the exact upstream
+license text for its bundled Node.js version as `NODEJS-LICENSE`.
+
+## Playwright Core
+
+Playwright Core is distributed under the Apache License 2.0. Its package and
+license file are included under `chatgpt-bridge/node_modules/playwright-core/`.
 
 ## Python packages
 

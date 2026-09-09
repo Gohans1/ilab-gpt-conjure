@@ -120,7 +120,7 @@ if (Test-Path (Join-Path $AppDir "LICENSE")) {
 }
 Copy-Item -Path (Join-Path $RepoRoot "Start-All.bat") -Destination (Join-Path $BundleRoot "Start-All.bat") -Force
 
-# Bundle standalone bun binary and disable-quickedit into bin\
+# Bundle standalone Bun, Node.js, and disable-quickedit into bin\
 $BinDir = Join-Path $BundleRoot "bin"
 New-Item -ItemType Directory -Force -Path $BinDir | Out-Null
 $DisableQuickEditExe = Join-Path $BinDir "disable-quickedit.exe"
@@ -146,6 +146,23 @@ if ($null -ne $SystemBun) {
   Copy-Item -Path (Join-Path $CacheDir "bun-windows-x64\bun.exe") -Destination $BunExe -Force
 }
 
+$NodeExe = Join-Path $BinDir "node.exe"
+$SystemNode = Get-Command node -ErrorAction SilentlyContinue
+if ($null -eq $SystemNode) {
+  throw "Node.js 22+ was not found. Install Node.js before building the Windows portable package."
+}
+$NodeVersion = (& $SystemNode.Source -p "process.versions.node").Trim()
+$NodeMajor = [int]($NodeVersion.Split(".")[0])
+if ($NodeMajor -lt 22) {
+  throw "Node.js 22+ is required to build the Windows portable package."
+}
+Copy-Item -Path $SystemNode.Source -Destination $NodeExe -Force
+$NodeLicensePath = Join-Path $BundleRoot "NODEJS-LICENSE"
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/nodejs/node/v${NodeVersion}/LICENSE" -OutFile $NodeLicensePath
+if (-not (Test-Path $NodeLicensePath) -or (Get-Item $NodeLicensePath).Length -lt 1000) {
+  throw "Node.js license download failed."
+}
+
 # Bundle chatgpt-bridge and its dependencies
 $BridgeTarget = Join-Path $BundleRoot "chatgpt-bridge"
 New-Item -ItemType Directory -Force -Path $BridgeTarget | Out-Null
@@ -154,13 +171,38 @@ if (-not (Test-Path (Join-Path $BridgeSrc "node_modules"))) {
   Write-Host "Installing chatgpt-bridge dependencies..."
   Push-Location $BridgeSrc
   try {
-    & $BunExe install --production
+    & $BunExe install
+    if ($LASTEXITCODE -ne 0) {
+      throw "ChatGPT Bridge dependency installation failed."
+    }
   } finally {
     Pop-Location
   }
 }
+Push-Location $BridgeSrc
+try {
+  & $BunExe run build
+  if ($LASTEXITCODE -ne 0) {
+    throw "ChatGPT Bridge build failed."
+  }
+} finally {
+  Pop-Location
+}
 Copy-Item -Path (Join-Path $BridgeSrc "*") -Destination $BridgeTarget -Recurse -Force
 Remove-LocalArtifacts -Root $BridgeTarget
+$BridgeTargetModules = Join-Path $BridgeTarget "node_modules"
+if (Test-Path $BridgeTargetModules) {
+  Remove-Item -Path $BridgeTargetModules -Recurse -Force
+}
+Push-Location $BridgeTarget
+try {
+  & $BunExe install --production
+  if ($LASTEXITCODE -ne 0) {
+    throw "ChatGPT Bridge production dependency installation failed."
+  }
+} finally {
+  Pop-Location
+}
 
 # Seed default webui-api-settings.json
 $SeededSettings = Join-Path $RepoRoot "data\webui-api-settings.json"

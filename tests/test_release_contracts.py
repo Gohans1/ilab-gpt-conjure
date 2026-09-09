@@ -195,6 +195,50 @@ class ReleaseContractTests(unittest.TestCase):
 
         self.assertEqual(mismatches, ["idna: installed 8.8.0, required 8.9.0"])
 
+    def test_windows_bridge_uses_node_for_playwright_runtime(self) -> None:
+        bridge_package = json.loads(
+            (ROOT / "chatgpt-bridge" / "package.json").read_text(encoding="utf-8")
+        )
+        scripts = bridge_package["scripts"]
+        self.assertIn("rmSync('dist'", scripts["build"])
+        self.assertIn("tsc -p tsconfig.build.json", scripts["build"])
+        build_config = json.loads(
+            (ROOT / "chatgpt-bridge" / "tsconfig.build.json").read_text(encoding="utf-8")
+        )
+        self.assertEqual(build_config["exclude"], ["src/**/*.test.ts"])
+        for name in ("server", "generate", "login", "check:session", "test:connection"):
+            self.assertIn("node dist/", scripts[name], name)
+            self.assertNotIn("bun run src/", scripts[name], name)
+
+        start_all = (ROOT / "Start-All.bat").read_text(encoding="utf-8")
+        self.assertIn('set "NODE_CMD=', start_all)
+        self.assertIn('"%BUN_CMD%" run build', start_all)
+        self.assertIn('"%NODE_CMD%" dist/node-server.js', start_all.replace("\\", "/"))
+        self.assertNotIn('"%BUN_CMD%" run src/server.ts', start_all.replace("\\", "/"))
+
+        portable_builder = (ROOT / "packaging" / "windows" / "build-portable.ps1").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn('$NodeExe = Join-Path $BinDir "node.exe"', portable_builder)
+        self.assertIn("NODEJS-LICENSE", portable_builder)
+        self.assertIn("& $BunExe run build", portable_builder)
+        self.assertIn("& $BunExe install --production", portable_builder)
+        notices = (ROOT / "packaging" / "windows" / "THIRD_PARTY_NOTICES.md").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("## Node.js", notices)
+        self.assertIn("## Bun", notices)
+        self.assertIn("## Playwright Core", notices)
+
+        for relative in (
+            "chatgpt-bridge/Run-Server.bat",
+            "chatgpt-bridge/Run-Login.bat",
+            "chatgpt-bridge/Run-Generate.bat",
+        ):
+            command = (ROOT / relative).read_text(encoding="utf-8").replace("\\", "/")
+            self.assertIn("dist/", command, relative)
+            self.assertNotIn("bun run src/", command, relative)
+
     def test_ci_has_python_quality_security_and_cross_platform_rust_gates(self) -> None:
         workflow = (ROOT / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
 

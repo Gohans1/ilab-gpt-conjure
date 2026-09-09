@@ -7,11 +7,12 @@
     "chatgpt-image": "./src/cli.ts"
   },
   "scripts": {
-    "server": "bun run src/server.ts",
-    "generate": "bun run src/cli.ts",
-    "login": "bun run src/cli.ts --login",
-    "check:session": "bun run src/check-session.ts",
-    "test:connection": "bun run src/test-connection.ts"
+    "build": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\" && tsc -p tsconfig.build.json",
+    "server": "bun run build && node dist/node-server.js",
+    "generate": "bun run build && node dist/cli.js",
+    "login": "bun run build && node dist/cli.js --login",
+    "check:session": "bun run build && node dist/check-session.js",
+    "test:connection": "bun run build && node dist/test-connection.js"
   },
   "dependencies": {
     "playwright-core": "^1.50.0"

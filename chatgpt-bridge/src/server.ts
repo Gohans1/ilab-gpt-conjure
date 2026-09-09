@@ -5,7 +5,7 @@ import crypto from "node:crypto";
 import { generateImage, sizeToAspectRatio } from "./generator.js";
 import { handleLogin, notifyLoginContinuation } from "./auth-helper.js";
 import { clearSessionVerified, isSessionCached } from "./check-session.js";
-import { cleanupActiveBrowsers } from "./browser.js";
+
 import { detectImageExtension, findBrowserCandidates, getAvailableBrowsers, normalizeBrowserChoice } from "./config.js";
 export { detectImageExtension, normalizeBrowserChoice };
 
@@ -811,53 +811,4 @@ export async function handleRequest(req: Request): Promise<Response> {
     formatOpenAIError(`Endpoint ${pathname} not found`, "invalid_request_error", "not_found"),
     { status: 404, headers: corsHeaders }
   );
-}
-
-export function startServer(port: number = PORT, hostname: string = HOSTNAME) {
-  const server = Bun.serve({
-    port,
-    hostname,
-    idleTimeout: 0,
-    fetch: handleRequest,
-  });
-
-  console.log("=================================================");
-  console.log(`🚀 ChatGPT Image Local Bridge Server đã sẵn sàng!`);
-  console.log(`📡 URL lắng nghe: http://${hostname}:${port}`);
-  const maskedKey =
-    REQUIRED_API_KEY === "sk-local"
-      ? REQUIRED_API_KEY
-      : `${REQUIRED_API_KEY.slice(0, 5)}...${REQUIRED_API_KEY.slice(-4)}`;
-  console.log(`🔑 Yêu cầu Token: Bearer ${maskedKey}`);
-  console.log(`🔌 OpenAI Base URL cho iLab CONJURE: http://${hostname}:${port}/v1`);
-  console.log(`📌 Endpoints:`);
-  console.log(`   - Generations: http://${hostname}:${port}/v1/images/generations`);
-  console.log(`   - Edits:       http://${hostname}:${port}/v1/images/edits`);
-  console.log("=================================================");
-  return server;
-}
-
-if (import.meta.main) {
-  let isCleaned = false;
-  const cleanup = () => {
-    if (isCleaned) return;
-    isCleaned = true;
-    try {
-      cleanupActiveBrowsers();
-    } catch {}
-    process.exit(0);
-  };
-
-  process.on("SIGINT", cleanup);
-  process.on("SIGTERM", cleanup);
-  process.on("exit", () => {
-    if (!isCleaned) {
-      isCleaned = true;
-      try {
-        cleanupActiveBrowsers();
-      } catch {}
-    }
-  });
-
-  startServer();
 }
