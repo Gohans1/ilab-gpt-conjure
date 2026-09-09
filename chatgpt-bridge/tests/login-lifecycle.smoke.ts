@@ -83,5 +83,12 @@ try {
     }
   }
   await result;
-  rmSync(root, { recursive: true, force: true });
+  for (let i = 0; i < 5; i++) {
+    try {
+      rmSync(root, { recursive: true, force: true });
+      break;
+    } catch {
+      await Bun.sleep(150);
+    }
+  }
 }

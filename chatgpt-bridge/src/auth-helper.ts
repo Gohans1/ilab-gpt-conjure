@@ -465,7 +465,6 @@ export async function handleLogin(
   let activeBrowserPid: number | null = null;
   const offlineTrackedPids = new Set<number>();
   let isOfflineExtractionClosed = false;
-  let context: any = null;
   let continuationRequested = false;
   let activeCandidate = candidatesToTry[0];
   let failedOnEarlyExit = false;
@@ -844,10 +843,9 @@ export async function handleLogin(
           if (cdpEndpoint) {
             const cdpBrowser = await chromium.connectOverCDP(cdpEndpoint, { timeout: 8000 });
             try {
-              let cdpContext = cdpBrowser.contexts()[0];
+              const cdpContext = cdpBrowser.contexts()[0];
               if (!cdpContext) {
-                console.warn("⚠️ [CDP Extraction] Default persistent context not found on CDP connection; creating new context.");
-                cdpContext = await cdpBrowser.newContext();
+                throw new Error("Default persistent context not found on CDP connection");
               }
               await cdpContext.setOffline(true);
               await cdpContext.route("**/*", (route: any) =>
@@ -949,15 +947,6 @@ export async function handleLogin(
       } catch {}
       unregisterActiveBrowserPid(activeBrowserPid);
       activeBrowserPid = null;
-    }
-    if (context) {
-      let outerTimer: ReturnType<typeof setTimeout> | undefined;
-      await Promise.race([
-        context.close().catch(() => {}),
-        new Promise((r) => { outerTimer = setTimeout(r, 5000); }),
-      ]);
-      if (outerTimer) clearTimeout(outerTimer);
-      context = null;
     }
     for (const pid of offlineTrackedPids) {
       try {

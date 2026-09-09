@@ -574,6 +574,16 @@ describe("buildGenerationPrompt", () => {
     expect(prompt).toBe("Generate an image of: A futuristic city. Set the aspect ratio to 16:9.");
   });
 
+  it("chuẩn hóa dropdown ratio có khoảng trắng quanh dấu hai chấm '16 : 9'", () => {
+    const prompt = buildGenerationPrompt({
+      prompt: "A futuristic city --ar 1:1",
+      aspectRatioOrSize: " 16 : 9 ",
+      hasInputImages: false,
+      n: 1,
+    });
+    expect(prompt).toBe("Generate an image of: A futuristic city. Set the aspect ratio to 16:9.");
+  });
+
   it("xóa sạch --ar khi người dùng chọn None", () => {
     const prompt = buildGenerationPrompt({
       prompt: "A peaceful forest with mist --ar 16:9",
