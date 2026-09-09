@@ -299,14 +299,18 @@ def _prepare_generation_submission(
         except ValueError as exc:
             raise _generation_request_error(exc) from exc
     if (
-        auth_source == "codex"
-        and canonical_model_id == "gpt-image-2"
-        and requested_backend in _CODEX_GPT_BACKENDS
-        and canonical_parameters is not None
+        canonical_parameters is not None
+        and canonical_model_id in {None, "gpt-image-2"}
     ):
         canonical_size = str(canonical_parameters.get("canvas.size") or "").strip()
         if canonical_size:
             effective_size = canonical_size
+        canonical_ratio = canonical_parameters.get("canvas.aspect_ratio")
+        if canonical_ratio and not effective_ratio:
+            effective_ratio = str(canonical_ratio).strip()
+        canonical_resolution = canonical_parameters.get("canvas.resolution")
+        if canonical_resolution and not resolution:
+            resolution = str(canonical_resolution).strip()
         if not effective_ratio:
             effective_ratio = ratio_from_size(effective_size) or None
         if not effective_orientation:

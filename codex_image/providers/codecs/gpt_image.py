@@ -11,6 +11,8 @@ from codex_image.providers.contracts import ProtocolRequest, ProviderModelBindin
 GPT_PARAMETER_IDS = frozenset(
     {
         "canvas.size",
+        "canvas.aspect_ratio",
+        "canvas.resolution",
         "gpt.quality",
         "gpt.background",
         "output.format",

@@ -544,6 +544,53 @@ describe("buildGenerationPrompt", () => {
     });
     expect(prompt).toBe("Generate an image of: A cute cat.");
   });
+
+  it("chuẩn hóa --ar 16:9 trong prompt thành Set the aspect ratio to 16:9.", () => {
+    const prompt = buildGenerationPrompt({
+      prompt: "A cute orange cat --ar 16:9",
+      hasInputImages: false,
+      n: 1,
+    });
+    expect(prompt).toBe("Generate an image of: A cute orange cat. Set the aspect ratio to 16:9.");
+  });
+
+  it("ưu tiên dropdown ratio và dọn sạch --ar cũ trong prompt để chống conflicting ratios", () => {
+    const prompt = buildGenerationPrompt({
+      prompt: "A futuristic city --ar 1:1",
+      aspectRatioOrSize: "16:9",
+      hasInputImages: false,
+      n: 1,
+    });
+    expect(prompt).toBe("Generate an image of: A futuristic city. Set the aspect ratio to 16:9.");
+  });
+
+  it("xóa sạch --ar khi người dùng chọn None", () => {
+    const prompt = buildGenerationPrompt({
+      prompt: "A peaceful forest with mist --ar 16:9",
+      aspectRatioOrSize: "None",
+      hasInputImages: false,
+      n: 1,
+    });
+    expect(prompt).toBe("Generate an image of: A peaceful forest with mist.");
+  });
+
+  it("hỗ trợ tỷ lệ 9:21 và 21:9 từ độ phân giải chính xác", () => {
+    const prompt921 = buildGenerationPrompt({
+      prompt: "A tall wallpaper",
+      aspectRatioOrSize: "672x1568",
+      hasInputImages: false,
+      n: 1,
+    });
+    expect(prompt921).toBe("Generate an image of: A tall wallpaper. Set the aspect ratio to 9:21.");
+
+    const prompt219 = buildGenerationPrompt({
+      prompt: "An ultrawide banner",
+      aspectRatioOrSize: "1568x672",
+      hasInputImages: false,
+      n: 1,
+    });
+    expect(prompt219).toBe("Generate an image of: An ultrawide banner. Set the aspect ratio to 21:9.");
+  });
 });
 
 describe("CORS & Origin Security (REQ-06)", () => {

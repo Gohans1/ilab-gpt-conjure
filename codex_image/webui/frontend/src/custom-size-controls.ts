@@ -362,26 +362,30 @@ export function syncRatioAndOrientation(changedControl: any): void {
 }
 
 export function syncOrientationFromRatio(): void {
-  const nextOrientation = RATIO_ORIENTATION[els.ratio.value] || DEFAULT_ORIENTATION;
-  setSizeControlValue(els.orientation, nextOrientation);
+  withProgrammaticSizeSync(() => {
+    const nextOrientation = RATIO_ORIENTATION[els.ratio.value] || DEFAULT_ORIENTATION;
+    setSizeControlValue(els.orientation, nextOrientation);
+  });
 }
 
 export function syncRatioFromOrientation(): void {
-  const rawRatio = String(els.ratio?.value || "").trim().toLowerCase();
-  if (rawRatio === "none" || rawRatio === "auto") return;
-  const orientation = els.orientation.value;
-  if (orientation === "square") {
-    setSizeControlValue(els.ratio, DEFAULT_RATIO);
-    return;
-  }
-  if (RATIO_ORIENTATION[els.ratio.value] === orientation) return;
+  withProgrammaticSizeSync(() => {
+    const rawRatio = String(els.ratio?.value || "").trim().toLowerCase();
+    if (rawRatio === "none" || rawRatio === "auto") return;
+    const orientation = els.orientation.value;
+    if (orientation === "square") {
+      setSizeControlValue(els.ratio, DEFAULT_RATIO);
+      return;
+    }
+    if (RATIO_ORIENTATION[els.ratio.value] === orientation) return;
 
-  const counterpart = RATIO_COUNTERPARTS[els.ratio.value];
-  if (counterpart && RATIO_ORIENTATION[counterpart] === orientation) {
-    setSizeControlValue(els.ratio, counterpart);
-    return;
-  }
-  setSizeControlValue(els.ratio, ORIENTATION_DEFAULT_RATIOS[orientation] || DEFAULT_RATIO);
+    const counterpart = RATIO_COUNTERPARTS[els.ratio.value];
+    if (counterpart && RATIO_ORIENTATION[counterpart] === orientation) {
+      setSizeControlValue(els.ratio, counterpart);
+      return;
+    }
+    setSizeControlValue(els.ratio, ORIENTATION_DEFAULT_RATIOS[orientation] || DEFAULT_RATIO);
+  });
 }
 
 export function setSizeControlValue(select: any, value: any): boolean {
@@ -421,7 +425,7 @@ if (typeof document !== "undefined" && typeof document.addEventListener === "fun
   document.addEventListener(LOCALE_CHANGE_EVENT, () => updatePixelPreview(els.size?.value || ""));
 }
 
-export function syncSizeControlsFromSize(size: any): void {
+export function syncSizeControlsFromSize(size: any, explicitRatio?: string): void {
   withProgrammaticSizeSync(() => {
     const normalizedSize = String(size || "")
       .trim()
@@ -431,7 +435,7 @@ export function syncSizeControlsFromSize(size: any): void {
     if (!size || normalizedSize === "auto") {
       if (els.customSizeToggle) els.customSizeToggle.checked = false;
       if (els.resolution && !els.resolution.value) els.resolution.value = DEFAULT_RESOLUTION;
-      if (els.ratio) els.ratio.value = "None";
+      if (els.ratio) els.ratio.value = explicitRatio || "None";
       if (els.orientation && !els.orientation.value) els.orientation.value = DEFAULT_ORIENTATION;
       updateSizeFromPreset();
       syncRadioButtons(els.resolution, els.ratio, els.orientation);
@@ -443,7 +447,7 @@ export function syncSizeControlsFromSize(size: any): void {
       if (els.customSizeToggle) els.customSizeToggle.checked = false;
       if (els.resolution) els.resolution.value = presetMatch.resolution;
       if (els.ratio) {
-        els.ratio.value = presetMatch.ratio;
+        els.ratio.value = explicitRatio || presetMatch.ratio;
       }
       if (els.orientation) els.orientation.value = presetMatch.orientation;
       updateSizeFromPreset();

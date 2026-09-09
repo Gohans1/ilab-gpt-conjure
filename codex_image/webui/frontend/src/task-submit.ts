@@ -146,7 +146,7 @@ export function applyTaskOutputParams(task: any): void {
     els.webSearch.dispatchEvent(new Event("input"));
   }
   if (params.model && els.model) els.model.value = params.model;
-  if (output.size) syncSizeControlsFromSize(output.size);
+  if (output.size) syncSizeControlsFromSize(output.size, (output.ratio || params.ratio) as string | undefined);
   if (output.n && els.nInput) {
     els.nInput.value = String(output.n);
   }

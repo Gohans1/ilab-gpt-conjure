@@ -358,9 +358,17 @@ export function enqueueTask<T>(task: () => Promise<T>, signal?: AbortSignal): Pr
   });
 }
 
-// Regex bao quát toàn bộ 14 ngôn ngữ hỗ trợ để bóc sạch câu ratio nếu có
-const ratioRegex =
-  /(?:Set the aspect ratio to|Đặt tỷ lệ khung hình thành|将宽高比设为|將寬高比設為|アスペクト比を|화면 비율을|Establece la relación de aspecto en|Defina a proporção da imagem como|Réglez le rapport largeur\/hauteur sur|Stelle das Seitenverhältnis auf|Установите соотношение сторон|Imposta le proporzioni su|पक्षानुपात को)\s*[0-9]+:[0-9]+(?:\s*に設定してください|\s*로 설정하세요|\s*ein|\s*पर सेट करें)?[.\u3002\u0964]?/gi;
+// Regex bao quát toàn bộ 14 ngôn ngữ hỗ trợ để bóc sạch câu ratio nếu có, cùng các cú pháp phổ biến như --ar, -ar, aspect ratio
+export const ratioRegex =
+  /(?:(?:Set the aspect ratio to|Đặt tỷ lệ khung hình thành|将宽高比设为|將寬高比設為|アスペクト比を|화면 비율을|Establece la relación de aspecto en|Defina a proporção da imagem como|Réglez le rapport largeur\/hauteur sur|Stelle das Seitenverhältnis auf|Установите соотношение сторон|Imposta le proporzioni su|पक्षानुपात को)\s*[0-9]+:[0-9]+(?:\s*に設定してください|\s*로 설정하세요|\s*ein|\s*पर सेट करें)?[.\u3002\u0964]?)|(?:(?:--ar|-ar|aspect[_\s-]*ratio(?:[:=]|\s+to)?)\s*[0-9]+:[0-9]+[.\u3002\u0964]?)/gi;
+
+export function extractRatioFromText(text: string): string | null {
+  if (!text) return null;
+  const match = text.match(
+    /(?:(?:Set the aspect ratio to|Đặt tỷ lệ khung hình thành|将宽高比设为|將寬高比設為|アスペクト比を|화면 비율을|Establece la relación de aspecto en|Defina a proporção da imagem como|Réglez le rapport largeur\/hauteur sur|Stelle das Seitenverhältnis auf|Установите соотношение сторон|Imposta le proporzioni su|पक्षानुपात को)|(?:--ar|-ar|aspect[_\s-]*ratio(?:[:=]|\s+to)?))\s*([0-9]+:[0-9]+)/i
+  );
+  return match ? match[1] : null;
+}
 
 const ORIGINAL_PROMPT_MARKERS = [
   "Original user prompt:",
@@ -464,9 +472,9 @@ export function buildGenerationPrompt(options: {
     if (detectedRatio) {
       ratioInstruction = ` Set the aspect ratio to ${detectedRatio}.`;
     } else {
-      const ratioMatch = options.prompt.match(ratioRegex);
-      if (ratioMatch) {
-        ratioInstruction = ` ${ratioMatch[0].trim()}`;
+      const promptRatio = extractRatioFromText(options.prompt);
+      if (promptRatio) {
+        ratioInstruction = ` Set the aspect ratio to ${promptRatio}.`;
       }
     }
   }

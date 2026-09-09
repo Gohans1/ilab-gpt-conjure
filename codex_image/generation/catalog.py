@@ -239,6 +239,23 @@ MODEL_MANIFESTS = (
                 default="1024x1024",
                 full_width=True,
             ),
+            ParameterDefinition(
+                id="canvas.aspect_ratio",
+                label_key="canvas.aspectRatio",
+                group="canvas",
+                control="select",
+                value_type="string",
+                default="1:1",
+                full_width=True,
+            ),
+            ParameterDefinition(
+                id="canvas.resolution",
+                label_key="canvas.resolution",
+                group="canvas",
+                control="select",
+                value_type="string",
+                default="standard",
+            ),
             _select(
                 "gpt.quality",
                 "output.quality",

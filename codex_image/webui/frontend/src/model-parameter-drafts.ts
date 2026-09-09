@@ -122,9 +122,10 @@ export function restoreCurrentModelParameterDraft(): void {
     if (typeof draft["canvas.aspect_ratio"] === "string" && els.ratio) els.ratio.value = draft["canvas.aspect_ratio"];
     const rawRatio = String(draft["canvas.aspect_ratio"] || "").trim().toLowerCase();
     const isNoneRatio = rawRatio === "none" || rawRatio === "auto";
+    const explicitRatio = typeof draft["canvas.aspect_ratio"] === "string" ? draft["canvas.aspect_ratio"] : undefined;
     const effectiveSize = isNoneRatio ? "auto" : draft["canvas.size"];
     if (typeof effectiveSize === "string") {
-      methods.syncSizeControlsFromSize?.(effectiveSize);
+      methods.syncSizeControlsFromSize?.(effectiveSize, explicitRatio);
     } else if ((draft["canvas.resolution"] || draft["canvas.aspect_ratio"]) && typeof methods.updateSizeFromPreset === "function") {
       methods.updateSizeFromPreset();
     }

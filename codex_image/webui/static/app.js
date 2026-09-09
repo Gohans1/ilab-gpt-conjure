@@ -38572,24 +38572,28 @@ ${hint}` : hint;
     syncOrientationFromRatio();
   }
   function syncOrientationFromRatio() {
-    const nextOrientation = RATIO_ORIENTATION[els14.ratio.value] || DEFAULT_ORIENTATION;
-    setSizeControlValue(els14.orientation, nextOrientation);
+    withProgrammaticSizeSync(() => {
+      const nextOrientation = RATIO_ORIENTATION[els14.ratio.value] || DEFAULT_ORIENTATION;
+      setSizeControlValue(els14.orientation, nextOrientation);
+    });
   }
   function syncRatioFromOrientation() {
-    const rawRatio = String(els14.ratio?.value || "").trim().toLowerCase();
-    if (rawRatio === "none" || rawRatio === "auto") return;
-    const orientation = els14.orientation.value;
-    if (orientation === "square") {
-      setSizeControlValue(els14.ratio, DEFAULT_RATIO);
-      return;
-    }
-    if (RATIO_ORIENTATION[els14.ratio.value] === orientation) return;
-    const counterpart = RATIO_COUNTERPARTS[els14.ratio.value];
-    if (counterpart && RATIO_ORIENTATION[counterpart] === orientation) {
-      setSizeControlValue(els14.ratio, counterpart);
-      return;
-    }
-    setSizeControlValue(els14.ratio, ORIENTATION_DEFAULT_RATIOS[orientation] || DEFAULT_RATIO);
+    withProgrammaticSizeSync(() => {
+      const rawRatio = String(els14.ratio?.value || "").trim().toLowerCase();
+      if (rawRatio === "none" || rawRatio === "auto") return;
+      const orientation = els14.orientation.value;
+      if (orientation === "square") {
+        setSizeControlValue(els14.ratio, DEFAULT_RATIO);
+        return;
+      }
+      if (RATIO_ORIENTATION[els14.ratio.value] === orientation) return;
+      const counterpart = RATIO_COUNTERPARTS[els14.ratio.value];
+      if (counterpart && RATIO_ORIENTATION[counterpart] === orientation) {
+        setSizeControlValue(els14.ratio, counterpart);
+        return;
+      }
+      setSizeControlValue(els14.ratio, ORIENTATION_DEFAULT_RATIOS[orientation] || DEFAULT_RATIO);
+    });
   }
   function setSizeControlValue(select, value) {
     if (!select || select.value === value) return false;
@@ -38625,13 +38629,13 @@ ${hint}` : hint;
   if (typeof document !== "undefined" && typeof document.addEventListener === "function") {
     document.addEventListener(LOCALE_CHANGE_EVENT, () => updatePixelPreview(els14.size?.value || ""));
   }
-  function syncSizeControlsFromSize(size) {
+  function syncSizeControlsFromSize(size, explicitRatio) {
     withProgrammaticSizeSync(() => {
       const normalizedSize = String(size || "").trim().toLowerCase().replace(/×/g, "x").replace(/\s*x\s*/g, "x");
       if (!size || normalizedSize === "auto") {
         if (els14.customSizeToggle) els14.customSizeToggle.checked = false;
         if (els14.resolution && !els14.resolution.value) els14.resolution.value = DEFAULT_RESOLUTION;
-        if (els14.ratio) els14.ratio.value = "None";
+        if (els14.ratio) els14.ratio.value = explicitRatio || "None";
         if (els14.orientation && !els14.orientation.value) els14.orientation.value = DEFAULT_ORIENTATION;
         updateSizeFromPreset();
         syncRadioButtons(els14.resolution, els14.ratio, els14.orientation);
@@ -38642,7 +38646,7 @@ ${hint}` : hint;
         if (els14.customSizeToggle) els14.customSizeToggle.checked = false;
         if (els14.resolution) els14.resolution.value = presetMatch.resolution;
         if (els14.ratio) {
-          els14.ratio.value = presetMatch.ratio;
+          els14.ratio.value = explicitRatio || presetMatch.ratio;
         }
         if (els14.orientation) els14.orientation.value = presetMatch.orientation;
         updateSizeFromPreset();
@@ -38873,9 +38877,10 @@ ${hint}` : hint;
       if (typeof draft["canvas.aspect_ratio"] === "string" && els44.ratio) els44.ratio.value = draft["canvas.aspect_ratio"];
       const rawRatio = String(draft["canvas.aspect_ratio"] || "").trim().toLowerCase();
       const isNoneRatio = rawRatio === "none" || rawRatio === "auto";
+      const explicitRatio = typeof draft["canvas.aspect_ratio"] === "string" ? draft["canvas.aspect_ratio"] : void 0;
       const effectiveSize = isNoneRatio ? "auto" : draft["canvas.size"];
       if (typeof effectiveSize === "string") {
-        methods.syncSizeControlsFromSize?.(effectiveSize);
+        methods.syncSizeControlsFromSize?.(effectiveSize, explicitRatio);
       } else if ((draft["canvas.resolution"] || draft["canvas.aspect_ratio"]) && typeof methods.updateSizeFromPreset === "function") {
         methods.updateSizeFromPreset();
       }
@@ -51426,7 +51431,7 @@ ${galleryText}`;
       els33.webSearch.dispatchEvent(new Event("input"));
     }
     if (params.model && els33.model) els33.model.value = params.model;
-    if (output.size) syncSizeControlsFromSize2(output.size);
+    if (output.size) syncSizeControlsFromSize2(output.size, output.ratio || params.ratio);
     if (output.n && els33.nInput) {
       els33.nInput.value = String(output.n);
     }

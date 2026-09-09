@@ -831,7 +831,7 @@ export async function handleLogin(
               try {
                 const lines = readFileSync(portFile, "utf-8").trim().split("\n");
                 const p = Number(lines[0]?.trim());
-                if (Number.isFinite(p) && p > 0) {
+                if (Number.isInteger(p) && p >= 1 && p <= 65535) {
                   const wsPath = lines[1]?.trim() || "";
                   if (wsPath || Date.now() > portDeadline - 1500) {
                     cdpEndpoint = wsPath
