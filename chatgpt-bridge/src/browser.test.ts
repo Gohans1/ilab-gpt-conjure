@@ -93,15 +93,50 @@ describe("browser helpers", () => {
   });
 
   test("killProcessTree sử dụng fast-path trực tiếp khi PID nằm trong activeBrowserPids", () => {
-    const dummy = spawn(process.platform === "win32" ? "cmd.exe" : "sleep", process.platform === "win32" ? ["/c", "timeout 10 >nul"] : ["10"], { stdio: "ignore" });
-    expect(dummy.pid).toBeDefined();
-    if (dummy.pid) {
-      registerActiveBrowserPid(dummy.pid);
+    const dummy = spawn(
+      process.platform === "win32" ? "ping" : "sleep",
+      process.platform === "win32" ? ["127.0.0.1", "-n", "10"] : ["10"],
+      { stdio: "ignore" }
+    );
+    const pid = dummy.pid;
+    expect(pid).toBeDefined();
+    if (pid) {
+      registerActiveBrowserPid(pid);
       try {
-        expect(getActiveBrowserPids().includes(dummy.pid)).toBe(true);
-        expect(() => killProcessTree(dummy.pid)).not.toThrow();
+        expect(getActiveBrowserPids().includes(pid)).toBe(true);
+        expect(() => killProcessTree(pid)).not.toThrow();
+        let dead = false;
+        for (let i = 0; i < 15; i++) {
+          try {
+            process.kill(pid, 0);
+            Bun.sleepSync(20);
+          } catch {
+            dead = true;
+            break;
+          }
+        }
+        expect(dead).toBe(true);
       } finally {
-        unregisterActiveBrowserPid(dummy.pid);
+        unregisterActiveBrowserPid(pid);
+        try {
+          dummy.kill("SIGKILL");
+        } catch {}
+      }
+    }
+  });
+
+  test("killProcessTree hỗ trợ cờ isKnownBrowser bỏ qua tasklist.exe", () => {
+    const dummy = spawn(
+      process.platform === "win32" ? "ping" : "sleep",
+      process.platform === "win32" ? ["127.0.0.1", "-n", "10"] : ["10"],
+      { stdio: "ignore" }
+    );
+    const pid = dummy.pid;
+    expect(pid).toBeDefined();
+    if (pid) {
+      try {
+        expect(() => killProcessTree(pid, true)).not.toThrow();
+      } finally {
         try {
           dummy.kill("SIGKILL");
         } catch {}

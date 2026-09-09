@@ -51,7 +51,7 @@ export function unregisterActiveBrowserPid(pid: number): void {
   activeBrowserPids.delete(pid);
 }
 
-export function killProcessTree(pid: number): void {
+export function killProcessTree(pid: number, isKnownBrowser: boolean = false): void {
   if (!Number.isInteger(pid) || pid <= 0 || pid === process.pid || (process.ppid && pid === process.ppid)) return;
   try {
     process.kill(pid, 0);
@@ -61,7 +61,7 @@ export function killProcessTree(pid: number): void {
   if (process.platform === "win32") {
     try {
       const systemRoot = process.env.SystemRoot || process.env.SYSTEMROOT || "C:\\Windows";
-      const isKnownBrowserPid = activeBrowserPids.has(pid);
+      const isKnownBrowserPid = isKnownBrowser || activeBrowserPids.has(pid);
       if (!isKnownBrowserPid) {
         const tasklist = join(systemRoot, "System32", "tasklist.exe");
         const check = spawnSync(tasklist, ["/FI", `PID eq ${pid}`, "/FO", "CSV", "/NH"], {
@@ -139,7 +139,7 @@ Get-CimInstance Win32_Process -Filter "Name = 'chrome.exe' or Name = 'msedge.exe
 }
 
 export async function findBrowserPidsByTagAsync(tag: string): Promise<number[]> {
-  if (!tag || process.platform !== "win32") return [];
+  if (!tag || !tag.startsWith("--chatgpt-bridge-instance") || process.platform !== "win32") return [];
   return new Promise<number[]>((resolve) => {
     try {
       const systemRoot = process.env.SystemRoot || process.env.SYSTEMROOT || "C:\\Windows";
@@ -492,11 +492,9 @@ export async function getBrowserSession(options: BrowserOptions = {}): Promise<B
       // Session đã kết thúc hoặc browser đã ngắt kết nối trước khi tìm xong PID.
       // Diệt ngay lập tức các PID vừa tìm được để chống rò rỉ Zombie PID vào bộ nhớ.
       for (const pid of pids) {
-        registerActiveBrowserPid(pid);
         try {
-          killProcessTree(pid);
+          killProcessTree(pid, true);
         } catch {}
-        unregisterActiveBrowserPid(pid);
       }
       return;
     }

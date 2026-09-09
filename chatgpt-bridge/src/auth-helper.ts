@@ -813,11 +813,9 @@ export async function handleLogin(
           .then((pids) => {
             if (!isAttemptActive || isOfflineExtractionClosed) {
               for (const pid of pids) {
-                registerActiveBrowserPid(pid);
                 try {
-                  killProcessTree(pid);
+                  killProcessTree(pid, true);
                 } catch {}
-                unregisterActiveBrowserPid(pid);
               }
               return;
             }
